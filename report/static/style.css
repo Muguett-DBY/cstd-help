@@ -201,6 +201,13 @@ body {
 .primary-link:hover {
     border-color: var(--accent-blue);
 }
+.secondary-link {
+    background: rgba(63,185,80,0.1);
+    border-color: rgba(63,185,80,0.38);
+}
+.secondary-link:hover {
+    border-color: var(--accent-green);
+}
 .report-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -505,6 +512,59 @@ body {
     border-radius: 6px;
     color: var(--text-secondary);
     background: var(--bg-secondary);
+}
+.practice-list {
+    display: grid;
+    gap: 14px;
+    padding-top: 24px;
+}
+.practice-card {
+    display: grid;
+    grid-template-columns: 128px minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+}
+.practice-rank {
+    color: var(--accent-blue);
+    font-size: 13px;
+    font-weight: 800;
+}
+.practice-main {
+    display: grid;
+    gap: 10px;
+}
+.practice-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+.practice-title-row h2 {
+    font-size: 18px;
+    line-height: 1.3;
+}
+.practice-meta {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.practice-action {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-primary);
+}
+.practice-action strong {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+.practice-action span {
+    color: var(--text-primary);
+    font-size: 13px;
 }
 .history-panel { padding-top: 26px; }
 .history-title-row {
@@ -964,6 +1024,14 @@ tr:hover { background: rgba(88,166,255,0.05); }
     }
     .neighbor-grid {
         grid-template-columns: 1fr;
+    }
+    .practice-card {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    .practice-title-row {
+        flex-direction: column;
+        gap: 8px;
     }
     .history-page { padding: 12px; }
     .history-header {

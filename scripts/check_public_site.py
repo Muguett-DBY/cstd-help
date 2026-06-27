@@ -47,16 +47,19 @@ def _title_for(path):
 
 def main():
     index_path = PUBLIC_DIR / "index.html"
+    practice_path = PUBLIC_DIR / "practice-plan.html"
     trends_path = PUBLIC_DIR / "review-trends.json"
     style_path = PUBLIC_DIR / "static" / "style.css"
     if not index_path.exists():
         raise SystemExit("public/index.html is missing")
+    if not practice_path.exists():
+        raise SystemExit("public/practice-plan.html is missing")
     if not trends_path.exists():
         raise SystemExit("public/review-trends.json is missing")
     if not style_path.exists():
         raise SystemExit("public/static/style.css is missing")
 
-    reports = sorted(path for path in PUBLIC_DIR.glob("*.html") if path.name != "index.html")
+    reports = sorted(path for path in PUBLIC_DIR.glob("*.html") if path.name not in {"index.html", "practice-plan.html"})
     if not reports:
         raise SystemExit("public contains no report HTML files")
 
@@ -72,6 +75,7 @@ def main():
         "data-filter-priority",
         "data-empty-state",
         "没有匹配的比赛",
+        "practice-plan.html",
         "优先复盘",
         "最近反复问题",
         "我方阵容",
@@ -92,6 +96,11 @@ def main():
         for key in ("focus", "count", "priority", "heroes", "next_action", "success_metric", "examples"):
             if key not in trend:
                 raise SystemExit(f"review trend is missing required field: {key}")
+
+    practice_html = practice_path.read_text(encoding="utf-8")
+    for required in ("下一次训练计划", "第 1 优先级", "下一局动作", "验收标准"):
+        if required not in practice_html:
+            raise SystemExit(f"practice plan page is missing required content: {required}")
 
     for report in reports:
         text = report.read_text(encoding="utf-8")

@@ -178,6 +178,36 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(payload["trends"][0]["focus"], "前10分钟资源")
         self.assertEqual(payload["trends"][0]["count"], 2)
 
+    def test_build_pages_site_writes_practice_plan_page(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            self._write_report(source, metadata, filename="Mirana_8867002237_20260626_224839.html")
+            second = dict(metadata)
+            second["match_id"] = 8867002240
+            second["hero"] = {"id": 69, "name": "Doom", "slug": "doom_bringer"}
+            self._write_report(source, second, filename="Doom_8867002240_20260626_224840.html")
+
+            pages_site.build_pages_site(source, public_dir=public)
+            index_html = (Path(public) / "index.html").read_text(encoding="utf-8")
+            plan_html = (Path(public) / "practice-plan.html").read_text(encoding="utf-8")
+
+        self.assertIn("practice-plan.html", index_html)
+        self.assertIn("下一次训练计划", plan_html)
+        self.assertIn("第 1 优先级", plan_html)
+        self.assertIn("前10分钟资源", plan_html)
+        self.assertIn("下一局前10分钟低效率窗口=0。", plan_html)
+        self.assertIn("10分钟补刀&gt;=35。", plan_html)
+
     def test_build_pages_site_injects_adjacent_report_navigation(self):
         metadata = {
             "match_id": 8867002237,

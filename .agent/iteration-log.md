@@ -117,3 +117,26 @@
   - Add semantic grouping for equivalent focus names.
   - Add a small generated manifest for report freshness and counts.
 - Recommended flagship next change: generate a practice-plan page that converts repeated trends into a next-session training queue.
+
+## 2026-06-28 - Stage 6 IMPROVE
+
+- Goal: turn repeated review trends into a next-session practice plan.
+- Completed:
+  - Added `practice-plan.html` generated from recurring trend data.
+  - Added a `下一次训练计划` link on the history page.
+  - Practice cards show priority, trend frequency, involved heroes, next action, acceptance metric, and example report links.
+  - Fixed static validation so non-report pages are not checked as match reports.
+- User-visible gain: before queueing the next ranked match, the player has a compact checklist of what to train first.
+- Verification:
+  - Browser desktop and mobile practice-plan checks with no overflow or console warnings/errors.
+  - `python -m unittest discover -s tests -p "test*.py"`
+  - `python -m compileall -q .`
+  - `python scripts/check_public_site.py`
+- GitHub Actions / CI: pending after push.
+- Risks:
+  - Trend focus names are still exact-string grouped.
+- Next best directions:
+  - Normalize equivalent focus names across reports.
+  - Add URL-persisted filters for shareable history views.
+  - Add a freshness manifest showing source report count and latest match id.
+- Recommended flagship next change: normalize trend taxonomy so the practice plan groups equivalent issues across heroes and roles more intelligently.

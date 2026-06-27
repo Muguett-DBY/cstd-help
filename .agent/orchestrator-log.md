@@ -160,9 +160,39 @@ Started: 2026-06-28
   - `python -m compileall -q .`: passed.
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: passed, no leaks found.
+- Commit: `fix: add empty state for match filters` (`9adaf42`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, run `28305267306`.
+- Risks:
+  - Exact trend focus normalization remains future work.
+- Next stage: Stage 6 IMPROVE.
+
+## Stage 6 - IMPROVE
+
+- Prompt: `AGENT_IMPROVE_MAIN.txt`
+- Goal: turn recurring review trends into a next-session practice plan.
+- Start status: clean `main`, stage 5 CI passed.
+- Previous-stage direction:
+  - Stage 5 recommended generating a practice-plan page from recurring trends.
+- Result:
+  - Added `practice-plan.html`.
+  - Added a history-page entry point labeled `下一次训练计划`.
+  - Practice cards use real trend data: frequency, involved heroes, next action, acceptance metric, and example match links.
+  - Fixed the static checker so non-report pages are not validated as match reports.
+  - Extended static validation to require the practice-plan page and core content.
+- Browser verification:
+  - Opened history page, clicked `practice-plan.html`, verified 3 practice cards.
+  - Desktop: no overflow, first card shows `前10分钟资源`, 5 matches, next action, and acceptance metric.
+  - Mobile 390px: no overflow, back link visible, cards render.
+  - No console warnings/errors.
+- Local verification:
+  - `python -m unittest tests.test_build_pages_site.BuildPagesSiteTests.test_build_pages_site_writes_practice_plan_page`: failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 39 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
 - Commit: pending.
 - Push: pending.
 - GitHub Actions / CI: pending.
 - Risks:
-  - Exact trend focus normalization remains future work.
-- Next stage: Stage 6 IMPROVE.
+  - The practice plan is generated from exact trend focus names; semantic normalization remains future work.
+- Next stage: complete 6-stage run.
