@@ -612,6 +612,10 @@ def _render_index(reports, output_path=None):
             </div>
             {''.join(report_rows)}
         </div>
+        <div class="match-empty-state" data-empty-state hidden>
+            <strong>没有匹配的比赛</strong>
+            <span>换一个英雄、比赛号、复盘问题，或清除胜负/优先级筛选。</span>
+        </div>
     </main>
 </div>
 <script>
@@ -630,6 +634,7 @@ const filterState = {{ result: 'all', priority: 'all', query: '' }};
 const matchRows = Array.from(document.querySelectorAll('.match-row'));
 const countLabel = document.querySelector('[data-match-count]');
 const searchInput = document.getElementById('match-search');
+const emptyState = document.querySelector('[data-empty-state]');
 
 function setActiveButton(buttons, selected) {{
     buttons.forEach((button) => {{
@@ -652,6 +657,7 @@ function applyMatchFilters() {{
         if (shouldShow) visible += 1;
     }});
     if (countLabel) countLabel.textContent = `显示 ${{visible}} / ${{matchRows.length}} 场`;
+    if (emptyState) emptyState.hidden = visible !== 0;
 }}
 
 document.querySelectorAll('[data-filter-result]').forEach((button) => {{

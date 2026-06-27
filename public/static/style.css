@@ -520,6 +520,27 @@ body {
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
 }
+.match-empty-state {
+    display: grid;
+    gap: 4px;
+    margin-top: 12px;
+    padding: 18px;
+    border: 1px dashed rgba(139,148,158,0.45);
+    border-radius: 6px;
+    background: rgba(139,148,158,0.06);
+    color: var(--text-secondary);
+    text-align: center;
+}
+.match-empty-state[hidden] {
+    display: none;
+}
+.match-empty-state strong {
+    color: var(--text-primary);
+    font-size: 14px;
+}
+.match-empty-state span {
+    font-size: 12px;
+}
 .match-table-head,
 .match-row {
     display: grid;
