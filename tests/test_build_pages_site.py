@@ -13,6 +13,7 @@ class BuildPagesSiteTests(unittest.TestCase):
         path.write_text(
             "<!doctype html><html><head><title>Mirana 复盘报告</title></head>"
             "<body>"
+            '<a class="back-link" href="index.html">← 比赛历史</a>'
             '<div class="finding-card high">'
             f'<div class="finding-title">{focus}</div>'
             '<div class="finding-line"><strong>训练目标:</strong> 下一局前10分钟低效率窗口=0。</div>'
@@ -174,6 +175,36 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(payload["schema_version"], 1)
         self.assertEqual(payload["trends"][0]["focus"], "前10分钟资源")
         self.assertEqual(payload["trends"][0]["count"], 2)
+
+    def test_build_pages_site_injects_adjacent_report_navigation(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            self._write_report(source, metadata, filename="Mirana_8867002237_20260626_224839.html")
+            older = dict(metadata)
+            older["match_id"] = 8866000193
+            older["hero"] = {"id": 1, "name": "Anti-Mage", "slug": "antimage"}
+            older["ended_at"] = "2026-06-25T16:00:37Z"
+            self._write_report(source, older, filename="Anti-Mage_8866000193_20260625_160037.html", focus="终结比赛")
+
+            pages_site.build_pages_site(source, public_dir=public)
+            latest = Path(public) / "Mirana_8867002237_20260626_224839.html"
+            latest_html = latest.read_text(encoding="utf-8")
+
+        self.assertIn("相邻比赛", latest_html)
+        self.assertIn("下一局（更早）", latest_html)
+        self.assertIn("Anti-Mage", latest_html)
+        self.assertIn("Anti-Mage_8866000193_20260625_160037.html", latest_html)
+        self.assertIn("终结比赛", latest_html)
 
 
 if __name__ == "__main__":

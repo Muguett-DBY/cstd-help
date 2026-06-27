@@ -96,6 +96,8 @@ def main():
         missing = [item for item in REQUIRED_REPORT_TEXT if item not in text]
         if missing:
             raise SystemExit(f"{report.name} is missing required report sections: {', '.join(missing)}")
+        if "相邻比赛" not in text or "report-neighbors" not in text:
+            raise SystemExit(f"{report.name} is missing adjacent report navigation")
         title = _title_for(report)
         if not title or title.startswith("复盘报告"):
             raise SystemExit(f"{report.name} title must start with the hero name")
