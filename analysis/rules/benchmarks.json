@@ -1,0 +1,31 @@
+{
+  "carry": {
+    "legendary": {
+      "10min_last_hits": {"excellent": 65, "good": 55, "average": 45, "poor": 35},
+      "10min_gpm": {"excellent": 500, "good": 430, "average": 370, "poor": 300},
+      "10min_xpm": {"excellent": 550, "good": 480, "average": 420, "poor": 350},
+      "20min_last_hits": {"excellent": 150, "good": 130, "average": 110, "poor": 90},
+      "20min_gpm": {"excellent": 600, "good": 530, "average": 460, "poor": 380},
+      "30min_last_hits": {"excellent": 250, "good": 220, "average": 190, "poor": 150},
+      "30min_gpm": {"excellent": 700, "good": 620, "average": 540, "poor": 450}
+    },
+    "immortal": {
+      "10min_last_hits": {"excellent": 70, "good": 60, "average": 50, "poor": 40},
+      "10min_gpm": {"excellent": 530, "good": 460, "average": 400, "poor": 330},
+      "10min_xpm": {"excellent": 580, "good": 510, "average": 450, "poor": 380},
+      "20min_last_hits": {"excellent": 160, "good": 140, "average": 120, "poor": 100},
+      "20min_gpm": {"excellent": 640, "good": 560, "average": 490, "poor": 410},
+      "30min_last_hits": {"excellent": 270, "good": 240, "average": 210, "poor": 170},
+      "30min_gpm": {"excellent": 740, "good": 660, "average": 580, "poor": 480}
+    }
+  },
+  "mid": {
+    "legendary": {
+      "10min_last_hits": {"excellent": 60, "good": 50, "average": 42, "poor": 33},
+      "10min_gpm": {"excellent": 480, "good": 410, "average": 350, "poor": 280},
+      "10min_xpm": {"excellent": 580, "good": 500, "average": 430, "poor": 360},
+      "20min_last_hits": {"excellent": 140, "good": 120, "average": 100, "poor": 80},
+      "20min_gpm": {"excellent": 580, "good": 500, "average": 430, "poor": 350}
+    }
+  }
+}

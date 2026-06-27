@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ hero_name }} 复盘报告 - {{ match_date }}</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <h1>{{ hero_name }} 复盘报告</h1>
+        <div class="subtitle">比赛ID: {{ match_id }} | {{ match_date }} | 时长 {{ duration_min }}分钟</div>
+        <div class="result-badge {{ 'win' if is_win else 'lose' }}">{{ '胜利' if is_win else '失败' }}</div>
+    </div>
+
+    {% if ai_analysis %}
+    <div class="section priority-section">
+        <div class="section-header">&#129504; 教练总结</div>
+        <div class="section-body">
+            <div class="coach-analysis">{{ ai_analysis }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if review_findings %}
+    <div class="section priority-section">
+        <div class="section-header">&#127919; 下一局量化目标</div>
+        <div class="section-body">
+            <div class="goal-list">
+                {% for finding in review_findings[:5] %}
+                <div class="goal-row">
+                    <div class="goal-title">{{ finding.category_label or finding.category }}</div>
+                    <div class="goal-body"><strong>训练目标:</strong> {{ finding.training_goal }}</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> {{ finding.success_metric }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="section priority-section">
+        <div class="section-header">&#127919; 下一局行动清单</div>
+        <div class="section-body">
+            {% for finding in review_findings[:5] %}
+            <div class="finding-card {{ finding.priority }}">
+                <div class="finding-title">{{ finding.priority_label or finding.priority }} · {{ finding.category_label or finding.category }}</div>
+                <div class="finding-line"><strong>证据:</strong> {{ finding.evidence }}</div>
+                <div class="finding-line"><strong>影响:</strong> {{ finding.why_it_matters }}</div>
+                <div class="finding-line"><strong>行动:</strong> {{ finding.action }}</div>
+                <div class="finding-line"><strong>训练目标:</strong> {{ finding.training_goal }}</div>
+                <div class="finding-line"><strong>验收标准:</strong> {{ finding.success_metric }}</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> {{ finding.replay_check }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if data_quality %}
+    <div class="section">
+        <div class="section-header">&#128269; 数据完整性</div>
+        <div class="section-body">
+            <div class="quality-row">
+                <div class="quality-score">{{ data_quality.score }}/100</div>
+                <div>
+                    <div class="quality-label">可用数据：{{ data_quality.available|join(', ') }}</div>
+                    <div class="quality-label">数据缺口</div>
+                    {% if data_quality.limitations %}
+                    <ul class="limitation-list">
+                        {% for item in data_quality.limitations %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="compact-row">无关键数据缺口。</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if context %}
+    <div class="section">
+        <div class="section-header">&#127919; 比赛上下文</div>
+        <div class="section-body">
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value small-text">{{ role_profile.label if role_profile and role_profile.label else context.role or '未知' }}</div>
+                    <div class="stat-label">位置</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value small-text">{{ context.lane or '未知' }}</div>
+                    <div class="stat-label">分路</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value small-text">{{ context.side or '未知' }}</div>
+                    <div class="stat-label">阵营</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ context.team_kills or '-' }}/{{ context.enemy_kills or '-' }}</div>
+                    <div class="stat-label">己方/敌方击杀</div>
+                </div>
+            </div>
+            {% if context.enemy_heroes %}
+            <div class="hero-line">敌方英雄：{{ context.enemy_heroes|join(' / ') }}</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="section">
+        <div class="section-header">&#128202; 比赛概览</div>
+        <div class="section-body">
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ kda.kills }}/{{ kda.deaths }}/{{ kda.assists }}</div>
+                    <div class="stat-label">K/D/A</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ kda.kda_ratio }}</div>
+                    <div class="stat-label">KDA比率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ farm.gpm }}</div>
+                    <div class="stat-label">GPM</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ farm.xpm }}</div>
+                    <div class="stat-label">XPM</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ farm.last_hits }}/{{ farm.denies }}</div>
+                    <div class="stat-label">正补/反补</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ farm.net_worth }}</div>
+                    <div class="stat-label">净财产</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ derived.lh_per_min }}</div>
+                    <div class="stat-label">LH/min</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ derived.hero_damage_per_min }}</div>
+                    <div class="stat-label">伤害/分钟</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ derived.deaths_per_10_min }}</div>
+                    <div class="stat-label">每10分钟死亡</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ farm.hero_damage }}</div>
+                    <div class="stat-label">英雄伤害</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ farm.tower_damage }}</div>
+                    <div class="stat-label">推塔伤害</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if timeline %}
+    <div class="section">
+        <div class="section-header">&#128200; 时间线诊断</div>
+        <div class="section-body">
+            {% if timeline.available %}
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ timeline.ten_min_last_hits }}</div>
+                    <div class="stat-label">10分钟补刀</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ timeline.twenty_min_last_hits or '-' }}</div>
+                    <div class="stat-label">20分钟补刀</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ timeline.twenty_min_avg_gpm or '-' }}</div>
+                    <div class="stat-label">20分钟平均GPM</div>
+                </div>
+            </div>
+            {% if timeline.phases %}
+            <table style="margin-top:16px;">
+                <thead>
+                    <tr>
+                        <th>阶段</th>
+                        <th>LH/min</th>
+                        <th>正补</th>
+                        <th>平均GPM</th>
+                        <th>英雄伤害</th>
+                        <th>推塔伤害</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for phase in timeline.phases %}
+                    <tr>
+                        <td>{{ phase.label }}分钟</td>
+                        <td>{{ phase.lh_per_min }}</td>
+                        <td>{{ phase.last_hits }}</td>
+                        <td>{{ phase.avg_gpm }}</td>
+                        <td>{{ phase.hero_damage }}</td>
+                        <td>{{ phase.tower_damage }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+            <div class="subsection-title">低效率窗口</div>
+            {% if timeline.low_efficiency_windows %}
+            {% for window in timeline.low_efficiency_windows %}
+            <div class="compact-row">{{ window.label }}：平均 {{ window.avg_lh }} 补/分钟。{{ window.reason }}</div>
+            {% endfor %}
+            {% else %}
+            <div class="compact-row">未发现连续低效率窗口。</div>
+            {% endif %}
+            {% else %}
+            <div class="compact-row">当前公共数据源未提供分钟级时间线；系统只能按总量指标给低置信度判断，后续抓取拿到分钟数组后会自动重跑。</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if events %}
+    <div class="section">
+        <div class="section-header">&#9201; 死亡/装备事件</div>
+        <div class="section-body">
+            <div class="subsection-title">关键购买</div>
+            {% if events.key_purchases %}
+            <div class="event-list">
+                {% for item in events.key_purchases[:10] %}
+                <span class="event-pill">{{ item.minute }}分 {{ item.item_name }}</span>
+                {% endfor %}
+            </div>
+            {% elif events.purchases %}
+            <div class="event-list">
+                {% for item in events.purchases[:6] %}
+                <span class="event-pill">{{ item.minute }}分 {{ item.item_name }}</span>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="compact-row">当前公共数据源未提供购买时间线；本局只按最终装备给低置信度判断，无法计算关键装备完成后的地图转化。</div>
+            {% endif %}
+            {% if events.post_item_windows %}
+            <div class="subsection-title">装备后转化</div>
+            {% for window in events.post_item_windows[:8] %}
+            {% if window.window_type == 'farm_acceleration' %}
+            <div class="compact-row">{{ window.item_name }} {{ window.minute }}分：后5分钟刷钱 {{ window.lh_gain }} 补，平均GPM {{ window.avg_gpm }}</div>
+            {% else %}
+            <div class="compact-row">{{ window.item_name }} {{ window.minute }}分：参战 {{ window.kills_or_assists }} 次，推塔伤害 {{ window.tower_damage }}</div>
+            {% endif %}
+            {% endfor %}
+            {% endif %}
+            <div class="subsection-title">死亡时间</div>
+            {% if events.death_coverage_label %}
+            <div class="compact-row">{{ events.death_coverage_label }}{% if events.death_gap_note %}；{{ events.death_gap_note }}{% endif %}</div>
+            {% endif %}
+            {% if events.deaths %}
+            <div class="event-list">
+                {% for item in events.deaths[:10] %}
+                <span class="event-pill danger">{{ item.minute }}分</span>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="compact-row">当前公共数据源未提供死亡分钟事件；系统只能记录面板死亡总数，无法给出分钟级死亡诊断。</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if review_findings %}
+    <div class="section">
+        <div class="section-header">&#128204; 本局主要问题证据</div>
+        <div class="section-body">
+            {% for finding in review_findings[:5] %}
+            <div class="compact-row">
+                <strong>{{ finding.category_label or finding.category }}</strong>：{{ finding.evidence }} {{ finding.why_it_matters }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="section">
+        <div class="section-header">&#128091; 出装分析</div>
+        <div class="section-body">
+            <div style="margin-bottom:12px; color:var(--text-secondary); font-size:13px;">最终装备:</div>
+            <div class="item-grid">
+                {% if items.final_item_details %}
+                {% for item in items.final_item_details %}
+                <div class="item-slot item-name" title="ID {{ item.id }}">
+                    {{ item.name }}
+                </div>
+                {% endfor %}
+                {% else %}
+                {% for item_id in items.final_items %}
+                <div class="item-slot item-name" title="Item #{{ item_id }}">{{ item_id }}</div>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            {% if d2pt and d2pt.popular_items %}
+            <div style="margin-top:20px; margin-bottom:12px; color:var(--text-secondary); font-size:13px;">
+                D2PT职业选手热门出装:
+            </div>
+            <div class="item-grid">
+                {% for item in d2pt.popular_items[:6] %}
+                <div class="item-slot" title="{{ item.name }} ({{ (item.pick_rate * 100)|int }}%选取率)">
+                    {{ item.name[:8] }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if d2pt and d2pt.skill_build %}
+    <div class="section">
+        <div class="section-header">&#9889; 技能加点（vs D2PT推荐）</div>
+        <div class="section-body">
+            <div style="margin-bottom:8px; color:var(--text-secondary); font-size:13px;">D2PT推荐加点顺序:</div>
+            <div class="skill-timeline">
+                {% for skill in d2pt.skill_build %}
+                <div class="skill-pip" title="Lv{{ skill.level }}: {{ skill.name }}">
+                    {{ skill.level }}
+                </div>
+                {% endfor %}
+            </div>
+            <div style="margin-top:10px; font-size:12px; color:var(--text-muted);">
+                {% for skill in d2pt.skill_build %}
+                {{ skill.level }}级: {{ skill.name }}{% if not loop.last %} → {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if d2pt and d2pt.talents %}
+    <div class="section">
+        <div class="section-header">&#127919; 天赋选择（D2PT推荐）</div>
+        <div class="section-body">
+            {% for talent in d2pt.talents|reverse %}
+            <div class="talent-row">
+                <div class="talent-choice left {{ 'recommended' if talent.left.pick_rate > talent.right.pick_rate else '' }}">
+                    {{ talent.left.name }}
+                    <div class="talent-wr">选取率 {{ (talent.left.pick_rate * 100)|int }}% | 胜率 {{ (talent.left.win_rate * 100)|int }}%</div>
+                </div>
+                <div class="talent-level">{{ talent.level }}</div>
+                <div class="talent-choice right {{ 'recommended' if talent.right.pick_rate > talent.left.pick_rate else '' }}">
+                    {{ talent.right.name }}
+                    <div class="talent-wr">选取率 {{ (talent.right.pick_rate * 100)|int }}% | 胜率 {{ (talent.right.win_rate * 100)|int }}%</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if issues %}
+    <div class="section">
+        <div class="section-header">&#9888;&#65039; 发现的问题</div>
+        <div class="section-body">
+            {% for issue in issues %}
+            <div class="suggestion {{ issue.severity }}">
+                <div class="suggestion-priority">{{ issue.severity }}</div>
+                <div class="suggestion-text">{{ issue.message }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if summary %}
+    <div class="section">
+        <div class="section-header">&#128202; 整体表现概览</div>
+        <div class="section-body">
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ summary.total_matches }}</div>
+                    <div class="stat-label">总场次</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color:var(--accent-green)">{{ summary.wins }}胜</div>
+                    <div class="stat-label">胜利</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color:var(--accent-red)">{{ summary.losses }}负</div>
+                    <div class="stat-label">失败</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ summary.win_rate }}%</div>
+                    <div class="stat-label">胜率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ summary.avg_kda }}</div>
+                    <div class="stat-label">平均KDA</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ summary.avg_gpm }}</div>
+                    <div class="stat-label">平均GPM</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | {{ generated_at }}
+    </div>
+
+</div>
+</body>
+</html>

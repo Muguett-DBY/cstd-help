@@ -1,0 +1,33 @@
+{
+  "S": [
+    "Luna", "Faceless Void", "Terrorblade", "Medusa", "Phantom Assassin",
+    "Spectre", "Naga Siren", "Ursa", "Troll Warlord", "Weaver"
+  ],
+  "A": [
+    "Anti-Mage", "Juggernaut", "Lifestealer", "Drow Ranger", "Morphling",
+    "Sniper", "Shadow Fiend", "Pudge", "Storm Spirit", "Ember Spirit",
+    "Void Spirit", "Pangolier", "Mars", "Dawnbreaker", "Primal Beast"
+  ],
+  "B": [
+    "Phantom Lancer", "Razor", "Sven", "Kunkka", "Dragon Knight",
+    "Legion Commander", "Slark", "Troll Warlord", "Huskar", "Alchemist",
+    "Bloodseeker", "Chaos Knight", "Lone Druid", "Meepo", "Arc Warden"
+  ],
+  "positions": {
+    "1": ["Luna", "Faceless Void", "Terrorblade", "Medusa", "Phantom Assassin",
+          "Spectre", "Naga Siren", "Anti-Mage", "Juggernaut", "Morphling",
+          "Drow Ranger", "Sniper", "Weaver", "Ursa", "Troll Warlord"],
+    "2": ["Shadow Fiend", "Storm Spirit", "Ember Spirit", "Void Spirit",
+          "Puck", "Zeus", "Lina", "Sniper", "Viper", "Pangolier",
+          "Templar Assassin", "Kunkka", "Dragon Knight", "Outworld Destroyer"],
+    "3": ["Mars", "Dawnbreaker", "Primal Beast", "Axe", "Centaur Warrunner",
+          "Tidehunter", "Underlord", "Legion Commander", "Beastmaster",
+          "Dark Seer", "Magnus", "Sand King", "Brewmaster", "Abyssal Underlord"],
+    "4": ["Earthshaker", "Shadow Shaman", "Lion", "Rubick", "Grimstroke",
+          "Mirana", "Vengeful Spirit", "Hoodwink", "Techies", "Tusk",
+          "Spirit Breaker", "Bounty Hunter", "Nyx Assassin", "Puck"],
+    "5": ["Crystal Maiden", "Lich", "Dazzle", "Warlock", "Disruptor",
+          "Jakiro", "Ogre Magi", "Witch Doctor", "Bane", "Ancient Apparition",
+          "Shadow Demon", "Oracle", "Abaddon", "Treant Protector"]
+  }
+}
