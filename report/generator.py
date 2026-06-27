@@ -1,6 +1,7 @@
 import os
 import time
 import shutil
+import json
 from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 
@@ -21,7 +22,15 @@ def generate_report(match_analysis, ai_analysis, summary=None):
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
     template = env.get_template("template.html")
 
-    match_date = datetime.now().strftime("%Y-%m-%d %H:%M")
+    match_metadata = match_analysis.get("match_metadata", {})
+    ended_at = match_metadata.get("ended_at")
+    if ended_at:
+        try:
+            match_date = datetime.fromisoformat(ended_at.replace("Z", "+00:00")).astimezone().strftime("%Y-%m-%d %H:%M")
+        except (TypeError, ValueError):
+            match_date = "结束时间未知"
+    else:
+        match_date = "结束时间未知"
     generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     hero_name = match_analysis.get("hero_name", "Unknown")
@@ -66,7 +75,9 @@ def generate_report(match_analysis, ai_analysis, summary=None):
         ai_analysis=ai_analysis,
         summary=summary,
         generated_at=generated_at,
+        report_metadata_json=json.dumps(match_metadata, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/"),
     )
+    html = "\n".join(line.rstrip() for line in html.splitlines()) + "\n"
 
     safe_match_id = str(match_id).replace("/", "_").replace("\\", "_").replace(":", "_")
     safe_hero = hero_name.replace(" ", "_").replace("'", "").replace("/", "_").replace("\\", "_")

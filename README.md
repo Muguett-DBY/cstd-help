@@ -2,6 +2,10 @@
 
 Evidence-driven Dota 2 match review reports for player `173776719`.
 
+Live site: [dota.custard.top](https://dota.custard.top)
+
+The history page is generated from report-embedded OpenDota metadata and shows the real match end time, result, duration, KDA, score, and both five-hero lineups. Each row opens the evidence-based review for that match.
+
 ## Static Site
 
 The Cloudflare Pages output is committed under `public/`.

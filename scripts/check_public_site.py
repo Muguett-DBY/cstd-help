@@ -1,6 +1,8 @@
 from html.parser import HTMLParser
 from pathlib import Path
 
+from build_pages_site import _parse_report
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_DIR = ROOT / "public"
@@ -56,7 +58,11 @@ def main():
 
     index_html = index_path.read_text(encoding="utf-8")
     if "Dota 2 天梯复盘报告" not in index_html:
-        raise SystemExit("index page has the wrong title")
+        if "Dota 2 天梯复盘历史" not in index_html:
+            raise SystemExit("index page has the wrong title")
+    for required in ("比赛历史", "我方阵容", "敌方阵容", "data-ended-at"):
+        if required not in index_html:
+            raise SystemExit(f"index page is missing required match-history content: {required}")
 
     for report in reports:
         text = report.read_text(encoding="utf-8")
@@ -66,6 +72,15 @@ def main():
         title = _title_for(report)
         if not title or title.startswith("复盘报告"):
             raise SystemExit(f"{report.name} title must start with the hero name")
+        metadata = _parse_report(report)
+        required_metadata = ("match_id", "hero", "ended_at", "duration_seconds", "kda", "score")
+        missing_metadata = [key for key in required_metadata if metadata.get(key) in (None, "", {})]
+        if missing_metadata:
+            raise SystemExit(f"{report.name} is missing match metadata: {', '.join(missing_metadata)}")
+        if len(metadata.get("allies") or []) != 5 or len(metadata.get("enemies") or []) != 5:
+            raise SystemExit(f"{report.name} must include both five-hero lineups")
+        if not title.startswith(metadata["hero"]):
+            raise SystemExit(f"{report.name} title and metadata hero do not match")
 
     print(f"Validated {len(reports)} report pages in {PUBLIC_DIR}")
 

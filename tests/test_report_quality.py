@@ -5,7 +5,7 @@ import unittest
 
 import analysis.ai_analyst as ai_analyst
 from analysis.ai_analyst import _build_analysis_prompt, _generate_fallback_analysis, _is_ai_response_safe
-from analysis.analyzer import analyze_match
+from analysis.analyzer import analyze_match, get_hero_name
 import db.schema as schema
 
 
@@ -40,6 +40,88 @@ class ReportQualityTests(unittest.TestCase):
             "item_5": 0,
             "ability_upgrades": json.dumps([5003, 7314, 5004]),
         }
+
+    def test_hero_names_follow_opendota_hero_ids(self):
+        expected = {
+            9: "Mirana",
+            49: "Dragon Knight",
+            55: "Dark Seer",
+            69: "Doom",
+            72: "Gyrocopter",
+            82: "Meepo",
+            135: "Dawnbreaker",
+            155: "Largo",
+        }
+
+        self.assertEqual({hero_id: get_hero_name(hero_id) for hero_id in expected}, expected)
+
+    def test_analysis_builds_real_match_metadata_from_opendota(self):
+        match = self._base_match()
+        match.update({
+            "match_id": 8867002237,
+            "hero_id": 9,
+            "player_slot": 2,
+            "start_time": 1782466505,
+            "duration": 2894,
+            "radiant_score": 43,
+            "dire_score": 39,
+            "radiant_win": 0,
+        })
+        opendota_data = {
+            "players": [
+                {"account_id": 173776719, "hero_id": 9, "player_slot": 2},
+                {"account_id": 11, "hero_id": 8, "player_slot": 0},
+                {"account_id": 12, "hero_id": 17, "player_slot": 1},
+                {"account_id": 13, "hero_id": 100, "player_slot": 3},
+                {"account_id": 14, "hero_id": 64, "player_slot": 4},
+                {"account_id": 21, "hero_id": 75, "player_slot": 128},
+                {"account_id": 22, "hero_id": 16, "player_slot": 129},
+                {"account_id": 23, "hero_id": 2, "player_slot": 130},
+                {"account_id": 24, "hero_id": 155, "player_slot": 131},
+                {"account_id": 25, "hero_id": 6, "player_slot": 132},
+            ]
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        metadata = result["match_metadata"]
+
+        self.assertEqual(result["hero_name"], "Mirana")
+        self.assertEqual(metadata["ended_at"], "2026-06-26T10:23:19Z")
+        self.assertEqual(metadata["duration_seconds"], 2894)
+        self.assertFalse(metadata["is_win"])
+        self.assertEqual(metadata["kda"], {"kills": 8, "deaths": 6, "assists": 10})
+        self.assertEqual(metadata["score"], {"team": 43, "enemy": 39})
+        self.assertEqual(metadata["hero"]["slug"], "mirana")
+        self.assertEqual([hero["name"] for hero in metadata["allies"]], [
+            "Juggernaut", "Storm Spirit", "Mirana", "Tusk", "Jakiro",
+        ])
+        self.assertEqual([hero["name"] for hero in metadata["enemies"]], [
+            "Silencer", "Sand King", "Axe", "Largo", "Drow Ranger",
+        ])
+
+    def test_opendota_lane_is_labeled_without_guessing_numbered_position(self):
+        match = self._base_match()
+        match["hero_id"] = 9
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 9,
+                "player_slot": 2,
+                "lane_role": 3,
+                "lane": 3,
+            }] + [
+                {"hero_id": hero_id, "player_slot": slot}
+                for hero_id, slot in zip((8, 17, 100, 64, 75, 16, 2, 155, 6), (0, 1, 3, 4, 128, 129, 130, 131, 132))
+            ]
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+
+        self.assertEqual(result["context"]["lane"], "劣势路（OpenDota）")
+        self.assertEqual(result["role_profile"]["label"], "劣势路（位置未细分）")
+        limitations = " ".join(result["data_quality"]["limitations"])
+        self.assertIn("阵容已由OpenDota补齐", limitations)
+        self.assertNotIn("无法确认分路/位置/完整阵容上下文", limitations)
 
     def test_analyze_match_builds_evidence_from_stratz_player_detail(self):
         stratz_data = {

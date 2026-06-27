@@ -21,7 +21,7 @@ from db.schema import (
 )
 from api.opendota import OpenDotaClient
 from api.stratz import StratzClient
-from analysis.analyzer import analyze_match, generate_match_summary
+from analysis.analyzer import analyze_match, generate_match_summary, get_hero_name
 from analysis.ai_analyst import analyze_with_ai
 from analysis.d2pt import get_hero_build
 from report.generator import generate_report
@@ -155,44 +155,7 @@ def analyze_matches(match_ids, force=False, parse_wait=90):
 
 
 def _get_hero_name_from_id(hero_id):
-    hero_names = {
-        1: "Anti-Mage", 2: "Axe", 3: "Bane", 4: "Bloodseeker",
-        5: "Crystal Maiden", 6: "Drow Ranger", 7: "Earthshaker",
-        8: "Juggernaut", 9: "Kunkka", 11: "Lina", 12: "Lion",
-        14: "Mirana", 15: "Morphling", 16: "Shadow Fiend",
-        17: "Phantom Lancer", 18: "Puck", 19: "Pudge", 20: "Razor",
-        21: "Sand King", 22: "Slardar", 23: "Sniper", 24: "Spectre",
-        25: "Storm Spirit", 26: "Sven", 27: "Tidehunter",
-        28: "Vengeful Spirit", 29: "Windranger", 30: "Zeus",
-        31: "Jakiro", 32: "Chaos Knight", 33: "Nature's Prophet",
-        34: "Lich", 35: "Shadow Shaman", 36: "Medusa", 37: "Troll Warlord",
-        38: "Ursa", 39: "Io", 40: "Visage", 41: "Wraith King",
-        42: "Death Prophet", 43: "Phantom Assassin", 44: "Pugna",
-        45: "Templar Assassin", 46: "Viper", 47: "Luna",
-        48: "Dragon Knight", 49: "Dazzle", 50: "Ancient Apparition",
-        51: "Bounty Hunter", 52: "Timbersaw", 53: "Brewmaster",
-        54: "Earth Spirit", 55: "Terrorblade", 56: "Phoenix",
-        57: "Skywrath Mage", 58: "Abaddon", 59: "Elder Titan",
-        60: "Legion Commander", 61: "Techies", 62: "Ember Spirit",
-        66: "Underlord", 67: "Timbersaw", 69: "Grimstroke",
-        71: "Huskar", 72: "Night Stalker", 73: "Broodmother",
-        74: "Weaver", 75: "Batrider", 76: "Chen", 77: "Riki",
-        78: "Enchantress", 79: "Leshrac", 82: "Lycan",
-        83: "Naga Siren", 86: "Rubick", 87: "Disruptor",
-        88: "Keeper of the Light", 89: "Witch Doctor", 90: "Viper",
-        92: "Centaur Warrunner", 93: "Magnus", 95: "Shadow Demon",
-        96: "Bristleback", 97: "Tusk", 99: "Bane",
-        102: "Slark", 104: "Alchemist", 105: "Invoker",
-        106: "Faceless Void", 110: "Tiny", 111: "Beastmaster",
-        112: "Queen of Pain", 113: "Venomancer", 119: "Doom",
-        128: "Snapfire", 131: "Mars", 135: "Lone Druid",
-        138: "Underlord", 139: "Monkey King", 141: "Pangolier",
-        142: "Dark Willow", 145: "Void Spirit", 146: "Snapfire",
-        147: "Mars", 149: "Dawnbreaker", 150: "Marci",
-        151: "Primal Beast", 152: "Muerta", 154: "Ringmaster",
-        156: "Kez",
-    }
-    return hero_names.get(hero_id)
+    return get_hero_name(hero_id)
 
 
 def generate_reports(analyses):

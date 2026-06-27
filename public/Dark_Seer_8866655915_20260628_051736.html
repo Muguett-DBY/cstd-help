@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terrorblade 复盘报告 - 2026-06-26 22:48</title>
+    <title>Dark Seer 复盘报告 - 2026-06-26 13:05</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="static/style.css">
 </head>
@@ -11,23 +11,24 @@
 <div class="container">
 
     <div class="header">
-        <h1>Terrorblade 复盘报告</h1>
-        <div class="subtitle">比赛ID: 8866655915 | 2026-06-26 22:48 | 时长 29.8分钟</div>
+        <a class="back-link" href="index.html">&larr; 比赛历史</a>
+        <h1>Dark Seer 复盘报告</h1>
+        <div class="subtitle">比赛ID: 8866655915 | 结束于 2026-06-26 13:05 | 时长 29.8分钟</div>
         <div class="result-badge win">胜利</div>
     </div>
 
-    
+
     <div class="section priority-section">
         <div class="section-header">&#129504; 教练总结</div>
         <div class="section-body">
-            <div class="coach-analysis">Terrorblade 复盘分析（胜利）
+            <div class="coach-analysis">Dark Seer 复盘分析（胜利）
 
 本局最重要结论
 核心指标没有暴露单点崩盘，复盘重点应放在关键装备后是否把经济转成地图目标。
 
 核心证据：KDA 7/3/17，GPM 731，LH/min 10.3，推塔伤害/分钟 124.9，每10分钟死亡 1.01。
-数据完整度：82/100。
-公共数据源缺口：死亡时间线不完整：公共数据源定位1/3次死亡。
+数据完整度：92/100。
+公共数据源缺口：缺少Stratz位置字段；完整阵容已由OpenDota补齐，具体1-5号位不做推断；死亡时间线不完整：公共数据源定位1/3次死亡。
 
 可以保留的习惯
 - KDA表现优秀 (8.0)，生存能力强
@@ -39,26 +40,26 @@
 2. 装备后转化: 下一局关键团队装、保命装或核心输出装完成后，系统会自动记录后续2分钟参战/推塔窗口。 验收：数据验收：下一份报告至少出现1件关键装备购买时间。</div>
         </div>
     </div>
-    
 
-    
+
+
     <div class="section priority-section">
         <div class="section-header">&#127919; 下一局量化目标</div>
         <div class="section-body">
             <div class="goal-list">
-                
+
                 <div class="goal-row">
                     <div class="goal-title">死亡成本</div>
                     <div class="goal-body"><strong>训练目标:</strong> 下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。</div>
                     <div class="goal-body muted"><strong>验收标准:</strong> 每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。</div>
                 </div>
-                
+
                 <div class="goal-row">
                     <div class="goal-title">装备后转化</div>
                     <div class="goal-body"><strong>训练目标:</strong> 下一局把第一件关键装完成时间和随后的地图动作绑定记录。</div>
                     <div class="goal-body muted"><strong>验收标准:</strong> 数据验收：下一份报告至少出现1件关键装备购买时间。</div>
                 </div>
-                
+
             </div>
         </div>
     </div>
@@ -66,7 +67,7 @@
     <div class="section priority-section">
         <div class="section-header">&#127919; 下一局行动清单</div>
         <div class="section-body">
-            
+
             <div class="finding-card high">
                 <div class="finding-title">高优先级 · 死亡成本</div>
                 <div class="finding-line"><strong>证据:</strong> 已定位 1/3 次死亡，时间: 7.0分钟；每10分钟死亡 1.01。 公共数据源未提供剩余 2 次死亡的分钟级事件。</div>
@@ -76,7 +77,7 @@
                 <div class="finding-line"><strong>验收标准:</strong> 每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。</div>
                 <div class="finding-line muted"><strong>系统检查:</strong> 系统已定位的死亡分钟优先检查装备冷却、队友距离、敌方控制威胁和撤退路线。</div>
             </div>
-            
+
             <div class="finding-card low">
                 <div class="finding-title">低优先级 · 装备后转化</div>
                 <div class="finding-line"><strong>证据:</strong> 购买时间线可用，但系统未识别到关键装备完成时间。</div>
@@ -86,46 +87,46 @@
                 <div class="finding-line"><strong>验收标准:</strong> 数据验收：下一份报告至少出现1件关键装备购买时间。</div>
                 <div class="finding-line muted"><strong>系统检查:</strong> 系统过滤了眼位、补给和小件购买，避免把普通消耗品当作关键装备。</div>
             </div>
-            
+
         </div>
     </div>
-    
 
-    
+
+
     <div class="section">
         <div class="section-header">&#128269; 数据完整性</div>
         <div class="section-body">
             <div class="quality-row">
-                <div class="quality-score">82/100</div>
+                <div class="quality-score">92/100</div>
                 <div>
-                    <div class="quality-label">可用数据：opendota_core_stats, final_item_slots, ability_build, lane_timeline, opendota_parsed_logs, purchase_timeline, opendota_event_logs, opendota_teamfights, fight_log, vision_events</div>
+                    <div class="quality-label">可用数据：opendota_core_stats, final_item_slots, ability_build, draft_context, lane_timeline, opendota_parsed_logs, purchase_timeline, opendota_event_logs, opendota_teamfights, fight_log, vision_events</div>
                     <div class="quality-label">数据缺口</div>
-                    
+
                     <ul class="limitation-list">
-                        
-                        <li>缺少Stratz玩家详情，无法确认分路/位置/完整阵容上下文</li>
-                        
+
+                        <li>缺少Stratz位置字段；完整阵容已由OpenDota补齐，具体1-5号位不做推断</li>
+
                         <li>死亡时间线不完整：公共数据源定位1/3次死亡</li>
-                        
+
                     </ul>
-                    
+
                 </div>
             </div>
         </div>
     </div>
-    
 
-    
+
+
     <div class="section">
         <div class="section-header">&#127919; 比赛上下文</div>
         <div class="section-body">
             <div class="stat-grid">
                 <div class="stat-card">
-                    <div class="stat-value small-text">未知位置</div>
+                    <div class="stat-value small-text">劣势路（位置未细分）</div>
                     <div class="stat-label">位置</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value small-text">未知</div>
+                    <div class="stat-value small-text">劣势路（OpenDota）</div>
                     <div class="stat-label">分路</div>
                 </div>
                 <div class="stat-card">
@@ -137,10 +138,12 @@
                     <div class="stat-label">己方/敌方击杀</div>
                 </div>
             </div>
-            
+
+            <div class="hero-line">敌方英雄：Weaver / Faceless Void / Sniper / Huskar / Clinkz</div>
+
         </div>
     </div>
-    
+
 
     <div class="section">
         <div class="section-header">&#128202; 比赛概览</div>
@@ -194,11 +197,11 @@
         </div>
     </div>
 
-    
+
     <div class="section">
         <div class="section-header">&#128200; 时间线诊断</div>
         <div class="section-body">
-            
+
             <div class="stat-grid">
                 <div class="stat-card">
                     <div class="stat-value">63</div>
@@ -213,7 +216,7 @@
                     <div class="stat-label">20分钟平均GPM</div>
                 </div>
             </div>
-            
+
             <table style="margin-top:16px;">
                 <thead>
                     <tr>
@@ -226,7 +229,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    
+
                     <tr>
                         <td>0-10分钟</td>
                         <td>6.3</td>
@@ -235,7 +238,7 @@
                         <td>0</td>
                         <td>0</td>
                     </tr>
-                    
+
                     <tr>
                         <td>10-20分钟</td>
                         <td>11.7</td>
@@ -244,7 +247,7 @@
                         <td>0</td>
                         <td>0</td>
                     </tr>
-                    
+
                     <tr>
                         <td>20-30分钟</td>
                         <td>13.2</td>
@@ -253,124 +256,125 @@
                         <td>0</td>
                         <td>0</td>
                     </tr>
-                    
+
                 </tbody>
             </table>
-            
+
             <div class="subsection-title">低效率窗口</div>
-            
+
             <div class="compact-row">未发现连续低效率窗口。</div>
-            
-            
+
+
         </div>
     </div>
-    
 
-    
+
+
     <div class="section">
         <div class="section-header">&#9201; 死亡/装备事件</div>
         <div class="section-body">
             <div class="subsection-title">关键购买</div>
-            
+
             <div class="event-list">
-                
+
                 <span class="event-pill">-1.5分 Magic Wand</span>
-                
+
                 <span class="event-pill">-1.5分 Branches</span>
-                
+
                 <span class="event-pill">-1.5分 Branches</span>
-                
+
                 <span class="event-pill">0.2分 Tango</span>
-                
+
                 <span class="event-pill">3.1分 Helm Of Iron Will</span>
-                
+
                 <span class="event-pill">4.4分 Circlet</span>
-                
+
             </div>
-            
-            
+
+
             <div class="subsection-title">死亡时间</div>
-            
+
             <div class="compact-row">已定位 1/3 次死亡；公共数据源未提供剩余 2 次死亡的分钟级事件。</div>
-            
-            
+
+
             <div class="event-list">
-                
+
                 <span class="event-pill danger">7.0分</span>
-                
+
             </div>
-            
+
         </div>
     </div>
-    
 
-    
+
+
     <div class="section">
         <div class="section-header">&#128204; 本局主要问题证据</div>
         <div class="section-body">
-            
+
             <div class="compact-row">
                 <strong>死亡成本</strong>：已定位 1/3 次死亡，时间: 7.0分钟；每10分钟死亡 1.01。 公共数据源未提供剩余 2 次死亡的分钟级事件。 核心或节奏位的连续死亡会直接交出地图区域和关键目标时间。
             </div>
-            
+
             <div class="compact-row">
                 <strong>装备后转化</strong>：购买时间线可用，但系统未识别到关键装备完成时间。 没有关键装备时间点时，装备后2分钟转化不能可靠计算。
             </div>
-            
+
         </div>
     </div>
-    
+
 
     <div class="section">
         <div class="section-header">&#128091; 出装分析</div>
         <div class="section-body">
             <div style="margin-bottom:12px; color:var(--text-secondary); font-size:13px;">最终装备:</div>
             <div class="item-grid">
-                
-                
+
+
                 <div class="item-slot item-name" title="ID 164">
                     Item #164
                 </div>
-                
+
                 <div class="item-slot item-name" title="ID 231">
                     Enchanted Mango
                 </div>
-                
+
                 <div class="item-slot item-name" title="ID 1">
                     Blink Dagger
                 </div>
-                
+
                 <div class="item-slot item-name" title="ID 36">
                     Boots of Speed
                 </div>
-                
+
                 <div class="item-slot item-name" title="ID 108">
                     Item #108
                 </div>
-                
+
                 <div class="item-slot item-name" title="ID 77">
                     Item #77
                 </div>
-                
-                
+
+
             </div>
 
-            
+
         </div>
     </div>
 
-    
 
-    
 
-    
 
-    
+
+
+
+
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-26 22:48:40
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-28 05:17:36
     </div>
 
 </div>
+<script id="report-metadata" type="application/json">{"schema_version":1,"match_id":8866655915,"hero":{"id":55,"name":"Dark Seer","slug":"dark_seer"},"is_win":true,"side":"Radiant","started_at":"2026-06-26T02:35:54Z","ended_at":"2026-06-26T03:05:42Z","duration_seconds":1788,"kda":{"kills":7,"deaths":3,"assists":17},"score":{"team":49,"enemy":28},"allies":[{"id":126,"name":"Void Spirit","slug":"void_spirit"},{"id":20,"name":"Vengeful Spirit","slug":"vengefulspirit"},{"id":55,"name":"Dark Seer","slug":"dark_seer"},{"id":14,"name":"Pudge","slug":"pudge"},{"id":42,"name":"Wraith King","slug":"skeleton_king"}],"enemies":[{"id":63,"name":"Weaver","slug":"weaver"},{"id":41,"name":"Faceless Void","slug":"faceless_void"},{"id":35,"name":"Sniper","slug":"sniper"},{"id":59,"name":"Huskar","slug":"huskar"},{"id":56,"name":"Clinkz","slug":"clinkz"}]}</script>
 </body>
 </html>

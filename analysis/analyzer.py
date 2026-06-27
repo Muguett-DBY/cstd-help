@@ -2,7 +2,7 @@ import ast
 import json
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RULES_DIR = os.path.join(BASE_DIR, "analysis", "rules")
@@ -19,6 +19,7 @@ def _load_json(filename):
 
 HERO_ID_TO_NAME = {}
 HERO_NAME_TO_ID = {}
+HERO_ID_TO_SLUG = {}
 
 ITEM_FALLBACKS = {
     50: "Phase Boots",
@@ -66,62 +67,37 @@ ABILITY_FALLBACKS = {
 
 
 def _init_hero_maps():
-    global HERO_ID_TO_NAME, HERO_NAME_TO_ID
+    global HERO_ID_TO_NAME, HERO_NAME_TO_ID, HERO_ID_TO_SLUG
     if HERO_ID_TO_NAME:
         return
-    heroes = [
-        (1, "Anti-Mage"), (2, "Axe"), (3, "Bane"), (4, "Bloodseeker"),
-        (5, "Crystal Maiden"), (6, "Drow Ranger"), (7, "Earthshaker"),
-        (8, "Juggernaut"), (9, "Kunkka"), (11, "Lina"), (12, "Lion"),
-        (14, "Mirana"), (15, "Morphling"), (16, "Shadow Fiend"),
-        (17, "Phantom Lancer"), (18, "Puck"), (19, "Pudge"), (20, "Razor"),
-        (21, "Sand King"), (22, "Slardar"), (23, "Sniper"), (24, "Spectre"),
-        (25, "Storm Spirit"), (26, "Sven"), (27, "Tidehunter"),
-        (28, "Vengeful Spirit"), (29, "Windranger"), (30, "Zeus"),
-        (31, "Jakiro"), (32, "Chaos Knight"), (33, "Nature's Prophet"),
-        (34, "Lich"), (35, "Shadow Shaman"), (36, "Medusa"), (37, "Troll Warlord"),
-        (38, "Ursa"), (39, "Io"), (40, "Visage"), (41, "Skeleton King"),
-        (42, "Death Prophet"), (43, "Phantom Assassin"), (44, "Pugna"),
-        (45, "Templar Assassin"), (46, "Viper"), (47, "Luna"),
-        (48, "Dragon Knight"), (49, "Dazzle"), (50, "Ancient Apparition"),
-        (51, "Bounty Hunter"), (52, "Shredder"), (53, "Brewmaster"),
-        (54, "Earth Spirit"), (55, "Terrorblade"), (56, "Phoenix"),
-        (57, "Skywrath Mage"), (58, "Abaddon"), (59, "Elder Titan"),
-        (60, "Legion Commander"), (61, "Techies"), (62, "Ember Spirit"),
-        (63, "Earth Spirit"), (65, "Axe"), (66, "Underlord"),
-        (67, "Timbersaw"), (69, "Grimstroke"), (71, "Huskar"),
-        (72, "Night Stalker"), (73, "Broodmother"), (74, "Weaver"),
-        (75, "Batrider"), (76, "Chen"), (77, "Riki"), (78, "Enchantress"),
-        (79, "Leshrac"), (80, "Lion"), (81, "Shadow Fiend"),
-        (82, "Lycan"), (83, "Naga Siren"), (84, "Lich"),
-        (85, "Windranger"), (86, "Rubick"), (87, "Disruptor"),
-        (88, "Keeper of the Light"), (89, "Witch Doctor"), (90, "Viper"),
-        (91, "Sand King"), (92, "Centaur Warrunner"), (93, "Magnus"),
-        (94, "Pugna"), (95, "Shadow Demon"), (96, "Bristleback"),
-        (97, "Tusk"), (98, "Shadow Shaman"), (99, "Bane"),
-        (100, "Night Stalker"), (101, "Mirana"), (102, "Slark"),
-        (103, "Medusa"), (104, "Alchemist"), (105, "Invoker"),
-        (106, "Faceless Void"), (107, "Earthshaker"), (108, "Huskar"),
-        (109, "Weaver"), (110, "Tiny"), (111, "Beastmaster"),
-        (112, "Queen of Pain"), (113, "Venomancer"),
-        (114, "Faceless Void"), (119, "Doom"),
-        (120, "Shadow Demon"), (121, "Ancient Apparition"),
-        (128, "Snapfire"), (129, "Grimstroke"), (131, "Mars"),
-        (135, "Lone Druid"), (136, "Legion Commander"),
-        (137, "Techies"), (138, "Underlord"), (139, "Monkey King"),
-        (141, "Pangolier"), (142, "Dark Willow"), (144, "Grimstroke"),
-        (145, "Void Spirit"), (146, "Snapfire"), (147, "Mars"),
-        (149, "Dawnbreaker"), (150, "Marci"), (151, "Primal Beast"),
-        (152, "Muerta"), (154, "Ringmaster"), (156, "Kez"),
-    ]
-    for hid, hname in heroes:
-        HERO_ID_TO_NAME[hid] = hname
-        HERO_NAME_TO_ID[hname.lower()] = hid
+    heroes = _load_json("heroes.json")
+    for raw_id, info in heroes.items():
+        try:
+            hero_id = int(raw_id)
+        except (TypeError, ValueError):
+            continue
+        if not isinstance(info, dict):
+            continue
+        hero_name = info.get("name")
+        if not hero_name:
+            continue
+        HERO_ID_TO_NAME[hero_id] = hero_name
+        HERO_NAME_TO_ID[hero_name.lower()] = hero_id
+        HERO_ID_TO_SLUG[hero_id] = info.get("slug") or f"hero-{hero_id}"
 
 
 def get_hero_name(hero_id):
     _init_hero_maps()
     return HERO_ID_TO_NAME.get(hero_id, f"Hero#{hero_id}")
+
+
+def get_hero_info(hero_id, display_name=None):
+    _init_hero_maps()
+    return {
+        "id": hero_id,
+        "name": display_name or get_hero_name(hero_id),
+        "slug": HERO_ID_TO_SLUG.get(hero_id, f"hero-{hero_id}"),
+    }
 
 
 def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=None):
@@ -132,9 +108,16 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
     account_id = match_data.get("account_id")
     stratz_player = _extract_stratz_player(stratz_data, account_id, match_data)
     opendota_player = _extract_opendota_player(opendota_data, account_id, match_data)
-    context = _build_match_context(match_data, stratz_data, stratz_player, opendota_player=opendota_player)
+    context = _build_match_context(
+        match_data,
+        stratz_data,
+        stratz_player,
+        opendota_player=opendota_player,
+        opendota_data=opendota_data,
+    )
 
     result = {
+        "match_id": match_data.get("match_id"),
         "hero_name": hero_name,
         "hero_id": match_data.get("hero_id"),
         "is_win": match_data.get("radiant_win") == 1 and match_data.get("is_radiant") == 1 or
@@ -166,6 +149,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         "kills": kills, "deaths": deaths, "assists": assists,
         "kda_ratio": round(kda_ratio, 2),
     }
+    result["match_metadata"] = _build_match_metadata(result, match_data)
 
     lh = match_data.get("last_hits", 0) or 0
     dn = match_data.get("denies", 0) or 0
@@ -281,7 +265,7 @@ def _extract_opendota_player(opendota_data, account_id, match_data):
     return None
 
 
-def _build_match_context(match_data, stratz_data, stratz_player, opendota_player=None):
+def _build_match_context(match_data, stratz_data, stratz_player, opendota_player=None, opendota_data=None):
     is_radiant = _truthy(match_data.get("is_radiant"))
     obs_count = len((opendota_player or {}).get("obs_log") or [])
     sen_count = len((opendota_player or {}).get("sen_log") or [])
@@ -297,6 +281,8 @@ def _build_match_context(match_data, stratz_data, stratz_player, opendota_player
         "observer_wards": obs_count,
         "sentry_wards": sen_count,
         "vision_events": obs_count + sen_count,
+        "ally_lineup": [],
+        "enemy_lineup": [],
         "ally_heroes": [],
         "enemy_heroes": [],
         "team_kills": None,
@@ -307,6 +293,9 @@ def _build_match_context(match_data, stratz_data, stratz_player, opendota_player
         context["role"] = stratz_player.get("position") or stratz_player.get("role")
         context["lane"] = stratz_player.get("lane")
         context["raw_role"] = stratz_player.get("role")
+    elif context["opendota_lane_role"] in {1, 2, 3, 4}:
+        lane_labels = {1: "优势路", 2: "中路", 3: "劣势路", 4: "野区"}
+        context["lane"] = f"{lane_labels[context['opendota_lane_role']]}（OpenDota）"
 
     if is_radiant:
         context["team_kills"] = match_data.get("radiant_score")
@@ -318,15 +307,63 @@ def _build_match_context(match_data, stratz_data, stratz_player, opendota_player
     if stratz_data:
         for player in stratz_data.get("players") or []:
             hero = player.get("hero") or {}
-            name = hero.get("displayName") or get_hero_name(hero.get("id"))
+            hero_id = hero.get("id") or player.get("heroId")
+            name = hero.get("displayName") or get_hero_name(hero_id)
             if not name:
                 continue
+            entry = get_hero_info(hero_id, display_name=name)
             if _truthy(player.get("isRadiant")) == is_radiant:
-                context["ally_heroes"].append(name)
+                context["ally_lineup"].append(entry)
             else:
-                context["enemy_heroes"].append(name)
+                context["enemy_lineup"].append(entry)
+
+    players = (opendota_data or {}).get("players") or []
+    if players:
+        ordered_players = sorted(players, key=lambda player: player.get("player_slot") or 0)
+        radiant = [get_hero_info(player.get("hero_id")) for player in ordered_players if (player.get("player_slot") or 0) < 128]
+        dire = [get_hero_info(player.get("hero_id")) for player in ordered_players if (player.get("player_slot") or 0) >= 128]
+        context["ally_lineup"] = radiant if is_radiant else dire
+        context["enemy_lineup"] = dire if is_radiant else radiant
+
+    context["ally_heroes"] = [hero["name"] for hero in context["ally_lineup"]]
+    context["enemy_heroes"] = [hero["name"] for hero in context["enemy_lineup"]]
 
     return context
+
+
+def _iso_utc(timestamp):
+    if not isinstance(timestamp, (int, float)) or timestamp <= 0:
+        return None
+    return datetime.fromtimestamp(timestamp, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _build_match_metadata(result, match_data):
+    start_time = match_data.get("start_time")
+    duration = match_data.get("duration") or 0
+    ended_at = start_time + duration if isinstance(start_time, (int, float)) else None
+    context = result.get("context") or {}
+    kda = result.get("kda") or {}
+    return {
+        "schema_version": 1,
+        "match_id": match_data.get("match_id"),
+        "hero": get_hero_info(match_data.get("hero_id"), display_name=result.get("hero_name")),
+        "is_win": bool(result.get("is_win")),
+        "side": context.get("side"),
+        "started_at": _iso_utc(start_time),
+        "ended_at": _iso_utc(ended_at),
+        "duration_seconds": duration,
+        "kda": {
+            "kills": kda.get("kills", 0),
+            "deaths": kda.get("deaths", 0),
+            "assists": kda.get("assists", 0),
+        },
+        "score": {
+            "team": context.get("team_kills"),
+            "enemy": context.get("enemy_kills"),
+        },
+        "allies": context.get("ally_lineup") or [],
+        "enemies": context.get("enemy_lineup") or [],
+    }
 
 
 def _parse_jsonish(value):
@@ -879,24 +916,6 @@ def _build_post_item_windows(events, timeline, window_seconds=120):
     return windows
 
 
-SUPPORT_FALLBACK_HEROES = {
-    "Crystal Maiden",
-    "Dazzle",
-    "Grimstroke",
-    "Lion",
-    "Shadow Shaman",
-    "Witch Doctor",
-    "Disruptor",
-    "Warlock",
-    "Oracle",
-    "Lich",
-    "Jakiro",
-    "Rubick",
-    "Ogre Magi",
-    "Vengeful Spirit",
-}
-
-
 def _support_profile():
     return {
         "id": "support",
@@ -934,13 +953,19 @@ def _build_role_profile(context, derived=None):
     if "POSITION_4" in role or "POSITION_5" in role or raw_role == "SUPPORT":
         return _support_profile()
 
-    hero_name = context.get("hero_name")
     vision_events = context.get("vision_events") or 0
     lh_per_min = derived.get("lh_per_min") or 0
     if vision_events >= 8 and lh_per_min <= 6:
         return _support_profile()
-    if hero_name in SUPPORT_FALLBACK_HEROES and lh_per_min <= 5:
-        return _support_profile()
+
+    lane = context.get("lane")
+    if lane and lane.endswith("（OpenDota）"):
+        return {
+            "id": "unknown_lane",
+            "label": f"{lane.removesuffix('（OpenDota）')}（位置未细分）",
+            "lane_farm_sensitive": True,
+            "focus": ["死亡成本", "经济效率", "地图目标"],
+        }
 
     return {
         "id": "unknown",
@@ -1334,7 +1359,10 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
         available.append("stratz_player_detail")
         score += 25
     else:
-        limitations.append("缺少Stratz玩家详情，无法确认分路/位置/完整阵容上下文")
+        if len(result.get("context", {}).get("ally_lineup") or []) == 5 and len(result.get("context", {}).get("enemy_lineup") or []) == 5:
+            limitations.append("缺少Stratz位置字段；完整阵容已由OpenDota补齐，具体1-5号位不做推断")
+        else:
+            limitations.append("缺少Stratz位置字段，且OpenDota未提供完整10人阵容")
 
     if result.get("context", {}).get("enemy_heroes"):
         available.append("draft_context")

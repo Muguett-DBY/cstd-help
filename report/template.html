@@ -11,8 +11,9 @@
 <div class="container">
 
     <div class="header">
+        <a class="back-link" href="index.html">&larr; 比赛历史</a>
         <h1>{{ hero_name }} 复盘报告</h1>
-        <div class="subtitle">比赛ID: {{ match_id }} | {{ match_date }} | 时长 {{ duration_min }}分钟</div>
+        <div class="subtitle">比赛ID: {{ match_id }} | 结束于 {{ match_date }} | 时长 {{ duration_min }}分钟</div>
         <div class="result-badge {{ 'win' if is_win else 'lose' }}">{{ '胜利' if is_win else '失败' }}</div>
     </div>
 
@@ -412,5 +413,6 @@
     </div>
 
 </div>
+<script id="report-metadata" type="application/json">{{ report_metadata_json|safe }}</script>
 </body>
 </html>
