@@ -1,3 +1,4 @@
+import json
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -46,9 +47,12 @@ def _title_for(path):
 
 def main():
     index_path = PUBLIC_DIR / "index.html"
+    trends_path = PUBLIC_DIR / "review-trends.json"
     style_path = PUBLIC_DIR / "static" / "style.css"
     if not index_path.exists():
         raise SystemExit("public/index.html is missing")
+    if not trends_path.exists():
+        raise SystemExit("public/review-trends.json is missing")
     if not style_path.exists():
         raise SystemExit("public/static/style.css is missing")
 
@@ -60,9 +64,21 @@ def main():
     if "Dota 2 天梯复盘报告" not in index_html:
         if "Dota 2 天梯复盘历史" not in index_html:
             raise SystemExit("index page has the wrong title")
-    for required in ("比赛历史", "我方阵容", "敌方阵容", "data-ended-at"):
+    for required in ("比赛历史", "优先复盘", "最近反复问题", "我方阵容", "敌方阵容", "data-ended-at"):
         if required not in index_html:
             raise SystemExit(f"index page is missing required match-history content: {required}")
+
+    try:
+        trend_payload = json.loads(trends_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"public/review-trends.json is invalid JSON: {exc}") from exc
+    trends = trend_payload.get("trends") if isinstance(trend_payload, dict) else None
+    if trend_payload.get("schema_version") != 1 or not isinstance(trends, list) or not trends:
+        raise SystemExit("public/review-trends.json must include schema_version=1 and non-empty trends")
+    for trend in trends:
+        for key in ("focus", "count", "priority", "heroes", "next_action", "success_metric", "examples"):
+            if key not in trend:
+                raise SystemExit(f"review trend is missing required field: {key}")
 
     for report in reports:
         text = report.read_text(encoding="utf-8")

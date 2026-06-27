@@ -288,6 +288,77 @@ body {
     background: rgba(63,185,80,0.12);
     color: var(--accent-green);
 }
+.trend-board {
+    padding-top: 24px;
+}
+.trend-board .history-title-row a {
+    color: var(--accent-blue);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.trend-board .history-title-row a:hover {
+    text-decoration: underline;
+}
+.trend-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+.trend-card {
+    min-height: 210px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+}
+.trend-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.trend-card h3 {
+    margin-bottom: 8px;
+    font-size: 15px;
+    line-height: 1.35;
+}
+.trend-card p {
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+}
+.trend-card .trend-heroes {
+    color: var(--text-primary);
+}
+.trend-metric {
+    color: var(--text-muted);
+}
+.trend-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 4px;
+}
+.trend-examples a {
+    color: var(--accent-blue);
+    font-size: 11px;
+    text-decoration: none;
+}
+.trend-examples a:hover {
+    text-decoration: underline;
+}
+.trend-empty {
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+}
 .history-panel { padding-top: 26px; }
 .history-title-row {
     display: flex;
@@ -728,6 +799,9 @@ tr:hover { background: rgba(88,166,255,0.05); }
     .review-queue-grid {
         grid-template-columns: 1fr;
     }
+    .trend-grid {
+        grid-template-columns: 1fr;
+    }
     .review-queue-card {
         min-height: 0;
     }
@@ -758,6 +832,9 @@ tr:hover { background: rgba(88,166,255,0.05); }
     }
     .review-queue-grid {
         grid-template-columns: 1fr;
+    }
+    .trend-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .coach-cell {
         grid-column: 1 / -1;

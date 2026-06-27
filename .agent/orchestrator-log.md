@@ -35,9 +35,40 @@ Started: 2026-06-28
   - `python -m unittest discover -s tests -p "test*.py"`: passed, 35 tests.
   - `python -m compileall -q .`: passed.
   - `python scripts/check_public_site.py`: passed, 10 report pages.
+- Commit: `feat: add coach review priority queue` (`f24c0f6`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, run `28299842160`.
+- Risks:
+  - Priority is derived from the report's existing finding priority plus real match outcome/death count, not from new external data.
+- Next stage: Stage 2 IMPROVE.
+
+## Stage 2 - IMPROVE
+
+- Prompt: `AGENT_IMPROVE_MAIN.txt`
+- Goal: add a cross-match trend board so repeated issues become a concrete training plan.
+- Start status: clean `main`, stage 1 CI passed, local unit tests and static site validation passed.
+- Previous-stage direction:
+  - Stage 1 recommended generating a recent-trends summary from repeated report findings.
+- Plan:
+  - Aggregate report findings by focus/category across the current public report set.
+  - Render a trend board on the history page with frequency, examples, next action, and acceptance metric.
+  - Export the same trend data as JSON for later UI and automation work.
+  - Add tests that fail before the aggregate trend generator exists.
+- Result:
+  - Added cross-match focus trend aggregation from real report findings.
+  - Added a `最近反复问题` trend board to the history page.
+  - Generated `public/review-trends.json` with schema version, priorities, examples, actions, and success metrics.
+  - Extended static site validation to require the trend board and JSON payload.
+- Local verification:
+  - `python -m unittest tests.test_build_pages_site`: failed before implementation for missing trend generation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 37 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+- Data check:
+  - `public/review-trends.json`: 3 trend groups; top group appears in 5 matches.
 - Commit: pending.
 - Push: pending.
 - GitHub Actions / CI: pending.
 - Risks:
-  - Priority is derived from the report's existing finding priority plus real match outcome/death count, not from new external data.
-- Next stage: Stage 2 IMPROVE.
+  - Trend grouping uses the exact report focus text; future work may normalize semantically similar focus names if they diverge.
+- Next stage: Stage 3 UIUX.

@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "generated_from": "report_findings",
+  "trends": [
+    {
+      "focus": "高优先级 · 前10分钟资源",
+      "count": 5,
+      "priority": "high",
+      "heroes": [
+        "Anti-Mage",
+        "Dawnbreaker",
+        "Doom",
+        "Gyrocopter",
+        "Mirana"
+      ],
+      "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟35补。",
+      "success_metric": "10分钟补刀>=35；前10分钟低效率窗口=0。",
+      "examples": [
+        {
+          "hero": "Mirana",
+          "match_id": "8867002237",
+          "file": "Mirana_8867002237_20260628_051735.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Gyrocopter",
+          "match_id": "8866888706",
+          "file": "Gyrocopter_8866888706_20260628_051736.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Dawnbreaker",
+          "match_id": "8866682981",
+          "file": "Dawnbreaker_8866682981_20260628_051736.html",
+          "result": "win"
+        }
+      ]
+    },
+    {
+      "focus": "高优先级 · 终结比赛",
+      "count": 3,
+      "priority": "high",
+      "heroes": [
+        "Anti-Mage",
+        "Dragon Knight",
+        "Meepo"
+      ],
+      "next_action": "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
+      "success_metric": "强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
+      "examples": [
+        {
+          "hero": "Dragon Knight",
+          "match_id": "8867124876",
+          "file": "Dragon_Knight_8867124876_20260628_051735.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Anti-Mage",
+          "match_id": "8866174845",
+          "file": "Anti-Mage_8866174845_20260628_051736.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Meepo",
+          "match_id": "8865878802",
+          "file": "Meepo_8865878802_20260628_051737.html",
+          "result": "lose"
+        }
+      ]
+    },
+    {
+      "focus": "高优先级 · 死亡成本",
+      "count": 2,
+      "priority": "high",
+      "heroes": [
+        "Crystal Maiden",
+        "Dark Seer"
+      ],
+      "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+      "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+      "examples": [
+        {
+          "hero": "Crystal Maiden",
+          "match_id": "8866935458",
+          "file": "Crystal_Maiden_8866935458_20260628_051736.html",
+          "result": "win"
+        },
+        {
+          "hero": "Dark Seer",
+          "match_id": "8866655915",
+          "file": "Dark_Seer_8866655915_20260628_051736.html",
+          "result": "win"
+        }
+      ]
+    }
+  ]
+}
