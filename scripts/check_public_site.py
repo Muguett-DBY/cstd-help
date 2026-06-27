@@ -64,7 +64,18 @@ def main():
     if "Dota 2 天梯复盘报告" not in index_html:
         if "Dota 2 天梯复盘历史" not in index_html:
             raise SystemExit("index page has the wrong title")
-    for required in ("比赛历史", "优先复盘", "最近反复问题", "我方阵容", "敌方阵容", "data-ended-at"):
+    for required in (
+        "比赛历史",
+        "筛选比赛",
+        "match-search",
+        "data-filter-result",
+        "data-filter-priority",
+        "优先复盘",
+        "最近反复问题",
+        "我方阵容",
+        "敌方阵容",
+        "data-ended-at",
+    ):
         if required not in index_html:
             raise SystemExit(f"index page is missing required match-history content: {required}")
 

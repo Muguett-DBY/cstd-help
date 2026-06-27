@@ -212,6 +212,14 @@ def _priority_label(priority):
     }.get(priority, "待确认")
 
 
+def _result_key(report):
+    if report.get("is_win") is True:
+        return "win"
+    if report.get("is_win") is False:
+        return "lose"
+    return "unknown"
+
+
 def _priority_rank(report):
     priority_score = {"high": 0, "medium": 1, "low": 2, "unknown": 3}.get(report.get("review_priority"), 3)
     loss_score = 0 if report.get("is_win") is False else 1
@@ -316,7 +324,7 @@ def _render_review_queue(reports):
             result_class = "unknown"
         cards.append(
             f"""
-            <a class="review-queue-card" href="{file_name}">
+            <a class="review-queue-card" href="{file_name}" data-priority="{html.escape(str(report.get('review_priority') or 'unknown'), quote=True)}">
                 <span class="review-queue-meta"><span class="match-result {result_class}">{result}</span><span>{hero} #{match_id}</span></span>
                 <span class="review-queue-focus">{_render_coach_note(report)}</span>
             </a>
@@ -406,6 +414,7 @@ def _render_index(reports, output_path=None):
             result_class, result_text = "lose", "失败"
         else:
             result_class, result_text = "unknown", "待确认"
+        result_key = _result_key(report)
 
         ended_at = report.get("ended_at")
         if ended_at:
@@ -423,9 +432,13 @@ def _render_index(reports, output_path=None):
         score_text = f"{score.get('team', '-')} - {score.get('enemy', '-')}"
         matchup = _render_lineup("我方阵容", report.get("allies")) + _render_lineup("敌方阵容", report.get("enemies"))
         coach_note = _render_coach_note(report)
+        priority_key = html.escape(str(report.get("review_priority") or "unknown"), quote=True)
+        focus_text = str(report.get("review_focus") or "")
+        action_text = str(report.get("next_action") or "")
+        search_text = html.escape(" ".join([report["hero"], str(report["match_id"]), focus_text, action_text]), quote=True)
         report_rows.append(
             f"""
-            <a class="match-row" role="row" href="{html.escape(report['file'], quote=True)}" aria-label="打开 {hero_name} 比赛 {html.escape(report['match_id'])} 复盘">
+            <a class="match-row" role="row" href="{html.escape(report['file'], quote=True)}" aria-label="打开 {hero_name} 比赛 {html.escape(report['match_id'])} 复盘" data-result="{result_key}" data-priority="{priority_key}" data-hero="{hero_name}" data-focus="{html.escape(focus_text, quote=True)}" data-search="{search_text}">
                 <span class="match-cell hero-cell" role="cell">{hero_image}<span><strong>{hero_name}</strong><small>#{html.escape(report['match_id'])}</small></span></span>
                 <span class="match-cell" role="cell" data-label="结果"><span class="match-result {result_class}">{result_text}</span></span>
                 <span class="match-cell time-cell" role="cell" data-label="结束时间">{ended_html}</span>
@@ -467,6 +480,31 @@ def _render_index(reports, output_path=None):
         <span><strong>{win_rate}%</strong> 胜率</span>
         <span><strong>{high_priority_count}</strong> 局高优先级复盘</span>
     </div>
+
+    <section class="history-filters" aria-label="筛选比赛">
+        <div class="history-filter-header">
+            <div>
+                <h2>筛选比赛</h2>
+                <p>按英雄、比赛号、复盘问题、胜负和优先级快速定位。</p>
+            </div>
+            <span data-match-count>显示 {len(reports)} / {len(reports)} 场</span>
+        </div>
+        <label class="search-box" for="match-search">
+            <span>搜索</span>
+            <input id="match-search" type="search" placeholder="英雄、比赛号或问题关键词" autocomplete="off">
+        </label>
+        <div class="filter-row" aria-label="按胜负筛选">
+            <button type="button" class="filter-button active" data-filter-result="all" aria-pressed="true">全部结果</button>
+            <button type="button" class="filter-button" data-filter-result="win" aria-pressed="false">只看胜利</button>
+            <button type="button" class="filter-button" data-filter-result="lose" aria-pressed="false">只看失败</button>
+        </div>
+        <div class="filter-row" aria-label="按复盘优先级筛选">
+            <button type="button" class="filter-button active" data-filter-priority="all" aria-pressed="true">全部优先级</button>
+            <button type="button" class="filter-button" data-filter-priority="high" aria-pressed="false">高优先级</button>
+            <button type="button" class="filter-button" data-filter-priority="medium" aria-pressed="false">中优先级</button>
+            <button type="button" class="filter-button" data-filter-priority="low" aria-pressed="false">低优先级</button>
+        </div>
+    </section>
 
     <section class="review-queue" aria-label="优先复盘队列">
         <div class="history-title-row">
@@ -520,6 +558,57 @@ document.querySelectorAll('[data-ended-at]').forEach((element) => {{
         element.title = `本地时间 ${{element.textContent}}`;
     }}
 }});
+
+const filterState = {{ result: 'all', priority: 'all', query: '' }};
+const matchRows = Array.from(document.querySelectorAll('.match-row'));
+const countLabel = document.querySelector('[data-match-count]');
+const searchInput = document.getElementById('match-search');
+
+function setActiveButton(buttons, selected) {{
+    buttons.forEach((button) => {{
+        const value = button.dataset.filterResult || button.dataset.filterPriority;
+        const isActive = value === selected;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+    }});
+}}
+
+function applyMatchFilters() {{
+    let visible = 0;
+    const query = filterState.query.trim().toLowerCase();
+    matchRows.forEach((row) => {{
+        const matchesResult = filterState.result === 'all' || row.dataset.result === filterState.result;
+        const matchesPriority = filterState.priority === 'all' || row.dataset.priority === filterState.priority;
+        const matchesQuery = !query || (row.dataset.search || '').toLowerCase().includes(query);
+        const shouldShow = matchesResult && matchesPriority && matchesQuery;
+        row.hidden = !shouldShow;
+        if (shouldShow) visible += 1;
+    }});
+    if (countLabel) countLabel.textContent = `显示 ${{visible}} / ${{matchRows.length}} 场`;
+}}
+
+document.querySelectorAll('[data-filter-result]').forEach((button) => {{
+    button.addEventListener('click', () => {{
+        filterState.result = button.dataset.filterResult || 'all';
+        setActiveButton(document.querySelectorAll('[data-filter-result]'), filterState.result);
+        applyMatchFilters();
+    }});
+}});
+
+document.querySelectorAll('[data-filter-priority]').forEach((button) => {{
+    button.addEventListener('click', () => {{
+        filterState.priority = button.dataset.filterPriority || 'all';
+        setActiveButton(document.querySelectorAll('[data-filter-priority]'), filterState.priority);
+        applyMatchFilters();
+    }});
+}});
+
+if (searchInput) {{
+    searchInput.addEventListener('input', () => {{
+        filterState.query = searchInput.value;
+        applyMatchFilters();
+    }});
+}}
 </script>
 </body>
 </html>

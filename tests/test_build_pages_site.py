@@ -94,6 +94,13 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("本局训练重点", text)
         self.assertIn("下一局前10分钟低效率窗口=0。", text)
         self.assertIn("10分钟补刀&gt;=35。", text)
+        self.assertIn("筛选比赛", text)
+        self.assertIn("id=\"match-search\"", text)
+        self.assertIn("data-filter-result=\"lose\"", text)
+        self.assertIn("data-filter-priority=\"high\"", text)
+        self.assertIn("data-result=\"lose\"", text)
+        self.assertIn("data-priority=\"high\"", text)
+        self.assertIn("data-match-count", text)
         self.assertIn("Mirana_8867002237_20260626_224839.html", text)
         self.assertNotIn("报告生成时间", text)
 
