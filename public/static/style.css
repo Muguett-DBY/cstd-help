@@ -45,6 +45,74 @@ body {
 }
 .back-link:hover { text-decoration: underline; }
 
+.report-neighbors {
+    display: grid;
+    gap: 10px;
+    margin: 0 0 18px;
+    padding: 12px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+}
+.neighbor-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.neighbor-heading span {
+    color: var(--accent-blue);
+    font-weight: 700;
+}
+.neighbor-heading strong {
+    color: var(--text-primary);
+    font-size: 12px;
+}
+.neighbor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+.neighbor-card {
+    display: grid;
+    gap: 4px;
+    min-height: 72px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    text-decoration: none;
+}
+.neighbor-card:not(.disabled):hover,
+.neighbor-card:not(.disabled):focus-visible {
+    border-color: var(--accent-blue);
+    outline: none;
+}
+.neighbor-card.disabled {
+    color: var(--text-muted);
+}
+.neighbor-label {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+.neighbor-card strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+}
+.neighbor-card small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
 .result-badge {
     display: inline-block;
     padding: 4px 16px;
@@ -866,6 +934,14 @@ tr:hover { background: rgba(88,166,255,0.05); }
     }
     .quality-row,
     .goal-row {
+        grid-template-columns: 1fr;
+    }
+    .neighbor-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
+    }
+    .neighbor-grid {
         grid-template-columns: 1fr;
     }
     .history-page { padding: 12px; }

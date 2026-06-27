@@ -379,6 +379,73 @@ def _write_focus_trends_json(trends, output_path):
     output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def _neighbor_result_text(report):
+    if report.get("is_win") is True:
+        return "胜利"
+    if report.get("is_win") is False:
+        return "失败"
+    return "待确认"
+
+
+def _render_neighbor_link(label, report):
+    if not report:
+        return (
+            f'<span class="neighbor-card disabled">'
+            f'<span class="neighbor-label">{html.escape(label)}</span>'
+            f'<strong>没有相邻比赛</strong>'
+            f'<small>当前已经是这一侧的边界。</small>'
+            f'</span>'
+        )
+    file_name = html.escape(report.get("file") or "#", quote=True)
+    hero = html.escape(report.get("hero") or "未知英雄")
+    match_id = html.escape(str(report.get("match_id") or ""))
+    result = html.escape(_neighbor_result_text(report))
+    focus = html.escape(report.get("review_focus") or "需要查看报告")
+    return (
+        f'<a class="neighbor-card" href="{file_name}">'
+        f'<span class="neighbor-label">{html.escape(label)}</span>'
+        f'<strong>{hero} #{match_id}</strong>'
+        f'<small>{result} · {focus}</small>'
+        f'</a>'
+    )
+
+
+def _render_report_neighbors(current_index, reports):
+    newer = reports[current_index - 1] if current_index > 0 else None
+    older = reports[current_index + 1] if current_index + 1 < len(reports) else None
+    position = f"第 {current_index + 1} / {len(reports)} 场"
+    return (
+        '<nav class="report-neighbors" aria-label="相邻比赛">'
+        '<div class="neighbor-heading">'
+        '<span>相邻比赛</span>'
+        f'<strong>{html.escape(position)}</strong>'
+        '</div>'
+        '<div class="neighbor-grid">'
+        f'{_render_neighbor_link("上一局（更新）", newer)}'
+        f'{_render_neighbor_link("下一局（更早）", older)}'
+        '</div>'
+        '</nav>'
+    )
+
+
+def _inject_report_navigation(public_dir, reports):
+    reports = sorted(reports, key=_report_sort_key, reverse=True)
+    for index, report in enumerate(reports):
+        path = public_dir / report["file"]
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(r'\s*<nav class="report-neighbors"[\s\S]*?</nav>', "", text, count=1)
+        neighbors = _render_report_neighbors(index, reports)
+        back_link_match = re.search(r'(<a class="back-link"[\s\S]*?</a>)', text)
+        if back_link_match:
+            insert_at = back_link_match.end()
+            text = text[:insert_at] + "\n" + neighbors + text[insert_at:]
+        else:
+            text = text.replace("<body>", f"<body>\n{neighbors}", 1)
+        path.write_text(text, encoding="utf-8")
+
+
 def _report_sort_key(report):
     ended_at = report.get("ended_at")
     if not ended_at:
@@ -628,6 +695,8 @@ def build_pages_site(source, public_dir=PUBLIC_DIR):
 
     _copy_static_assets(public_dir)
     reports = _copy_reports(source, public_dir)
+    _inject_report_navigation(public_dir, reports)
+    reports = [_parse_report(public_dir / report["file"]) for report in reports]
     _write_focus_trends_json(_build_focus_trends(reports), public_dir / "review-trends.json")
     _render_index(reports, output_path=public_dir / "index.html")
     print(f"Built {len(reports)} reports into {public_dir}")

@@ -95,9 +95,42 @@ Started: 2026-06-28
   - `python -m unittest discover -s tests -p "test*.py"`: passed, 37 tests.
   - `python -m compileall -q .`: passed.
   - `python scripts/check_public_site.py`: passed, 10 report pages.
+- Commit: `feat: upgrade review history filtering UX` (`a761acc`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, run `28300185847`.
+- Risks:
+  - The filter is intentionally static-client-side; no persistence or URL query sharing yet.
+- Next stage: Stage 4 IMPROVE.
+
+## Stage 4 - IMPROVE
+
+- Prompt: `AGENT_IMPROVE_MAIN.txt`
+- Goal: connect individual reports into the match-history context so review can continue without returning to the list manually.
+- Start status: clean `main`, stage 3 CI passed, local tests and static validation passed.
+- Previous-stage direction:
+  - Stage 3 recommended previous/next report navigation and adjacent-match context inside reports.
+- Plan:
+  - Add deterministic adjacent-match navigation to copied public reports.
+  - Show current report position, nearby hero, result, and focus text using real report metadata.
+  - Add tests that fail before the injection exists.
+  - Extend static validation so every report must include the adjacent-match navigation.
+- Result:
+  - Injected `相邻比赛` navigation into every copied public report.
+  - Each report now shows position in the current history set and links to the newer/older adjacent match when available.
+  - Neighbor cards include real hero, match id, result, and review focus.
+  - Extended static validation to require adjacent report navigation.
+- Browser verification:
+  - Opened Dragon Knight report, saw `第 1 / 10 场` and the next older Mirana report.
+  - Clicked the Mirana neighbor link; Mirana report loaded with action list and adjacent navigation.
+  - No horizontal overflow or console warnings/errors.
+- Local verification:
+  - `python -m unittest tests.test_build_pages_site.BuildPagesSiteTests.test_build_pages_site_injects_adjacent_report_navigation`: failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 38 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
 - Commit: pending.
 - Push: pending.
 - GitHub Actions / CI: pending.
 - Risks:
-  - The filter is intentionally static-client-side; no persistence or URL query sharing yet.
-- Next stage: Stage 4 IMPROVE.
+  - Navigation is generated from the current public report set; if source reports are missing, the chain reflects only available reports.
+- Next stage: Stage 5 CHECK.

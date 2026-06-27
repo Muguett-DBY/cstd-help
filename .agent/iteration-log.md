@@ -70,3 +70,26 @@
   - Add a compact practice-plan page generated from repeated trends.
   - Normalize equivalent finding names across reports.
 - Recommended flagship next change: connect reports together so reviewing one game naturally leads to the adjacent games and trend context.
+
+## 2026-06-28 - Stage 4 IMPROVE
+
+- Goal: connect individual reports into the current match-history context.
+- Completed:
+  - Added `相邻比赛` navigation to each generated public report.
+  - Showed report position plus newer/older match cards with hero, match id, result, and review focus.
+  - Extended static validation so adjacent report navigation cannot disappear silently.
+- User-visible gain: the player can continue reviewing nearby games without returning to the history list after every report.
+- Real issue fixed: reports were isolated pages with no adjacent-match context.
+- Verification:
+  - Browser navigation: Dragon Knight report -> Mirana adjacent report.
+  - `python -m unittest discover -s tests -p "test*.py"`
+  - `python -m compileall -q .`
+  - `python scripts/check_public_site.py`
+- GitHub Actions / CI: pending after push.
+- Risks:
+  - The chain only includes reports available in the current public build.
+- Next best directions:
+  - Run a full project health check and tighten validation around generated HTML consistency.
+  - Add a compact practice-plan page generated from recurring trends.
+  - Normalize semantically equivalent review focus names.
+- Recommended flagship next change: make the static validation stricter around stale report artifacts and generated asset consistency.
