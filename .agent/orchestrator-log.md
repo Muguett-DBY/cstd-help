@@ -190,9 +190,22 @@ Started: 2026-06-28
   - `python -m unittest discover -s tests -p "test*.py"`: passed, 39 tests.
   - `python -m compileall -q .`: passed.
   - `python scripts/check_public_site.py`: passed, 10 report pages.
-- Commit: pending.
-- Push: pending.
-- GitHub Actions / CI: pending.
+- Commit: `feat: add next-session practice plan` (`b879a1a`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, run `28305412170`.
 - Risks:
   - The practice plan is generated from exact trend focus names; semantic normalization remains future work.
 - Next stage: complete 6-stage run.
+
+## Final Status
+
+- Completed stages: 6 / 6.
+- Final deployed commit before log closeout: `b879a1a`.
+- Final GitHub Actions / CI status: passed, run `28305412170`.
+- Live checks:
+  - `https://dota.custard.top/`: history filters, empty state, and practice-plan link present.
+  - `https://dota.custard.top/practice-plan.html`: 3 practice cards and next-action content present.
+  - Dragon Knight report: adjacent-match navigation and action list present.
+  - `review-trends.json`: schema version 1 with 3 trends.
+- Remaining risk:
+  - Trend grouping still uses exact focus strings; semantic normalization is the next highest-value improvement.

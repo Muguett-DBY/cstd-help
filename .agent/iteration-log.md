@@ -14,7 +14,7 @@
   - `python -m unittest discover -s tests -p "test*.py"`
   - `python -m compileall -q .`
   - `python scripts/check_public_site.py`
-- GitHub Actions / CI: pending after push.
+- GitHub Actions / CI: passed, run `28299842160`.
 - Risks:
   - Priority is still report-driven; future work should add a multi-match trend view.
 - Next best directions:
@@ -38,7 +38,7 @@
   - `python -m unittest discover -s tests -p "test*.py"`
   - `python -m compileall -q .`
   - `python scripts/check_public_site.py`
-- GitHub Actions / CI: pending after push.
+- GitHub Actions / CI: passed, run `28299977468`.
 - Risks:
   - Trends group by exact report focus string; future work should normalize equivalent coaching themes.
 - Next best directions:
@@ -62,7 +62,7 @@
   - `python -m unittest discover -s tests -p "test*.py"`
   - `python -m compileall -q .`
   - `python scripts/check_public_site.py`
-- GitHub Actions / CI: pending after push.
+- GitHub Actions / CI: passed, run `28300185847`.
 - Risks:
   - Filter state is not reflected in the URL yet.
 - Next best directions:
@@ -85,7 +85,7 @@
   - `python -m unittest discover -s tests -p "test*.py"`
   - `python -m compileall -q .`
   - `python scripts/check_public_site.py`
-- GitHub Actions / CI: pending after push.
+- GitHub Actions / CI: passed, run `28305140645`.
 - Risks:
   - The chain only includes reports available in the current public build.
 - Next best directions:
@@ -109,7 +109,7 @@
   - `python -m compileall -q .`
   - `python scripts/check_public_site.py`
   - `gitleaks dir . --redact`
-- GitHub Actions / CI: pending after push.
+- GitHub Actions / CI: passed, run `28305267306`.
 - Risks:
   - Exact trend focus normalization remains future work.
 - Next best directions:
@@ -132,7 +132,7 @@
   - `python -m unittest discover -s tests -p "test*.py"`
   - `python -m compileall -q .`
   - `python scripts/check_public_site.py`
-- GitHub Actions / CI: pending after push.
+- GitHub Actions / CI: passed, run `28305412170`.
 - Risks:
   - Trend focus names are still exact-string grouped.
 - Next best directions:
