@@ -47,6 +47,77 @@ class ReportMetadataParser(HTMLParser):
             return {}
 
 
+class CoachFindingParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.in_card = False
+        self.card_depth = 0
+        self.current_field = None
+        self.current_parts = []
+        self.finding = {}
+        self.done = False
+
+    def handle_starttag(self, tag, attrs):
+        if self.done:
+            return
+        attributes = dict(attrs)
+        classes = set((attributes.get("class") or "").split())
+        if tag.lower() == "div" and "finding-card" in classes and not self.in_card:
+            self.in_card = True
+            self.card_depth = 1
+            self.finding["review_priority"] = _priority_from_classes(classes)
+            return
+        if self.in_card:
+            if tag.lower() == "div":
+                self.card_depth += 1
+            if "finding-title" in classes:
+                self.current_field = "review_focus"
+                self.current_parts = []
+            elif "finding-line" in classes:
+                self.current_field = "finding_line"
+                self.current_parts = []
+
+    def handle_endtag(self, tag):
+        if not self.in_card or self.done:
+            return
+        if self.current_field and tag.lower() == "div":
+            text = _normalize_text("".join(self.current_parts))
+            if self.current_field == "review_focus" and text:
+                self.finding["review_focus"] = text
+            elif self.current_field == "finding_line" and text:
+                self._store_line(text)
+            self.current_field = None
+            self.current_parts = []
+        if tag.lower() == "div":
+            self.card_depth -= 1
+            if self.card_depth <= 0:
+                self.in_card = False
+                self.done = True
+
+    def handle_data(self, data):
+        if self.in_card and self.current_field:
+            self.current_parts.append(data)
+
+    def _store_line(self, text):
+        if text.startswith("证据:"):
+            self.finding.setdefault("review_evidence", text.removeprefix("证据:").strip())
+        elif text.startswith("训练目标:"):
+            self.finding.setdefault("next_action", text.removeprefix("训练目标:").strip())
+        elif text.startswith("验收标准:"):
+            self.finding.setdefault("success_metric", text.removeprefix("验收标准:").strip())
+
+
+def _priority_from_classes(classes):
+    for priority in ("high", "medium", "low"):
+        if priority in classes:
+            return priority
+    return "unknown"
+
+
+def _normalize_text(value):
+    return re.sub(r"\s+", " ", value or "").strip()
+
+
 def _display_hero(raw_name):
     return raw_name.replace("_", " ")
 
@@ -55,6 +126,19 @@ def _read_embedded_metadata(path):
     parser = ReportMetadataParser()
     parser.feed(path.read_text(encoding="utf-8"))
     return parser.metadata
+
+
+def _read_coach_finding(path):
+    parser = CoachFindingParser()
+    parser.feed(path.read_text(encoding="utf-8"))
+    finding = parser.finding
+    return {
+        "review_focus": finding.get("review_focus") or "需要查看报告",
+        "review_evidence": finding.get("review_evidence") or "",
+        "next_action": finding.get("next_action") or "打开报告查看下一局行动清单。",
+        "success_metric": finding.get("success_metric") or "以报告内验收标准为准。",
+        "review_priority": finding.get("review_priority") or "unknown",
+    }
 
 
 def _normalize_lineup(value):
@@ -66,6 +150,7 @@ def _parse_report(path):
     fallback_hero = _display_hero(match.group("hero")) if match else path.stem
     fallback_match_id = match.group("match_id") if match else ""
     metadata = _read_embedded_metadata(path)
+    coach_finding = _read_coach_finding(path)
     hero = metadata.get("hero") if isinstance(metadata.get("hero"), dict) else {}
     kda = metadata.get("kda") if isinstance(metadata.get("kda"), dict) else {}
     score = metadata.get("score") if isinstance(metadata.get("score"), dict) else {}
@@ -83,6 +168,7 @@ def _parse_report(path):
         "allies": _normalize_lineup(metadata.get("allies")),
         "enemies": _normalize_lineup(metadata.get("enemies")),
         "size": path.stat().st_size,
+        **coach_finding,
     }
 
 
@@ -117,6 +203,24 @@ def _format_duration(seconds):
     return f"{total // 60}:{total % 60:02d}"
 
 
+def _priority_label(priority):
+    return {
+        "high": "高",
+        "medium": "中",
+        "low": "低",
+    }.get(priority, "待确认")
+
+
+def _priority_rank(report):
+    priority_score = {"high": 0, "medium": 1, "low": 2, "unknown": 3}.get(report.get("review_priority"), 3)
+    loss_score = 0 if report.get("is_win") is False else 1
+    deaths = (report.get("kda") or {}).get("deaths")
+    death_score = -int(deaths) if isinstance(deaths, (int, float)) else 0
+    sort_time = _report_sort_key(report)
+    time_score = sort_time.timestamp() if sort_time.year > 1971 else 0
+    return (priority_score, loss_score, death_score, -time_score)
+
+
 def _hero_image(slug):
     if not slug:
         return ""
@@ -135,6 +239,47 @@ def _render_lineup(label, heroes):
         chips.append(f'<span class="lineup-hero" title="{name}">{image}<span>{name}</span></span>')
     content = "".join(chips) if chips else '<span class="lineup-missing">阵容数据缺失</span>'
     return f'<div class="lineup-row"><span class="lineup-label">{label}</span><div class="lineup-list">{content}</div></div>'
+
+
+def _render_coach_note(report):
+    priority = html.escape(_priority_label(report.get("review_priority")))
+    priority_class = html.escape(str(report.get("review_priority") or "unknown"), quote=True)
+    focus = html.escape(report.get("review_focus") or "需要查看报告")
+    action = html.escape(report.get("next_action") or "打开报告查看下一局行动清单。")
+    metric = html.escape(report.get("success_metric") or "以报告内验收标准为准。")
+    return (
+        f'<span class="priority-chip {priority_class}">复盘优先级 {priority}</span>'
+        f'<strong>{focus}</strong>'
+        f'<small>{action}</small>'
+        f'<em>验收：{metric}</em>'
+    )
+
+
+def _render_review_queue(reports):
+    queue = sorted(reports, key=_priority_rank)[:3]
+    cards = []
+    for report in queue:
+        hero = html.escape(report.get("hero") or "未知英雄")
+        file_name = html.escape(report.get("file") or "#", quote=True)
+        match_id = html.escape(str(report.get("match_id") or ""))
+        if report.get("is_win") is True:
+            result = "胜利"
+            result_class = "win"
+        elif report.get("is_win") is False:
+            result = "失败"
+            result_class = "lose"
+        else:
+            result = "待确认"
+            result_class = "unknown"
+        cards.append(
+            f"""
+            <a class="review-queue-card" href="{file_name}">
+                <span class="review-queue-meta"><span class="match-result {result_class}">{result}</span><span>{hero} #{match_id}</span></span>
+                <span class="review-queue-focus">{_render_coach_note(report)}</span>
+            </a>
+            """.strip()
+        )
+    return "".join(cards)
 
 
 def _report_sort_key(report):
@@ -156,6 +301,7 @@ def _render_index(reports, output_path=None):
     losses = len(known_results) - wins
     win_rate = round(wins / len(known_results) * 100) if known_results else 0
     report_rows = []
+    high_priority_count = sum(1 for report in reports if report.get("review_priority") == "high")
 
     for report in reports:
         hero_name = html.escape(report["hero"])
@@ -186,6 +332,7 @@ def _render_index(reports, output_path=None):
         score = report.get("score") or {}
         score_text = f"{score.get('team', '-')} - {score.get('enemy', '-')}"
         matchup = _render_lineup("我方阵容", report.get("allies")) + _render_lineup("敌方阵容", report.get("enemies"))
+        coach_note = _render_coach_note(report)
         report_rows.append(
             f"""
             <a class="match-row" role="row" href="{html.escape(report['file'], quote=True)}" aria-label="打开 {hero_name} 比赛 {html.escape(report['match_id'])} 复盘">
@@ -195,6 +342,7 @@ def _render_index(reports, output_path=None):
                 <span class="match-cell mono-cell" role="cell" data-label="时长">{_format_duration(report.get('duration_seconds'))}</span>
                 <span class="match-cell mono-cell" role="cell" data-label="K / D / A">{html.escape(kda_text)}</span>
                 <span class="match-cell mono-cell" role="cell" data-label="比分">{html.escape(score_text)}</span>
+                <span class="match-cell coach-cell" role="cell" data-label="本局训练重点">{coach_note}</span>
                 <span class="match-cell matchup-cell" role="cell">{matchup}</span>
                 <span class="match-open" aria-hidden="true">&#8250;</span>
             </a>
@@ -227,12 +375,23 @@ def _render_index(reports, output_path=None):
         <span class="summary-win"><strong>{wins}</strong> 胜</span>
         <span class="summary-loss"><strong>{losses}</strong> 负</span>
         <span><strong>{win_rate}%</strong> 胜率</span>
+        <span><strong>{high_priority_count}</strong> 局高优先级复盘</span>
     </div>
+
+    <section class="review-queue" aria-label="优先复盘队列">
+        <div class="history-title-row">
+            <h2>优先复盘</h2>
+            <span>按报告证据优先级、胜负和死亡成本排序</span>
+        </div>
+        <div class="review-queue-grid">
+            {_render_review_queue(reports)}
+        </div>
+    </section>
 
     <main class="history-panel">
         <div class="history-title-row">
             <h2>比赛历史</h2>
-            <span>最新比赛优先</span>
+            <span>最新比赛优先，每局附带本局训练重点</span>
         </div>
         <div class="match-table" role="table" aria-label="比赛历史列表">
             <div class="match-table-head" role="row">
@@ -242,6 +401,7 @@ def _render_index(reports, output_path=None):
                 <span role="columnheader">时长</span>
                 <span role="columnheader">K / D / A</span>
                 <span role="columnheader">比分</span>
+                <span role="columnheader">本局训练重点</span>
                 <span role="columnheader">对阵信息</span>
                 <span aria-hidden="true"></span>
             </div>

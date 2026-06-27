@@ -12,7 +12,14 @@ class BuildPagesSiteTests(unittest.TestCase):
         payload = json.dumps(metadata, ensure_ascii=False).replace("</", "<\\/")
         path.write_text(
             "<!doctype html><html><head><title>Mirana 复盘报告</title></head>"
-            f'<body><script id="report-metadata" type="application/json">{payload}</script></body></html>',
+            "<body>"
+            '<div class="finding-card high">'
+            '<div class="finding-title">前10分钟资源</div>'
+            '<div class="finding-line"><strong>训练目标:</strong> 下一局前10分钟低效率窗口=0。</div>'
+            '<div class="finding-line"><strong>验收标准:</strong> 10分钟补刀>=35。</div>'
+            "</div>"
+            f'<script id="report-metadata" type="application/json">{payload}</script>'
+            "</body></html>",
             encoding="utf-8",
         )
         return path
@@ -39,6 +46,10 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(parsed["duration_seconds"], 2894)
         self.assertEqual(parsed["kda"]["assists"], 21)
         self.assertEqual(parsed["enemies"][0]["name"], "Axe")
+        self.assertEqual(parsed["review_focus"], "前10分钟资源")
+        self.assertEqual(parsed["next_action"], "下一局前10分钟低效率窗口=0。")
+        self.assertEqual(parsed["success_metric"], "10分钟补刀>=35。")
+        self.assertEqual(parsed["review_priority"], "high")
 
     def test_parse_legacy_report_does_not_call_generation_time_match_end(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -62,6 +73,10 @@ class BuildPagesSiteTests(unittest.TestCase):
             "score": {"team": 43, "enemy": 39},
             "allies": [{"name": "Mirana", "slug": "mirana"}],
             "enemies": [{"name": "Axe", "slug": "axe"}],
+            "review_focus": "前10分钟资源",
+            "next_action": "下一局前10分钟低效率窗口=0。",
+            "success_metric": "10分钟补刀>=35。",
+            "review_priority": "high",
         }]
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "index.html"
@@ -75,6 +90,10 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("43 - 39", text)
         self.assertIn("我方阵容", text)
         self.assertIn("敌方阵容", text)
+        self.assertIn("优先复盘", text)
+        self.assertIn("本局训练重点", text)
+        self.assertIn("下一局前10分钟低效率窗口=0。", text)
+        self.assertIn("10分钟补刀&gt;=35。", text)
         self.assertIn("Mirana_8867002237_20260626_224839.html", text)
         self.assertNotIn("报告生成时间", text)
 
