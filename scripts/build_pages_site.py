@@ -4,6 +4,7 @@ import json
 import os
 import re
 import shutil
+from collections import defaultdict
 from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
@@ -221,6 +222,48 @@ def _priority_rank(report):
     return (priority_score, loss_score, death_score, -time_score)
 
 
+def _build_focus_trends(reports):
+    grouped = defaultdict(list)
+    for report in reports:
+        focus = report.get("review_focus") or "需要查看报告"
+        grouped[focus].append(report)
+
+    trends = []
+    for focus, items in grouped.items():
+        sorted_items = sorted(items, key=_priority_rank)
+        priority = sorted_items[0].get("review_priority") or "unknown"
+        heroes = sorted({str(item.get("hero") or "未知英雄") for item in sorted_items})
+        actions = [item.get("next_action") for item in sorted_items if item.get("next_action")]
+        metrics = [item.get("success_metric") for item in sorted_items if item.get("success_metric")]
+        examples = [
+            {
+                "hero": item.get("hero") or "未知英雄",
+                "match_id": str(item.get("match_id") or ""),
+                "file": item.get("file") or "",
+                "result": "win" if item.get("is_win") is True else "lose" if item.get("is_win") is False else "unknown",
+            }
+            for item in sorted_items[:3]
+        ]
+        trends.append({
+            "focus": focus,
+            "count": len(items),
+            "priority": priority,
+            "heroes": heroes,
+            "next_action": actions[0] if actions else "打开报告查看下一局行动清单。",
+            "success_metric": metrics[0] if metrics else "以报告内验收标准为准。",
+            "examples": examples,
+        })
+
+    return sorted(
+        trends,
+        key=lambda trend: (
+            {"high": 0, "medium": 1, "low": 2, "unknown": 3}.get(trend["priority"], 3),
+            -trend["count"],
+            trend["focus"],
+        ),
+    )
+
+
 def _hero_image(slug):
     if not slug:
         return ""
@@ -282,6 +325,52 @@ def _render_review_queue(reports):
     return "".join(cards)
 
 
+def _render_focus_trends(trends):
+    cards = []
+    for trend in trends[:4]:
+        priority = html.escape(_priority_label(trend.get("priority")))
+        priority_class = html.escape(str(trend.get("priority") or "unknown"), quote=True)
+        focus = html.escape(trend.get("focus") or "需要查看报告")
+        count = html.escape(str(trend.get("count") or 0))
+        heroes = "、".join(html.escape(hero) for hero in trend.get("heroes", [])[:5])
+        action = html.escape(trend.get("next_action") or "打开报告查看下一局行动清单。")
+        metric = html.escape(trend.get("success_metric") or "以报告内验收标准为准。")
+        examples = []
+        for example in trend.get("examples", []):
+            file_name = html.escape(example.get("file") or "#", quote=True)
+            hero = html.escape(example.get("hero") or "未知英雄")
+            match_id = html.escape(example.get("match_id") or "")
+            examples.append(f'<a href="{file_name}">{hero} #{match_id}</a>')
+        example_html = " ".join(examples) if examples else '<span class="missing-value">暂无示例</span>'
+        cards.append(
+            f"""
+            <article class="trend-card">
+                <div class="trend-card-top">
+                    <span class="priority-chip {priority_class}">优先级 {priority}</span>
+                    <span>{count} 局出现</span>
+                </div>
+                <h3>{focus}</h3>
+                <p class="trend-heroes">涉及英雄：{heroes or "未知"}</p>
+                <p>{action}</p>
+                <p class="trend-metric">验收：{metric}</p>
+                <div class="trend-examples">{example_html}</div>
+            </article>
+            """.strip()
+        )
+    if not cards:
+        return '<div class="trend-empty">暂无可聚合的复盘趋势。</div>'
+    return "".join(cards)
+
+
+def _write_focus_trends_json(trends, output_path):
+    payload = {
+        "schema_version": 1,
+        "generated_from": "report_findings",
+        "trends": trends,
+    }
+    output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def _report_sort_key(report):
     ended_at = report.get("ended_at")
     if not ended_at:
@@ -302,6 +391,7 @@ def _render_index(reports, output_path=None):
     win_rate = round(wins / len(known_results) * 100) if known_results else 0
     report_rows = []
     high_priority_count = sum(1 for report in reports if report.get("review_priority") == "high")
+    focus_trends = _build_focus_trends(reports)
 
     for report in reports:
         hero_name = html.escape(report["hero"])
@@ -388,6 +478,16 @@ def _render_index(reports, output_path=None):
         </div>
     </section>
 
+    <section class="trend-board" aria-label="最近反复问题">
+        <div class="history-title-row">
+            <h2>最近反复问题</h2>
+            <a href="review-trends.json">查看结构化数据</a>
+        </div>
+        <div class="trend-grid">
+            {_render_focus_trends(focus_trends)}
+        </div>
+    </section>
+
     <main class="history-panel">
         <div class="history-title-row">
             <h2>比赛历史</h2>
@@ -439,6 +539,7 @@ def build_pages_site(source, public_dir=PUBLIC_DIR):
 
     _copy_static_assets(public_dir)
     reports = _copy_reports(source, public_dir)
+    _write_focus_trends_json(_build_focus_trends(reports), public_dir / "review-trends.json")
     _render_index(reports, output_path=public_dir / "index.html")
     print(f"Built {len(reports)} reports into {public_dir}")
 
