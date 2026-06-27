@@ -370,6 +370,73 @@ def _render_focus_trends(trends):
     return "".join(cards)
 
 
+def _render_practice_plan(trends, reports, output_path):
+    newest = reports[0] if reports else {}
+    cards = []
+    for index, trend in enumerate(trends[:5], start=1):
+        priority = html.escape(_priority_label(trend.get("priority")))
+        priority_class = html.escape(str(trend.get("priority") or "unknown"), quote=True)
+        focus = html.escape(trend.get("focus") or "需要查看报告")
+        action = html.escape(trend.get("next_action") or "打开报告查看下一局行动清单。")
+        metric = html.escape(trend.get("success_metric") or "以报告内验收标准为准。")
+        heroes = "、".join(html.escape(hero) for hero in trend.get("heroes", [])[:5])
+        examples = []
+        for example in trend.get("examples", [])[:3]:
+            file_name = html.escape(example.get("file") or "#", quote=True)
+            hero = html.escape(example.get("hero") or "未知英雄")
+            match_id = html.escape(example.get("match_id") or "")
+            examples.append(f'<a href="{file_name}">{hero} #{match_id}</a>')
+        example_html = " ".join(examples) if examples else '<span class="missing-value">暂无样本</span>'
+        cards.append(
+            f"""
+            <article class="practice-card">
+                <div class="practice-rank">第 {index} 优先级</div>
+                <div class="practice-main">
+                    <div class="practice-title-row">
+                        <h2>{focus}</h2>
+                        <span class="priority-chip {priority_class}">复盘优先级 {priority}</span>
+                    </div>
+                    <p class="practice-meta">{html.escape(str(trend.get('count') or 0))} 局出现 · 涉及英雄：{heroes or "未知"}</p>
+                    <div class="practice-action"><strong>下一局动作</strong><span>{action}</span></div>
+                    <div class="practice-action"><strong>验收标准</strong><span>{metric}</span></div>
+                    <div class="trend-examples">{example_html}</div>
+                </div>
+            </article>
+            """.strip()
+        )
+    plan_cards = "".join(cards) if cards else '<div class="trend-empty">暂无可生成的训练计划。</div>'
+    newest_link = html.escape(newest.get("file") or "index.html", quote=True)
+    plan_html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dota 2 下一次训练计划</title>
+    <meta name="description" content="根据最近复盘反复问题生成的下一次 Dota 2 天梯训练计划。">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body class="history-page practice-page">
+<div class="container history-container">
+    <header class="history-header">
+        <div>
+            <a class="back-link" href="index.html">← 比赛历史</a>
+            <div class="history-eyebrow">玩家 173776719</div>
+            <h1>下一次训练计划</h1>
+            <p>根据最近报告里的反复问题排序。每条只使用报告已有证据、动作和验收标准。</p>
+        </div>
+        <a class="primary-link" href="{newest_link}">打开最新复盘</a>
+    </header>
+    <main class="practice-list" aria-label="下一次训练计划">
+        {plan_cards}
+    </main>
+</div>
+</body>
+</html>
+"""
+    output_path.write_text(plan_html, encoding="utf-8")
+
+
 def _write_focus_trends_json(trends, output_path):
     payload = {
         "schema_version": 1,
@@ -538,6 +605,7 @@ def _render_index(reports, output_path=None):
             <p>按真实比赛结束时间排列，点击任意一局查看证据与下一局行动建议。</p>
         </div>
         <a class="primary-link" href="{html.escape(newest['file'], quote=True)}">打开最新复盘</a>
+        <a class="primary-link secondary-link" href="practice-plan.html">下一次训练计划</a>
     </header>
 
     <div class="history-summary" aria-label="历史比赛统计">
@@ -703,7 +771,9 @@ def build_pages_site(source, public_dir=PUBLIC_DIR):
     reports = _copy_reports(source, public_dir)
     _inject_report_navigation(public_dir, reports)
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
-    _write_focus_trends_json(_build_focus_trends(reports), public_dir / "review-trends.json")
+    focus_trends = _build_focus_trends(reports)
+    _write_focus_trends_json(focus_trends, public_dir / "review-trends.json")
+    _render_practice_plan(focus_trends, sorted(reports, key=_report_sort_key, reverse=True), public_dir / "practice-plan.html")
     _render_index(reports, output_path=public_dir / "index.html")
     print(f"Built {len(reports)} reports into {public_dir}")
 
