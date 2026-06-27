@@ -102,6 +102,8 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("data-result=\"lose\"", text)
         self.assertIn("data-priority=\"high\"", text)
         self.assertIn("data-match-count", text)
+        self.assertIn("data-empty-state", text)
+        self.assertIn("没有匹配的比赛", text)
         self.assertIn("Mirana_8867002237_20260626_224839.html", text)
         self.assertNotIn("报告生成时间", text)
 

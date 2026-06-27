@@ -93,3 +93,27 @@
   - Add a compact practice-plan page generated from recurring trends.
   - Normalize semantically equivalent review focus names.
 - Recommended flagship next change: make the static validation stricter around stale report artifacts and generated asset consistency.
+
+## 2026-06-28 - Stage 5 CHECK
+
+- Goal: run a focused project health check and fix a real issue from the new dashboard flow.
+- Completed:
+  - Confirmed local SQLite data is ignored and not tracked.
+  - Scanned for obvious sensitive strings, debugger, and console logging.
+  - Added an empty state for zero-result match filtering.
+  - Extended static validation so the empty state is required.
+- User-visible issue fixed: searching or filtering to zero matches no longer leaves a blank table.
+- Verification:
+  - Browser check for `zzzz-no-match`: empty state visible, no overflow, no console warnings/errors.
+  - `python -m unittest discover -s tests -p "test*.py"`
+  - `python -m compileall -q .`
+  - `python scripts/check_public_site.py`
+  - `gitleaks dir . --redact`
+- GitHub Actions / CI: pending after push.
+- Risks:
+  - Exact trend focus normalization remains future work.
+- Next best directions:
+  - Add a compact practice-plan page from recurring trends.
+  - Add semantic grouping for equivalent focus names.
+  - Add a small generated manifest for report freshness and counts.
+- Recommended flagship next change: generate a practice-plan page that converts repeated trends into a next-session training queue.

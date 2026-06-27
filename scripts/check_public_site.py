@@ -70,6 +70,8 @@ def main():
         "match-search",
         "data-filter-result",
         "data-filter-priority",
+        "data-empty-state",
+        "没有匹配的比赛",
         "优先复盘",
         "最近反复问题",
         "我方阵容",

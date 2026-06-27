@@ -128,9 +128,41 @@ Started: 2026-06-28
   - `python -m unittest discover -s tests -p "test*.py"`: passed, 38 tests.
   - `python -m compileall -q .`: passed.
   - `python scripts/check_public_site.py`: passed, 10 report pages.
+- Commit: `feat: add adjacent report navigation` (`2058dfd`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, run `28305140645`.
+- Risks:
+  - Navigation is generated from the current public report set; if source reports are missing, the chain reflects only available reports.
+- Next stage: Stage 5 CHECK.
+
+## Stage 5 - CHECK
+
+- Prompt: `AGENT_CHECK_MAIN.txt`
+- Goal: run a focused project health check and fix a real stability/UX issue without adding unrelated features.
+- Start status: clean `main`, stage 4 CI passed, local tests and static validation passed.
+- Checks performed:
+  - Verified `data/dota2.db` is ignored and not tracked.
+  - Scanned for TODO/debugger/console/sensitive-token strings.
+  - Ran `gitleaks dir . --redact`.
+  - Rebuilt `public` from the real report source and confirmed generated output stays consistent.
+  - Ran unit tests and static validation.
+- Issue found:
+  - The history filters could produce an empty table with only `显示 0 / 10 场`; there was no explicit empty state, making the UI look broken.
+- Result:
+  - Added a `没有匹配的比赛` empty state to the history page.
+  - Updated filter JavaScript to toggle the empty state when visible rows reach zero.
+  - Added styling and static validation for the empty state.
+- Browser verification:
+  - Searched `zzzz-no-match`; page showed `显示 0 / 10 场` plus the empty-state guidance, no overflow, no console warnings/errors.
+- Local verification:
+  - `python -m unittest tests.test_build_pages_site.BuildPagesSiteTests.test_render_index_contains_clickable_match_table_with_real_fields`: failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 38 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
 - Commit: pending.
 - Push: pending.
 - GitHub Actions / CI: pending.
 - Risks:
-  - Navigation is generated from the current public report set; if source reports are missing, the chain reflects only available reports.
-- Next stage: Stage 5 CHECK.
+  - Exact trend focus normalization remains future work.
+- Next stage: Stage 6 IMPROVE.
