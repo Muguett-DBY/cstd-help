@@ -46,3 +46,27 @@
   - Add client-side filters for result, hero, and priority.
   - Add previous/next report navigation.
 - Recommended flagship next change: run a UI/UX pass that turns the history page into a polished coaching dashboard.
+
+## 2026-06-28 - Stage 3 UIUX
+
+- Goal: improve the history page's daily-use UX after adding priority queue and trends.
+- Completed:
+  - Added match search by hero, match id, action text, and focus text.
+  - Added result and priority filter buttons with active state and live count feedback.
+  - Fixed the default 1280px horizontal overflow.
+  - Verified history -> latest report -> back navigation in browser.
+- User-visible gain: the player can quickly find loss reviews, high-priority reviews, or a specific hero/problem without scanning all rows.
+- Real issue fixed: the history dashboard overflowed horizontally at the default desktop viewport.
+- Verification:
+  - Browser desktop 1280px, mobile 390px, filter interactions, navigation flow, console health.
+  - `python -m unittest discover -s tests -p "test*.py"`
+  - `python -m compileall -q .`
+  - `python scripts/check_public_site.py`
+- GitHub Actions / CI: pending after push.
+- Risks:
+  - Filter state is not reflected in the URL yet.
+- Next best directions:
+  - Add previous/next navigation and adjacent-match context inside reports.
+  - Add a compact practice-plan page generated from repeated trends.
+  - Normalize equivalent finding names across reports.
+- Recommended flagship next change: connect reports together so reviewing one game naturally leads to the adjacent games and trend context.

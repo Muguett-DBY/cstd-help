@@ -66,9 +66,38 @@ Started: 2026-06-28
   - `python scripts/check_public_site.py`: passed, 10 report pages.
 - Data check:
   - `public/review-trends.json`: 3 trend groups; top group appears in 5 matches.
+- Commit: `feat: add recurring review trends` (`f192360`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, run `28299977468`.
+- Risks:
+  - Trend grouping uses the exact report focus text; future work may normalize semantically similar focus names if they diverge.
+- Next stage: Stage 3 UIUX.
+
+## Stage 3 - UIUX
+
+- Prompt: `AGENT_UIUX_MAIN.txt`
+- Goal: make the history page feel like a usable coaching dashboard with responsive filtering and no layout overflow.
+- Start status: clean `main`, stage 2 CI passed.
+- Baseline browser finding:
+  - Desktop 1280px had horizontal overflow: `scrollWidth 1308 > clientWidth 1265`.
+- Result:
+  - Added a visible `筛选比赛` tool with search, result filters, priority filters, active states, and live visible-count feedback.
+  - Added row data attributes for hero, result, priority, focus, and search text.
+  - Fixed the default desktop overflow by widening the responsive table breakpoint to 1360px.
+  - Extended static site validation to require filter controls.
+- Browser verification:
+  - Desktop 1280px: no overflow, filters visible, losing-match filter changed count to 5/10, Mirana search changed count to 1/10.
+  - Mobile 390px: no overflow, filters visible, priority filter active state works.
+  - Navigation flow: history page -> latest report -> back to history, no overflow and no console warnings/errors.
+  - Screenshot attempt failed due browser CDP screenshot timeout; DOM/layout/interaction checks completed successfully.
+- Local verification:
+  - `python -m unittest tests.test_build_pages_site.BuildPagesSiteTests.test_render_index_contains_clickable_match_table_with_real_fields`: failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 37 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
 - Commit: pending.
 - Push: pending.
 - GitHub Actions / CI: pending.
 - Risks:
-  - Trend grouping uses the exact report focus text; future work may normalize semantically similar focus names if they diverge.
-- Next stage: Stage 3 UIUX.
+  - The filter is intentionally static-client-side; no persistence or URL query sharing yet.
+- Next stage: Stage 4 IMPROVE.
