@@ -1,5 +1,16 @@
 # Iteration Log
 
+## 2026-06-28 - Cycle 2 Stage 5 CHECK
+
+- Goal: audit generated Pages artifacts for stale/orphaned links and static-site consistency risks.
+- Completed: added local href/src link auditing to `scripts/check_public_site.py`, made the checker importable in unit tests, and added a regression test for missing local links.
+- User-visible risk fixed: broken dashboard/report/topic links now fail CI before Cloudflare deployment.
+- Checks: no tracked local database, sensitive-key scan reviewed, 46 tests, compileall, static site validation, HTTP manifest check, diff check, and gitleaks.
+- Browser note: the in-app browser extension blocks direct JSON navigation with `ERR_BLOCKED_BY_CLIENT`; HTTP validation confirmed `site-manifest.json` returns 200 with expected counts.
+- Commit / CI: pending.
+- Remaining risk: static checker validates local link existence, not external CDN hero image availability.
+- Recommended next flagship change: add shareable URL-persisted filters for the history page so filtered review queues can be reopened or shared.
+
 ## 2026-06-28 - Cycle 2 Stage 4 IMPROVE
 
 - Carry-over: add a generated freshness/coverage manifest for the coaching plan.

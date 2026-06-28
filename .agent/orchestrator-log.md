@@ -142,6 +142,39 @@ Started: 2026-06-28
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28311495305`.
 - Next direction: CHECK-stage audit for stale/orphaned generated pages and broken local links.
 
+## Cycle 2 - Stage 5 - CHECK
+
+- Prompt: `AGENT_CHECK_MAIN.txt`
+- Goal: audit generated Pages artifacts for stale/orphaned links, manifest/report consistency, sensitive data, and CI coverage gaps.
+- Start status: clean `main`, fast-forward synced with `origin/main`; Stage 4 deployment passed after log closeout (`288c5dc`, CI `28311525127`).
+- Checks performed:
+  - Confirmed current branch is `main` and working tree was clean before edits.
+  - Re-read CI workflow commands.
+  - Confirmed no local `data/` files are tracked.
+  - Scanned for TODO/debugger/console/sensitive-token strings; hits were variable names, secret names in docs, and error text, not actual secrets.
+  - Ran gitleaks.
+  - Checked generated public site.
+- Issue found:
+  - `scripts/check_public_site.py` validated required sections but did not validate local links/assets, so a generated dashboard/topic/report link could point to a missing local file and still pass CI.
+  - While adding the test, the checker also proved hard to import because it used script-only imports.
+- Result:
+  - Made `check_public_site.py` importable from tests while still runnable as a script.
+  - Added `LocalLinkParser` and `_find_local_link_issues()` to detect broken local `href`/`src` references in generated HTML.
+  - Wired local-link auditing into the CI static-site checker.
+  - Added a regression test that fails on `index.html -> missing-report.html`.
+- Browser / HTTP verification:
+  - HTML dashboard remained healthy with one manifest link and no overflow/console warnings before JSON navigation.
+  - In-app browser blocked direct JSON navigation with `ERR_BLOCKED_BY_CLIENT`; HTTP request to `http://127.0.0.1:8010/site-manifest.json` returned 200 with 10 reports, 30 findings, 6 topics, and latest match `8867124876`.
+- Local verification:
+  - `python -m unittest tests.test_build_pages_site.BuildPagesSiteTests.test_static_site_checker_detects_missing_local_links`: failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 46 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages plus manifest/local-link checks.
+  - `git diff --check`: passed.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+- Commit / Push / CI: pending.
+- Next direction: add shareable URL-persisted filters for the history page so filtered review queues can be reopened or shared.
+
 ## Global Preparation
 
 - Status: clean on `main`, synced with `origin/main`.

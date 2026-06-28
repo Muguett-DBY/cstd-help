@@ -2,7 +2,10 @@ import json
 from html.parser import HTMLParser
 from pathlib import Path
 
-from build_pages_site import _parse_report
+try:
+    from build_pages_site import _parse_report
+except ModuleNotFoundError:
+    from scripts.build_pages_site import _parse_report
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -39,10 +42,61 @@ class TitleParser(HTMLParser):
         return "".join(self.title_parts).strip()
 
 
+class LocalLinkParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.links = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() not in {"a", "link", "script", "img"}:
+            return
+        attributes = dict(attrs)
+        for name in ("href", "src"):
+            value = attributes.get(name)
+            if value:
+                self.links.append(value)
+
+
 def _title_for(path):
     parser = TitleParser()
     parser.feed(path.read_text(encoding="utf-8"))
     return parser.title
+
+
+def _is_local_asset_reference(value):
+    normalized = value.strip()
+    if not normalized or normalized.startswith("#"):
+        return False
+    if normalized.startswith(("http://", "https://", "mailto:", "tel:", "data:")):
+        return False
+    return True
+
+
+def _strip_link_suffix(value):
+    return value.split("#", 1)[0].split("?", 1)[0]
+
+
+def _find_local_link_issues(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    issues = []
+    for page in sorted(public_dir.glob("*.html")):
+        parser = LocalLinkParser()
+        parser.feed(page.read_text(encoding="utf-8"))
+        for raw_link in parser.links:
+            if not _is_local_asset_reference(raw_link):
+                continue
+            target = _strip_link_suffix(raw_link)
+            if not target:
+                continue
+            target_path = (page.parent / target).resolve()
+            try:
+                target_path.relative_to(public_dir.resolve())
+            except ValueError:
+                issues.append(f"{page.name} -> {raw_link}")
+                continue
+            if not target_path.exists():
+                issues.append(f"{page.name} -> {raw_link}")
+    return issues
 
 
 def main():
@@ -70,6 +124,11 @@ def main():
     )
     if not reports:
         raise SystemExit("public contains no report HTML files")
+
+    local_link_issues = _find_local_link_issues(PUBLIC_DIR)
+    if local_link_issues:
+        preview = "; ".join(local_link_issues[:10])
+        raise SystemExit(f"public contains broken local links: {preview}")
 
     index_html = index_path.read_text(encoding="utf-8")
     if "Dota 2 天梯复盘报告" not in index_html:

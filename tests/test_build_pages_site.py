@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from scripts import build_pages_site as pages_site
+from scripts import check_public_site
 
 
 class BuildPagesSiteTests(unittest.TestCase):
@@ -24,6 +25,19 @@ class BuildPagesSiteTests(unittest.TestCase):
             encoding="utf-8",
         )
         return path
+
+    def test_static_site_checker_detects_missing_local_links(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "index.html").write_text(
+                '<html><body><a href="missing-report.html">broken</a><a href="https://example.com">external</a></body></html>',
+                encoding="utf-8",
+            )
+            (public_path / "present.html").write_text("<html></html>", encoding="utf-8")
+
+            issues = check_public_site._find_local_link_issues(public_path)
+
+        self.assertEqual(issues, ["index.html -> missing-report.html"])
 
     def test_parse_report_uses_embedded_match_metadata(self):
         metadata = {
