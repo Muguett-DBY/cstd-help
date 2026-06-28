@@ -1,5 +1,16 @@
 # Iteration Log
 
+## 2026-06-28 - Cycle 2 Stage 6 IMPROVE
+
+- Carry-over: add shareable URL-persisted filters for the history page.
+- Completed: history filters now initialize from `?result=...&priority=...&q=...`, update the URL with `history.replaceState`, and include a `清除筛选` button.
+- User-visible gain: filtered review queues can be bookmarked, refreshed, or shared without losing context.
+- Real issue fixed: previous filters were ephemeral and reset on refresh.
+- Verified: browser URL-state flow, 46 tests, compileall, static site validation, diff check, and gitleaks.
+- Commit / CI: pending.
+- Remaining risk: filter URLs cover match history only; topic evidence filters still reset on refresh.
+- Recommended next flagship change: persist topic-page evidence filters and add hero/topic URL filters once more matches accumulate.
+
 ## 2026-06-28 - Cycle 2 Stage 5 CHECK
 
 - Goal: audit generated Pages artifacts for stale/orphaned links and static-site consistency risks.

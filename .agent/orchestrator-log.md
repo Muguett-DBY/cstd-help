@@ -177,6 +177,39 @@ Started: 2026-06-28
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28311681379`.
 - Next direction: add shareable URL-persisted filters for the history page so filtered review queues can be reopened or shared.
 
+## Cycle 2 - Stage 6 - IMPROVE
+
+- Prompt: `AGENT_IMPROVE_MAIN.txt`
+- Goal: make match-history filters shareable and refresh-safe with URL-persisted state.
+- Start status: clean `main`; Stage 5 deployment passed after log closeout (`c5184c1`, CI `28311703604`).
+- Previous-stage direction: add shareable URL-persisted filters for the history page so filtered review queues can be reopened or shared.
+- Plan:
+  - Add failing tests for clear-filter controls and URL-state script hooks.
+  - Initialize history filters from `result`, `priority`, and `q` query params.
+  - Sync filter changes back into the URL with `history.replaceState`.
+  - Add a clear-filter button that resets state, visible rows, and URL.
+  - Rebuild public output, browser-test the URL flow, run local gates, push, and watch Actions.
+- Result:
+  - Added `清除筛选` to the match-history filter header.
+  - Added URL parsing with `URLSearchParams` for `result`, `priority`, and search query `q`.
+  - Added URL synchronization with `history.replaceState` after result/priority/search changes.
+  - Added reset behavior that restores all rows and removes query params.
+  - Added responsive styles for the clear button.
+  - Extended static validation to require the URL filter hooks.
+- Browser verification:
+  - Loaded `/?result=lose&priority=high&q=Dragon`: active filters restored, search input set to `Dragon`, 1 / 10 visible row, no overflow, no console warnings/errors.
+  - Clicked `清除筛选`: URL returned to `/`, filters reset to all, 10 / 10 rows visible.
+  - Clicked `只看胜利`: URL changed to `/?result=win`, 5 / 10 rows visible.
+- Local verification:
+  - `python -m unittest tests.test_build_pages_site.BuildPagesSiteTests.test_render_index_contains_clickable_match_table_with_real_fields`: failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 46 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `git diff --check`: passed with generated HTML CRLF warnings only.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+- Commit / Push / CI: pending.
+- Next direction: persist topic evidence filters and add hero/topic URL filters once the match sample grows.
+
 ## Global Preparation
 
 - Status: clean on `main`, synced with `origin/main`.
