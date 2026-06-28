@@ -1,5 +1,18 @@
 # Iteration Log
 
+## 2026-06-28 - Long Cycle Stage 3 UIUX
+
+- Carry-over: long report pages had high-quality evidence but were slow to navigate during an actual replay review session.
+- Flagship UI/UX change: upgraded each match report into a section-navigable review workspace with sticky anchors for coach summary, next actions, match data, timeline, events, findings, and items.
+- Completed: added skip-to-content access, active-section feedback, stable anchor offsets, mobile horizontal navigation, a sticky return-top control, and local timeline-table scrolling.
+- User-visible gain: the player can jump directly to the decision surface needed for review instead of scanning a long HTML report linearly.
+- Real issues fixed: browser QA caught mobile rail centering and return-top reachability problems; both are now covered by code and style regression checks.
+- Verified: 55-test suite, compileall, static site validation, gitleaks, diff check, desktop report navigation, mobile 390px navigation, no horizontal page overflow, and zero browser console errors.
+- Commit: pending.
+- CI: pending.
+- Remaining risk: newly introduced future report sections must provide stable IDs if they should appear in the navigator.
+- Recommended next flagship change: connect the training plan more directly to pre-filtered evidence and per-topic action checkpoints so the player can move from "what to train" to the exact supporting games faster.
+
 ## 2026-06-28 - Long Cycle Stage 2 IMPROVE
 
 - Carry-over: result-only topic filters still required scanning every hero in larger recurring-problem archives.

@@ -439,6 +439,11 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".topic-filter-button", stylesheet)
         self.assertIn(".topic-empty-state", stylesheet)
         self.assertIn(".data-coverage", stylesheet)
+        self.assertIn(".report-section-nav", stylesheet)
+        self.assertIn(".skip-link", stylesheet)
+        self.assertIn(".report-top-link", stylesheet)
+        self.assertRegex(stylesheet, r"\.report-top-link\s*\{[^}]*position:\s*sticky")
+        self.assertIn("#timeline-diagnosis table", stylesheet)
 
     def test_generated_coaching_pages_have_no_trailing_whitespace(self):
         metadata = {
@@ -492,6 +497,44 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("Anti-Mage", latest_html)
         self.assertIn("Anti-Mage_8866000193_20260625_160037.html", latest_html)
         self.assertIn("终结比赛", latest_html)
+
+    def test_build_pages_site_upgrades_legacy_reports_with_section_navigation(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            path = self._write_report(source, metadata)
+            text = path.read_text(encoding="utf-8")
+            sections = (
+                '<div class="section priority-section"><div class="section-header">教练总结</div></div>'
+                '<div class="section priority-section"><div class="section-header">下一局行动清单</div></div>'
+                '<div class="section"><div class="section-header">比赛概览</div></div>'
+                '<div class="section"><div class="section-header">时间线诊断</div></div>'
+                '<div class="section"><div class="section-header">死亡/装备事件</div></div>'
+                '<div class="section"><div class="section-header">本局主要问题证据</div></div>'
+                '<div class="section"><div class="section-header">出装分析</div></div>'
+            )
+            path.write_text(text.replace('<div class="finding-card high">', sections + '<div class="finding-card high">'), encoding="utf-8")
+
+            pages_site.build_pages_site(source, public_dir=public)
+            report_html = (Path(public) / path.name).read_text(encoding="utf-8")
+
+        self.assertIn('class="skip-link"', report_html)
+        self.assertIn('aria-label="报告章节"', report_html)
+        self.assertIn('href="#next-actions"', report_html)
+        self.assertIn('id="next-actions"', report_html)
+        self.assertIn('id="timeline-diagnosis"', report_html)
+        self.assertIn('data-report-section-link', report_html)
+        self.assertIn('track.scrollTo', report_html)
+        self.assertEqual(report_html.count('class="report-section-nav"'), 1)
 
 
 if __name__ == "__main__":

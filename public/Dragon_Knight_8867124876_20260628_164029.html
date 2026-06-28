@@ -7,10 +7,10 @@
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="static/style.css">
 </head>
-<body>
+<body><a class="skip-link" href="#coach-summary">跳到复盘正文</a>
 <div class="container">
 
-    <div class="header">
+    <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
 <nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 9 / 10 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Earth_Spirit_8867246517_20260628_164029.html"><span class="neighbor-label">上一局（更新）</span><strong>Earth Spirit #8867246517</strong><small>胜利 · 高优先级 · 死亡成本</small></a><a class="neighbor-card" href="Mirana_8867002237_20260628_164029.html"><span class="neighbor-label">下一局（更早）</span><strong>Mirana #8867002237</strong><small>失败 · 高优先级 · 死亡成本</small></a></div></nav>
         <h1>Dragon Knight 复盘报告</h1>
@@ -19,7 +19,7 @@
     </div>
 
 
-    <div class="section priority-section">
+    <nav class="report-section-nav" aria-label="报告章节"><div class="report-section-nav-track"><span class="report-section-nav-label">本局复盘</span><a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a><a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a><a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a><a class="report-section-link" href="#timeline-diagnosis" data-report-section-link>时间线</a><a class="report-section-link" href="#match-events" data-report-section-link>事件</a><a class="report-section-link" href="#review-findings" data-report-section-link>问题证据</a><a class="report-section-link" href="#item-analysis" data-report-section-link>出装</a><a class="report-top-link" href="#report-top" aria-label="返回报告顶部" title="返回报告顶部">&uarr;</a></div></nav><div class="section priority-section" id="coach-summary">
         <div class="section-header">&#129504; 教练总结</div>
         <div class="section-body">
             <div class="coach-analysis">Dragon Knight 复盘分析（失败）
@@ -63,7 +63,7 @@
         </div>
     </div>
 
-    <div class="section priority-section">
+    <div class="section priority-section" id="next-actions">
         <div class="section-header">&#127919; 下一局行动清单</div>
         <div class="section-body">
 
@@ -138,7 +138,7 @@
     </div>
 
 
-    <div class="section">
+    <div class="section" id="match-overview">
         <div class="section-header">&#128202; 比赛概览</div>
         <div class="section-body">
             <div class="stat-grid">
@@ -191,7 +191,7 @@
     </div>
 
 
-    <div class="section">
+    <div class="section" id="timeline-diagnosis">
         <div class="section-header">&#128200; 时间线诊断</div>
         <div class="section-body">
 
@@ -274,7 +274,7 @@
 
 
 
-    <div class="section">
+    <div class="section" id="match-events">
         <div class="section-header">&#9201; 死亡/装备事件</div>
         <div class="section-body">
             <div class="subsection-title">关键购买</div>
@@ -333,7 +333,7 @@
 
 
 
-    <div class="section">
+    <div class="section" id="review-findings">
         <div class="section-header">&#128204; 本局主要问题证据</div>
         <div class="section-body">
 
@@ -349,7 +349,7 @@
     </div>
 
 
-    <div class="section">
+    <div class="section" id="item-analysis">
         <div class="section-header">&#128091; 出装分析</div>
         <div class="section-body">
             <div style="margin-bottom:12px; color:var(--text-secondary); font-size:13px;">最终装备:</div>
@@ -401,5 +401,41 @@
 
 </div>
 <script id="report-metadata" type="application/json">{"schema_version":1,"match_id":8867124876,"hero":{"id":49,"name":"Dragon Knight","slug":"dragon_knight"},"is_win":false,"side":"Radiant","started_at":"2026-06-26T11:16:05Z","ended_at":"2026-06-26T12:19:55Z","duration_seconds":3830,"kda":{"kills":11,"deaths":12,"assists":16},"score":{"team":50,"enemy":73},"allies":[{"id":14,"name":"Pudge","slug":"pudge"},{"id":49,"name":"Dragon Knight","slug":"dragon_knight"},{"id":39,"name":"Queen of Pain","slug":"queenofpain"},{"id":54,"name":"Lifestealer","slug":"life_stealer"},{"id":30,"name":"Witch Doctor","slug":"witch_doctor"}],"enemies":[{"id":71,"name":"Spirit Breaker","slug":"spirit_breaker"},{"id":20,"name":"Vengeful Spirit","slug":"vengefulspirit"},{"id":11,"name":"Shadow Fiend","slug":"nevermore"},{"id":101,"name":"Skywrath Mage","slug":"skywrath_mage"},{"id":22,"name":"Zeus","slug":"zuus"}]}</script>
-</body>
+<script data-report-section-navigation>
+(() => {
+    const links = Array.from(document.querySelectorAll('[data-report-section-link]'));
+    const sections = links.map((link) => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+    if (!links.length || !sections.length) return;
+    const activate = (sectionId) => {
+        let activeLink = null;
+        links.forEach((link) => {
+            const isActive = link.getAttribute('href') === `#${sectionId}`;
+            link.classList.toggle('active', isActive);
+            if (isActive) {
+                link.setAttribute('aria-current', 'location');
+                activeLink = link;
+            }
+            else link.removeAttribute('aria-current');
+        });
+        if (activeLink && activeLink.parentElement) {
+            const track = activeLink.parentElement;
+            const left = activeLink.offsetLeft - ((track.clientWidth - activeLink.offsetWidth) / 2);
+            track.scrollTo({ left: Math.max(0, left), behavior: 'auto' });
+        }
+    };
+    links.forEach((link) => link.addEventListener('click', () => activate(link.getAttribute('href').slice(1))));
+    window.addEventListener('hashchange', () => {
+        if (window.location.hash) activate(window.location.hash.slice(1));
+    });
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            const visible = entries.filter((entry) => entry.isIntersecting)
+                .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
+            if (visible) activate(visible.target.id);
+        }, { rootMargin: '-18% 0px -68% 0px', threshold: [0.01, 0.35] });
+        sections.forEach((section) => observer.observe(section));
+    }
+    activate(window.location.hash.slice(1) || sections[0].id);
+})();
+</script></body>
 </html>

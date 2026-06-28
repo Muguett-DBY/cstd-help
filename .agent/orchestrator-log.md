@@ -489,3 +489,36 @@ Started: 2026-06-28
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28320739812`.
 - Risk: topic filters are exact-hero filters; role grouping is intentionally deferred because the generated report evidence does not currently expose a verified role on every topic card.
 - Next stage: Stage 3 UIUX.
+
+## 2026-06-28 - Long Cycle Stage 3 UIUX - Start
+
+- Stage: 3 / 6
+- Type: UIUX
+- Prompt: AGENT_UIUX_MAIN.txt
+- Flagship goal: turn long match reports into a navigable evidence workspace with direct access to coaching, actions, timeline, events, findings, and item analysis.
+- Supporting improvements: skip-to-content accessibility, active-section feedback, a top-return control, mobile horizontal navigation, stable anchor offsets, and visible keyboard focus.
+- Design choice: use one sticky horizontal section navigator instead of a desktop-only sidebar or collapsed report sections; this preserves data-table width and keeps the same interaction model on desktop and mobile.
+- Start state: main at `chore: record stage 2 hero filter deployment` (`0dbaaf0`), Stage 2 closeout CI passed in run `28320763849`, clean worktree.
+- Constraints: do not touch Docker; do not edit AGENTS.md; no force push or branch changes; no new frontend dependency.
+
+## 2026-06-28 - Long Cycle Stage 3 UIUX - Complete
+
+- Completed: long match reports now include a skip link, sticky section navigation, anchored coaching/action/data/timeline/event/finding/item sections, active-section state, a visible return-top control, and local horizontal scrolling for timeline tables.
+- User-visible increment: a player can jump directly to `下一局`, `时间线`, `事件`, `问题证据`, or `出装` inside a long report instead of repeatedly scrolling through the full document.
+- Real issues fixed during browser QA:
+  - Mobile active-link centering now scrolls only the navigation rail, not the whole page.
+  - The return-top control is sticky on the right side of the horizontal report navigator, so it remains clickable on 390px mobile width.
+- Browser verification:
+  - Desktop report: `#next-actions` click updated the hash, activated `下一局`, kept horizontal scroll at 0, exposed 7 section links, and produced zero console errors.
+  - Mobile 390px report: `#timeline-diagnosis` click activated `时间线`, kept document width equal to viewport width, preserved a local timeline-table scroller, kept the sticky top link visible, and produced zero console errors.
+- Local verification:
+  - Target regression tests failed before implementation where applicable, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 55 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Commit/push/CI: pending.
+- Risk: section navigation is static HTML/JS, so future generated report sections need matching IDs to appear in the rail.
+- Next stage: Stage 4 IMPROVE.

@@ -891,6 +891,100 @@ def _write_site_manifest_json(manifest, output_path):
     output_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+REPORT_SECTION_NAV_ITEMS = (
+    ("coach-summary", "教练总结", "教练结论"),
+    ("next-actions", "下一局行动清单", "下一局"),
+    ("match-overview", "比赛概览", "比赛数据"),
+    ("timeline-diagnosis", "时间线诊断", "时间线"),
+    ("match-events", "死亡/装备事件", "事件"),
+    ("review-findings", "本局主要问题证据", "问题证据"),
+    ("item-analysis", "出装分析", "出装"),
+)
+
+REPORT_SECTION_NAV_SCRIPT = """<script data-report-section-navigation>
+(() => {
+    const links = Array.from(document.querySelectorAll('[data-report-section-link]'));
+    const sections = links.map((link) => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+    if (!links.length || !sections.length) return;
+    const activate = (sectionId) => {
+        let activeLink = null;
+        links.forEach((link) => {
+            const isActive = link.getAttribute('href') === `#${sectionId}`;
+            link.classList.toggle('active', isActive);
+            if (isActive) {
+                link.setAttribute('aria-current', 'location');
+                activeLink = link;
+            }
+            else link.removeAttribute('aria-current');
+        });
+        if (activeLink && activeLink.parentElement) {
+            const track = activeLink.parentElement;
+            const left = activeLink.offsetLeft - ((track.clientWidth - activeLink.offsetWidth) / 2);
+            track.scrollTo({ left: Math.max(0, left), behavior: 'auto' });
+        }
+    };
+    links.forEach((link) => link.addEventListener('click', () => activate(link.getAttribute('href').slice(1))));
+    window.addEventListener('hashchange', () => {
+        if (window.location.hash) activate(window.location.hash.slice(1));
+    });
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            const visible = entries.filter((entry) => entry.isIntersecting)
+                .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
+            if (visible) activate(visible.target.id);
+        }, { rootMargin: '-18% 0px -68% 0px', threshold: [0.01, 0.35] });
+        sections.forEach((section) => observer.observe(section));
+    }
+    activate(window.location.hash.slice(1) || sections[0].id);
+})();
+</script>"""
+
+
+def _ensure_report_section_navigation(text):
+    if 'class="report-section-nav"' in text:
+        return text
+
+    available = []
+    for section_id, heading, label in REPORT_SECTION_NAV_ITEMS:
+        pattern = re.compile(
+            rf'(<div class="section(?: [^"]*)?")(\s*>\s*<div class="section-header">[^<]*{re.escape(heading)}</div>)'
+        )
+        text, replacements = pattern.subn(rf'\1 id="{section_id}"\2', text, count=1)
+        if replacements:
+            available.append((section_id, label))
+
+    if not available:
+        return text
+
+    if 'id="report-top"' not in text:
+        if '<div class="header">' in text:
+            text = text.replace('<div class="header">', '<div class="header" id="report-top">', 1)
+        else:
+            text = text.replace('<body>', '<body><span class="report-top-anchor" id="report-top"></span>', 1)
+
+    first_section_id = available[0][0]
+    if 'class="skip-link"' not in text:
+        text = text.replace('<body>', f'<body><a class="skip-link" href="#{first_section_id}">跳到复盘正文</a>', 1)
+
+    links = ''.join(
+        f'<a class="report-section-link" href="#{html.escape(section_id, quote=True)}" data-report-section-link>{html.escape(label)}</a>'
+        for section_id, label in available
+    )
+    navigation = (
+        '<nav class="report-section-nav" aria-label="报告章节">'
+        '<div class="report-section-nav-track">'
+        '<span class="report-section-nav-label">本局复盘</span>'
+        f'{links}'
+        '<a class="report-top-link" href="#report-top" aria-label="返回报告顶部" title="返回报告顶部">&uarr;</a>'
+        '</div></nav>'
+    )
+    first_section = re.search(r'<div class="section(?: [^"]*)?" id="', text)
+    if first_section:
+        text = text[:first_section.start()] + navigation + text[first_section.start():]
+    text = text.replace('</body>', f'{REPORT_SECTION_NAV_SCRIPT}</body>', 1)
+    return text
+
+
 def _neighbor_result_text(report):
     if report.get("is_win") is True:
         return "胜利"
@@ -955,6 +1049,7 @@ def _inject_report_navigation(public_dir, reports):
             text = text[:insert_at] + "\n" + neighbors + text[insert_at:]
         else:
             text = text.replace("<body>", f"<body>\n{neighbors}", 1)
+        text = _ensure_report_section_navigation(text)
         path.write_text(text, encoding="utf-8")
 
 
