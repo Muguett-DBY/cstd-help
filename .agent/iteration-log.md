@@ -7,7 +7,8 @@
 - User-visible gain: filtered review queues can be bookmarked, refreshed, or shared without losing context.
 - Real issue fixed: previous filters were ephemeral and reset on refresh.
 - Verified: browser URL-state flow, 46 tests, compileall, static site validation, diff check, and gitleaks.
-- Commit / CI: pending.
+- Commit: `feat: persist history filter URLs` (`46ef363`), pushed to `origin/main`.
+- CI: passed, `Deploy Cloudflare Pages` run `28311817122`.
 - Remaining risk: filter URLs cover match history only; topic evidence filters still reset on refresh.
 - Recommended next flagship change: persist topic-page evidence filters and add hero/topic URL filters once more matches accumulate.
 

@@ -207,8 +207,26 @@ Started: 2026-06-28
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `git diff --check`: passed with generated HTML CRLF warnings only.
   - `gitleaks dir . --redact`: passed, no leaks found.
-- Commit / Push / CI: pending.
+- Commit: `feat: persist history filter URLs` (`46ef363`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28311817122`.
 - Next direction: persist topic evidence filters and add hero/topic URL filters once the match sample grows.
+
+## Cycle 2 - Final Status
+
+- Completed stages: 6 / 6.
+- Final feature commit before log closeout: `46ef363`.
+- Final verified workflow at feature commit: `Deploy Cloudflare Pages` run `28311817122`, passed.
+- Local final gates:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 46 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+- Remaining risks:
+  - Topic evidence filters do not persist in URL yet.
+  - External CDN hero images are not checked by the local-link validator.
+  - Manifest describes generated report coverage, not external STRATZ/OpenDota fetch freshness.
+- Recommended next flagship change: persist topic evidence filters and add hero/topic filter URLs when the report set grows.
 
 ## Global Preparation
 
