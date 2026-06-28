@@ -1,5 +1,17 @@
 # Iteration Log
 
+## 2026-06-28 - Long Cycle Stage 1 IMPROVE
+
+- Carry-over: topic evidence pages needed shareable URL-persisted filters after history filters were completed.
+- Completed: topic evidence pages now initialize from `?result=win|lose`, update the URL with `history.replaceState`, and include a `清除筛选` button.
+- User-visible gain: recurring-problem evidence views can be refreshed or shared while keeping the win/loss evidence slice.
+- Real issue fixed: topic page filters were previously ephemeral and reset after refresh.
+- Verified: target regression test, 54 tests, compileall, static site validation, browser URL-state flow, diff check, and gitleaks.
+- Commit: pending at stage close.
+- CI: pending at stage close.
+- Remaining risk: topic pages still filter by result only; hero/role/topic search would make large evidence archives faster to scan.
+- Recommended next flagship change: add hero/role-aware filters to topic evidence pages and propagate those filters through shareable URLs.
+
 ## 2026-06-28 - Cycle 2 Stage 6 IMPROVE
 
 - Carry-over: add shareable URL-persisted filters for the history page.

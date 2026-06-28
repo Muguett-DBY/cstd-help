@@ -433,3 +433,31 @@ Started: 2026-06-28
   - `review-trends.json`: schema version 1 with 3 trends.
 - Remaining risk:
   - Trend grouping still uses exact focus strings; semantic normalization is the next highest-value improvement.
+
+## 2026-06-28 - Long Cycle Stage 1 IMPROVE - Start
+
+- Stage: 1 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: Persist topic evidence win/loss filters in the URL so recurring-problem views can be refreshed and shared.
+- Carry-over: Previous iteration recommended persisting topic-page evidence filters and adding richer shareable filters.
+- Start state: main branch, clean worktree, origin/main up to date; CI workflow is Deploy Cloudflare Pages.
+- Constraints: do not touch Docker; do not edit AGENTS.md; no force push or branch changes.
+
+## 2026-06-28 - Long Cycle Stage 1 IMPROVE - Complete
+
+- Completed: topic evidence pages now persist win/loss filters through `?result=win|lose`, update URLs on button clicks, and expose a clear-filter control.
+- User-visible increment: shareable recurring-problem evidence links preserve the selected result slice after refresh.
+- Real issue fixed: topic filters no longer reset silently on refresh.
+- Local verification:
+  - `python -m unittest tests.test_build_pages_site.BuildPagesSiteTests.test_build_pages_site_writes_topic_evidence_pages_and_links`: failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 54 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser: `trend-death-cost.html?result=lose` initialized correctly, win filter updated URL, clear filter removed query, no console errors.
+- Commit: pending.
+- Push: pending.
+- GitHub Actions / CI: pending.
+- Risk: topic filters are result-only; hero/role evidence filtering remains the next useful extension.
+- Next stage: Stage 2 IMPROVE.
