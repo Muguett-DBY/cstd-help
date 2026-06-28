@@ -8,7 +8,8 @@
 - User-visible gain: every repeated coaching issue now opens into a full evidence archive with each supporting match, original label, evidence text, training action, acceptance metric, and report link.
 - Real issue fixed: practice-plan optional topic navigation no longer emits trailing whitespace when no extra topics exist.
 - Verified: 44 tests, compileall, static site validation, browser drill-down flow, diff check, and gitleaks.
-- Commit / CI: pending.
+- Commit: `feat: add trend evidence drilldowns` (`2940d76`), pushed to `origin/main`.
+- CI: passed, `Deploy Cloudflare Pages` run `28307051954`.
 - Remaining risk: topic taxonomy is still curated v1; unknown future labels intentionally stay separate until mapped.
 - Recommended next flagship change: improve the topic evidence pages for faster scanning across heroes and roles.
 

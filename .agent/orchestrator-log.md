@@ -66,7 +66,9 @@ Started: 2026-06-28
   - `python scripts/check_public_site.py`: passed, 10 report pages plus topic page validation.
   - `git diff --check`: passed with only existing generated-report CRLF warnings.
   - `gitleaks dir . --redact`: passed, no leaks found.
-- Commit / Push / CI: pending.
+- Commit: `feat: add trend evidence drilldowns` (`2940d76`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28307051954`.
 - Next direction: improve evidence-page scanning and cross-topic navigation for faster coach-style review.
 
 ## Global Preparation
