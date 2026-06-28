@@ -8,17 +8,34 @@
     <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
+<a class="skip-link" href="#report-main">跳到复盘正文</a>
 <div class="container">
 
-    <div class="header">
+    <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
         <h1>{{ hero_name }} 复盘报告</h1>
         <div class="subtitle">比赛ID: {{ match_id }} | 结束于 {{ match_date }} | 时长 {{ duration_min }}分钟</div>
         <div class="result-badge {{ 'win' if is_win else 'lose' }}">{{ '胜利' if is_win else '失败' }}</div>
     </div>
 
+    <nav class="report-section-nav" aria-label="报告章节">
+        <div class="report-section-nav-track">
+            <span class="report-section-nav-label">本局复盘</span>
+            {% if ai_analysis %}<a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a>{% endif %}
+            {% if review_findings %}<a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>{% endif %}
+            <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
+            {% if timeline %}<a class="report-section-link" href="#timeline-diagnosis" data-report-section-link>时间线</a>{% endif %}
+            {% if events %}<a class="report-section-link" href="#match-events" data-report-section-link>事件</a>{% endif %}
+            {% if review_findings %}<a class="report-section-link" href="#review-findings" data-report-section-link>问题证据</a>{% endif %}
+            <a class="report-section-link" href="#item-analysis" data-report-section-link>出装</a>
+            <a class="report-top-link" href="#report-top" aria-label="返回报告顶部" title="返回报告顶部">&uarr;</a>
+        </div>
+    </nav>
+
+    <main id="report-main">
+
     {% if ai_analysis %}
-    <div class="section priority-section">
+    <div class="section priority-section" id="coach-summary">
         <div class="section-header">&#129504; 教练总结</div>
         <div class="section-body">
             <div class="coach-analysis">{{ ai_analysis }}</div>
@@ -27,7 +44,7 @@
     {% endif %}
 
     {% if review_findings %}
-    <div class="section priority-section">
+    <div class="section priority-section" id="next-goals">
         <div class="section-header">&#127919; 下一局量化目标</div>
         <div class="section-body">
             <div class="goal-list">
@@ -42,7 +59,7 @@
         </div>
     </div>
 
-    <div class="section priority-section">
+    <div class="section priority-section" id="next-actions">
         <div class="section-header">&#127919; 下一局行动清单</div>
         <div class="section-body">
             {% for finding in review_findings[:5] %}
@@ -61,7 +78,7 @@
     {% endif %}
 
     {% if data_quality %}
-    <div class="section">
+    <div class="section" id="data-quality">
         <div class="section-header">&#128269; 数据完整性</div>
         <div class="section-body">
             <div class="quality-row">
@@ -85,7 +102,7 @@
     {% endif %}
 
     {% if context %}
-    <div class="section">
+    <div class="section" id="match-context">
         <div class="section-header">&#127919; 比赛上下文</div>
         <div class="section-body">
             <div class="stat-grid">
@@ -113,7 +130,7 @@
     </div>
     {% endif %}
 
-    <div class="section">
+    <div class="section" id="match-overview">
         <div class="section-header">&#128202; 比赛概览</div>
         <div class="section-body">
             <div class="stat-grid">
@@ -166,7 +183,7 @@
     </div>
 
     {% if timeline %}
-    <div class="section">
+    <div class="section" id="timeline-diagnosis">
         <div class="section-header">&#128200; 时间线诊断</div>
         <div class="section-body">
             {% if timeline.available %}
@@ -226,7 +243,7 @@
     {% endif %}
 
     {% if events %}
-    <div class="section">
+    <div class="section" id="match-events">
         <div class="section-header">&#9201; 死亡/装备事件</div>
         <div class="section-body">
             <div class="subsection-title">关键购买</div>
@@ -273,7 +290,7 @@
     {% endif %}
 
     {% if review_findings %}
-    <div class="section">
+    <div class="section" id="review-findings">
         <div class="section-header">&#128204; 本局主要问题证据</div>
         <div class="section-body">
             {% for finding in review_findings[:5] %}
@@ -285,7 +302,7 @@
     </div>
     {% endif %}
 
-    <div class="section">
+    <div class="section" id="item-analysis">
         <div class="section-header">&#128091; 出装分析</div>
         <div class="section-body">
             <div style="margin-bottom:12px; color:var(--text-secondary); font-size:13px;">最终装备:</div>
@@ -319,7 +336,7 @@
     </div>
 
     {% if d2pt and d2pt.skill_build %}
-    <div class="section">
+    <div class="section" id="skill-build">
         <div class="section-header">&#9889; 技能加点（vs D2PT推荐）</div>
         <div class="section-body">
             <div style="margin-bottom:8px; color:var(--text-secondary); font-size:13px;">D2PT推荐加点顺序:</div>
@@ -340,7 +357,7 @@
     {% endif %}
 
     {% if d2pt and d2pt.talents %}
-    <div class="section">
+    <div class="section" id="talent-build">
         <div class="section-header">&#127919; 天赋选择（D2PT推荐）</div>
         <div class="section-body">
             {% for talent in d2pt.talents|reverse %}
@@ -361,7 +378,7 @@
     {% endif %}
 
     {% if issues %}
-    <div class="section">
+    <div class="section" id="reported-issues">
         <div class="section-header">&#9888;&#65039; 发现的问题</div>
         <div class="section-body">
             {% for issue in issues %}
@@ -375,7 +392,7 @@
     {% endif %}
 
     {% if summary %}
-    <div class="section">
+    <div class="section" id="overall-summary">
         <div class="section-header">&#128202; 整体表现概览</div>
         <div class="section-body">
             <div class="stat-grid">
@@ -408,11 +425,60 @@
     </div>
     {% endif %}
 
+    </main>
+
     <div class="footer">
         D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | {{ generated_at }}
     </div>
 
 </div>
 <script id="report-metadata" type="application/json">{{ report_metadata_json|safe }}</script>
+<script data-report-section-navigation>
+(() => {
+    const links = Array.from(document.querySelectorAll('[data-report-section-link]'));
+    const sections = links
+        .map((link) => document.querySelector(link.getAttribute('href')))
+        .filter(Boolean);
+    if (!links.length || !sections.length) return;
+
+    const activate = (sectionId) => {
+        let activeLink = null;
+        links.forEach((link) => {
+            const isActive = link.getAttribute('href') === `#${sectionId}`;
+            link.classList.toggle('active', isActive);
+            if (isActive) {
+                link.setAttribute('aria-current', 'location');
+                activeLink = link;
+            }
+            else link.removeAttribute('aria-current');
+        });
+        if (activeLink && activeLink.parentElement) {
+            const track = activeLink.parentElement;
+            const left = activeLink.offsetLeft - ((track.clientWidth - activeLink.offsetWidth) / 2);
+            track.scrollTo({ left: Math.max(0, left), behavior: 'auto' });
+        }
+    };
+
+    links.forEach((link) => {
+        link.addEventListener('click', () => activate(link.getAttribute('href').slice(1)));
+    });
+    window.addEventListener('hashchange', () => {
+        if (window.location.hash) activate(window.location.hash.slice(1));
+    });
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            const visible = entries
+                .filter((entry) => entry.isIntersecting)
+                .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
+            if (visible) activate(visible.target.id);
+        }, { rootMargin: '-18% 0px -68% 0px', threshold: [0.01, 0.35] });
+        sections.forEach((section) => observer.observe(section));
+    }
+
+    const initialId = window.location.hash.slice(1) || sections[0].id;
+    activate(initialId);
+})();
+</script>
 </body>
 </html>

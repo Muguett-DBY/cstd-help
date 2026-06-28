@@ -689,6 +689,18 @@ class ReportQualityTests(unittest.TestCase):
                 self.assertIn(text, html)
             for text in ["下一局量化目标", "训练目标", "验收标准"]:
                 self.assertIn(text, html)
+            for text in [
+                'class="skip-link"',
+                'aria-label="报告章节"',
+                'href="#next-actions"',
+                'href="#timeline-diagnosis"',
+                'id="next-actions"',
+                'id="timeline-diagnosis"',
+                'data-report-section-link',
+                'IntersectionObserver',
+                'track.scrollTo',
+            ]:
+                self.assertIn(text, html)
             for removed in ["数据对比（vs 基准线）", "改进建议", "AI教练分析", "## Anti-Mage", "### 本局最重要结论"]:
                 self.assertNotIn(removed, html)
 
