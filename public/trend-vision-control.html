@@ -25,12 +25,29 @@
         <span class="summary-win"><strong>1</strong> 胜</span>
         <span class="summary-loss"><strong>0</strong> 负</span>
     </div>
-    <section class="topic-provenance">
-        <strong>归并标签</strong>
-        <span>视野/控图</span>
-    </section>
-    <main class="topic-evidence-list" aria-label="视野/控图完整证据">
-        <article class="topic-evidence-card">
+    <section class="topic-workbench" aria-label="主题证据工作台">
+        <nav class="topic-switcher" aria-label="切换训练主题">
+            <strong>训练主题</strong>
+            <a class="topic-switch-link" href="trend-death-cost.html"><span>死亡成本</span><small>10 局 / 10 条</small></a><a class="topic-switch-link" href="trend-early-resource.html"><span>前10分钟资源</span><small>5 局 / 5 条</small></a><a class="topic-switch-link" href="trend-close-game.html"><span>终结比赛</span><small>3 局 / 3 条</small></a><a class="topic-switch-link" href="trend-item-conversion.html"><span>装备后转化</span><small>10 局 / 10 条</small></a><a class="topic-switch-link" href="trend-resource-continuity.html"><span>中后期资源连续性</span><small>1 局 / 1 条</small></a><a class="topic-switch-link active" href="trend-vision-control.html" aria-current="page"><span>视野/控图</span><small>1 局 / 1 条</small></a>
+        </nav>
+        <div class="topic-workbench-main">
+            <div class="topic-controls" aria-label="筛选当前主题证据">
+                <div class="topic-count-panel" aria-live="polite">
+                    <strong><span data-topic-card-count>1</span> / 1 条证据</strong>
+                    <span>当前主题：视野/控图</span>
+                </div>
+                <div class="topic-filter-row" role="group" aria-label="按胜负筛选证据">
+                    <button type="button" class="topic-filter-button active" data-topic-filter="all" aria-pressed="true">全部证据</button>
+                    <button type="button" class="topic-filter-button" data-topic-filter="win" aria-pressed="false">只看胜利</button>
+                    <button type="button" class="topic-filter-button" data-topic-filter="lose" aria-pressed="false">只看失败</button>
+                </div>
+            </div>
+            <section class="topic-provenance">
+                <strong>归并标签</strong>
+                <span>视野/控图</span>
+            </section>
+            <main class="topic-evidence-list" aria-label="视野/控图完整证据">
+                <article class="topic-evidence-card" data-topic-evidence-card data-result="win">
                     <div class="topic-evidence-head">
                         <div>
                             <span class="match-result win">胜利</span>
@@ -44,7 +61,41 @@
                     <div class="topic-evidence-line"><strong>验收标准</strong><span>观察+岗哨总数不低于24；25分钟后每次死亡后3分钟内至少补1个视野事件。</span></div>
                     <a class="topic-report-link" href="Crystal_Maiden_8866935458_20260628_051736.html">打开本局完整复盘</a>
                 </article>
-    </main>
+            </main>
+            <div class="topic-empty-state" data-topic-empty hidden>
+                <strong>没有符合当前筛选的证据</strong>
+                <span>切换到全部证据，或查看其他训练主题。</span>
+            </div>
+        </div>
+    </section>
 </div>
+<script>
+(function setupTopicWorkbench() {
+    const filterButtons = Array.from(document.querySelectorAll('[data-topic-filter]'));
+    const evidenceCards = Array.from(document.querySelectorAll('[data-topic-evidence-card]'));
+    const countLabel = document.querySelector('[data-topic-card-count]');
+    const emptyState = document.querySelector('[data-topic-empty]');
+
+    function applyTopicFilter(selected) {
+        let visible = 0;
+        evidenceCards.forEach((card) => {
+            const shouldShow = selected === 'all' || card.dataset.result === selected;
+            card.hidden = !shouldShow;
+            if (shouldShow) visible += 1;
+        });
+        filterButtons.forEach((button) => {
+            const isActive = button.dataset.topicFilter === selected;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+        });
+        if (countLabel) countLabel.textContent = String(visible);
+        if (emptyState) emptyState.hidden = visible !== 0;
+    }
+
+    filterButtons.forEach((button) => {
+        button.addEventListener('click', () => applyTopicFilter(button.dataset.topicFilter || 'all'));
+    });
+})();
+</script>
 </body>
 </html>

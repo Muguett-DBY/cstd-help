@@ -71,6 +71,41 @@ Started: 2026-06-28
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28307051954`.
 - Next direction: improve evidence-page scanning and cross-topic navigation for faster coach-style review.
 
+## Cycle 2 - Stage 3 - UIUX
+
+- Prompt: `AGENT_UIUX_MAIN.txt`
+- Goal: upgrade topic evidence pages from static evidence lists into a faster scan-and-filter coaching workbench.
+- Start status: clean `main`, fast-forward synced with `origin/main`; Stage 2 deployment passed after log closeout (`f6e9de8`, CI `28307077843`).
+- UI/UX audit findings:
+  - P1: topic pages exposed complete evidence but forced linear scanning through long card lists.
+  - P1: switching between recurring problems required returning to dashboard/practice-plan.
+  - P2: there was no interaction feedback for narrowing evidence by match outcome.
+  - P2: mobile topic exploration needed a denser, touch-friendly navigation pattern.
+- Plan:
+  - Add failing tests for topic workbench structure, filters, counters, empty state, and stylesheet hooks.
+  - Generate per-topic quick-switch navigation across all canonical topics.
+  - Add result filters with `aria-pressed`, live count updates, card hiding, and empty-state feedback.
+  - Keep the page static and dependency-free while improving desktop and mobile layouts.
+  - Rebuild `public`, verify browser desktop/mobile behavior, run local CI-equivalent gates, push, and watch Actions.
+- Result:
+  - Added a `topic-workbench` layout to every `trend-*.html` page.
+  - Added topic switcher links, evidence counters, win/loss filter buttons, hidden-card states, and `没有符合当前筛选的证据` empty state.
+  - Added responsive CSS so desktop uses a side topic rail and mobile uses a horizontal touch-friendly topic switcher.
+  - Hid the mobile switcher scrollbar after visual verification showed it was noisy.
+  - Tightened static validation so generated topic pages must keep the workbench controls.
+- Browser verification:
+  - Desktop `trend-death-cost.html`: 6 topic links, 10 evidence cards, win filter shows 5 cards, lose filter shows 5 cards, no overflow, no console warnings/errors.
+  - Mobile 390px: 6 topic links, filter controls present, 10 visible cards by default, switcher scrollable without page overflow, no console warnings/errors.
+- Local verification:
+  - `python -m unittest tests.test_build_pages_site.BuildPagesSiteTests.test_build_pages_site_writes_topic_evidence_pages_and_links tests.test_build_pages_site.BuildPagesSiteTests.test_semantic_trend_provenance_has_visible_styles`: failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 44 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages plus topic workbench validation.
+  - `git diff --check`: passed with only generated-report CRLF warnings.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+- Commit / Push / CI: pending.
+- Next direction: add a generated freshness/coverage manifest so the dashboard explains which reports and latest match produced the current coaching plan.
+
 ## Global Preparation
 
 - Status: clean on `main`, synced with `origin/main`.

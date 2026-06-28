@@ -583,6 +583,20 @@ def _render_practice_plan(trends, reports, output_path):
 def _render_topic_pages(trends, public_dir):
     for trend in trends:
         focus = html.escape(trend.get("focus") or "需要查看报告")
+        topic_links = []
+        for topic in trends:
+            topic_focus = html.escape(topic.get("focus") or "其他主题")
+            topic_page = html.escape(topic.get("page") or "index.html", quote=True)
+            topic_count = html.escape(str(topic.get("count") or 0))
+            topic_findings = html.escape(str(topic.get("finding_count") or topic.get("count") or 0))
+            is_current = topic.get("topic_id") == trend.get("topic_id")
+            active_class = " active" if is_current else ""
+            current_attr = ' aria-current="page"' if is_current else ""
+            topic_links.append(
+                f'<a class="topic-switch-link{active_class}" href="{topic_page}"{current_attr}>'
+                f'<span>{topic_focus}</span><small>{topic_count} 局 / {topic_findings} 条</small>'
+                '</a>'
+            )
         findings = trend.get("findings") or []
         match_results = {}
         for index, finding in enumerate(findings):
@@ -605,7 +619,7 @@ def _render_topic_pages(trends, public_dir):
             result_text = {"win": "胜利", "lose": "失败"}.get(result, "待确认")
             evidence_cards.append(
                 f"""
-                <article class="topic-evidence-card">
+                <article class="topic-evidence-card" data-topic-evidence-card data-result="{result_class}">
                     <div class="topic-evidence-head">
                         <div>
                             <span class="match-result {result_class}">{result_text}</span>
@@ -622,6 +636,7 @@ def _render_topic_pages(trends, public_dir):
                 """.strip()
             )
         source_labels = "、".join(html.escape(label) for label in trend.get("source_focuses") or [])
+        evidence_html = "".join(evidence_cards) if evidence_cards else '<div class="trend-empty">暂无可展示证据。</div>'
         page_html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -649,14 +664,65 @@ def _render_topic_pages(trends, public_dir):
         <span class="summary-win"><strong>{wins}</strong> 胜</span>
         <span class="summary-loss"><strong>{losses}</strong> 负</span>
     </div>
-    <section class="topic-provenance">
-        <strong>归并标签</strong>
-        <span>{source_labels or focus}</span>
+    <section class="topic-workbench" aria-label="主题证据工作台">
+        <nav class="topic-switcher" aria-label="切换训练主题">
+            <strong>训练主题</strong>
+            {''.join(topic_links)}
+        </nav>
+        <div class="topic-workbench-main">
+            <div class="topic-controls" aria-label="筛选当前主题证据">
+                <div class="topic-count-panel" aria-live="polite">
+                    <strong><span data-topic-card-count>{len(findings)}</span> / {len(findings)} 条证据</strong>
+                    <span>当前主题：{focus}</span>
+                </div>
+                <div class="topic-filter-row" role="group" aria-label="按胜负筛选证据">
+                    <button type="button" class="topic-filter-button active" data-topic-filter="all" aria-pressed="true">全部证据</button>
+                    <button type="button" class="topic-filter-button" data-topic-filter="win" aria-pressed="false">只看胜利</button>
+                    <button type="button" class="topic-filter-button" data-topic-filter="lose" aria-pressed="false">只看失败</button>
+                </div>
+            </div>
+            <section class="topic-provenance">
+                <strong>归并标签</strong>
+                <span>{source_labels or focus}</span>
+            </section>
+            <main class="topic-evidence-list" aria-label="{focus}完整证据">
+                {evidence_html}
+            </main>
+            <div class="topic-empty-state" data-topic-empty hidden>
+                <strong>没有符合当前筛选的证据</strong>
+                <span>切换到全部证据，或查看其他训练主题。</span>
+            </div>
+        </div>
     </section>
-    <main class="topic-evidence-list" aria-label="{focus}完整证据">
-        {''.join(evidence_cards) if evidence_cards else '<div class="trend-empty">暂无可展示证据。</div>'}
-    </main>
 </div>
+<script>
+(function setupTopicWorkbench() {{
+    const filterButtons = Array.from(document.querySelectorAll('[data-topic-filter]'));
+    const evidenceCards = Array.from(document.querySelectorAll('[data-topic-evidence-card]'));
+    const countLabel = document.querySelector('[data-topic-card-count]');
+    const emptyState = document.querySelector('[data-topic-empty]');
+
+    function applyTopicFilter(selected) {{
+        let visible = 0;
+        evidenceCards.forEach((card) => {{
+            const shouldShow = selected === 'all' || card.dataset.result === selected;
+            card.hidden = !shouldShow;
+            if (shouldShow) visible += 1;
+        }});
+        filterButtons.forEach((button) => {{
+            const isActive = button.dataset.topicFilter === selected;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+        }});
+        if (countLabel) countLabel.textContent = String(visible);
+        if (emptyState) emptyState.hidden = visible !== 0;
+    }}
+
+    filterButtons.forEach((button) => {{
+        button.addEventListener('click', () => applyTopicFilter(button.dataset.topicFilter || 'all'));
+    }});
+}})();
+</script>
 </body>
 </html>
 """

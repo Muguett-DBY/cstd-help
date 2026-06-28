@@ -1,5 +1,17 @@
 # Iteration Log
 
+## 2026-06-28 - Cycle 2 Stage 3 UIUX
+
+- Carry-over: improve evidence-page scanning and cross-topic navigation.
+- Flagship UI/UX change: upgraded each topic evidence page into a compact evidence workbench.
+- Completed: added topic quick-switch navigation, visible evidence count, win/loss evidence filters, empty-state feedback, card data states, and mobile horizontal topic navigation without page overflow.
+- User-visible gain: the player can scan a recurring problem by theme, filter winning/losing examples, and jump between coaching topics without returning to the dashboard.
+- Real issue fixed: mobile topic navigation initially exposed a rough native horizontal scrollbar; it now keeps the scroll affordance without visual noise.
+- Verified: 44 tests, compileall, static site validation, desktop/mobile browser workbench flow, diff check, and gitleaks.
+- Commit / CI: pending.
+- Remaining risk: topic pages filter only by result today; hero/role filters could further speed review once more matches accumulate.
+- Recommended next flagship change: add a generated freshness/coverage manifest so the dashboard explains exactly which report set and latest match produced the coaching plan.
+
 ## 2026-06-28 - Cycle 2 Stage 2 IMPROVE
 
 - Carry-over: make every canonical trend auditable beyond the three example links.

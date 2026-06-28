@@ -147,7 +147,18 @@ def main():
         if f'href="{page_name}"' not in index_html or f'href="{page_name}"' not in practice_html:
             raise SystemExit(f"topic evidence page is not linked from dashboard and practice plan: {page_name}")
         topic_html = (PUBLIC_DIR / page_name).read_text(encoding="utf-8")
-        for required in ("完整证据", "归并标签", "训练动作", "验收标准", "打开本局完整复盘"):
+        for required in (
+            "完整证据",
+            "主题证据工作台",
+            "topic-switcher",
+            "data-topic-filter",
+            "data-topic-card-count",
+            "data-topic-empty",
+            "归并标签",
+            "训练动作",
+            "验收标准",
+            "打开本局完整复盘",
+        ):
             if required not in topic_html:
                 raise SystemExit(f"{page_name} is missing required topic content: {required}")
 

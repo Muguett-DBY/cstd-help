@@ -251,6 +251,7 @@ class BuildPagesSiteTests(unittest.TestCase):
             second = dict(metadata)
             second["match_id"] = 8867002240
             second["hero"] = {"id": 69, "name": "Doom", "slug": "doom_bringer"}
+            second["is_win"] = True
             self._write_report(source, second, filename="Doom_8867002240_20260626_224840.html")
 
             pages_site.build_pages_site(source, public_dir=public)
@@ -281,6 +282,7 @@ class BuildPagesSiteTests(unittest.TestCase):
             second = dict(metadata)
             second["match_id"] = 8867002240
             second["hero"] = {"id": 69, "name": "Doom", "slug": "doom_bringer"}
+            second["is_win"] = True
             self._write_report(source, second, filename="Doom_8867002240_20260626_224840.html")
 
             pages_site.build_pages_site(source, public_dir=public)
@@ -311,6 +313,7 @@ class BuildPagesSiteTests(unittest.TestCase):
             second = dict(metadata)
             second["match_id"] = 8867002240
             second["hero"] = {"id": 69, "name": "Doom", "slug": "doom_bringer"}
+            second["is_win"] = True
             self._write_report(source, second, filename="Doom_8867002240_20260626_224840.html")
 
             pages_site.build_pages_site(source, public_dir=public)
@@ -328,6 +331,17 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("Doom #8867002240", topic_html)
         self.assertIn("训练动作", topic_html)
         self.assertIn("打开本局完整复盘", topic_html)
+        self.assertIn("topic-workbench", topic_html)
+        self.assertIn("topic-switcher", topic_html)
+        self.assertIn('data-topic-filter="all"', topic_html)
+        self.assertIn('data-topic-filter="win"', topic_html)
+        self.assertIn('data-topic-filter="lose"', topic_html)
+        self.assertIn('data-topic-card-count', topic_html)
+        self.assertIn('data-topic-empty', topic_html)
+        self.assertIn('data-result="lose"', topic_html)
+        self.assertIn('data-result="win"', topic_html)
+        self.assertIn("没有符合当前筛选的证据", topic_html)
+        self.assertIn("setupTopicWorkbench", topic_html)
 
     def test_semantic_trend_provenance_has_visible_styles(self):
         stylesheet = (pages_site.STATIC_SOURCE / "style.css").read_text(encoding="utf-8")
@@ -336,6 +350,10 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".taxonomy-note", stylesheet)
         self.assertIn(".topic-evidence-card", stylesheet)
         self.assertIn(".topic-evidence-line", stylesheet)
+        self.assertIn(".topic-workbench", stylesheet)
+        self.assertIn(".topic-switcher", stylesheet)
+        self.assertIn(".topic-filter-button", stylesheet)
+        self.assertIn(".topic-empty-state", stylesheet)
 
     def test_generated_coaching_pages_have_no_trailing_whitespace(self):
         metadata = {
