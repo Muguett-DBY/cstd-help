@@ -1,35 +1,2948 @@
 {
-  "1": {"name": "Blink Dagger", "display": "Blink Dagger", "cost": 2250, "category": "active"},
-  "4": {"name": "Blade Mail", "display": "Blade Mail", "cost": 2050, "category": "active"},
-  "6": {"name": "Black King Bar", "display": "Black King Bar", "cost": 4050, "category": "active"},
-  "36": {"name": "Boots of Speed", "display": "Boots of Speed", "cost": 500, "category": "consumable"},
-  "63": {"name": "Magic Stick", "display": "Magic Stick", "cost": 200, "category": "consumable"},
-  "75": {"name": "Quelling Blade", "display": "Quelling Blade", "cost": 110, "category": "consumable"},
-  "116": {"name": "Phase Boots", "display": "Phase Boots", "cost": 1500, "category": "consumable"},
-  "139": {"name": "Town Portal Scroll", "display": "Town Portal Scroll", "cost": 75, "category": "consumable"},
-  "143": {"name": "Iron Branch", "display": "Iron Branch", "cost": 50, "category": "consumable"},
-  "145": {"name": "Magic Wand", "display": "Magic Wand", "cost": 450, "category": "consumable"},
-  "147": {"name": "Tango", "display": "Tango", "cost": 90, "category": "consumable"},
-  "170": {"name": "Enchanted Mango", "display": "Enchanted Mango", "cost": 75, "category": "consumable"},
-  "208": {"name": "Blood Grenade", "display": "Blood Grenade", "cost": 65, "category": "consumable"},
-  "236": {"name": "Iron Talon", "display": "Iron Talon", "cost": 0, "category": "consumable"},
-  "242": {"name": "Faerie Fire", "display": "Faerie Fire", "cost": 70, "category": "consumable"},
-  "267": {"name": "Stick", "display": "Magic Stick", "cost": 200, "category": "consumable"},
-  "11": {"name": "branches", "display": "Iron Branch", "cost": 50, "category": "consumable"},
-  "16": {"name": "tango", "display": "Tango", "cost": 90, "category": "consumable"},
-  "34": {"name": "circlet", "display": "Circlet", "cost": 155, "category": "consumable"},
-  "44": {"name": "gauntlets", "display": "Gauntlets of Strength", "cost": 140, "category": "consumable"},
-  "237": {"name": "blood_grenade", "display": "Blood Grenade", "cost": 65, "category": "consumable"},
-  "609": {"name": "infused_raindrop", "display": "Infused Raindrop", "cost": 225, "category": "consumable"},
-  "608": {"name": "wind_lace", "display": "Wind Lace", "cost": 250, "category": "consumable"},
-  "231": {"name": "enchanted_mango", "display": "Enchanted Mango", "cost": 75, "category": "consumable"},
-  "244": {"name": "faerie_fire", "display": "Faerie Fire", "cost": 70, "category": "consumable"},
-  "188": {"name": "clarity", "display": "Clarity", "cost": 50, "category": "consumable"},
-  "202": {"name": "smoke_of_deceit", "display": "Smoke of Deceit", "cost": 100, "category": "consumable"},
-  "241": {"name": "double_damage", "display": "Double Damage", "cost": 0, "category": "powerup"},
-  "243": {"name": "haste", "display": "Haste", "cost": 0, "category": "powerup"},
-  "245": {"name": "illusion", "display": "Illusion", "cost": 0, "category": "powerup"},
-  "246": {"name": "invisibility", "display": "Invisibility", "cost": 0, "category": "powerup"},
-  "247": {"name": "regeneration", "display": "Regeneration", "cost": 0, "category": "powerup"},
-  "248": {"name": "arcane", "display": "Arcane", "cost": 0, "category": "powerup"}
+  "1": {
+    "name": "blink",
+    "display": "Blink Dagger",
+    "cost": 2250,
+    "category": "component"
+  },
+  "2": {
+    "name": "blades_of_attack",
+    "display": "Blades of Attack",
+    "cost": 450,
+    "category": "component"
+  },
+  "3": {
+    "name": "broadsword",
+    "display": "Broadsword",
+    "cost": 1000,
+    "category": "component"
+  },
+  "4": {
+    "name": "chainmail",
+    "display": "Chainmail",
+    "cost": 500,
+    "category": "component"
+  },
+  "5": {
+    "name": "claymore",
+    "display": "Claymore",
+    "cost": 1350,
+    "category": "component"
+  },
+  "6": {
+    "name": "helm_of_iron_will",
+    "display": "Helm of Iron Will",
+    "cost": 975,
+    "category": "component"
+  },
+  "7": {
+    "name": "javelin",
+    "display": "Javelin",
+    "cost": 900,
+    "category": "component"
+  },
+  "8": {
+    "name": "mithril_hammer",
+    "display": "Mithril Hammer",
+    "cost": 1600,
+    "category": "component"
+  },
+  "9": {
+    "name": "platemail",
+    "display": "Platemail",
+    "cost": 1400,
+    "category": "secret_shop"
+  },
+  "10": {
+    "name": "quarterstaff",
+    "display": "Quarterstaff",
+    "cost": 875,
+    "category": "component"
+  },
+  "11": {
+    "name": "quelling_blade",
+    "display": "Quelling Blade",
+    "cost": 100,
+    "category": "component"
+  },
+  "12": {
+    "name": "ring_of_protection",
+    "display": "Ring of Protection",
+    "cost": 175,
+    "category": "component"
+  },
+  "13": {
+    "name": "gauntlets",
+    "display": "Gauntlets of Strength",
+    "cost": 140,
+    "category": "component"
+  },
+  "14": {
+    "name": "slippers",
+    "display": "Slippers of Agility",
+    "cost": 140,
+    "category": "component"
+  },
+  "15": {
+    "name": "mantle",
+    "display": "Mantle of Intelligence",
+    "cost": 140,
+    "category": "component"
+  },
+  "16": {
+    "name": "branches",
+    "display": "Iron Branch",
+    "cost": 55,
+    "category": "consumable"
+  },
+  "17": {
+    "name": "belt_of_strength",
+    "display": "Belt of Strength",
+    "cost": 450,
+    "category": "component"
+  },
+  "18": {
+    "name": "boots_of_elves",
+    "display": "Band of Elvenskin",
+    "cost": 450,
+    "category": "component"
+  },
+  "19": {
+    "name": "robe",
+    "display": "Robe of the Magi",
+    "cost": 450,
+    "category": "component"
+  },
+  "20": {
+    "name": "circlet",
+    "display": "Circlet",
+    "cost": 155,
+    "category": "component"
+  },
+  "21": {
+    "name": "ogre_axe",
+    "display": "Ogre Axe",
+    "cost": 1000,
+    "category": "component"
+  },
+  "22": {
+    "name": "blade_of_alacrity",
+    "display": "Blade of Alacrity",
+    "cost": 1000,
+    "category": "component"
+  },
+  "23": {
+    "name": "staff_of_wizardry",
+    "display": "Staff of Wizardry",
+    "cost": 1000,
+    "category": "component"
+  },
+  "24": {
+    "name": "ultimate_orb",
+    "display": "Ultimate Orb",
+    "cost": 2800,
+    "category": "secret_shop"
+  },
+  "25": {
+    "name": "gloves",
+    "display": "Gloves of Haste",
+    "cost": 450,
+    "category": "component"
+  },
+  "26": {
+    "name": "lifesteal",
+    "display": "Morbid Mask",
+    "cost": 900,
+    "category": "component"
+  },
+  "27": {
+    "name": "ring_of_regen",
+    "display": "Ring of Regen",
+    "cost": 175,
+    "category": "component"
+  },
+  "28": {
+    "name": "sobi_mask",
+    "display": "Sage's Mask",
+    "cost": 175,
+    "category": "component"
+  },
+  "29": {
+    "name": "boots",
+    "display": "Boots of Speed",
+    "cost": 500,
+    "category": "component"
+  },
+  "30": {
+    "name": "gem",
+    "display": "Gem of True Sight",
+    "cost": 900,
+    "category": "component"
+  },
+  "31": {
+    "name": "cloak",
+    "display": "Cloak",
+    "cost": 900,
+    "category": "component"
+  },
+  "32": {
+    "name": "talisman_of_evasion",
+    "display": "Talisman of Evasion",
+    "cost": 1300,
+    "category": "secret_shop"
+  },
+  "33": {
+    "name": "cheese",
+    "display": "Cheese",
+    "cost": 1000,
+    "category": "consumable"
+  },
+  "34": {
+    "name": "magic_stick",
+    "display": "Magic Stick",
+    "cost": 200,
+    "category": "component"
+  },
+  "35": {
+    "name": "recipe_magic_wand",
+    "display": "Magic Wand Recipe",
+    "cost": 150,
+    "category": null
+  },
+  "36": {
+    "name": "magic_wand",
+    "display": "Magic Wand",
+    "cost": 460,
+    "category": "common"
+  },
+  "37": {
+    "name": "ghost",
+    "display": "Ghost Scepter",
+    "cost": 1500,
+    "category": "component"
+  },
+  "38": {
+    "name": "clarity",
+    "display": "Clarity",
+    "cost": 60,
+    "category": "consumable"
+  },
+  "39": {
+    "name": "flask",
+    "display": "Healing Salve",
+    "cost": 100,
+    "category": "consumable"
+  },
+  "40": {
+    "name": "dust",
+    "display": "Dust of Appearance",
+    "cost": 80,
+    "category": "consumable"
+  },
+  "41": {
+    "name": "bottle",
+    "display": "Bottle",
+    "cost": 675,
+    "category": "common"
+  },
+  "42": {
+    "name": "ward_observer",
+    "display": "Observer Ward",
+    "cost": 0,
+    "category": "consumable"
+  },
+  "43": {
+    "name": "ward_sentry",
+    "display": "Sentry Ward",
+    "cost": 50,
+    "category": "consumable"
+  },
+  "44": {
+    "name": "tango",
+    "display": "Tango",
+    "cost": 90,
+    "category": "consumable"
+  },
+  "45": {
+    "name": "courier",
+    "display": "Animal Courier",
+    "cost": 50,
+    "category": "consumable"
+  },
+  "46": {
+    "name": "tpscroll",
+    "display": "Town Portal Scroll",
+    "cost": 100,
+    "category": "consumable"
+  },
+  "47": {
+    "name": "recipe_travel_boots",
+    "display": "Boots of Travel Recipe",
+    "cost": 2000,
+    "category": null
+  },
+  "48": {
+    "name": "travel_boots",
+    "display": "Boots of Travel",
+    "cost": 2500,
+    "category": "common"
+  },
+  "50": {
+    "name": "phase_boots",
+    "display": "Phase Boots",
+    "cost": 1450,
+    "category": "common"
+  },
+  "51": {
+    "name": "demon_edge",
+    "display": "Demon Edge",
+    "cost": 2200,
+    "category": "secret_shop"
+  },
+  "52": {
+    "name": "eagle",
+    "display": "Eaglesong",
+    "cost": 2800,
+    "category": "secret_shop"
+  },
+  "53": {
+    "name": "reaver",
+    "display": "Reaver",
+    "cost": 2800,
+    "category": "secret_shop"
+  },
+  "54": {
+    "name": "relic",
+    "display": "Sacred Relic",
+    "cost": 3400,
+    "category": "secret_shop"
+  },
+  "55": {
+    "name": "hyperstone",
+    "display": "Hyperstone",
+    "cost": 2000,
+    "category": "secret_shop"
+  },
+  "56": {
+    "name": "ring_of_health",
+    "display": "Ring of Health",
+    "cost": 700,
+    "category": "component"
+  },
+  "57": {
+    "name": "void_stone",
+    "display": "Void Stone",
+    "cost": 700,
+    "category": "component"
+  },
+  "58": {
+    "name": "mystic_staff",
+    "display": "Mystic Staff",
+    "cost": 2800,
+    "category": "secret_shop"
+  },
+  "59": {
+    "name": "energy_booster",
+    "display": "Energy Booster",
+    "cost": 800,
+    "category": "secret_shop"
+  },
+  "60": {
+    "name": "point_booster",
+    "display": "Point Booster",
+    "cost": 1200,
+    "category": "secret_shop"
+  },
+  "61": {
+    "name": "vitality_booster",
+    "display": "Vitality Booster",
+    "cost": 1000,
+    "category": "secret_shop"
+  },
+  "63": {
+    "name": "power_treads",
+    "display": "Power Treads",
+    "cost": 1400,
+    "category": "common"
+  },
+  "64": {
+    "name": "recipe_hand_of_midas",
+    "display": "Hand of Midas Recipe",
+    "cost": 1750,
+    "category": null
+  },
+  "65": {
+    "name": "hand_of_midas",
+    "display": "Hand of Midas",
+    "cost": 2200,
+    "category": "common"
+  },
+  "67": {
+    "name": "oblivion_staff",
+    "display": "Oblivion Staff",
+    "cost": 1625,
+    "category": "common"
+  },
+  "69": {
+    "name": "pers",
+    "display": "Perseverance",
+    "cost": 1400,
+    "category": "common"
+  },
+  "71": {
+    "name": "poor_mans_shield",
+    "display": "Poor Man's Shield",
+    "cost": 0,
+    "category": "common"
+  },
+  "72": {
+    "name": "recipe_bracer",
+    "display": "Bracer Recipe",
+    "cost": 210,
+    "category": null
+  },
+  "73": {
+    "name": "bracer",
+    "display": "Bracer",
+    "cost": 505,
+    "category": "common"
+  },
+  "74": {
+    "name": "recipe_wraith_band",
+    "display": "Wraith Band Recipe",
+    "cost": 210,
+    "category": null
+  },
+  "75": {
+    "name": "wraith_band",
+    "display": "Wraith Band",
+    "cost": 505,
+    "category": "common"
+  },
+  "76": {
+    "name": "recipe_null_talisman",
+    "display": "Null Talisman Recipe",
+    "cost": 210,
+    "category": null
+  },
+  "77": {
+    "name": "null_talisman",
+    "display": "Null Talisman",
+    "cost": 505,
+    "category": "common"
+  },
+  "78": {
+    "name": "recipe_mekansm",
+    "display": "Mekansm Recipe",
+    "cost": 850,
+    "category": null
+  },
+  "79": {
+    "name": "mekansm",
+    "display": "Mekansm",
+    "cost": 1775,
+    "category": "rare"
+  },
+  "81": {
+    "name": "vladmir",
+    "display": "Vladmir's Offering",
+    "cost": 2200,
+    "category": "rare"
+  },
+  "85": {
+    "name": "recipe_buckler",
+    "display": "Buckler Recipe",
+    "cost": 250,
+    "category": null
+  },
+  "86": {
+    "name": "buckler",
+    "display": "Buckler",
+    "cost": 425,
+    "category": "rare"
+  },
+  "87": {
+    "name": "recipe_ring_of_basilius",
+    "display": "Ring of Basilius Recipe",
+    "cost": 250,
+    "category": null
+  },
+  "88": {
+    "name": "ring_of_basilius",
+    "display": "Ring of Basilius",
+    "cost": 425,
+    "category": "rare"
+  },
+  "89": {
+    "name": "recipe_pipe",
+    "display": "Pipe of Insight Recipe",
+    "cost": 675,
+    "category": null
+  },
+  "90": {
+    "name": "pipe",
+    "display": "Pipe of Insight",
+    "cost": 3725,
+    "category": "rare"
+  },
+  "91": {
+    "name": "recipe_urn_of_shadows",
+    "display": "Urn of Shadows Recipe",
+    "cost": 320,
+    "category": null
+  },
+  "92": {
+    "name": "urn_of_shadows",
+    "display": "Urn of Shadows",
+    "cost": 825,
+    "category": "rare"
+  },
+  "93": {
+    "name": "recipe_headdress",
+    "display": "Headdress Recipe",
+    "cost": 250,
+    "category": null
+  },
+  "94": {
+    "name": "headdress",
+    "display": "Headdress",
+    "cost": 425,
+    "category": "rare"
+  },
+  "95": {
+    "name": "recipe_sheepstick",
+    "display": "Scythe of Vyse Recipe",
+    "cost": 700,
+    "category": null
+  },
+  "96": {
+    "name": "sheepstick",
+    "display": "Scythe of Vyse",
+    "cost": 5200,
+    "category": "rare"
+  },
+  "97": {
+    "name": "recipe_orchid",
+    "display": "Orchid Malevolence Recipe",
+    "cost": 300,
+    "category": null
+  },
+  "98": {
+    "name": "orchid",
+    "display": "Orchid Malevolence",
+    "cost": 3275,
+    "category": "rare"
+  },
+  "99": {
+    "name": "recipe_cyclone",
+    "display": "Eul's Scepter Recipe",
+    "cost": 675,
+    "category": null
+  },
+  "100": {
+    "name": "cyclone",
+    "display": "Eul's Scepter of Divinity",
+    "cost": 2600,
+    "category": "rare"
+  },
+  "101": {
+    "name": "recipe_force_staff",
+    "display": "Force Staff Recipe",
+    "cost": 950,
+    "category": null
+  },
+  "102": {
+    "name": "force_staff",
+    "display": "Force Staff",
+    "cost": 2200,
+    "category": "rare"
+  },
+  "103": {
+    "name": "recipe_dagon",
+    "display": "Dagon Recipe",
+    "cost": 1150,
+    "category": null
+  },
+  "104": {
+    "name": "dagon",
+    "display": "Dagon",
+    "cost": 3050,
+    "category": "rare"
+  },
+  "105": {
+    "name": "recipe_necronomicon",
+    "display": "Necronomicon Recipe",
+    "cost": 1250,
+    "category": null
+  },
+  "106": {
+    "name": "necronomicon",
+    "display": "Necronomicon",
+    "cost": 2050,
+    "category": "rare"
+  },
+  "108": {
+    "name": "ultimate_scepter",
+    "display": "Aghanim's Scepter",
+    "cost": 4200,
+    "category": "rare"
+  },
+  "109": {
+    "name": "recipe_refresher",
+    "display": "Refresher Orb Recipe",
+    "cost": 1600,
+    "category": null
+  },
+  "110": {
+    "name": "refresher",
+    "display": "Refresher Orb",
+    "cost": 5000,
+    "category": "rare"
+  },
+  "111": {
+    "name": "recipe_assault",
+    "display": "Assault Cuirass Recipe",
+    "cost": 1300,
+    "category": null
+  },
+  "112": {
+    "name": "assault",
+    "display": "Assault Cuirass",
+    "cost": 5125,
+    "category": "epic"
+  },
+  "113": {
+    "name": "recipe_heart",
+    "display": "Heart of Tarrasque Recipe",
+    "cost": 600,
+    "category": null
+  },
+  "114": {
+    "name": "heart",
+    "display": "Heart of Tarrasque",
+    "cost": 5100,
+    "category": "epic"
+  },
+  "115": {
+    "name": "recipe_black_king_bar",
+    "display": "Black King Bar Recipe",
+    "cost": 1450,
+    "category": null
+  },
+  "116": {
+    "name": "black_king_bar",
+    "display": "Black King Bar",
+    "cost": 4050,
+    "category": "epic"
+  },
+  "117": {
+    "name": "aegis",
+    "display": "Aegis of the Immortal",
+    "cost": 0,
+    "category": "artifact"
+  },
+  "118": {
+    "name": "recipe_shivas_guard",
+    "display": "Shiva's Guard Recipe",
+    "cost": 1350,
+    "category": null
+  },
+  "119": {
+    "name": "shivas_guard",
+    "display": "Shiva's Guard",
+    "cost": 4500,
+    "category": "epic"
+  },
+  "121": {
+    "name": "bloodstone",
+    "display": "Bloodstone",
+    "cost": 4700,
+    "category": "epic"
+  },
+  "122": {
+    "name": "recipe_sphere",
+    "display": "Linken's Sphere Recipe",
+    "cost": 600,
+    "category": null
+  },
+  "123": {
+    "name": "sphere",
+    "display": "Linken's Sphere",
+    "cost": 4800,
+    "category": "epic"
+  },
+  "125": {
+    "name": "vanguard",
+    "display": "Vanguard",
+    "cost": 1700,
+    "category": "epic"
+  },
+  "126": {
+    "name": "recipe_blade_mail",
+    "display": "Blade Mail Recipe",
+    "cost": 450,
+    "category": null
+  },
+  "127": {
+    "name": "blade_mail",
+    "display": "Blade Mail",
+    "cost": 2400,
+    "category": "epic"
+  },
+  "129": {
+    "name": "soul_booster",
+    "display": "Soul Booster",
+    "cost": 3000,
+    "category": "epic"
+  },
+  "131": {
+    "name": "hood_of_defiance",
+    "display": "Hood of Defiance",
+    "cost": 0,
+    "category": "epic"
+  },
+  "133": {
+    "name": "rapier",
+    "display": "Divine Rapier",
+    "cost": 5600,
+    "category": "epic"
+  },
+  "134": {
+    "name": "recipe_monkey_king_bar",
+    "display": "Monkey King Bar Recipe",
+    "cost": 900,
+    "category": null
+  },
+  "135": {
+    "name": "monkey_king_bar",
+    "display": "Monkey King Bar",
+    "cost": 5000,
+    "category": "epic"
+  },
+  "137": {
+    "name": "radiance",
+    "display": "Radiance",
+    "cost": 4700,
+    "category": "epic"
+  },
+  "139": {
+    "name": "butterfly",
+    "display": "Butterfly",
+    "cost": 5450,
+    "category": "epic"
+  },
+  "140": {
+    "name": "recipe_greater_crit",
+    "display": "Daedalus Recipe",
+    "cost": 900,
+    "category": null
+  },
+  "141": {
+    "name": "greater_crit",
+    "display": "Daedalus",
+    "cost": 5100,
+    "category": "epic"
+  },
+  "142": {
+    "name": "recipe_basher",
+    "display": "Skull Basher Recipe",
+    "cost": 825,
+    "category": null
+  },
+  "143": {
+    "name": "basher",
+    "display": "Skull Basher",
+    "cost": 2875,
+    "category": "epic"
+  },
+  "144": {
+    "name": "recipe_bfury",
+    "display": "Battle Fury Recipe",
+    "cost": 400,
+    "category": null
+  },
+  "145": {
+    "name": "bfury",
+    "display": "Battle Fury",
+    "cost": 3900,
+    "category": "epic"
+  },
+  "146": {
+    "name": "recipe_manta",
+    "display": "Manta Style Recipe",
+    "cost": 1550,
+    "category": null
+  },
+  "147": {
+    "name": "manta",
+    "display": "Manta Style",
+    "cost": 4650,
+    "category": "epic"
+  },
+  "148": {
+    "name": "recipe_lesser_crit",
+    "display": "Crystalys Recipe",
+    "cost": 200,
+    "category": null
+  },
+  "149": {
+    "name": "lesser_crit",
+    "display": "Crystalys",
+    "cost": 2000,
+    "category": "epic"
+  },
+  "150": {
+    "name": "recipe_armlet",
+    "display": "Armlet of Mordiggian Recipe",
+    "cost": 625,
+    "category": null
+  },
+  "151": {
+    "name": "armlet",
+    "display": "Armlet of Mordiggian",
+    "cost": 2500,
+    "category": "epic"
+  },
+  "152": {
+    "name": "invis_sword",
+    "display": "Shadow Blade",
+    "cost": 3250,
+    "category": "epic"
+  },
+  "154": {
+    "name": "sange_and_yasha",
+    "display": "Sange and Yasha",
+    "cost": 4200,
+    "category": "artifact"
+  },
+  "156": {
+    "name": "satanic",
+    "display": "Satanic",
+    "cost": 5050,
+    "category": "artifact"
+  },
+  "157": {
+    "name": "recipe_mjollnir",
+    "display": "Mjollnir Recipe",
+    "cost": 550,
+    "category": null
+  },
+  "158": {
+    "name": "mjollnir",
+    "display": "Mjollnir",
+    "cost": 5500,
+    "category": "artifact"
+  },
+  "160": {
+    "name": "skadi",
+    "display": "Eye of Skadi",
+    "cost": 5900,
+    "category": "artifact"
+  },
+  "161": {
+    "name": "recipe_sange",
+    "display": "Sange Recipe",
+    "cost": 650,
+    "category": null
+  },
+  "162": {
+    "name": "sange",
+    "display": "Sange",
+    "cost": 2100,
+    "category": "artifact"
+  },
+  "163": {
+    "name": "recipe_helm_of_the_dominator",
+    "display": "Helm of the Dominator Recipe",
+    "cost": 1125,
+    "category": null
+  },
+  "164": {
+    "name": "helm_of_the_dominator",
+    "display": "Helm of the Dominator",
+    "cost": 2550,
+    "category": "artifact"
+  },
+  "166": {
+    "name": "maelstrom",
+    "display": "Maelstrom",
+    "cost": 2950,
+    "category": "artifact"
+  },
+  "168": {
+    "name": "desolator",
+    "display": "Desolator",
+    "cost": 3500,
+    "category": "artifact"
+  },
+  "169": {
+    "name": "recipe_yasha",
+    "display": "Yasha Recipe",
+    "cost": 650,
+    "category": null
+  },
+  "170": {
+    "name": "yasha",
+    "display": "Yasha",
+    "cost": 2100,
+    "category": "artifact"
+  },
+  "172": {
+    "name": "mask_of_madness",
+    "display": "Mask of Madness",
+    "cost": 1900,
+    "category": "artifact"
+  },
+  "173": {
+    "name": "recipe_diffusal_blade",
+    "display": "Diffusal Blade Recipe",
+    "cost": 1050,
+    "category": null
+  },
+  "174": {
+    "name": "diffusal_blade",
+    "display": "Diffusal Blade",
+    "cost": 2500,
+    "category": "artifact"
+  },
+  "175": {
+    "name": "recipe_ethereal_blade",
+    "display": "Ethereal Blade Recipe",
+    "cost": 900,
+    "category": null
+  },
+  "176": {
+    "name": "ethereal_blade",
+    "display": "Ethereal Blade",
+    "cost": 5200,
+    "category": "epic"
+  },
+  "177": {
+    "name": "recipe_soul_ring",
+    "display": "Soul Ring Recipe",
+    "cost": 350,
+    "category": null
+  },
+  "178": {
+    "name": "soul_ring",
+    "display": "Soul Ring",
+    "cost": 805,
+    "category": "common"
+  },
+  "179": {
+    "name": "recipe_arcane_boots",
+    "display": "Arcane Boots Recipe",
+    "cost": 325,
+    "category": null
+  },
+  "180": {
+    "name": "arcane_boots",
+    "display": "Arcane Boots",
+    "cost": 1500,
+    "category": "rare"
+  },
+  "181": {
+    "name": "orb_of_venom",
+    "display": "Orb of Venom",
+    "cost": 350,
+    "category": "component"
+  },
+  "182": {
+    "name": "stout_shield",
+    "display": "Stout Shield",
+    "cost": 100,
+    "category": "component"
+  },
+  "184": {
+    "name": "recipe_ancient_janggo",
+    "display": "Drum of Endurance Recipe",
+    "cost": 525,
+    "category": null
+  },
+  "185": {
+    "name": "ancient_janggo",
+    "display": "Drum of Endurance",
+    "cost": 1625,
+    "category": "rare"
+  },
+  "187": {
+    "name": "medallion_of_courage",
+    "display": "Medallion of Courage",
+    "cost": 0,
+    "category": null
+  },
+  "188": {
+    "name": "smoke_of_deceit",
+    "display": "Smoke of Deceit",
+    "cost": 50,
+    "category": "consumable"
+  },
+  "189": {
+    "name": "recipe_veil_of_discord",
+    "display": "Veil of Discord Recipe",
+    "cost": 350,
+    "category": null
+  },
+  "190": {
+    "name": "veil_of_discord",
+    "display": "Veil of Discord",
+    "cost": 1700,
+    "category": "rare"
+  },
+  "193": {
+    "name": "necronomicon_2",
+    "display": "Necronomicon",
+    "cost": 3300,
+    "category": "rare"
+  },
+  "194": {
+    "name": "necronomicon_3",
+    "display": "Necronomicon",
+    "cost": 4550,
+    "category": "rare"
+  },
+  "196": {
+    "name": "diffusal_blade_2",
+    "display": "Diffusal Blade",
+    "cost": 3850,
+    "category": "artifact"
+  },
+  "201": {
+    "name": "dagon_2",
+    "display": "Dagon",
+    "cost": 4200,
+    "category": "rare"
+  },
+  "202": {
+    "name": "dagon_3",
+    "display": "Dagon",
+    "cost": 5350,
+    "category": "rare"
+  },
+  "203": {
+    "name": "dagon_4",
+    "display": "Dagon",
+    "cost": 6500,
+    "category": "rare"
+  },
+  "204": {
+    "name": "dagon_5",
+    "display": "Dagon",
+    "cost": 7650,
+    "category": "rare"
+  },
+  "205": {
+    "name": "recipe_rod_of_atos",
+    "display": "Rod of Atos Recipe",
+    "cost": 250,
+    "category": null
+  },
+  "206": {
+    "name": "rod_of_atos",
+    "display": "Rod of Atos",
+    "cost": 2250,
+    "category": "rare"
+  },
+  "207": {
+    "name": "recipe_abyssal_blade",
+    "display": "Abyssal Blade Recipe",
+    "cost": 1275,
+    "category": null
+  },
+  "208": {
+    "name": "abyssal_blade",
+    "display": "Abyssal Blade",
+    "cost": 6250,
+    "category": "epic"
+  },
+  "209": {
+    "name": "recipe_heavens_halberd",
+    "display": "Heaven's Halberd Recipe",
+    "cost": 450,
+    "category": null
+  },
+  "210": {
+    "name": "heavens_halberd",
+    "display": "Heaven's Halberd",
+    "cost": 3400,
+    "category": "artifact"
+  },
+  "212": {
+    "name": "ring_of_aquila",
+    "display": "Ring of Aquila",
+    "cost": null,
+    "category": null
+  },
+  "214": {
+    "name": "tranquil_boots",
+    "display": "Tranquil Boots",
+    "cost": 900,
+    "category": "rare"
+  },
+  "215": {
+    "name": "shadow_amulet",
+    "display": "Shadow Amulet",
+    "cost": 900,
+    "category": null
+  },
+  "216": {
+    "name": "enchanted_mango",
+    "display": "Enchanted Mango",
+    "cost": 65,
+    "category": "consumable"
+  },
+  "218": {
+    "name": "ward_dispenser",
+    "display": "Observer and Sentry Wards",
+    "cost": 50,
+    "category": "consumable;laning"
+  },
+  "220": {
+    "name": "travel_boots_2",
+    "display": "Boots of Travel 2",
+    "cost": 4500,
+    "category": "common"
+  },
+  "221": {
+    "name": "recipe_lotus_orb",
+    "display": "Lotus Orb Recipe",
+    "cost": 250,
+    "category": null
+  },
+  "222": {
+    "name": "recipe_meteor_hammer",
+    "display": "Meteor Hammer Recipe",
+    "cost": 300,
+    "category": null
+  },
+  "223": {
+    "name": "meteor_hammer",
+    "display": "Meteor Hammer",
+    "cost": 2850,
+    "category": "epic"
+  },
+  "225": {
+    "name": "nullifier",
+    "display": "Nullifier",
+    "cost": 4350,
+    "category": "epic"
+  },
+  "226": {
+    "name": "lotus_orb",
+    "display": "Lotus Orb",
+    "cost": 3850,
+    "category": "epic"
+  },
+  "227": {
+    "name": "recipe_solar_crest",
+    "display": "Solar Crest Recipe",
+    "cost": 500,
+    "category": null
+  },
+  "228": {
+    "name": "recipe_octarine_core",
+    "display": "Octarine Core Recipe",
+    "cost": 200,
+    "category": null
+  },
+  "229": {
+    "name": "solar_crest",
+    "display": "Solar Crest",
+    "cost": 2575,
+    "category": "rare"
+  },
+  "230": {
+    "name": "recipe_guardian_greaves",
+    "display": "Guardian Greaves Recipe",
+    "cost": 1175,
+    "category": null
+  },
+  "231": {
+    "name": "guardian_greaves",
+    "display": "Guardian Greaves",
+    "cost": 4450,
+    "category": "rare"
+  },
+  "232": {
+    "name": "aether_lens",
+    "display": "Aether Lens",
+    "cost": 2275,
+    "category": "rare"
+  },
+  "233": {
+    "name": "recipe_aether_lens",
+    "display": "Aether Lens Recipe",
+    "cost": 775,
+    "category": null
+  },
+  "234": {
+    "name": "recipe_dragon_lance",
+    "display": "Dragon Lance Recipe",
+    "cost": 450,
+    "category": null
+  },
+  "235": {
+    "name": "octarine_core",
+    "display": "Octarine Core",
+    "cost": 4900,
+    "category": "rare"
+  },
+  "236": {
+    "name": "dragon_lance",
+    "display": "Dragon Lance",
+    "cost": 1900,
+    "category": "artifact"
+  },
+  "237": {
+    "name": "faerie_fire",
+    "display": "Faerie Fire",
+    "cost": 65,
+    "category": "consumable"
+  },
+  "238": {
+    "name": "recipe_iron_talon",
+    "display": "Iron Talon Recipe",
+    "cost": 125,
+    "category": null
+  },
+  "239": {
+    "name": "iron_talon",
+    "display": "Iron Talon",
+    "cost": 0,
+    "category": "common"
+  },
+  "240": {
+    "name": "blight_stone",
+    "display": "Orb of Blight",
+    "cost": 300,
+    "category": "component"
+  },
+  "241": {
+    "name": "tango_single",
+    "display": "Tango (Shared)",
+    "cost": 30,
+    "category": "consumable"
+  },
+  "242": {
+    "name": "crimson_guard",
+    "display": "Crimson Guard",
+    "cost": 3725,
+    "category": "epic"
+  },
+  "243": {
+    "name": "recipe_crimson_guard",
+    "display": "Crimson Guard Recipe",
+    "cost": 1050,
+    "category": null
+  },
+  "244": {
+    "name": "wind_lace",
+    "display": "Wind Lace",
+    "cost": 225,
+    "category": "component"
+  },
+  "245": {
+    "name": "recipe_bloodthorn",
+    "display": "Bloodthorn Recipe",
+    "cost": 600,
+    "category": null
+  },
+  "247": {
+    "name": "moon_shard",
+    "display": "Moon Shard",
+    "cost": 4000,
+    "category": "consumable"
+  },
+  "248": {
+    "name": "recipe_silver_edge",
+    "display": "Silver Edge Recipe",
+    "cost": 250,
+    "category": null
+  },
+  "249": {
+    "name": "silver_edge",
+    "display": "Silver Edge",
+    "cost": 5700,
+    "category": "epic"
+  },
+  "250": {
+    "name": "bloodthorn",
+    "display": "Bloodthorn",
+    "cost": 6400,
+    "category": "epic"
+  },
+  "252": {
+    "name": "echo_sabre",
+    "display": "Echo Sabre",
+    "cost": 2700,
+    "category": "artifact"
+  },
+  "253": {
+    "name": "recipe_glimmer_cape",
+    "display": "Glimmer Cape Recipe",
+    "cost": 800,
+    "category": null
+  },
+  "254": {
+    "name": "glimmer_cape",
+    "display": "Glimmer Cape",
+    "cost": 2150,
+    "category": "rare"
+  },
+  "255": {
+    "name": "recipe_aeon_disk",
+    "display": "Aeon Disk Recipe",
+    "cost": 1200,
+    "category": null
+  },
+  "256": {
+    "name": "aeon_disk",
+    "display": "Aeon Disk",
+    "cost": 3000,
+    "category": "epic"
+  },
+  "257": {
+    "name": "tome_of_knowledge",
+    "display": "Tome of Knowledge",
+    "cost": 75,
+    "category": "consumable"
+  },
+  "258": {
+    "name": "recipe_kaya",
+    "display": "Kaya Recipe",
+    "cost": 650,
+    "category": null
+  },
+  "259": {
+    "name": "kaya",
+    "display": "Kaya",
+    "cost": 2100,
+    "category": "epic"
+  },
+  "260": {
+    "name": "refresher_shard",
+    "display": "Refresher Shard",
+    "cost": 1000,
+    "category": "consumable"
+  },
+  "261": {
+    "name": "crown",
+    "display": "Crown",
+    "cost": 450,
+    "category": "component"
+  },
+  "262": {
+    "name": "recipe_hurricane_pike",
+    "display": "Hurricane Pike Recipe",
+    "cost": 350,
+    "category": null
+  },
+  "263": {
+    "name": "hurricane_pike",
+    "display": "Hurricane Pike",
+    "cost": 4450,
+    "category": "epic"
+  },
+  "265": {
+    "name": "infused_raindrop",
+    "display": "Infused Raindrops",
+    "cost": 225,
+    "category": "component"
+  },
+  "266": {
+    "name": "recipe_spirit_vessel",
+    "display": "Spirit Vessel Recipe",
+    "cost": 900,
+    "category": null
+  },
+  "267": {
+    "name": "spirit_vessel",
+    "display": "Spirit Vessel",
+    "cost": 2725,
+    "category": "rare"
+  },
+  "268": {
+    "name": "recipe_holy_locket",
+    "display": "Holy Locket Recipe",
+    "cost": 1340,
+    "category": null
+  },
+  "269": {
+    "name": "holy_locket",
+    "display": "Holy Locket",
+    "cost": 2250,
+    "category": "rare"
+  },
+  "270": {
+    "name": "recipe_ultimate_scepter_2",
+    "display": "Aghanim's Blessing Recipe",
+    "cost": 1600,
+    "category": null
+  },
+  "271": {
+    "name": "ultimate_scepter_2",
+    "display": "Aghanim's Blessing",
+    "cost": 5800,
+    "category": "rare"
+  },
+  "273": {
+    "name": "kaya_and_sange",
+    "display": "Kaya and Sange",
+    "cost": 4200,
+    "category": "artifact"
+  },
+  "275": {
+    "name": "recipe_trident",
+    "display": "Trident Recipe",
+    "cost": 1,
+    "category": null
+  },
+  "277": {
+    "name": "yasha_and_kaya",
+    "display": "Yasha and Kaya",
+    "cost": 4200,
+    "category": "artifact"
+  },
+  "279": {
+    "name": "ring_of_tarrasque",
+    "display": "Ring of Tarrasque",
+    "cost": 1700,
+    "category": "component"
+  },
+  "286": {
+    "name": "flying_courier",
+    "display": "Flying Courier",
+    "cost": 100,
+    "category": "consumable"
+  },
+  "287": {
+    "name": "keen_optic",
+    "display": "Keen Optic",
+    "cost": 0,
+    "category": null
+  },
+  "288": {
+    "name": "grove_bow",
+    "display": "Grove Bow",
+    "cost": 0,
+    "category": null
+  },
+  "289": {
+    "name": "quickening_charm",
+    "display": "Quickening Charm",
+    "cost": 0,
+    "category": null
+  },
+  "290": {
+    "name": "philosophers_stone",
+    "display": "Philosopher's Stone",
+    "cost": 0,
+    "category": null
+  },
+  "291": {
+    "name": "force_boots",
+    "display": "Force Boots",
+    "cost": 0,
+    "category": null
+  },
+  "292": {
+    "name": "desolator_2",
+    "display": "Stygian Desolator",
+    "cost": 0,
+    "category": null
+  },
+  "293": {
+    "name": "phoenix_ash",
+    "display": "Phoenix Ash",
+    "cost": 0,
+    "category": null
+  },
+  "294": {
+    "name": "seer_stone",
+    "display": "Seer Stone",
+    "cost": 0,
+    "category": null
+  },
+  "297": {
+    "name": "vampire_fangs",
+    "display": "Vampire Fangs",
+    "cost": 0,
+    "category": null
+  },
+  "298": {
+    "name": "craggy_coat",
+    "display": "Craggy Coat",
+    "cost": 0,
+    "category": null
+  },
+  "299": {
+    "name": "greater_faerie_fire",
+    "display": "Greater Faerie Fire",
+    "cost": 0,
+    "category": "consumable"
+  },
+  "300": {
+    "name": "timeless_relic",
+    "display": "Timeless Relic",
+    "cost": 0,
+    "category": null
+  },
+  "301": {
+    "name": "mirror_shield",
+    "display": "Mirror Shield",
+    "cost": 0,
+    "category": null
+  },
+  "302": {
+    "name": "elixer",
+    "display": "Elixir",
+    "cost": 0,
+    "category": null
+  },
+  "304": {
+    "name": "ironwood_tree",
+    "display": "Ironwood Tree",
+    "cost": 0,
+    "category": null
+  },
+  "305": {
+    "name": "royal_jelly",
+    "display": "Royal Jelly",
+    "cost": 0,
+    "category": "consumable"
+  },
+  "306": {
+    "name": "pupils_gift",
+    "display": "Pupil's Gift",
+    "cost": 0,
+    "category": null
+  },
+  "307": {
+    "name": "tome_of_aghanim",
+    "display": "Tome of Aghanim",
+    "cost": 0,
+    "category": null
+  },
+  "308": {
+    "name": "repair_kit",
+    "display": "Repair Kit",
+    "cost": 0,
+    "category": "consumable"
+  },
+  "309": {
+    "name": "mind_breaker",
+    "display": "Mind Breaker",
+    "cost": 0,
+    "category": null
+  },
+  "310": {
+    "name": "third_eye",
+    "display": "Third Eye",
+    "cost": 0,
+    "category": null
+  },
+  "311": {
+    "name": "spell_prism",
+    "display": "Spell Prism",
+    "cost": 0,
+    "category": null
+  },
+  "313": {
+    "name": "fusion_rune",
+    "display": "Fusion Rune",
+    "cost": 0,
+    "category": null
+  },
+  "325": {
+    "name": "princes_knife",
+    "display": "Prince's Knife",
+    "cost": 0,
+    "category": null
+  },
+  "326": {
+    "name": "spider_legs",
+    "display": "Spider Legs",
+    "cost": 0,
+    "category": null
+  },
+  "327": {
+    "name": "helm_of_the_undying",
+    "display": "Helm of the Undying",
+    "cost": 0,
+    "category": null
+  },
+  "328": {
+    "name": "mango_tree",
+    "display": "Mango Tree",
+    "cost": null,
+    "category": "consumable"
+  },
+  "330": {
+    "name": "witless_shako",
+    "display": "Witless Shako",
+    "cost": 0,
+    "category": null
+  },
+  "331": {
+    "name": "vambrace",
+    "display": "Vambrace",
+    "cost": 0,
+    "category": "common"
+  },
+  "334": {
+    "name": "imp_claw",
+    "display": "Imp Claw",
+    "cost": 0,
+    "category": null
+  },
+  "335": {
+    "name": "flicker",
+    "display": "Flicker",
+    "cost": 0,
+    "category": null
+  },
+  "336": {
+    "name": "spy_gadget",
+    "display": "Telescope",
+    "cost": 0,
+    "category": null
+  },
+  "349": {
+    "name": "arcane_ring",
+    "display": "Arcane Ring",
+    "cost": 0,
+    "category": null
+  },
+  "354": {
+    "name": "ocean_heart",
+    "display": "Ocean Heart",
+    "cost": 0,
+    "category": null
+  },
+  "355": {
+    "name": "broom_handle",
+    "display": "Broom Handle",
+    "cost": 0,
+    "category": null
+  },
+  "356": {
+    "name": "trusty_shovel",
+    "display": "Trusty Shovel",
+    "cost": 0,
+    "category": null
+  },
+  "357": {
+    "name": "nether_shawl",
+    "display": "Nether Shawl",
+    "cost": 0,
+    "category": null
+  },
+  "358": {
+    "name": "dragon_scale",
+    "display": "Dragon Scale",
+    "cost": 0,
+    "category": null
+  },
+  "359": {
+    "name": "essence_ring",
+    "display": "Essence Ring",
+    "cost": 0,
+    "category": null
+  },
+  "360": {
+    "name": "clumsy_net",
+    "display": "Clumsy Net",
+    "cost": 0,
+    "category": null
+  },
+  "361": {
+    "name": "enchanted_quiver",
+    "display": "Enchanted Quiver",
+    "cost": 0,
+    "category": null
+  },
+  "362": {
+    "name": "ninja_gear",
+    "display": "Ninja Gear",
+    "cost": 0,
+    "category": null
+  },
+  "363": {
+    "name": "illusionsts_cape",
+    "display": "Illusionist's Cape",
+    "cost": 0,
+    "category": null
+  },
+  "364": {
+    "name": "havoc_hammer",
+    "display": "Havoc Hammer",
+    "cost": 0,
+    "category": null
+  },
+  "365": {
+    "name": "panic_button",
+    "display": "Magic Lamp",
+    "cost": 0,
+    "category": null
+  },
+  "366": {
+    "name": "apex",
+    "display": "Apex",
+    "cost": 0,
+    "category": null
+  },
+  "367": {
+    "name": "ballista",
+    "display": "Ballista",
+    "cost": 0,
+    "category": null
+  },
+  "368": {
+    "name": "woodland_striders",
+    "display": "Woodland Striders",
+    "cost": 0,
+    "category": null
+  },
+  "369": {
+    "name": "trident",
+    "display": "Trident",
+    "cost": 6301,
+    "category": null
+  },
+  "370": {
+    "name": "demonicon",
+    "display": "Book of the Dead",
+    "cost": 0,
+    "category": null
+  },
+  "371": {
+    "name": "fallen_sky",
+    "display": "Fallen Sky",
+    "cost": 0,
+    "category": null
+  },
+  "372": {
+    "name": "pirate_hat",
+    "display": "Pirate Hat",
+    "cost": 0,
+    "category": null
+  },
+  "374": {
+    "name": "ex_machina",
+    "display": "Ex Machina",
+    "cost": 0,
+    "category": null
+  },
+  "375": {
+    "name": "faded_broach",
+    "display": "Faded Broach",
+    "cost": 0,
+    "category": null
+  },
+  "376": {
+    "name": "paladin_sword",
+    "display": "Paladin Sword",
+    "cost": 0,
+    "category": null
+  },
+  "377": {
+    "name": "minotaur_horn",
+    "display": "Minotaur Horn",
+    "cost": 0,
+    "category": null
+  },
+  "378": {
+    "name": "orb_of_destruction",
+    "display": "Orb of Destruction",
+    "cost": 0,
+    "category": null
+  },
+  "379": {
+    "name": "the_leveller",
+    "display": "The Leveller",
+    "cost": 0,
+    "category": null
+  },
+  "381": {
+    "name": "titan_sliver",
+    "display": "Titan Sliver",
+    "cost": 0,
+    "category": null
+  },
+  "473": {
+    "name": "voodoo_mask",
+    "display": "Voodoo Mask",
+    "cost": 650,
+    "category": "component"
+  },
+  "485": {
+    "name": "blitz_knuckles",
+    "display": "Blitz Knuckles",
+    "cost": 1000,
+    "category": "component"
+  },
+  "533": {
+    "name": "recipe_witch_blade",
+    "display": "Witch Blade Recipe",
+    "cost": 300,
+    "category": null
+  },
+  "534": {
+    "name": "witch_blade",
+    "display": "Witch Blade",
+    "cost": 2775,
+    "category": "common"
+  },
+  "565": {
+    "name": "chipped_vest",
+    "display": "Chipped Vest",
+    "cost": 0,
+    "category": null
+  },
+  "569": {
+    "name": "orb_of_corrosion",
+    "display": "Orb of Corrosion",
+    "cost": 1050,
+    "category": "rare"
+  },
+  "571": {
+    "name": "trickster_cloak",
+    "display": "Trickster Cloak",
+    "cost": 0,
+    "category": null
+  },
+  "573": {
+    "name": "elven_tunic",
+    "display": "Elven Tunic",
+    "cost": 0,
+    "category": null
+  },
+  "574": {
+    "name": "cloak_of_flames",
+    "display": "Cloak of Flames",
+    "cost": 0,
+    "category": null
+  },
+  "577": {
+    "name": "possessed_mask",
+    "display": "Possessed Mask",
+    "cost": 0,
+    "category": null
+  },
+  "585": {
+    "name": "stormcrafter",
+    "display": "Stormcrafter",
+    "cost": 0,
+    "category": null
+  },
+  "589": {
+    "name": "mysterious_hat",
+    "display": "Fairy's Trinket",
+    "cost": 0,
+    "category": null
+  },
+  "593": {
+    "name": "fluffy_hat",
+    "display": "Fluffy Hat",
+    "cost": 250,
+    "category": "secret_shop"
+  },
+  "596": {
+    "name": "falcon_blade",
+    "display": "Falcon Blade",
+    "cost": 1125,
+    "category": "rare"
+  },
+  "598": {
+    "name": "mage_slayer",
+    "display": "Mage Slayer",
+    "cost": 3100,
+    "category": "rare"
+  },
+  "599": {
+    "name": "recipe_falcon_blade",
+    "display": "Falcon Blade Recipe",
+    "cost": 250,
+    "category": null
+  },
+  "600": {
+    "name": "overwhelming_blink",
+    "display": "Overwhelming Blink",
+    "cost": 6800,
+    "category": "component"
+  },
+  "603": {
+    "name": "swift_blink",
+    "display": "Swift Blink",
+    "cost": 6800,
+    "category": "component"
+  },
+  "604": {
+    "name": "arcane_blink",
+    "display": "Arcane Blink",
+    "cost": 6800,
+    "category": "component"
+  },
+  "606": {
+    "name": "recipe_arcane_blink",
+    "display": "Arcane Blink Recipe",
+    "cost": 1750,
+    "category": null
+  },
+  "607": {
+    "name": "recipe_swift_blink",
+    "display": "Swift Blink Recipe",
+    "cost": 1750,
+    "category": null
+  },
+  "608": {
+    "name": "recipe_overwhelming_blink",
+    "display": "Overwhelming Blink Recipe",
+    "cost": 1750,
+    "category": null
+  },
+  "609": {
+    "name": "aghanims_shard",
+    "display": "Aghanim's Shard",
+    "cost": 1400,
+    "category": "rare"
+  },
+  "610": {
+    "name": "wind_waker",
+    "display": "Wind Waker",
+    "cost": 6800,
+    "category": "rare"
+  },
+  "612": {
+    "name": "recipe_wind_waker",
+    "display": "Wind Waker Recipe",
+    "cost": 1400,
+    "category": null
+  },
+  "633": {
+    "name": "recipe_helm_of_the_overlord",
+    "display": "Helm of the Overlord Recipe",
+    "cost": 300,
+    "category": null
+  },
+  "635": {
+    "name": "helm_of_the_overlord",
+    "display": "Helm of the Overlord",
+    "cost": 5650,
+    "category": "artifact"
+  },
+  "638": {
+    "name": "penta_edged_sword",
+    "display": "Penta-Edged Sword",
+    "cost": 0,
+    "category": null
+  },
+  "675": {
+    "name": "psychic_headband",
+    "display": "Psychic Headband",
+    "cost": 0,
+    "category": null
+  },
+  "676": {
+    "name": "ceremonial_robe",
+    "display": "Ceremonial Robe",
+    "cost": 0,
+    "category": null
+  },
+  "677": {
+    "name": "book_of_shadows",
+    "display": "Book of Shadows",
+    "cost": 0,
+    "category": null
+  },
+  "678": {
+    "name": "giants_ring",
+    "display": "Giant's Ring",
+    "cost": 0,
+    "category": null
+  },
+  "680": {
+    "name": "bullwhip",
+    "display": "Bullwhip",
+    "cost": 0,
+    "category": null
+  },
+  "686": {
+    "name": "quicksilver_amulet",
+    "display": "Quicksilver Amulet",
+    "cost": 0,
+    "category": null
+  },
+  "691": {
+    "name": "recipe_eternal_shroud",
+    "display": "Eternal Shroud Recipe",
+    "cost": 900,
+    "category": null
+  },
+  "692": {
+    "name": "eternal_shroud",
+    "display": "Eternal Shroud",
+    "cost": 3900,
+    "category": "epic"
+  },
+  "725": {
+    "name": "aghanims_shard_roshan",
+    "display": "Aghanim's Shard - Consumable",
+    "cost": 1400,
+    "category": "rare"
+  },
+  "727": {
+    "name": "ultimate_scepter_roshan",
+    "display": "Aghanim's Blessing - Roshan",
+    "cost": 5800,
+    "category": "rare"
+  },
+  "825": {
+    "name": "ascetic_cap",
+    "display": "Ascetic's Cap",
+    "cost": 0,
+    "category": null
+  },
+  "828": {
+    "name": "misericorde",
+    "display": "Brigand's Blade",
+    "cost": 0,
+    "category": null
+  },
+  "829": {
+    "name": "force_field",
+    "display": "Arcanist's Armor",
+    "cost": 0,
+    "category": null
+  },
+  "834": {
+    "name": "black_powder_bag",
+    "display": "Blast Rig",
+    "cost": 0,
+    "category": null
+  },
+  "835": {
+    "name": "paintball",
+    "display": "Fae Grenade",
+    "cost": 0,
+    "category": null
+  },
+  "837": {
+    "name": "heavy_blade",
+    "display": "Witchbane",
+    "cost": 0,
+    "category": null
+  },
+  "838": {
+    "name": "unstable_wand",
+    "display": "Pig Pole",
+    "cost": 0,
+    "category": null
+  },
+  "840": {
+    "name": "pogo_stick",
+    "display": "Tumbler's Toy",
+    "cost": 0,
+    "category": null
+  },
+  "908": {
+    "name": "wraith_pact",
+    "display": "Wraith Pact",
+    "cost": 3800,
+    "category": "rare"
+  },
+  "910": {
+    "name": "recipe_revenants_brooch",
+    "display": "Revenant's Brooch Recipe",
+    "cost": 650,
+    "category": null
+  },
+  "911": {
+    "name": "revenants_brooch",
+    "display": "Revenant's Brooch",
+    "cost": 3300,
+    "category": "rare"
+  },
+  "931": {
+    "name": "boots_of_bearing",
+    "display": "Boots of Bearing",
+    "cost": 4225,
+    "category": "rare"
+  },
+  "939": {
+    "name": "harpoon",
+    "display": "Harpoon",
+    "cost": 4700,
+    "category": null
+  },
+  "945": {
+    "name": "seeds_of_serenity",
+    "display": "Seeds of Serenity",
+    "cost": 0,
+    "category": null
+  },
+  "946": {
+    "name": "lance_of_pursuit",
+    "display": "Lance of Pursuit",
+    "cost": 0,
+    "category": null
+  },
+  "947": {
+    "name": "occult_bracelet",
+    "display": "Occult Bracelet",
+    "cost": 0,
+    "category": null
+  },
+  "949": {
+    "name": "ogre_seal_totem",
+    "display": "Ogre Seal Totem",
+    "cost": 0,
+    "category": null
+  },
+  "950": {
+    "name": "defiant_shell",
+    "display": "Defiant Shell",
+    "cost": 0,
+    "category": null
+  },
+  "990": {
+    "name": "eye_of_the_vizier",
+    "display": "Eye of the Vizier",
+    "cost": 0,
+    "category": null
+  },
+  "1021": {
+    "name": "river_painter",
+    "display": "River Vial: Chrome",
+    "cost": 0,
+    "category": "component"
+  },
+  "1022": {
+    "name": "river_painter2",
+    "display": "River Vial: Dry",
+    "cost": 0,
+    "category": "component"
+  },
+  "1023": {
+    "name": "river_painter3",
+    "display": "River Vial: Slime",
+    "cost": 0,
+    "category": "component"
+  },
+  "1024": {
+    "name": "river_painter4",
+    "display": "River Vial: Oil",
+    "cost": 0,
+    "category": "component"
+  },
+  "1025": {
+    "name": "river_painter5",
+    "display": "River Vial: Electrified",
+    "cost": 0,
+    "category": "component"
+  },
+  "1026": {
+    "name": "river_painter6",
+    "display": "River Vial: Potion",
+    "cost": 0,
+    "category": "component"
+  },
+  "1027": {
+    "name": "river_painter7",
+    "display": "River Vial: Blood",
+    "cost": 0,
+    "category": "component"
+  },
+  "1028": {
+    "name": "mutation_tombstone",
+    "display": "Tombstone",
+    "cost": 0,
+    "category": "consumable"
+  },
+  "1030": {
+    "name": "pocket_tower",
+    "display": "Pocket Tower",
+    "cost": null,
+    "category": null
+  },
+  "1032": {
+    "name": "pocket_roshan",
+    "display": "Pocket Roshan",
+    "cost": 1000,
+    "category": "rare"
+  },
+  "1076": {
+    "name": "specialists_array",
+    "display": "Specialist's Array",
+    "cost": 2550,
+    "category": "rare"
+  },
+  "1077": {
+    "name": "dagger_of_ristul",
+    "display": "Dagger of Ristul",
+    "cost": 0,
+    "category": null
+  },
+  "1090": {
+    "name": "muertas_gun",
+    "display": "Mercy & Grace",
+    "cost": 0,
+    "category": null
+  },
+  "1096": {
+    "name": "recipe_disperser",
+    "display": "Disperser Recipe",
+    "cost": 800,
+    "category": null
+  },
+  "1097": {
+    "name": "disperser",
+    "display": "Disperser",
+    "cost": 6100,
+    "category": "artifact"
+  },
+  "1101": {
+    "name": "recipe_harpoon",
+    "display": "Harpoon Recipe",
+    "cost": 1000,
+    "category": null
+  },
+  "1106": {
+    "name": "recipe_phylactery",
+    "display": "Phylactery Recipe",
+    "cost": 200,
+    "category": null
+  },
+  "1107": {
+    "name": "phylactery",
+    "display": "Phylactery",
+    "cost": 2600,
+    "category": "common"
+  },
+  "1122": {
+    "name": "diadem",
+    "display": "Diadem",
+    "cost": 1000,
+    "category": "component"
+  },
+  "1123": {
+    "name": "blood_grenade",
+    "display": "Blood Grenade",
+    "cost": 50,
+    "category": "consumable"
+  },
+  "1124": {
+    "name": "spark_of_courage",
+    "display": "Spark of Courage",
+    "cost": 0,
+    "category": null
+  },
+  "1125": {
+    "name": "cornucopia",
+    "display": "Cornucopia",
+    "cost": 1200,
+    "category": "common"
+  },
+  "1127": {
+    "name": "recipe_pavise",
+    "display": "Pavise Recipe",
+    "cost": 675,
+    "category": null
+  },
+  "1128": {
+    "name": "pavise",
+    "display": "Pavise",
+    "cost": 1350,
+    "category": "rare"
+  },
+  "1154": {
+    "name": "royale_with_cheese",
+    "display": "Block of Cheese",
+    "cost": 2,
+    "category": "consumable"
+  },
+  "1156": {
+    "name": "ancient_guardian",
+    "display": "Ancient Guardian",
+    "cost": 0,
+    "category": null
+  },
+  "1157": {
+    "name": "safety_bubble",
+    "display": "Safety Bubble",
+    "cost": 0,
+    "category": null
+  },
+  "1158": {
+    "name": "whisper_of_the_dread",
+    "display": "Whisper of the Dread",
+    "cost": 0,
+    "category": null
+  },
+  "1159": {
+    "name": "nemesis_curse",
+    "display": "Nemesis Curse",
+    "cost": 0,
+    "category": null
+  },
+  "1160": {
+    "name": "avianas_feather",
+    "display": "Aviana's Feather",
+    "cost": 0,
+    "category": null
+  },
+  "1161": {
+    "name": "unwavering_condition",
+    "display": "Unwavering Condition",
+    "cost": 0,
+    "category": null
+  },
+  "1167": {
+    "name": "light_collector",
+    "display": "Light Collector",
+    "cost": 0,
+    "category": null
+  },
+  "1168": {
+    "name": "rattlecage",
+    "display": "Rattlecage",
+    "cost": 0,
+    "category": null
+  },
+  "1440": {
+    "name": "black_grimoire",
+    "display": "Black Grimoire\\n(Warlock)",
+    "cost": 0,
+    "category": null
+  },
+  "1441": {
+    "name": "grisgris",
+    "display": "Gris-Gris",
+    "cost": 0,
+    "category": null
+  },
+  "1466": {
+    "name": "gungir",
+    "display": "Gleipnir",
+    "cost": 4650,
+    "category": "artifact"
+  },
+  "1565": {
+    "name": "recipe_gungir",
+    "display": "Gleipnir Recipe",
+    "cost": 400,
+    "category": null
+  },
+  "1575": {
+    "name": "orb_of_frost",
+    "display": "Orb of Frost",
+    "cost": 300,
+    "category": "rare"
+  },
+  "1576": {
+    "name": "enhancement_vast",
+    "display": "Vast",
+    "cost": 0,
+    "category": null
+  },
+  "1577": {
+    "name": "enhancement_quickened",
+    "display": "Quickened",
+    "cost": 0,
+    "category": null
+  },
+  "1581": {
+    "name": "enhancement_audacious",
+    "display": "Audacious",
+    "cost": 0,
+    "category": null
+  },
+  "1583": {
+    "name": "enhancement_mystical",
+    "display": "Mystical",
+    "cost": 0,
+    "category": null
+  },
+  "1584": {
+    "name": "enhancement_alert",
+    "display": "Alert",
+    "cost": 0,
+    "category": null
+  },
+  "1585": {
+    "name": "enhancement_brawny",
+    "display": "Brawny",
+    "cost": 0,
+    "category": null
+  },
+  "1586": {
+    "name": "enhancement_tough",
+    "display": "Tough",
+    "cost": 0,
+    "category": null
+  },
+  "1587": {
+    "name": "enhancement_feverish",
+    "display": "Feverish",
+    "cost": 0,
+    "category": null
+  },
+  "1588": {
+    "name": "enhancement_fleetfooted",
+    "display": "Fleetfooted",
+    "cost": 0,
+    "category": null
+  },
+  "1589": {
+    "name": "enhancement_crude",
+    "display": "Crude",
+    "cost": 0,
+    "category": null
+  },
+  "1590": {
+    "name": "enhancement_boundless",
+    "display": "Boundless",
+    "cost": 0,
+    "category": null
+  },
+  "1591": {
+    "name": "enhancement_wise",
+    "display": "Wise",
+    "cost": 0,
+    "category": null
+  },
+  "1592": {
+    "name": "enhancement_timeless",
+    "display": "Timeless",
+    "cost": 0,
+    "category": null
+  },
+  "1593": {
+    "name": "enhancement_greedy",
+    "display": "Greedy",
+    "cost": 0,
+    "category": null
+  },
+  "1594": {
+    "name": "enhancement_vampiric",
+    "display": "Vampiric",
+    "cost": 0,
+    "category": null
+  },
+  "1595": {
+    "name": "enhancement_keen_eyed",
+    "display": "Keen-eyed",
+    "cost": 0,
+    "category": null
+  },
+  "1596": {
+    "name": "enhancement_evolved",
+    "display": "Evolved",
+    "cost": 0,
+    "category": null
+  },
+  "1597": {
+    "name": "enhancement_titanic",
+    "display": "Titanic",
+    "cost": 0,
+    "category": null
+  },
+  "1598": {
+    "name": "unrelenting_eye",
+    "display": "Unrelenting Eye",
+    "cost": 0,
+    "category": null
+  },
+  "1599": {
+    "name": "mana_draught",
+    "display": "Mana Draught",
+    "cost": 0,
+    "category": null
+  },
+  "1600": {
+    "name": "rippers_lash",
+    "display": "Ripper's Lash",
+    "cost": 0,
+    "category": null
+  },
+  "1601": {
+    "name": "crippling_crossbow",
+    "display": "Crippling Crossbow",
+    "cost": 0,
+    "category": null
+  },
+  "1602": {
+    "name": "gale_guard",
+    "display": "Gale Guard",
+    "cost": 0,
+    "category": null
+  },
+  "1603": {
+    "name": "gunpowder_gauntlets",
+    "display": "Gunpowder Gauntlet",
+    "cost": 0,
+    "category": null
+  },
+  "1604": {
+    "name": "searing_signet",
+    "display": "Searing Signet",
+    "cost": 0,
+    "category": null
+  },
+  "1605": {
+    "name": "serrated_shiv",
+    "display": "Serrated Shiv",
+    "cost": 0,
+    "category": null
+  },
+  "1606": {
+    "name": "polliwog_charm",
+    "display": "Pollywog Charm",
+    "cost": 0,
+    "category": null
+  },
+  "1607": {
+    "name": "magnifying_monocle",
+    "display": "Magnifying Monocle",
+    "cost": 0,
+    "category": null
+  },
+  "1608": {
+    "name": "pyrrhic_cloak",
+    "display": "Pyrrhic Cloak",
+    "cost": 0,
+    "category": null
+  },
+  "1609": {
+    "name": "madstone_bundle",
+    "display": "Madstone Bundle",
+    "cost": 0,
+    "category": "consumable"
+  },
+  "1637": {
+    "name": "kobold_cup",
+    "display": "Kobold Cup",
+    "cost": 0,
+    "category": null
+  },
+  "1638": {
+    "name": "dormant_curio",
+    "display": "Dormant Curio",
+    "cost": 0,
+    "category": null
+  },
+  "1639": {
+    "name": "sisters_shroud",
+    "display": "Sister's Shroud",
+    "cost": 0,
+    "category": null
+  },
+  "1640": {
+    "name": "jidi_pollen_bag",
+    "display": "Jidi Pollen Bag",
+    "cost": 0,
+    "category": null
+  },
+  "1641": {
+    "name": "outworld_staff",
+    "display": "Outworld Staff",
+    "cost": 0,
+    "category": null
+  },
+  "1642": {
+    "name": "dezun_bloodrite",
+    "display": "Dezun Bloodrite",
+    "cost": 0,
+    "category": null
+  },
+  "1643": {
+    "name": "giant_maul",
+    "display": "Giant's Maul",
+    "cost": 0,
+    "category": null
+  },
+  "1644": {
+    "name": "divine_regalia",
+    "display": "Divine Regalia",
+    "cost": 0,
+    "category": null
+  },
+  "1645": {
+    "name": "divine_regalia_broken",
+    "display": "Disgraced Regalia",
+    "cost": 0,
+    "category": null
+  },
+  "1647": {
+    "name": "enhancement_fierce",
+    "display": "Fierce",
+    "cost": 0,
+    "category": null
+  },
+  "1648": {
+    "name": "enhancement_dominant",
+    "display": "Dominant",
+    "cost": 0,
+    "category": null
+  },
+  "1649": {
+    "name": "enhancement_restorative",
+    "display": "Restorative",
+    "cost": 0,
+    "category": null
+  },
+  "1650": {
+    "name": "enhancement_thick",
+    "display": "Thick",
+    "cost": 0,
+    "category": null
+  },
+  "1651": {
+    "name": "enhancement_curious",
+    "display": "Unleashed",
+    "cost": 0,
+    "category": null
+  },
+  "1652": {
+    "name": "furion_gold_bag",
+    "display": "Bag of Gold",
+    "cost": 0,
+    "category": null
+  },
+  "1716": {
+    "name": "weighted_dice",
+    "display": "Weighted Dice",
+    "cost": 0,
+    "category": null
+  },
+  "1717": {
+    "name": "ash_legion_shield",
+    "display": "Ash Legion Shield",
+    "cost": 0,
+    "category": null
+  },
+  "1718": {
+    "name": "riftshadow_prism",
+    "display": "Riftshadow Prism",
+    "cost": 0,
+    "category": null
+  },
+  "1719": {
+    "name": "metamorphic_mandible",
+    "display": "Metamorphic Mandible",
+    "cost": 0,
+    "category": null
+  },
+  "1720": {
+    "name": "idol_of_screeauk",
+    "display": "Idol of Scree'auk",
+    "cost": 0,
+    "category": null
+  },
+  "1721": {
+    "name": "flayers_bota",
+    "display": "Flayer's Bota",
+    "cost": 0,
+    "category": null
+  },
+  "1802": {
+    "name": "tiara_of_selemene",
+    "display": "Tiara of Selemene",
+    "cost": 1700,
+    "category": "component"
+  },
+  "1803": {
+    "name": "doubloon",
+    "display": "Doubloon",
+    "cost": 0,
+    "category": null
+  },
+  "1804": {
+    "name": "roshans_banner",
+    "display": "Roshan's Banner",
+    "cost": 0,
+    "category": "consumable"
+  },
+  "1805": {
+    "name": "recipe_devastator",
+    "display": "Parasma Recipe",
+    "cost": 400,
+    "category": null
+  },
+  "1806": {
+    "name": "devastator",
+    "display": "Parasma",
+    "cost": 5975,
+    "category": "rare"
+  },
+  "1808": {
+    "name": "angels_demise",
+    "display": "Khanda",
+    "cost": 5600,
+    "category": "common"
+  },
+  "1847": {
+    "name": "splintmail",
+    "display": "Splintmail",
+    "cost": 950,
+    "category": "component"
+  },
+  "1848": {
+    "name": "shawl",
+    "display": "Shawl",
+    "cost": 450,
+    "category": "component"
+  },
+  "1849": {
+    "name": "wizard_hat",
+    "display": "Wizard Hat",
+    "cost": 250,
+    "category": null
+  },
+  "1850": {
+    "name": "eldwurms_edda",
+    "display": "Eldwurm's Edda",
+    "cost": 0,
+    "category": null
+  },
+  "1851": {
+    "name": "recipe_essence_distiller",
+    "display": "Essence Distiller Recipe",
+    "cost": 200,
+    "category": null
+  },
+  "1852": {
+    "name": "essence_distiller",
+    "display": "Essence Distiller",
+    "cost": 1775,
+    "category": "rare"
+  },
+  "1853": {
+    "name": "recipe_consecrated_wraps",
+    "display": "Consecrated Wraps Recipe",
+    "cost": 700,
+    "category": null
+  },
+  "1854": {
+    "name": "consecrated_wraps",
+    "display": "Consecrated Wraps",
+    "cost": 2600,
+    "category": "epic"
+  },
+  "1855": {
+    "name": "recipe_crellas_crozier",
+    "display": "Crella's Crozier Recipe",
+    "cost": 300,
+    "category": null
+  },
+  "1856": {
+    "name": "crellas_crozier",
+    "display": "Crella's Crozier",
+    "cost": 4800,
+    "category": "epic"
+  },
+  "1858": {
+    "name": "hydras_breath",
+    "display": "Hydra's Breath",
+    "cost": 5900,
+    "category": "rare"
+  },
+  "1859": {
+    "name": "spellslinger",
+    "display": "Spellslinger",
+    "cost": 0,
+    "category": null
+  },
+  "1860": {
+    "name": "prophets_pendulum",
+    "display": "Prophet's Pendulum",
+    "cost": 0,
+    "category": null
+  },
+  "1861": {
+    "name": "stonefeather_satchel",
+    "display": "Stonefeather Satchel",
+    "cost": 0,
+    "category": null
+  },
+  "1862": {
+    "name": "enchanters_bauble",
+    "display": "Enchanter's Bauble",
+    "cost": 0,
+    "category": null
+  },
+  "1863": {
+    "name": "harmonizer",
+    "display": "Harmonizer",
+    "cost": 0,
+    "category": null
+  },
+  "1864": {
+    "name": "conjurers_catalyst",
+    "display": "Conjurer's Catalyst",
+    "cost": 0,
+    "category": null
+  },
+  "1865": {
+    "name": "enhancement_vital",
+    "display": "Vital",
+    "cost": 0,
+    "category": null
+  },
+  "1866": {
+    "name": "enhancement_hulking",
+    "display": "Hulking",
+    "cost": 0,
+    "category": null
+  },
+  "1867": {
+    "name": "enhancement_manic",
+    "display": "Manic",
+    "cost": 0,
+    "category": null
+  },
+  "1868": {
+    "name": "foragers_kit",
+    "display": "Forager's Kit",
+    "cost": 0,
+    "category": null
+  },
+  "1869": {
+    "name": "foragers_health",
+    "display": "Vital Toadstool",
+    "cost": 0,
+    "category": null
+  },
+  "1870": {
+    "name": "foragers_stats",
+    "display": "Ironwood Nut",
+    "cost": 0,
+    "category": null
+  },
+  "1871": {
+    "name": "foragers_mana",
+    "display": "Tomo'kan Ringcap",
+    "cost": 0,
+    "category": null
+  },
+  "1872": {
+    "name": "chasm_stone",
+    "display": "Chasm Stone",
+    "cost": 800,
+    "category": "component"
+  },
+  "1873": {
+    "name": "partisans_brand",
+    "display": "Partisan's Brand",
+    "cost": 0,
+    "category": null
+  },
+  "1874": {
+    "name": "enhancement_nimble",
+    "display": "Nimble",
+    "cost": 0,
+    "category": null
+  },
+  "1875": {
+    "name": "tidehunter_fish",
+    "display": "Leviathan's Fish",
+    "cost": 0,
+    "category": null
+  },
+  "2091": {
+    "name": "tier1_token",
+    "display": "Tier 1 Token",
+    "cost": null,
+    "category": null
+  },
+  "2092": {
+    "name": "tier2_token",
+    "display": "Tier 2 Token",
+    "cost": null,
+    "category": null
+  },
+  "2093": {
+    "name": "tier3_token",
+    "display": "Tier 3 Token",
+    "cost": null,
+    "category": null
+  },
+  "2094": {
+    "name": "tier4_token",
+    "display": "Tier 4 Token",
+    "cost": null,
+    "category": null
+  },
+  "2095": {
+    "name": "tier5_token",
+    "display": "Tier 5 Token",
+    "cost": null,
+    "category": null
+  },
+  "2096": {
+    "name": "vindicators_axe",
+    "display": "Vindicator's Axe",
+    "cost": 0,
+    "category": null
+  },
+  "2097": {
+    "name": "duelist_gloves",
+    "display": "Duelist Gloves",
+    "cost": 0,
+    "category": null
+  },
+  "2190": {
+    "name": "dandelion_amulet",
+    "display": "Dandelion Amulet",
+    "cost": 0,
+    "category": null
+  },
+  "2192": {
+    "name": "martyrs_plate",
+    "display": "Martyr's Plate",
+    "cost": 0,
+    "category": null
+  },
+  "2193": {
+    "name": "gossamer_cape",
+    "display": "Gossamer Cape",
+    "cost": 0,
+    "category": null
+  },
+  "4204": {
+    "name": "famango",
+    "display": "Healing Lotus",
+    "cost": 0,
+    "category": "consumable"
+  },
+  "4205": {
+    "name": "great_famango",
+    "display": "Great Healing Lotus",
+    "cost": 0,
+    "category": "consumable"
+  },
+  "4206": {
+    "name": "greater_famango",
+    "display": "Greater Healing Lotus",
+    "cost": 0,
+    "category": "consumable"
+  },
+  "4300": {
+    "name": "ofrenda",
+    "display": "Beloved Memory",
+    "cost": 0,
+    "category": null
+  },
+  "4301": {
+    "name": "ofrenda_shovel",
+    "display": "Scrying Shovel",
+    "cost": 0,
+    "category": null
+  },
+  "4302": {
+    "name": "ofrenda_pledge",
+    "display": "Forebearer's Fortune",
+    "cost": 0,
+    "category": null
+  }
 }

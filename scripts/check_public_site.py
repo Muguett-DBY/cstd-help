@@ -1,4 +1,5 @@
 import json
+import re
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -99,6 +100,16 @@ def _find_local_link_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_unresolved_item_references(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    issues = []
+    for page in sorted(public_dir.glob("*.html")):
+        text = page.read_text(encoding="utf-8")
+        for reference in sorted(set(re.findall(r"\bItem #\d+\b", text))):
+            issues.append(f"{page.name} -> {reference}")
+    return issues
+
+
 def main():
     index_path = PUBLIC_DIR / "index.html"
     practice_path = PUBLIC_DIR / "practice-plan.html"
@@ -129,6 +140,11 @@ def main():
     if local_link_issues:
         preview = "; ".join(local_link_issues[:10])
         raise SystemExit(f"public contains broken local links: {preview}")
+
+    unresolved_items = _find_unresolved_item_references(PUBLIC_DIR)
+    if unresolved_items:
+        preview = "; ".join(unresolved_items[:10])
+        raise SystemExit(f"public contains unresolved item names: {preview}")
 
     index_html = index_path.read_text(encoding="utf-8")
     if "Dota 2 天梯复盘报告" not in index_html:
