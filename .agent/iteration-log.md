@@ -7,7 +7,8 @@
 - User-visible gain: a player can open or share a precise evidence slice such as one hero's losses within the death-cost topic.
 - Real issue fixed: browser QA exposed narrow-screen topic content at risk of horizontal clipping; headings now wrap and statistics use a two-column mobile grid.
 - Verified: target regression tests, 54-test suite, compileall, static site validation, gitleaks, desktop URL-state interaction, mobile rendering, and zero browser console errors.
-- Commit / CI: pending final local gate.
+- Commit: `feat: add hero filters to topic evidence` (`88b56a0`), pushed to `origin/main`.
+- CI: passed, `Deploy Cloudflare Pages` run `28320739812`.
 - Remaining risk: hero matching is exact by design; role-aware filtering needs trustworthy role metadata in every generated topic record.
 - Recommended next flagship change: add a compact section navigator to long match reports so actions, timeline evidence, deaths, items, and findings are reachable without repeated scrolling.
 

@@ -484,6 +484,8 @@ Started: 2026-06-28
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: no leaks found.
   - Browser: `?result=lose&hero=Legion+Commander` restored one matching card; switching to Dragon Knight preserved the loss filter and showed two cards; clear restored 10/10 cards and removed the query; mobile layout and console were clean after the responsive fix.
-- Commit / push / CI: pending final local gate.
+- Commit: `feat: add hero filters to topic evidence` (`88b56a0`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28320739812`.
 - Risk: topic filters are exact-hero filters; role grouping is intentionally deferred because the generated report evidence does not currently expose a verified role on every topic card.
 - Next stage: Stage 3 UIUX.
