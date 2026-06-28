@@ -456,8 +456,8 @@ Started: 2026-06-28
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: no leaks found.
   - Browser: `trend-death-cost.html?result=lose` initialized correctly, win filter updated URL, clear filter removed query, no console errors.
-- Commit: pending.
-- Push: pending.
-- GitHub Actions / CI: pending.
+- Commit: `feat: persist topic evidence filters` (`bef1838`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28319963955`.
 - Risk: topic filters are result-only; hero/role evidence filtering remains the next useful extension.
 - Next stage: Stage 2 IMPROVE.

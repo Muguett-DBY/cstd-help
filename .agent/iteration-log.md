@@ -7,8 +7,8 @@
 - User-visible gain: recurring-problem evidence views can be refreshed or shared while keeping the win/loss evidence slice.
 - Real issue fixed: topic page filters were previously ephemeral and reset after refresh.
 - Verified: target regression test, 54 tests, compileall, static site validation, browser URL-state flow, diff check, and gitleaks.
-- Commit: pending at stage close.
-- CI: pending at stage close.
+- Commit: `feat: persist topic evidence filters` (`bef1838`), pushed to `origin/main`.
+- CI: passed, `Deploy Cloudflare Pages` run `28319963955`.
 - Remaining risk: topic pages still filter by result only; hero/role/topic search would make large evidence archives faster to scan.
 - Recommended next flagship change: add hero/role-aware filters to topic evidence pages and propagate those filters through shareable URLs.
 
