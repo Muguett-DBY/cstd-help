@@ -32,7 +32,9 @@ Started: 2026-06-28
   - History page at 1280px: 10 reports, four top trend cards, no horizontal overflow, no console warnings/errors.
   - Practice plan: five cards; `死亡成本` and `装备后转化` each correctly show 10 matches / 10 evidence items.
 - Local verification: 42 tests passed; compile, static validation, diff check, and gitleaks passed.
-- Commit / push / CI: pending final stage gate.
+- Commit: `feat: aggregate complete coaching evidence` (`94b38cd`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28306075918`.
 - Next direction: add topic drill-down pages so every aggregated trend exposes all supporting matches, evidence, actions, and acceptance metrics instead of only three examples.
 
 ## Global Preparation

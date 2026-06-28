@@ -9,7 +9,8 @@
 - User-visible gain: the training plan now surfaces recurring death-cost and item-conversion problems across all 10 matches instead of hiding non-primary findings.
 - Real issue fixed: generated optional fragments no longer leave trailing whitespace.
 - Verified: 42 tests, compileall, static site validation, browser desktop flow, console health, diff check, and gitleaks.
-- CI: pending push.
+- Commit: `feat: aggregate complete coaching evidence` (`94b38cd`), pushed to `origin/main`.
+- CI: passed, `Deploy Cloudflare Pages` run `28306075918`.
 - Remaining risk: taxonomy aliases are intentionally curated; unknown labels stay separate until reviewed.
 - Recommended next flagship change: topic drill-down pages with all supporting evidence and report links.
 
