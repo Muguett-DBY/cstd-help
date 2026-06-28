@@ -8,8 +8,8 @@
 - User-visible gain: the player can jump directly to the decision surface needed for review instead of scanning a long HTML report linearly.
 - Real issues fixed: browser QA caught mobile rail centering and return-top reachability problems; both are now covered by code and style regression checks.
 - Verified: 55-test suite, compileall, static site validation, gitleaks, diff check, desktop report navigation, mobile 390px navigation, no horizontal page overflow, and zero browser console errors.
-- Commit: pending.
-- CI: pending.
+- Commit: `feat: add report section navigation` (`67d2ac4`), pushed to `origin/main`.
+- CI: passed, `Deploy Cloudflare Pages` run `28321347459`.
 - Remaining risk: newly introduced future report sections must provide stable IDs if they should appear in the navigator.
 - Recommended next flagship change: connect the training plan more directly to pre-filtered evidence and per-topic action checkpoints so the player can move from "what to train" to the exact supporting games faster.
 
