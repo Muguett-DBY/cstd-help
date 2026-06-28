@@ -11,15 +11,15 @@
       "finding_count": 10,
       "priority": "high",
       "heroes": [
-        "Anti-Mage",
-        "Crystal Maiden",
-        "Dark Seer",
-        "Dawnbreaker",
-        "Doom",
+        "Beastmaster",
+        "Chaos Knight",
+        "Death Prophet",
         "Dragon Knight",
-        "Gyrocopter",
-        "Meepo",
-        "Mirana"
+        "Earth Spirit",
+        "Legion Commander",
+        "Mirana",
+        "Pangolier",
+        "Rubick"
       ],
       "source_focuses": [
         "死亡成本"
@@ -28,57 +28,81 @@
       "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
       "examples": [
         {
+          "hero": "Legion Commander",
+          "match_id": "8870219537",
+          "file": "Legion_Commander_8870219537_20260628_164028.html",
+          "result": "lose"
+        },
+        {
           "hero": "Dragon Knight",
           "match_id": "8867124876",
-          "file": "Dragon_Knight_8867124876_20260628_051735.html",
+          "file": "Dragon_Knight_8867124876_20260628_164029.html",
           "result": "lose"
         },
         {
-          "hero": "Anti-Mage",
-          "match_id": "8866174845",
-          "file": "Anti-Mage_8866174845_20260628_051736.html",
-          "result": "lose"
-        },
-        {
-          "hero": "Meepo",
-          "match_id": "8865878802",
-          "file": "Meepo_8865878802_20260628_051737.html",
+          "hero": "Dragon Knight",
+          "match_id": "8870145903",
+          "file": "Dragon_Knight_8870145903_20260628_164028.html",
           "result": "lose"
         }
       ],
       "findings": [
+        {
+          "hero": "Legion Commander",
+          "hero_slug": "legion_commander",
+          "match_id": "8870219537",
+          "file": "Legion_Commander_8870219537_20260628_164028.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 12/12 次死亡，时间: 11.2, 13.6, 22.7, 25.3, 28.3, 30.4, 32.2, 33.8, 38.0, 41.5, 43.5, 45.5分钟；每10分钟死亡 2.59。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
         {
           "hero": "Dragon Knight",
           "hero_slug": "dragon_knight",
           "match_id": "8867124876",
-          "file": "Dragon_Knight_8867124876_20260628_051735.html",
+          "file": "Dragon_Knight_8867124876_20260628_164029.html",
           "result": "lose",
           "source_focus": "死亡成本",
-          "review_evidence": "已定位 6/12 次死亡，时间: 12.7, 17.4, 37.2, 47.5, 51.7, 54.6分钟；每10分钟死亡 1.88。 公共数据源未提供剩余 6 次死亡的分钟级事件。",
+          "review_evidence": "已定位 12/12 次死亡，时间: 3.2, 12.5, 17.2, 23.7, 37.2, 41.0, 47.5, 51.4, 54.2, 56.6, 62.7, 63.8分钟；每10分钟死亡 1.88。",
           "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
           "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
           "priority": "high"
         },
         {
-          "hero": "Anti-Mage",
-          "hero_slug": "antimage",
-          "match_id": "8866174845",
-          "file": "Anti-Mage_8866174845_20260628_051736.html",
+          "hero": "Dragon Knight",
+          "hero_slug": "dragon_knight",
+          "match_id": "8870145903",
+          "file": "Dragon_Knight_8870145903_20260628_164028.html",
           "result": "lose",
           "source_focus": "死亡成本",
-          "review_evidence": "已定位 10/10 次死亡，时间: 7.0, 9.7, 15.6, 19.7, 21.3, 44.3分钟；每10分钟死亡 1.4。",
+          "review_evidence": "已定位 11/11 次死亡，时间: 2.4, 12.8, 13.6, 20.8, 24.1, 26.4, 30.3, 35.2, 37.9, 40.5, 42.0分钟；每10分钟死亡 2.61。",
           "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
           "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
           "priority": "high"
         },
         {
-          "hero": "Meepo",
-          "hero_slug": "meepo",
-          "match_id": "8865878802",
-          "file": "Meepo_8865878802_20260628_051737.html",
+          "hero": "Chaos Knight",
+          "hero_slug": "chaos_knight",
+          "match_id": "8869500868",
+          "file": "Chaos_Knight_8869500868_20260628_164029.html",
           "result": "lose",
           "source_focus": "死亡成本",
-          "review_evidence": "已定位 6/8 次死亡，时间: 23.8, 42.1, 53.5, 58.9, 69.9, 69.9分钟；每10分钟死亡 1.14。 公共数据源未提供剩余 2 次死亡的分钟级事件。",
+          "review_evidence": "已定位 10/10 次死亡，时间: 2.2, 5.4, 7.1, 8.2, 14.0, 20.4, 22.6, 24.0, 29.8, 33.7分钟；每10分钟死亡 2.97。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Death Prophet",
+          "hero_slug": "death_prophet",
+          "match_id": "8870188563",
+          "file": "Death_Prophet_8870188563_20260628_164028.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 6/6 次死亡，时间: 17.7, 20.1, 22.2, 25.3, 28.7, 30.3分钟；每10分钟死亡 1.96。",
           "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
           "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
           "priority": "high"
@@ -87,186 +111,60 @@
           "hero": "Mirana",
           "hero_slug": "mirana",
           "match_id": "8867002237",
-          "file": "Mirana_8867002237_20260628_051735.html",
+          "file": "Mirana_8867002237_20260628_164029.html",
           "result": "lose",
           "source_focus": "死亡成本",
-          "review_evidence": "已定位 2/5 次死亡，时间: 32.1, 47.6分钟；每10分钟死亡 1.04。 公共数据源未提供剩余 3 次死亡的分钟级事件。",
+          "review_evidence": "已定位 5/5 次死亡，时间: 1.2, 4.6, 32.1, 47.5, 48.1分钟；每10分钟死亡 1.04。",
           "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
           "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
           "priority": "high"
         },
         {
-          "hero": "Gyrocopter",
-          "hero_slug": "gyrocopter",
-          "match_id": "8866888706",
-          "file": "Gyrocopter_8866888706_20260628_051736.html",
-          "result": "lose",
-          "source_focus": "死亡成本",
-          "review_evidence": "已定位 3/5 次死亡，时间: 29.6, 32.3, 37.8分钟；每10分钟死亡 1.25。 公共数据源未提供剩余 2 次死亡的分钟级事件。",
-          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
-          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
-          "priority": "high"
-        },
-        {
-          "hero": "Crystal Maiden",
-          "hero_slug": "crystal_maiden",
-          "match_id": "8866935458",
-          "file": "Crystal_Maiden_8866935458_20260628_051736.html",
+          "hero": "Pangolier",
+          "hero_slug": "pangolier",
+          "match_id": "8869892215",
+          "file": "Pangolier_8869892215_20260628_164029.html",
           "result": "win",
           "source_focus": "死亡成本",
-          "review_evidence": "已定位 5/8 次死亡，时间: 0.6, 11.4, 14.5, 20.9, 29.5分钟；每10分钟死亡 1.98。 公共数据源未提供剩余 3 次死亡的分钟级事件。",
+          "review_evidence": "已定位 11/11 次死亡，时间: 3.0, 7.1, 15.0, 15.9, 25.1, 30.1, 34.4, 36.2, 52.9, 60.3, 68.2分钟；每10分钟死亡 1.59。",
           "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
           "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
           "priority": "high"
         },
         {
-          "hero": "Dawnbreaker",
-          "hero_slug": "dawnbreaker",
-          "match_id": "8866682981",
-          "file": "Dawnbreaker_8866682981_20260628_051736.html",
+          "hero": "Rubick",
+          "hero_slug": "rubick",
+          "match_id": "8867351572",
+          "file": "Rubick_8867351572_20260628_164029.html",
           "result": "win",
           "source_focus": "死亡成本",
-          "review_evidence": "已定位 4/8 次死亡，时间: 19.0, 32.9, 41.2, 53.3分钟；每10分钟死亡 1.41。 公共数据源未提供剩余 4 次死亡的分钟级事件。",
+          "review_evidence": "已定位 7/7 次死亡，时间: 8.0, 12.8, 16.9, 31.5, 36.0, 40.4, 45.2分钟；每10分钟死亡 1.37。",
           "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
           "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
           "priority": "high"
         },
         {
-          "hero": "Doom",
-          "hero_slug": "doom_bringer",
-          "match_id": "8866610277",
-          "file": "Doom_8866610277_20260628_051736.html",
+          "hero": "Earth Spirit",
+          "hero_slug": "earth_spirit",
+          "match_id": "8867246517",
+          "file": "Earth_Spirit_8867246517_20260628_164029.html",
           "result": "win",
           "source_focus": "死亡成本",
-          "review_evidence": "已定位 3/7 次死亡，时间: 10.4, 11.4, 45.3分钟；每10分钟死亡 1.25。 公共数据源未提供剩余 4 次死亡的分钟级事件。",
+          "review_evidence": "已定位 3/3 次死亡，时间: 3.9, 10.9, 12.7分钟；每10分钟死亡 0.84。",
           "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
           "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
           "priority": "high"
         },
         {
-          "hero": "Dark Seer",
-          "hero_slug": "dark_seer",
-          "match_id": "8866655915",
-          "file": "Dark_Seer_8866655915_20260628_051736.html",
+          "hero": "Beastmaster",
+          "hero_slug": "beastmaster",
+          "match_id": "8870116015",
+          "file": "Beastmaster_8870116015_20260628_164028.html",
           "result": "win",
           "source_focus": "死亡成本",
-          "review_evidence": "已定位 1/3 次死亡，时间: 7.0分钟；每10分钟死亡 1.01。 公共数据源未提供剩余 2 次死亡的分钟级事件。",
+          "review_evidence": "已定位 2/2 次死亡，时间: 8.0, 10.6分钟；每10分钟死亡 0.74。",
           "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
           "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
-          "priority": "high"
-        },
-        {
-          "hero": "Anti-Mage",
-          "hero_slug": "antimage",
-          "match_id": "8866000193",
-          "file": "Anti-Mage_8866000193_20260628_051737.html",
-          "result": "win",
-          "source_focus": "死亡成本",
-          "review_evidence": "已定位 1/1 次死亡，时间: 12.2分钟；每10分钟死亡 0.29。",
-          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
-          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
-          "priority": "medium"
-        }
-      ]
-    },
-    {
-      "topic_id": "early_resource",
-      "focus": "前10分钟资源",
-      "page": "trend-early-resource.html",
-      "count": 5,
-      "finding_count": 5,
-      "priority": "high",
-      "heroes": [
-        "Anti-Mage",
-        "Dawnbreaker",
-        "Doom",
-        "Gyrocopter",
-        "Mirana"
-      ],
-      "source_focuses": [
-        "前10分钟资源"
-      ],
-      "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟35补。",
-      "success_metric": "10分钟补刀>=35；前10分钟低效率窗口=0。",
-      "examples": [
-        {
-          "hero": "Mirana",
-          "match_id": "8867002237",
-          "file": "Mirana_8867002237_20260628_051735.html",
-          "result": "lose"
-        },
-        {
-          "hero": "Gyrocopter",
-          "match_id": "8866888706",
-          "file": "Gyrocopter_8866888706_20260628_051736.html",
-          "result": "lose"
-        },
-        {
-          "hero": "Dawnbreaker",
-          "match_id": "8866682981",
-          "file": "Dawnbreaker_8866682981_20260628_051736.html",
-          "result": "win"
-        }
-      ],
-      "findings": [
-        {
-          "hero": "Mirana",
-          "hero_slug": "mirana",
-          "match_id": "8867002237",
-          "file": "Mirana_8867002237_20260628_051735.html",
-          "result": "lose",
-          "source_focus": "前10分钟资源",
-          "review_evidence": "10分钟补刀 30，前10分钟低效率窗口 2 个。",
-          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟35补。",
-          "success_metric": "10分钟补刀>=35；前10分钟低效率窗口=0。",
-          "priority": "high"
-        },
-        {
-          "hero": "Gyrocopter",
-          "hero_slug": "gyrocopter",
-          "match_id": "8866888706",
-          "file": "Gyrocopter_8866888706_20260628_051736.html",
-          "result": "lose",
-          "source_focus": "前10分钟资源",
-          "review_evidence": "10分钟补刀 66，前10分钟低效率窗口 1 个。",
-          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟66补。",
-          "success_metric": "10分钟补刀>=66；前10分钟低效率窗口=0。",
-          "priority": "high"
-        },
-        {
-          "hero": "Dawnbreaker",
-          "hero_slug": "dawnbreaker",
-          "match_id": "8866682981",
-          "file": "Dawnbreaker_8866682981_20260628_051736.html",
-          "result": "win",
-          "source_focus": "前10分钟资源",
-          "review_evidence": "10分钟补刀 57，前10分钟低效率窗口 1 个。",
-          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟60补。",
-          "success_metric": "10分钟补刀>=60；前10分钟低效率窗口=0。",
-          "priority": "high"
-        },
-        {
-          "hero": "Doom",
-          "hero_slug": "doom_bringer",
-          "match_id": "8866610277",
-          "file": "Doom_8866610277_20260628_051736.html",
-          "result": "win",
-          "source_focus": "前10分钟资源",
-          "review_evidence": "10分钟补刀 43，前10分钟低效率窗口 2 个。",
-          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟48补。",
-          "success_metric": "10分钟补刀>=48；前10分钟低效率窗口=0。",
-          "priority": "high"
-        },
-        {
-          "hero": "Anti-Mage",
-          "hero_slug": "antimage",
-          "match_id": "8866000193",
-          "file": "Anti-Mage_8866000193_20260628_051737.html",
-          "result": "win",
-          "source_focus": "前10分钟资源",
-          "review_evidence": "10分钟补刀 55，前10分钟低效率窗口 1 个。",
-          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟60补。",
-          "success_metric": "10分钟补刀>=60；前10分钟低效率窗口=0。",
           "priority": "high"
         }
       ]
@@ -275,13 +173,11 @@
       "topic_id": "close_game",
       "focus": "终结比赛",
       "page": "trend-close-game.html",
-      "count": 3,
-      "finding_count": 3,
+      "count": 1,
+      "finding_count": 1,
       "priority": "high",
       "heroes": [
-        "Anti-Mage",
-        "Dragon Knight",
-        "Meepo"
+        "Dragon Knight"
       ],
       "source_focuses": [
         "终结比赛"
@@ -292,19 +188,7 @@
         {
           "hero": "Dragon Knight",
           "match_id": "8867124876",
-          "file": "Dragon_Knight_8867124876_20260628_051735.html",
-          "result": "lose"
-        },
-        {
-          "hero": "Anti-Mage",
-          "match_id": "8866174845",
-          "file": "Anti-Mage_8866174845_20260628_051736.html",
-          "result": "lose"
-        },
-        {
-          "hero": "Meepo",
-          "match_id": "8865878802",
-          "file": "Meepo_8865878802_20260628_051737.html",
+          "file": "Dragon_Knight_8867124876_20260628_164029.html",
           "result": "lose"
         }
       ],
@@ -313,241 +197,13 @@
           "hero": "Dragon Knight",
           "hero_slug": "dragon_knight",
           "match_id": "8867124876",
-          "file": "Dragon_Knight_8867124876_20260628_051735.html",
+          "file": "Dragon_Knight_8867124876_20260628_164029.html",
           "result": "lose",
           "source_focus": "终结比赛",
           "review_evidence": "失败局时长 63.8 分钟，GPM 727。",
           "next_action": "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
           "success_metric": "强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
           "priority": "high"
-        },
-        {
-          "hero": "Anti-Mage",
-          "hero_slug": "antimage",
-          "match_id": "8866174845",
-          "file": "Anti-Mage_8866174845_20260628_051736.html",
-          "result": "lose",
-          "source_focus": "终结比赛",
-          "review_evidence": "失败局时长 71.5 分钟，GPM 860。",
-          "next_action": "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
-          "success_metric": "强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
-          "priority": "high"
-        },
-        {
-          "hero": "Meepo",
-          "hero_slug": "meepo",
-          "match_id": "8865878802",
-          "file": "Meepo_8865878802_20260628_051737.html",
-          "result": "lose",
-          "source_focus": "终结比赛",
-          "review_evidence": "失败局时长 70.3 分钟，GPM 911。",
-          "next_action": "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
-          "success_metric": "强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
-          "priority": "high"
-        }
-      ]
-    },
-    {
-      "topic_id": "item_conversion",
-      "focus": "装备后转化",
-      "page": "trend-item-conversion.html",
-      "count": 10,
-      "finding_count": 10,
-      "priority": "medium",
-      "heroes": [
-        "Anti-Mage",
-        "Crystal Maiden",
-        "Dark Seer",
-        "Dawnbreaker",
-        "Doom",
-        "Dragon Knight",
-        "Gyrocopter",
-        "Meepo",
-        "Mirana"
-      ],
-      "source_focuses": [
-        "装备后转化"
-      ],
-      "next_action": "下一局 Black King Bar 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
-      "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
-      "examples": [
-        {
-          "hero": "Dragon Knight",
-          "match_id": "8867124876",
-          "file": "Dragon_Knight_8867124876_20260628_051735.html",
-          "result": "lose"
-        },
-        {
-          "hero": "Anti-Mage",
-          "match_id": "8866174845",
-          "file": "Anti-Mage_8866174845_20260628_051736.html",
-          "result": "lose"
-        },
-        {
-          "hero": "Meepo",
-          "match_id": "8865878802",
-          "file": "Meepo_8865878802_20260628_051737.html",
-          "result": "lose"
-        }
-      ],
-      "findings": [
-        {
-          "hero": "Dragon Knight",
-          "hero_slug": "dragon_knight",
-          "match_id": "8867124876",
-          "file": "Dragon_Knight_8867124876_20260628_051735.html",
-          "result": "lose",
-          "source_focus": "装备后转化",
-          "review_evidence": "Hand of Midas 11.6分钟；Black King Bar 28.8分钟",
-          "next_action": "下一局 Black King Bar 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
-          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
-          "priority": "medium"
-        },
-        {
-          "hero": "Anti-Mage",
-          "hero_slug": "antimage",
-          "match_id": "8866174845",
-          "file": "Anti-Mage_8866174845_20260628_051736.html",
-          "result": "lose",
-          "source_focus": "装备后转化",
-          "review_evidence": "Battle Fury 15.9分钟；Manta Style 22.9分钟；Butterfly 28.8分钟；Abyssal Blade 34.3分钟",
-          "next_action": "下一局 Manta Style、Monkey King Bar 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
-          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
-          "priority": "medium"
-        },
-        {
-          "hero": "Meepo",
-          "hero_slug": "meepo",
-          "match_id": "8865878802",
-          "file": "Meepo_8865878802_20260628_051737.html",
-          "result": "lose",
-          "source_focus": "装备后转化",
-          "review_evidence": "Eye of Skadi 22.8分钟；Butterfly 52.0分钟；Black King Bar 60.0分钟",
-          "next_action": "下一局继续保持刷钱装后不断线，强势装后立刻接推塔、参战或控图动作。",
-          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
-          "priority": "medium"
-        },
-        {
-          "hero": "Mirana",
-          "hero_slug": "mirana",
-          "match_id": "8867002237",
-          "file": "Mirana_8867002237_20260628_051735.html",
-          "result": "lose",
-          "source_focus": "装备后转化",
-          "review_evidence": "Hand of Midas 14.6分钟",
-          "next_action": "下一局继续保持刷钱装后不断线，强势装后立刻接推塔、参战或控图动作。",
-          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
-          "priority": "medium"
-        },
-        {
-          "hero": "Gyrocopter",
-          "hero_slug": "gyrocopter",
-          "match_id": "8866888706",
-          "file": "Gyrocopter_8866888706_20260628_051736.html",
-          "result": "lose",
-          "source_focus": "装备后转化",
-          "review_evidence": "Black King Bar 35.1分钟",
-          "next_action": "下一局 Black King Bar 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
-          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
-          "priority": "medium"
-        },
-        {
-          "hero": "Crystal Maiden",
-          "hero_slug": "crystal_maiden",
-          "match_id": "8866935458",
-          "file": "Crystal_Maiden_8866935458_20260628_051736.html",
-          "result": "win",
-          "source_focus": "装备后转化",
-          "review_evidence": "Hand of Midas 14.8分钟；Black King Bar 34.0分钟",
-          "next_action": "下一局 Black King Bar 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
-          "success_metric": "关键装后2分钟至少出现1次参战、推塔或视野事件；观察+岗哨总数不下降。",
-          "priority": "medium"
-        },
-        {
-          "hero": "Dawnbreaker",
-          "hero_slug": "dawnbreaker",
-          "match_id": "8866682981",
-          "file": "Dawnbreaker_8866682981_20260628_051736.html",
-          "result": "win",
-          "source_focus": "装备后转化",
-          "review_evidence": "Black King Bar 25.6分钟",
-          "next_action": "下一局继续保持刷钱装后不断线，强势装后立刻接推塔、参战或控图动作。",
-          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
-          "priority": "medium"
-        },
-        {
-          "hero": "Doom",
-          "hero_slug": "doom_bringer",
-          "match_id": "8866610277",
-          "file": "Doom_8866610277_20260628_051736.html",
-          "result": "win",
-          "source_focus": "装备后转化",
-          "review_evidence": "Hand of Midas 11.4分钟；Black King Bar 20.4分钟",
-          "next_action": "下一局 Hand of Midas、Black King Bar 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
-          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
-          "priority": "medium"
-        },
-        {
-          "hero": "Anti-Mage",
-          "hero_slug": "antimage",
-          "match_id": "8866000193",
-          "file": "Anti-Mage_8866000193_20260628_051737.html",
-          "result": "win",
-          "source_focus": "装备后转化",
-          "review_evidence": "Battle Fury 12.4分钟；Manta Style 18.9分钟；Butterfly 24.4分钟；Eye of Skadi 30.7分钟",
-          "next_action": "下一局继续保持刷钱装后不断线，强势装后立刻接推塔、参战或控图动作。",
-          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
-          "priority": "medium"
-        },
-        {
-          "hero": "Dark Seer",
-          "hero_slug": "dark_seer",
-          "match_id": "8866655915",
-          "file": "Dark_Seer_8866655915_20260628_051736.html",
-          "result": "win",
-          "source_focus": "装备后转化",
-          "review_evidence": "购买时间线可用，但系统未识别到关键装备完成时间。",
-          "next_action": "下一局把第一件关键装完成时间和随后的地图动作绑定记录。",
-          "success_metric": "数据验收：下一份报告至少出现1件关键装备购买时间。",
-          "priority": "low"
-        }
-      ]
-    },
-    {
-      "topic_id": "resource_continuity",
-      "focus": "中后期资源连续性",
-      "page": "trend-resource-continuity.html",
-      "count": 1,
-      "finding_count": 1,
-      "priority": "medium",
-      "heroes": [
-        "Anti-Mage"
-      ],
-      "source_focuses": [
-        "中后期资源连续性"
-      ],
-      "next_action": "下一局10分钟后把低效率窗口从2个压到最多1个；集合前先推出一条安全线。",
-      "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
-      "examples": [
-        {
-          "hero": "Anti-Mage",
-          "match_id": "8866174845",
-          "file": "Anti-Mage_8866174845_20260628_051736.html",
-          "result": "lose"
-        }
-      ],
-      "findings": [
-        {
-          "hero": "Anti-Mage",
-          "hero_slug": "antimage",
-          "match_id": "8866174845",
-          "file": "Anti-Mage_8866174845_20260628_051736.html",
-          "result": "lose",
-          "source_focus": "中后期资源连续性",
-          "review_evidence": "中后期低效率窗口: 59-61分钟 1.5补/分钟；68-70分钟 3.5补/分钟。",
-          "next_action": "下一局10分钟后把低效率窗口从2个压到最多1个；集合前先推出一条安全线。",
-          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
-          "priority": "medium"
         }
       ]
     },
@@ -555,36 +211,131 @@
       "topic_id": "vision_control",
       "focus": "视野/控图",
       "page": "trend-vision-control.html",
-      "count": 1,
-      "finding_count": 1,
+      "count": 3,
+      "finding_count": 3,
       "priority": "medium",
       "heroes": [
-        "Crystal Maiden"
+        "Earth Spirit",
+        "Pangolier",
+        "Rubick"
       ],
       "source_focuses": [
         "视野/控图"
       ],
       "next_action": "下一局每次控盾、推塔或守高前先补一组观察/岗哨；死亡后第一波出门优先补入口视野。",
-      "success_metric": "观察+岗哨总数不低于24；25分钟后每次死亡后3分钟内至少补1个视野事件。",
+      "success_metric": "观察+岗哨总数不低于15；25分钟后每次死亡后3分钟内至少补1个视野事件。",
       "examples": [
         {
-          "hero": "Crystal Maiden",
-          "match_id": "8866935458",
-          "file": "Crystal_Maiden_8866935458_20260628_051736.html",
+          "hero": "Pangolier",
+          "match_id": "8869892215",
+          "file": "Pangolier_8869892215_20260628_164029.html",
+          "result": "win"
+        },
+        {
+          "hero": "Rubick",
+          "match_id": "8867351572",
+          "file": "Rubick_8867351572_20260628_164029.html",
+          "result": "win"
+        },
+        {
+          "hero": "Earth Spirit",
+          "match_id": "8867246517",
+          "file": "Earth_Spirit_8867246517_20260628_164029.html",
           "result": "win"
         }
       ],
       "findings": [
         {
-          "hero": "Crystal Maiden",
-          "hero_slug": "crystal_maiden",
-          "match_id": "8866935458",
-          "file": "Crystal_Maiden_8866935458_20260628_051736.html",
+          "hero": "Pangolier",
+          "hero_slug": "pangolier",
+          "match_id": "8869892215",
+          "file": "Pangolier_8869892215_20260628_164029.html",
           "result": "win",
           "source_focus": "视野/控图",
-          "review_evidence": "视野事件: 观察守卫 7，岗哨 17。",
+          "review_evidence": "视野事件: 观察守卫 5，岗哨 10。",
           "next_action": "下一局每次控盾、推塔或守高前先补一组观察/岗哨；死亡后第一波出门优先补入口视野。",
-          "success_metric": "观察+岗哨总数不低于24；25分钟后每次死亡后3分钟内至少补1个视野事件。",
+          "success_metric": "观察+岗哨总数不低于15；25分钟后每次死亡后3分钟内至少补1个视野事件。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Rubick",
+          "hero_slug": "rubick",
+          "match_id": "8867351572",
+          "file": "Rubick_8867351572_20260628_164029.html",
+          "result": "win",
+          "source_focus": "视野/控图",
+          "review_evidence": "视野事件: 观察守卫 4，岗哨 6。",
+          "next_action": "下一局每次控盾、推塔或守高前先补一组观察/岗哨；死亡后第一波出门优先补入口视野。",
+          "success_metric": "观察+岗哨总数不低于10；25分钟后每次死亡后3分钟内至少补1个视野事件。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Earth Spirit",
+          "hero_slug": "earth_spirit",
+          "match_id": "8867246517",
+          "file": "Earth_Spirit_8867246517_20260628_164029.html",
+          "result": "win",
+          "source_focus": "视野/控图",
+          "review_evidence": "视野事件: 观察守卫 2，岗哨 3。",
+          "next_action": "下一局每次控盾、推塔或守高前先补一组观察/岗哨；死亡后第一波出门优先补入口视野。",
+          "success_metric": "观察+岗哨总数不低于5；25分钟后每次死亡后3分钟内至少补1个视野事件。",
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "topic_id": "item_conversion",
+      "focus": "装备后转化",
+      "page": "trend-item-conversion.html",
+      "count": 2,
+      "finding_count": 2,
+      "priority": "medium",
+      "heroes": [
+        "Chaos Knight",
+        "Dragon Knight"
+      ],
+      "source_focuses": [
+        "装备后转化"
+      ],
+      "next_action": "下一局 Hand of Midas 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
+      "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
+      "examples": [
+        {
+          "hero": "Dragon Knight",
+          "match_id": "8870145903",
+          "file": "Dragon_Knight_8870145903_20260628_164028.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Chaos Knight",
+          "match_id": "8869500868",
+          "file": "Chaos_Knight_8869500868_20260628_164029.html",
+          "result": "lose"
+        }
+      ],
+      "findings": [
+        {
+          "hero": "Dragon Knight",
+          "hero_slug": "dragon_knight",
+          "match_id": "8870145903",
+          "file": "Dragon_Knight_8870145903_20260628_164028.html",
+          "result": "lose",
+          "source_focus": "装备后转化",
+          "review_evidence": "Hand of Midas 11.9分钟；Black King Bar 30.1分钟",
+          "next_action": "下一局 Hand of Midas 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
+          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Chaos Knight",
+          "hero_slug": "chaos_knight",
+          "match_id": "8869500868",
+          "file": "Chaos_Knight_8869500868_20260628_164029.html",
+          "result": "lose",
+          "source_focus": "装备后转化",
+          "review_evidence": "Hand of Midas 10.3分钟",
+          "next_action": "下一局 Hand of Midas 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
+          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
           "priority": "medium"
         }
       ]

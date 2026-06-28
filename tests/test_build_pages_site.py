@@ -39,6 +39,19 @@ class BuildPagesSiteTests(unittest.TestCase):
 
         self.assertEqual(issues, ["index.html -> missing-report.html"])
 
+    def test_static_site_checker_detects_unresolved_item_names(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Dragon_Knight_1.html").write_text(
+                '<html><body><div title="Item #600">Item #600</div></body></html>',
+                encoding="utf-8",
+            )
+            finder = getattr(check_public_site, "_find_unresolved_item_references", lambda *_: [])
+
+            issues = finder(public_path)
+
+        self.assertEqual(issues, ["Dragon_Knight_1.html -> Item #600"])
+
     def test_parse_report_uses_embedded_match_metadata(self):
         metadata = {
             "match_id": 8867002237,

@@ -22,10 +22,16 @@ HERO_NAME_TO_ID = {}
 HERO_ID_TO_SLUG = {}
 
 ITEM_FALLBACKS = {
+    7: "Javelin",
     50: "Phase Boots",
     63: "Power Treads",
     65: "Hand of Midas",
+    77: "Null Talisman",
+    108: "Aghanim's Scepter",
+    110: "Refresher Orb",
+    112: "Assault Cuirass",
     116: "Black King Bar",
+    119: "Shiva's Guard",
     135: "Monkey King Bar",
     139: "Butterfly",
     141: "Daedalus",
@@ -37,7 +43,20 @@ ITEM_FALLBACKS = {
     156: "Satanic",
     158: "Mjollnir",
     160: "Eye of Skadi",
+    164: "Helm of the Dominator",
     208: "Abyssal Blade",
+    214: "Tranquil Boots",
+    220: "Boots of Travel 2",
+    235: "Octarine Core",
+    254: "Glimmer Cape",
+    277: "Yasha and Kaya",
+    598: "Mage Slayer",
+    600: "Overwhelming Blink",
+    603: "Swift Blink",
+    939: "Harpoon",
+    1097: "Disperser",
+    1852: "Essence Distiller",
+    1856: "Crella's Crozier",
 }
 
 ITEM_KEY_FALLBACKS = {
@@ -782,6 +801,10 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     opendota_assists = []
     opendota_observer_wards = []
     opendota_sentry_wards = []
+    valve_replay_deaths = _normalize_timed_events(
+        (opendota_data or {}).get("replay_death_events"),
+        source="valve_replay",
+    )
     if opendota_player:
         opendota_purchases = _normalize_opendota_purchase_events(opendota_player.get("purchase_log"))
         opendota_deaths = _normalize_opendota_timed_events(opendota_player.get("death_log"))
@@ -801,13 +824,25 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     elif stratz_purchases:
         source_parts.add("stratz_playback")
 
-    deaths = opendota_deaths or stratz_deaths or opendota_teamfight_deaths
-    if opendota_deaths:
-        source_parts.add("opendota_parsed_logs")
-    elif stratz_deaths:
-        source_parts.add("stratz_playback")
-    elif opendota_teamfight_deaths:
-        source_parts.add("opendota_teamfights")
+    death_candidates = [
+        (valve_replay_deaths, "valve_replay", 3),
+        (opendota_deaths, "opendota_parsed_logs", 2),
+        (stratz_deaths, "stratz_playback", 1),
+        (opendota_teamfight_deaths, "opendota_teamfights", 0),
+    ]
+    available_death_candidates = [candidate for candidate in death_candidates if candidate[0]]
+    if available_death_candidates:
+        deaths, death_source, _ = max(
+            available_death_candidates,
+            key=lambda candidate: (
+                bool(expected_deaths and len(candidate[0]) == int(expected_deaths)),
+                min(len(candidate[0]), int(expected_deaths or len(candidate[0]))),
+                candidate[2],
+            ),
+        )
+        source_parts.add(death_source)
+    else:
+        deaths = []
 
     kills = opendota_kills or stratz_kills
     if opendota_kills:
@@ -1130,7 +1165,11 @@ def _build_review_findings(result):
         ))
 
     if events.get("deaths"):
-        death_minutes = ", ".join(str(item["minute"]) for item in events["deaths"][:6])
+        death_events = events["deaths"]
+        listed_deaths = death_events if len(death_events) <= 12 else death_events[:12]
+        death_minutes = ", ".join(str(item.get("minute")) for item in listed_deaths)
+        if len(death_events) > len(listed_deaths):
+            death_minutes += " 等"
         coverage = events.get("death_coverage_label") or f"已定位 {len(events['deaths'])} 次死亡"
         missing_note = events.get("death_gap_note")
         priority = "high" if events.get("death_count_expected", 0) >= 2 else "medium"
@@ -1141,14 +1180,16 @@ def _build_review_findings(result):
             evidence += f" {missing_note}"
         cluster_labels = _death_cluster_labels(events["deaths"])
         replay_check = "系统已定位的死亡分钟优先检查装备冷却、队友距离、敌方控制威胁和撤退路线。"
+        death_action = "下一局每次带线或参团前先判断敌方关键控制、己方TP支援、撤退路线和买活/盾时间。"
         if cluster_labels:
             replay_check += " 连续死亡簇: " + "、".join(cluster_labels[:4]) + "。"
+            death_action = "下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。"
         findings.append(_finding(
             priority,
             "death_review",
             evidence,
             "核心或节奏位的连续死亡会直接交出地图区域和关键目标时间。",
-            "下一局每次带线或参团前先判断敌方关键控制、己方TP支援、撤退路线和买活/盾时间。",
+            death_action,
             replay_check,
             "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
             "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
@@ -1209,18 +1250,7 @@ def _build_review_findings(result):
         key_purchases = events.get("key_purchases") or []
         evidence = "；".join(f"{item['item_name']} {item['minute']}分钟" for item in key_purchases[:4])
         post_windows = events.get("post_item_windows") or []
-        if not key_purchases:
-            findings.append(_finding(
-                "low",
-                "item_timing",
-                "购买时间线可用，但系统未识别到关键装备完成时间。",
-                "没有关键装备时间点时，装备后2分钟转化不能可靠计算。",
-                "下一局关键团队装、保命装或核心输出装完成后，系统会自动记录后续2分钟参战/推塔窗口。",
-                "系统过滤了眼位、补给和小件购买，避免把普通消耗品当作关键装备。",
-                "下一局把第一件关键装完成时间和随后的地图动作绑定记录。",
-                "数据验收：下一份报告至少出现1件关键装备购买时间。",
-            ))
-        elif post_windows:
+        if key_purchases and post_windows:
             post_summary = "；".join(item.get("summary", "") for item in post_windows[:4] if item.get("summary"))
             goal_details = _item_window_goal_details(post_windows)
             check_parts = [f"系统已计算关键装备后的对应窗口: {post_summary}"]
@@ -1234,10 +1264,13 @@ def _build_review_findings(result):
                 training_goal = f"下一局 {low_names} 成型后立刻执行预设动作，避免装备完成后的空转窗口。"
             else:
                 training_goal = "下一局继续保持刷钱装后不断线，强势装后立刻接推塔、参战或控图动作。"
-        else:
+        elif key_purchases:
             replay_check = "系统已列出关键装备时间；当前公共数据源未提供足够的击杀/推塔分钟数据计算装备后转化。"
             training_goal = "下一局关键装备成型后立刻绑定一个地图动作，让系统能在2分钟窗口内验收。"
-        if key_purchases:
+        should_add_item_finding = bool(key_purchases and not post_windows)
+        if key_purchases and post_windows:
+            should_add_item_finding = bool(goal_details["low_farm"] or goal_details["low_conversion"])
+        if key_purchases and should_add_item_finding:
             if role_id == "support":
                 why = "辅助关键装要转成救人、反开、控图或保护关键目标，不能只停留在面板经济。"
                 action = "下一局保命装或团队装完成后2分钟内完成一次守塔、做视野、反开或跟核心推进。"
@@ -1395,8 +1428,14 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
         if "opendota_teamfights" in event_source:
             available.append("opendota_teamfights")
         score += 8
+        if events.get("purchases") and not events.get("key_purchases"):
+            limitations.append("购买时间线可用，但没有识别到关键装备完成点；装备后转化不作为本局主要问题")
     else:
         limitations.append("缺少购买时间线，不能判断关键装备时机")
+
+    if "valve_replay" in (events.get("source") or ""):
+        available.append("valve_replay_death_events")
+        score += 5
 
     if has_fight_log:
         available.append("fight_log")

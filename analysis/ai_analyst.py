@@ -261,15 +261,30 @@ def _generate_fallback_analysis(analysis, hero_name, is_win):
     data_quality = analysis.get("data_quality", {})
     review_findings = analysis.get("review_findings", [])
     result_text = "胜利" if is_win else "失败"
+    death_findings = [
+        finding for finding in review_findings
+        if finding.get("category") == "death_review"
+    ]
+    death_pressure = bool(death_findings) and (
+        kda.get("deaths", 0) >= 5 or derived.get("deaths_per_10_min", 0) >= 1.0
+    )
 
     lines = [f"{hero_name} 复盘分析（{result_text}）"]
 
     lines.append("")
     lines.append("本局最重要结论")
-    if not is_win and analysis.get("duration_min", 0) >= 45 and farm.get("gpm", 0) >= 600:
+    if death_pressure:
+        lines.append("当前最影响胜负的是死亡成本，优先使用已定位死亡分钟检查死亡前30秒的地图状态。")
+    elif not is_win and analysis.get("duration_min", 0) >= 45 and farm.get("gpm", 0) >= 600:
         lines.append("高经济长局失利，优先复盘关键装备窗口是否转成地图目标，而不是继续泛化到补刀基本功。")
     elif kda.get("kda_ratio", 0) < 2 or derived.get("deaths_per_10_min", 0) >= 1.8:
         lines.append("当前最影响胜负的是死亡成本，优先使用已定位死亡分钟检查死亡前30秒的地图状态。")
+    elif review_findings:
+        top_finding = review_findings[0]
+        top_label = top_finding.get("category_label") or top_finding.get("category") or "复盘重点"
+        top_evidence = top_finding.get("evidence", "")
+        evidence_text = f"：{top_evidence}" if top_evidence else ""
+        lines.append(f"本局优先复盘{top_label}{evidence_text}")
     else:
         lines.append("核心指标没有暴露单点崩盘，复盘重点应放在关键装备后是否把经济转成地图目标。")
 
@@ -288,8 +303,8 @@ def _generate_fallback_analysis(analysis, hero_name, is_win):
         lines.append("公共数据源缺口：" + "；".join(limitations[:3]) + "。")
 
     strengths = []
-    if kda.get("kda_ratio", 0) >= 3:
-        strengths.append(f"KDA表现优秀 ({kda.get('kda_ratio', 0)})，生存能力强")
+    if kda.get("kda_ratio", 0) >= 3 and not death_pressure:
+        strengths.append(f"KDA表现优秀 ({kda.get('kda_ratio', 0)})，击杀/助攻收益高")
     if farm.get("gpm", 0) >= 500:
         strengths.append(f"GPM达到{farm.get('gpm', 0)}，经济效率不错")
     if farm.get("last_hits", 0) >= 50:

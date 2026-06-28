@@ -5,7 +5,7 @@ import unittest
 
 import analysis.ai_analyst as ai_analyst
 from analysis.ai_analyst import _build_analysis_prompt, _generate_fallback_analysis, _is_ai_response_safe
-from analysis.analyzer import analyze_match, get_hero_name
+from analysis.analyzer import _item_detail, analyze_match, get_hero_name
 import db.schema as schema
 
 
@@ -54,6 +54,19 @@ class ReportQualityTests(unittest.TestCase):
         }
 
         self.assertEqual({hero_id: get_hero_name(hero_id) for hero_id in expected}, expected)
+
+    def test_current_item_ids_resolve_to_real_names(self):
+        expected = {
+            235: "Octarine Core",
+            598: "Mage Slayer",
+            600: "Overwhelming Blink",
+            1097: "Disperser",
+            1852: "Essence Distiller",
+            1856: "Crella's Crozier",
+        }
+
+        for item_id, item_name in expected.items():
+            self.assertEqual(_item_detail(item_id)["name"], item_name)
 
     def test_analysis_builds_real_match_metadata_from_opendota(self):
         match = self._base_match()
@@ -175,6 +188,51 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("下一局只盯这几件事", text)
         self.assertIn("LH/min", text)
         self.assertNotIn("整体表现不错，继续保持", text)
+
+    def test_fallback_analysis_does_not_call_high_death_game_survivable(self):
+        analysis = analyze_match(self._base_match())
+        text = _generate_fallback_analysis(analysis, "Anti-Mage", True)
+
+        self.assertIn("当前最影响胜负的是死亡成本", text)
+        self.assertNotIn("核心指标没有暴露单点崩盘", text)
+        self.assertNotIn("生存能力强", text)
+
+    def test_fallback_analysis_names_top_finding_instead_of_generic_summary(self):
+        match = self._base_match()
+        match.update({
+            "kills": 12,
+            "deaths": 2,
+            "assists": 7,
+            "duration": 1620,
+            "gold_per_min": 780,
+            "tower_damage": 12720,
+            "last_hits": 247,
+        })
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Beastmaster"},
+                "position": "POSITION_3",
+                "lane": "OFF_LANE",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [9] * 30,
+                    "goldPerMinute": [780] * 30,
+                    "towerDamagePerMinute": [0] * 30,
+                    "heroDamagePerMinute": [300] * 30,
+                },
+                "playbackData": {
+                    "deathEvents": [{"time": 480}, {"time": 636}],
+                },
+            }],
+        }
+        analysis = analyze_match(match, stratz_data=stratz_data)
+        text = _generate_fallback_analysis(analysis, "Beastmaster", True)
+
+        self.assertIn("本局优先复盘死亡成本", text)
+        self.assertNotIn("核心指标没有暴露单点崩盘", text)
+        self.assertNotIn("生存能力强", text)
 
     def test_saved_stratz_detail_round_trips_as_json(self):
         old_db_path = schema.DB_PATH
@@ -435,9 +493,7 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(power_window["kills_or_assists"], 2)
         self.assertEqual(power_window["tower_damage"], 250)
 
-        item_finding = next(f for f in result["review_findings"] if f["category"] == "item_timing")
-        self.assertIn("Battle Fury后5分钟45补/676.0GPM", item_finding["replay_check"])
-        self.assertIn("Manta Style后2分钟参战2次/推塔250", item_finding["replay_check"])
+        self.assertNotIn("item_timing", {f["category"] for f in result["review_findings"]})
 
     def test_review_findings_include_training_goal_and_success_metric(self):
         analysis = analyze_match(self._base_match())
@@ -482,6 +538,38 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("强势装后2分钟", item_finding["success_metric"])
         self.assertIn("参战>=1或推塔伤害>=300", item_finding["success_metric"])
 
+    def test_purchase_timeline_without_key_items_is_data_quality_not_main_issue(self):
+        match = self._base_match()
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [6] * 20,
+                    "goldPerMinute": [430] * 20,
+                    "towerDamagePerMinute": [0] * 20,
+                    "heroDamagePerMinute": [0] * 20,
+                },
+                "playbackData": {
+                    "purchaseEvents": [
+                        {"time": 120, "itemId": 2},
+                        {"time": 240, "itemId": 3},
+                    ],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+
+        self.assertNotIn("item_timing", {f["category"] for f in result["review_findings"]})
+        self.assertIn(
+            "没有识别到关键装备完成点",
+            " ".join(result["data_quality"]["limitations"]),
+        )
+
     def test_death_review_highlights_clusters_and_next_game_death_metric(self):
         match = self._base_match()
         match["deaths"] = 5
@@ -512,8 +600,46 @@ class ReportQualityTests(unittest.TestCase):
 
         death_finding = next(f for f in result["review_findings"] if f["category"] == "death_review")
         self.assertIn("连续死亡簇: 7.0-9.5分钟、15.5-21.3分钟", death_finding["replay_check"])
+        self.assertIn("复活后3分钟", death_finding["action"])
         self.assertIn("死亡压到", death_finding["training_goal"])
         self.assertIn("连续5分钟内死亡簇=0", death_finding["success_metric"])
+
+    def test_death_review_evidence_lists_all_death_minutes_when_complete(self):
+        match = self._base_match()
+        match["deaths"] = 8
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [5] * 40,
+                    "goldPerMinute": [400] * 40,
+                },
+                "playbackData": {
+                    "deathEvents": [
+                        {"time": 420},
+                        {"time": 570},
+                        {"time": 930},
+                        {"time": 1180},
+                        {"time": 1280},
+                        {"time": 1500},
+                        {"time": 1900},
+                        {"time": 2300},
+                    ],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+
+        death_finding = next(f for f in result["review_findings"] if f["category"] == "death_review")
+        self.assertIn(
+            "时间: 7.0, 9.5, 15.5, 19.7, 21.3, 25.0, 31.7, 38.3分钟",
+            death_finding["evidence"],
+        )
 
     def test_review_findings_are_structured_and_prompt_is_limited_to_them(self):
         analysis = analyze_match(self._base_match())
@@ -781,6 +907,55 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual([item["minute"] for item in result["events"]["deaths"]], [7.0, 15.5])
         self.assertEqual(result["events"]["death_coverage_label"], "已定位 2/2 次死亡")
         self.assertIn("stratz_playback", result["events"]["source"])
+
+    def test_complete_stratz_death_timeline_beats_partial_opendota_log(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "death_log": [{"time": 420}],
+            }],
+        }
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "playbackData": {
+                    "deathEvents": [{"time": 420}, {"time": 930}],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data, opendota_data=opendota_data)
+
+        self.assertEqual([item["minute"] for item in result["events"]["deaths"]], [7.0, 15.5])
+        self.assertEqual(result["events"]["death_coverage_label"], "已定位 2/2 次死亡")
+        self.assertIn("stratz_playback", result["events"]["source"])
+
+    def test_valve_replay_deaths_fill_public_api_gap(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        opendota_data = {
+            "replay_death_events": [
+                {"time": 477, "targetname": "npc_dota_hero_antimage"},
+                {"time": 930, "targetname": "npc_dota_hero_antimage"},
+            ],
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+
+        self.assertEqual([item["minute"] for item in result["events"]["deaths"]], [8.0, 15.5])
+        self.assertEqual(result["events"]["death_coverage_label"], "已定位 2/2 次死亡")
+        self.assertIn("valve_replay", result["events"]["source"])
 
     def test_missing_event_data_names_public_data_gap_not_user_manual_review(self):
         analysis = analyze_match(self._base_match())
