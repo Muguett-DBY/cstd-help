@@ -489,6 +489,13 @@ body {
 .trend-card .trend-heroes {
     color: var(--text-primary);
 }
+.trend-card .trend-sources {
+    padding: 7px 8px;
+    border-left: 2px solid rgba(88,166,255,0.45);
+    background: rgba(88,166,255,0.06);
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+}
 .trend-metric {
     color: var(--text-muted);
 }
@@ -549,6 +556,16 @@ body {
 .practice-meta {
     color: var(--text-secondary);
     font-size: 12px;
+}
+.taxonomy-note {
+    display: inline-flex;
+    margin-left: 6px;
+    padding: 1px 5px;
+    border: 1px solid rgba(88,166,255,0.3);
+    border-radius: 4px;
+    color: var(--accent-blue);
+    font-size: 11px;
+    white-space: nowrap;
 }
 .practice-action {
     display: grid;

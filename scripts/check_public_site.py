@@ -90,12 +90,32 @@ def main():
     except json.JSONDecodeError as exc:
         raise SystemExit(f"public/review-trends.json is invalid JSON: {exc}") from exc
     trends = trend_payload.get("trends") if isinstance(trend_payload, dict) else None
-    if trend_payload.get("schema_version") != 1 or not isinstance(trends, list) or not trends:
-        raise SystemExit("public/review-trends.json must include schema_version=1 and non-empty trends")
+    if (
+        trend_payload.get("schema_version") != 2
+        or trend_payload.get("taxonomy_version") != 1
+        or not isinstance(trends, list)
+        or not trends
+    ):
+        raise SystemExit(
+            "public/review-trends.json must include schema_version=2, taxonomy_version=1, and non-empty trends"
+        )
     for trend in trends:
-        for key in ("focus", "count", "priority", "heroes", "next_action", "success_metric", "examples"):
+        for key in (
+            "topic_id",
+            "focus",
+            "count",
+            "finding_count",
+            "priority",
+            "heroes",
+            "source_focuses",
+            "next_action",
+            "success_metric",
+            "examples",
+        ):
             if key not in trend:
                 raise SystemExit(f"review trend is missing required field: {key}")
+        if trend["count"] < 1 or trend["finding_count"] < trend["count"] or not trend["source_focuses"]:
+            raise SystemExit(f"review trend has inconsistent aggregation counts: {trend.get('topic_id')}")
 
     practice_html = practice_path.read_text(encoding="utf-8")
     for required in ("下一次训练计划", "第 1 优先级", "下一局动作", "验收标准"):

@@ -52,6 +52,38 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(parsed["success_metric"], "10分钟补刀>=35。")
         self.assertEqual(parsed["review_priority"], "high")
 
+    def test_parse_report_keeps_all_structured_findings_for_trends(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write_report(tmp, metadata)
+            text = path.read_text(encoding="utf-8")
+            second_finding = (
+                '<div class="finding-card medium">'
+                '<div class="finding-title">中优先级 · 装备后转化</div>'
+                '<div class="finding-line"><strong>证据:</strong> 20分钟后已有关键装备。</div>'
+                '<div class="finding-line"><strong>训练目标:</strong> 强势装后2分钟内参战。</div>'
+                '<div class="finding-line"><strong>验收标准:</strong> 装备后参战次数&gt;=1。</div>'
+                '</div>'
+            )
+            path.write_text(text.replace("</body>", second_finding + "</body>"), encoding="utf-8")
+
+            parsed = pages_site._parse_report(path)
+
+        self.assertEqual(parsed["review_focus"], "前10分钟资源")
+        self.assertEqual(len(parsed["review_findings"]), 2)
+        self.assertEqual(parsed["review_findings"][1]["review_focus"], "中优先级 · 装备后转化")
+        self.assertEqual(parsed["review_findings"][1]["review_evidence"], "20分钟后已有关键装备。")
+
     def test_parse_legacy_report_does_not_call_generation_time_match_end(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "Mirana_8867002237_20260626_224839.html"
@@ -149,6 +181,56 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(trends[0]["examples"][0]["match_id"], "1")
         self.assertIn("低效率窗口=0", trends[0]["next_action"])
 
+    def test_build_focus_trends_groups_semantic_aliases_per_match(self):
+        reports = [
+            {
+                "file": "Mirana_1.html",
+                "hero": "Mirana",
+                "match_id": "1",
+                "is_win": False,
+                "review_findings": [
+                    {
+                        "review_focus": "高优先级 · 前10分钟资源",
+                        "next_action": "前10分钟低效率窗口清零。",
+                        "success_metric": "10分钟补刀>=35。",
+                        "review_priority": "high",
+                    },
+                    {
+                        "review_focus": "对线补刀",
+                        "next_action": "前10分钟低效率窗口清零。",
+                        "success_metric": "10分钟补刀>=35。",
+                        "review_priority": "medium",
+                    },
+                ],
+            },
+            {
+                "file": "Doom_2.html",
+                "hero": "Doom",
+                "match_id": "2",
+                "is_win": True,
+                "review_findings": [
+                    {
+                        "review_focus": "前10分钟发育",
+                        "next_action": "先稳定对线资源。",
+                        "success_metric": "10分钟补刀>=45。",
+                        "review_priority": "high",
+                    }
+                ],
+            },
+        ]
+
+        trends = pages_site._build_focus_trends(reports)
+
+        self.assertEqual(len(trends), 1)
+        self.assertEqual(trends[0]["topic_id"], "early_resource")
+        self.assertEqual(trends[0]["focus"], "前10分钟资源")
+        self.assertEqual(trends[0]["count"], 2)
+        self.assertEqual(trends[0]["finding_count"], 3)
+        self.assertEqual(
+            trends[0]["source_focuses"],
+            ["前10分钟发育", "前10分钟资源", "对线补刀"],
+        )
+
     def test_build_pages_site_writes_review_trends_json(self):
         metadata = {
             "match_id": 8867002237,
@@ -174,7 +256,8 @@ class BuildPagesSiteTests(unittest.TestCase):
             self.assertTrue(trend_path.exists())
             payload = json.loads(trend_path.read_text(encoding="utf-8"))
 
-        self.assertEqual(payload["schema_version"], 1)
+        self.assertEqual(payload["schema_version"], 2)
+        self.assertEqual(payload["taxonomy_version"], 1)
         self.assertEqual(payload["trends"][0]["focus"], "前10分钟资源")
         self.assertEqual(payload["trends"][0]["count"], 2)
 
@@ -207,6 +290,35 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("前10分钟资源", plan_html)
         self.assertIn("下一局前10分钟低效率窗口=0。", plan_html)
         self.assertIn("10分钟补刀&gt;=35。", plan_html)
+
+    def test_semantic_trend_provenance_has_visible_styles(self):
+        stylesheet = (pages_site.STATIC_SOURCE / "style.css").read_text(encoding="utf-8")
+
+        self.assertIn(".trend-sources", stylesheet)
+        self.assertIn(".taxonomy-note", stylesheet)
+
+    def test_generated_coaching_pages_have_no_trailing_whitespace(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            self._write_report(source, metadata)
+            pages_site.build_pages_site(source, public_dir=public)
+
+            for filename in ("index.html", "practice-plan.html"):
+                lines = (Path(public) / filename).read_text(encoding="utf-8").splitlines()
+                self.assertFalse(
+                    any(line != line.rstrip() for line in lines),
+                    f"{filename} contains trailing whitespace",
+                )
 
     def test_build_pages_site_injects_adjacent_report_navigation(self):
         metadata = {
