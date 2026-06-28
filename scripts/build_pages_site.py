@@ -1012,7 +1012,10 @@ def _render_index(reports, output_path=None, focus_trends=None, manifest=None):
                 <h2>筛选比赛</h2>
                 <p>按英雄、比赛号、复盘问题、胜负和优先级快速定位。</p>
             </div>
-            <span data-match-count>显示 {len(reports)} / {len(reports)} 场</span>
+            <div class="filter-status">
+                <span data-match-count>显示 {len(reports)} / {len(reports)} 场</span>
+                <button type="button" class="filter-clear-button" data-clear-filters>清除筛选</button>
+            </div>
         </div>
         <label class="search-box" for="match-search">
             <span>搜索</span>
@@ -1093,6 +1096,14 @@ const matchRows = Array.from(document.querySelectorAll('.match-row'));
 const countLabel = document.querySelector('[data-match-count]');
 const searchInput = document.getElementById('match-search');
 const emptyState = document.querySelector('[data-empty-state]');
+const clearFiltersButton = document.querySelector('[data-clear-filters]');
+const urlParams = new URLSearchParams(window.location.search);
+const allowedResults = new Set(['all', 'win', 'lose']);
+const allowedPriorities = new Set(['all', 'high', 'medium', 'low']);
+filterState.result = allowedResults.has(urlParams.get('result')) ? urlParams.get('result') : 'all';
+filterState.priority = allowedPriorities.has(urlParams.get('priority')) ? urlParams.get('priority') : 'all';
+filterState.query = urlParams.get('q') || '';
+if (searchInput) searchInput.value = filterState.query;
 
 function setActiveButton(buttons, selected) {{
     buttons.forEach((button) => {{
@@ -1101,6 +1112,16 @@ function setActiveButton(buttons, selected) {{
         button.classList.toggle('active', isActive);
         button.setAttribute('aria-pressed', String(isActive));
     }});
+}}
+
+function syncFilterUrl() {{
+    const nextParams = new URLSearchParams();
+    if (filterState.result !== 'all') nextParams.set('result', filterState.result);
+    if (filterState.priority !== 'all') nextParams.set('priority', filterState.priority);
+    if (filterState.query.trim()) nextParams.set('q', filterState.query.trim());
+    const nextQuery = nextParams.toString();
+    const nextUrl = nextQuery ? `${{window.location.pathname}}?${{nextQuery}}` : window.location.pathname;
+    history.replaceState(null, '', nextUrl);
 }}
 
 function applyMatchFilters() {{
@@ -1116,6 +1137,10 @@ function applyMatchFilters() {{
     }});
     if (countLabel) countLabel.textContent = `显示 ${{visible}} / ${{matchRows.length}} 场`;
     if (emptyState) emptyState.hidden = visible !== 0;
+    if (clearFiltersButton) {{
+        const hasActiveFilter = filterState.result !== 'all' || filterState.priority !== 'all' || Boolean(filterState.query.trim());
+        clearFiltersButton.disabled = !hasActiveFilter;
+    }}
 }}
 
 document.querySelectorAll('[data-filter-result]').forEach((button) => {{
@@ -1123,6 +1148,7 @@ document.querySelectorAll('[data-filter-result]').forEach((button) => {{
         filterState.result = button.dataset.filterResult || 'all';
         setActiveButton(document.querySelectorAll('[data-filter-result]'), filterState.result);
         applyMatchFilters();
+        syncFilterUrl();
     }});
 }});
 
@@ -1131,6 +1157,7 @@ document.querySelectorAll('[data-filter-priority]').forEach((button) => {{
         filterState.priority = button.dataset.filterPriority || 'all';
         setActiveButton(document.querySelectorAll('[data-filter-priority]'), filterState.priority);
         applyMatchFilters();
+        syncFilterUrl();
     }});
 }});
 
@@ -1138,8 +1165,24 @@ if (searchInput) {{
     searchInput.addEventListener('input', () => {{
         filterState.query = searchInput.value;
         applyMatchFilters();
+        syncFilterUrl();
     }});
 }}
+if (clearFiltersButton) {{
+    clearFiltersButton.addEventListener('click', () => {{
+        filterState.result = 'all';
+        filterState.priority = 'all';
+        filterState.query = '';
+        if (searchInput) searchInput.value = '';
+        setActiveButton(document.querySelectorAll('[data-filter-result]'), filterState.result);
+        setActiveButton(document.querySelectorAll('[data-filter-priority]'), filterState.priority);
+        applyMatchFilters();
+        syncFilterUrl();
+    }});
+}}
+setActiveButton(document.querySelectorAll('[data-filter-result]'), filterState.result);
+setActiveButton(document.querySelectorAll('[data-filter-priority]'), filterState.priority);
+applyMatchFilters();
 </script>
 </body>
 </html>

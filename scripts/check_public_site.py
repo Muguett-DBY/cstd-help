@@ -140,6 +140,8 @@ def main():
         "match-search",
         "data-filter-result",
         "data-filter-priority",
+        "data-clear-filters",
+        "URLSearchParams",
         "data-empty-state",
         "没有匹配的比赛",
         "practice-plan.html",
