@@ -59,7 +59,12 @@ def main():
     if not style_path.exists():
         raise SystemExit("public/static/style.css is missing")
 
-    reports = sorted(path for path in PUBLIC_DIR.glob("*.html") if path.name not in {"index.html", "practice-plan.html"})
+    topic_pages = sorted(PUBLIC_DIR.glob("trend-*.html"))
+    reports = sorted(
+        path
+        for path in PUBLIC_DIR.glob("*.html")
+        if path.name not in {"index.html", "practice-plan.html"} and not path.name.startswith("trend-")
+    )
     if not reports:
         raise SystemExit("public contains no report HTML files")
 
@@ -111,16 +116,40 @@ def main():
             "next_action",
             "success_metric",
             "examples",
+            "page",
+            "findings",
         ):
             if key not in trend:
                 raise SystemExit(f"review trend is missing required field: {key}")
         if trend["count"] < 1 or trend["finding_count"] < trend["count"] or not trend["source_focuses"]:
             raise SystemExit(f"review trend has inconsistent aggregation counts: {trend.get('topic_id')}")
+        if len(trend["findings"]) != trend["finding_count"]:
+            raise SystemExit(f"review trend finding payload is incomplete: {trend.get('topic_id')}")
+        for finding in trend["findings"]:
+            for key in ("hero", "match_id", "file", "source_focus", "review_evidence", "next_action", "success_metric"):
+                if key not in finding:
+                    raise SystemExit(f"review trend finding is missing required field: {key}")
+
+    expected_topic_pages = {trend["page"] for trend in trends}
+    actual_topic_pages = {path.name for path in topic_pages}
+    if actual_topic_pages != expected_topic_pages:
+        raise SystemExit(
+            f"topic evidence pages do not match trend payload: expected {len(expected_topic_pages)}, got {len(actual_topic_pages)}"
+        )
 
     practice_html = practice_path.read_text(encoding="utf-8")
     for required in ("下一次训练计划", "第 1 优先级", "下一局动作", "验收标准"):
         if required not in practice_html:
             raise SystemExit(f"practice plan page is missing required content: {required}")
+
+    for trend in trends:
+        page_name = trend["page"]
+        if f'href="{page_name}"' not in index_html or f'href="{page_name}"' not in practice_html:
+            raise SystemExit(f"topic evidence page is not linked from dashboard and practice plan: {page_name}")
+        topic_html = (PUBLIC_DIR / page_name).read_text(encoding="utf-8")
+        for required in ("完整证据", "归并标签", "训练动作", "验收标准", "打开本局完整复盘"):
+            if required not in topic_html:
+                raise SystemExit(f"{page_name} is missing required topic content: {required}")
 
     for report in reports:
         text = report.read_text(encoding="utf-8")

@@ -37,6 +37,38 @@ Started: 2026-06-28
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28306075918`.
 - Next direction: add topic drill-down pages so every aggregated trend exposes all supporting matches, evidence, actions, and acceptance metrics instead of only three examples.
 
+## Cycle 2 - Stage 2 - IMPROVE
+
+- Prompt: `AGENT_IMPROVE_MAIN.txt`
+- Goal: turn canonical trend summaries into complete evidence drill-down pages.
+- Start status: clean `main`; Stage 1 deployment passed (`203a97f`, CI `28306103066`).
+- Previous-stage direction: expose every supporting match and finding behind each aggregated topic.
+- Plan:
+  - Add failing tests for complete per-topic evidence payloads and generated topic pages.
+  - Generate one stable topic page per taxonomy id with match/result, source label, evidence, action, metric, and report link.
+  - Link trend cards and practice-plan cards to the topic dossier.
+  - Validate topic page count and backlinks in the static production gate.
+  - Run browser, local, security, diff, push, and CI verification as an independent stage.
+- Result:
+  - Added `trend-*.html` topic evidence pages for all 6 canonical topics.
+  - Embedded every source finding behind each trend in `review-trends.json` with `page`, `findings`, source label, evidence, action, metric, match id, hero, and report link.
+  - Linked dashboard trend cards and practice-plan cards to the evidence dossiers.
+  - Added a practice-plan overflow topic nav so low-frequency topics remain reachable without weakening the top-5 training queue.
+  - Fixed optional practice-plan HTML generation so empty optional blocks do not produce trailing whitespace.
+- Browser verification:
+  - History page: 6 topic links, no horizontal overflow, no console warnings/errors.
+  - Clicked `死亡成本` from the trend grid and verified `trend-death-cost.html`.
+  - Topic page: 10 evidence cards, 10 report links, evidence/action/metric text present, no framework overlay, no horizontal overflow, no console warnings/errors.
+- Local verification:
+  - `python -m unittest tests.test_build_pages_site.BuildPagesSiteTests.test_generated_coaching_pages_have_no_trailing_whitespace`: failed before the optional-block fix, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 44 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages plus topic page validation.
+  - `git diff --check`: passed with only existing generated-report CRLF warnings.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+- Commit / Push / CI: pending.
+- Next direction: improve evidence-page scanning and cross-topic navigation for faster coach-style review.
+
 ## Global Preparation
 
 - Status: clean on `main`, synced with `origin/main`.

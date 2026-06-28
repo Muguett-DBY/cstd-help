@@ -226,6 +226,9 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(trends[0]["focus"], "前10分钟资源")
         self.assertEqual(trends[0]["count"], 2)
         self.assertEqual(trends[0]["finding_count"], 3)
+        self.assertEqual(len(trends[0]["findings"]), 3)
+        self.assertEqual(trends[0]["findings"][0]["source_focus"], "前10分钟资源")
+        self.assertIn("review_evidence", trends[0]["findings"][0])
         self.assertEqual(
             trends[0]["source_focuses"],
             ["前10分钟发育", "前10分钟资源", "对线补刀"],
@@ -291,11 +294,48 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("下一局前10分钟低效率窗口=0。", plan_html)
         self.assertIn("10分钟补刀&gt;=35。", plan_html)
 
+    def test_build_pages_site_writes_topic_evidence_pages_and_links(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            self._write_report(source, metadata, filename="Mirana_8867002237_20260626_224839.html")
+            second = dict(metadata)
+            second["match_id"] = 8867002240
+            second["hero"] = {"id": 69, "name": "Doom", "slug": "doom_bringer"}
+            self._write_report(source, second, filename="Doom_8867002240_20260626_224840.html")
+
+            pages_site.build_pages_site(source, public_dir=public)
+            topic_path = Path(public) / "trend-early-resource.html"
+            topic_exists = topic_path.exists()
+            index_html = (Path(public) / "index.html").read_text(encoding="utf-8")
+            plan_html = (Path(public) / "practice-plan.html").read_text(encoding="utf-8")
+            topic_html = topic_path.read_text(encoding="utf-8")
+
+        self.assertTrue(topic_exists)
+        self.assertIn('href="trend-early-resource.html"', index_html)
+        self.assertIn('href="trend-early-resource.html"', plan_html)
+        self.assertIn("前10分钟资源 · 完整证据", topic_html)
+        self.assertIn("Mirana #8867002237", topic_html)
+        self.assertIn("Doom #8867002240", topic_html)
+        self.assertIn("训练动作", topic_html)
+        self.assertIn("打开本局完整复盘", topic_html)
+
     def test_semantic_trend_provenance_has_visible_styles(self):
         stylesheet = (pages_site.STATIC_SOURCE / "style.css").read_text(encoding="utf-8")
 
         self.assertIn(".trend-sources", stylesheet)
         self.assertIn(".taxonomy-note", stylesheet)
+        self.assertIn(".topic-evidence-card", stylesheet)
+        self.assertIn(".topic-evidence-line", stylesheet)
 
     def test_generated_coaching_pages_have_no_trailing_whitespace(self):
         metadata = {

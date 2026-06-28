@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import html
 import json
 import os
@@ -340,9 +341,25 @@ def _build_focus_trends(reports):
             }
             for item in representative_items[:3]
         ]
+        detailed_findings = [
+            {
+                "hero": item.get("hero") or "未知英雄",
+                "hero_slug": item.get("hero_slug") or "",
+                "match_id": str(item.get("match_id") or ""),
+                "file": item.get("file") or "",
+                "result": "win" if item.get("is_win") is True else "lose" if item.get("is_win") is False else "unknown",
+                "source_focus": item.get("source_focus") or topic_labels[topic_id],
+                "review_evidence": item.get("review_evidence") or "该报告未提供单独证据文本。",
+                "next_action": item.get("next_action") or "打开报告查看下一局行动清单。",
+                "success_metric": item.get("success_metric") or "以报告内验收标准为准。",
+                "priority": item.get("review_priority") or "unknown",
+            }
+            for item in sorted_items
+        ]
         trends.append({
             "topic_id": topic_id,
             "focus": topic_labels[topic_id],
+            "page": _topic_page_filename(topic_id),
             "count": len(representative_items),
             "finding_count": len(items),
             "priority": priority,
@@ -351,6 +368,7 @@ def _build_focus_trends(reports):
             "next_action": actions[0] if actions else "打开报告查看下一局行动清单。",
             "success_metric": metrics[0] if metrics else "以报告内验收标准为准。",
             "examples": examples,
+            "findings": detailed_findings,
         })
 
     return sorted(
@@ -361,6 +379,15 @@ def _build_focus_trends(reports):
             trend["focus"],
         ),
     )
+
+
+def _topic_page_filename(topic_id):
+    raw = str(topic_id or "unknown")
+    token = re.sub(r"[^a-z0-9]+", "-", raw.lower().replace("_", "-")).strip("-")
+    if raw.startswith("custom::") or not token:
+        digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:10]
+        token = f"custom-{digest}"
+    return f"trend-{token}.html"
 
 
 def _hero_image(slug):
@@ -426,7 +453,7 @@ def _render_review_queue(reports):
 
 def _render_focus_trends(trends):
     cards = []
-    for trend in trends[:4]:
+    for trend in trends:
         priority = html.escape(_priority_label(trend.get("priority")))
         priority_class = html.escape(str(trend.get("priority") or "unknown"), quote=True)
         focus = html.escape(trend.get("focus") or "需要查看报告")
@@ -435,6 +462,7 @@ def _render_focus_trends(trends):
         action = html.escape(trend.get("next_action") or "打开报告查看下一局行动清单。")
         metric = html.escape(trend.get("success_metric") or "以报告内验收标准为准。")
         source_focuses = trend.get("source_focuses") or []
+        topic_page = html.escape(trend.get("page") or "practice-plan.html", quote=True)
         source_note = ""
         if len(source_focuses) > 1:
             labels = "、".join(html.escape(label) for label in source_focuses)
@@ -453,7 +481,7 @@ def _render_focus_trends(trends):
                     <span class="priority-chip {priority_class}">优先级 {priority}</span>
                     <span>{count} 局出现</span>
                 </div>
-                <h3>{focus}</h3>
+                <h3><a class="trend-title-link" href="{topic_page}">{focus}</a></h3>
                 <p class="trend-heroes">涉及英雄：{heroes or "未知"}</p>{source_note}
                 <p>{action}</p>
                 <p class="trend-metric">验收：{metric}</p>
@@ -476,6 +504,7 @@ def _render_practice_plan(trends, reports, output_path):
         action = html.escape(trend.get("next_action") or "打开报告查看下一局行动清单。")
         metric = html.escape(trend.get("success_metric") or "以报告内验收标准为准。")
         source_focuses = trend.get("source_focuses") or []
+        topic_page = html.escape(trend.get("page") or "index.html", quote=True)
         taxonomy_note = (
             f' <span class="taxonomy-note">已归并 {len(source_focuses)} 种等价标签</span>'
             if len(source_focuses) > 1 else ""
@@ -494,7 +523,7 @@ def _render_practice_plan(trends, reports, output_path):
                 <div class="practice-rank">第 {index} 优先级</div>
                 <div class="practice-main">
                     <div class="practice-title-row">
-                        <h2>{focus}</h2>
+                        <h2><a class="trend-title-link" href="{topic_page}">{focus}</a></h2>
                         <span class="priority-chip {priority_class}">复盘优先级 {priority}</span>
                     </div>
                     <p class="practice-meta">{html.escape(str(trend.get('count') or 0))} 局出现 · {html.escape(str(trend.get('finding_count') or trend.get('count') or 0))} 条证据 · 涉及英雄：{heroes or "未知"}{taxonomy_note}</p>
@@ -506,6 +535,19 @@ def _render_practice_plan(trends, reports, output_path):
             """.strip()
         )
     plan_cards = "".join(cards) if cards else '<div class="trend-empty">暂无可生成的训练计划。</div>'
+    other_topics = ""
+    if len(trends) > 5:
+        links = " ".join(
+            f'<a href="{html.escape(trend.get("page") or "index.html", quote=True)}">{html.escape(trend.get("focus") or "其他主题")}</a>'
+            for trend in trends[5:]
+        )
+        other_topics = (
+            '<nav class="practice-more-topics" aria-label="其他证据主题">'
+            '<strong>其他证据主题</strong>'
+            f'<span>{links}</span>'
+            '</nav>'
+        )
+    other_topics_block = f"    {other_topics}\n" if other_topics else ""
     newest_link = html.escape(newest.get("file") or "index.html", quote=True)
     plan_html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -531,11 +573,94 @@ def _render_practice_plan(trends, reports, output_path):
     <main class="practice-list" aria-label="下一次训练计划">
         {plan_cards}
     </main>
-</div>
+{other_topics_block}</div>
 </body>
 </html>
 """
     output_path.write_text(plan_html, encoding="utf-8")
+
+
+def _render_topic_pages(trends, public_dir):
+    for trend in trends:
+        focus = html.escape(trend.get("focus") or "需要查看报告")
+        findings = trend.get("findings") or []
+        match_results = {}
+        for index, finding in enumerate(findings):
+            match_key = str(finding.get("match_id") or finding.get("file") or index)
+            match_results.setdefault(match_key, finding.get("result") or "unknown")
+        wins = sum(1 for result in match_results.values() if result == "win")
+        losses = sum(1 for result in match_results.values() if result == "lose")
+        evidence_cards = []
+        for finding in findings:
+            hero = html.escape(finding.get("hero") or "未知英雄")
+            match_id = html.escape(str(finding.get("match_id") or ""))
+            file_name = html.escape(finding.get("file") or "index.html", quote=True)
+            source_focus = html.escape(finding.get("source_focus") or trend.get("focus") or "需要查看报告")
+            evidence = html.escape(finding.get("review_evidence") or "该报告未提供单独证据文本。")
+            action = html.escape(finding.get("next_action") or "打开报告查看下一局行动清单。")
+            metric = html.escape(finding.get("success_metric") or "以报告内验收标准为准。")
+            priority = html.escape(str(finding.get("priority") or "unknown"), quote=True)
+            result = finding.get("result")
+            result_class = result if result in {"win", "lose"} else "unknown"
+            result_text = {"win": "胜利", "lose": "失败"}.get(result, "待确认")
+            evidence_cards.append(
+                f"""
+                <article class="topic-evidence-card">
+                    <div class="topic-evidence-head">
+                        <div>
+                            <span class="match-result {result_class}">{result_text}</span>
+                            <strong>{hero} #{match_id}</strong>
+                        </div>
+                        <span class="priority-chip {priority}">优先级 {_priority_label(finding.get('priority'))}</span>
+                    </div>
+                    <p class="topic-source-label">报告标签：{source_focus}</p>
+                    <div class="topic-evidence-line"><strong>证据</strong><span>{evidence}</span></div>
+                    <div class="topic-evidence-line"><strong>训练动作</strong><span>{action}</span></div>
+                    <div class="topic-evidence-line"><strong>验收标准</strong><span>{metric}</span></div>
+                    <a class="topic-report-link" href="{file_name}">打开本局完整复盘</a>
+                </article>
+                """.strip()
+            )
+        source_labels = "、".join(html.escape(label) for label in trend.get("source_focuses") or [])
+        page_html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{focus} - Dota 2 训练主题证据</title>
+    <meta name="description" content="玩家 173776719 的 Dota 2 {focus}训练主题完整证据。">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body class="history-page topic-page">
+<div class="container history-container">
+    <header class="history-header topic-header">
+        <div>
+            <a class="back-link" href="index.html">&larr; 比赛历史</a>
+            <div class="history-eyebrow">训练主题证据档案</div>
+            <h1>{focus} · 完整证据</h1>
+            <p>逐局列出系统用于归纳这个训练主题的原始报告证据、动作和验收标准。</p>
+        </div>
+        <a class="primary-link secondary-link" href="practice-plan.html">返回训练计划</a>
+    </header>
+    <div class="topic-summary" aria-label="主题统计">
+        <span><strong>{len(match_results)}</strong> 场相关比赛</span>
+        <span><strong>{len(findings)}</strong> 条 finding</span>
+        <span class="summary-win"><strong>{wins}</strong> 胜</span>
+        <span class="summary-loss"><strong>{losses}</strong> 负</span>
+    </div>
+    <section class="topic-provenance">
+        <strong>归并标签</strong>
+        <span>{source_labels or focus}</span>
+    </section>
+    <main class="topic-evidence-list" aria-label="{focus}完整证据">
+        {''.join(evidence_cards) if evidence_cards else '<div class="trend-empty">暂无可展示证据。</div>'}
+    </main>
+</div>
+</body>
+</html>
+"""
+        (public_dir / trend["page"]).write_text(page_html, encoding="utf-8")
 
 
 def _write_focus_trends_json(trends, output_path):
@@ -875,6 +1000,7 @@ def build_pages_site(source, public_dir=PUBLIC_DIR):
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
     focus_trends = _build_focus_trends(reports)
     _write_focus_trends_json(focus_trends, public_dir / "review-trends.json")
+    _render_topic_pages(focus_trends, public_dir)
     _render_practice_plan(focus_trends, sorted(reports, key=_report_sort_key, reverse=True), public_dir / "practice-plan.html")
     _render_index(reports, output_path=public_dir / "index.html")
     print(f"Built {len(reports)} reports into {public_dir}")
