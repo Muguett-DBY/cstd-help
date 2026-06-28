@@ -49,6 +49,7 @@ def main():
     index_path = PUBLIC_DIR / "index.html"
     practice_path = PUBLIC_DIR / "practice-plan.html"
     trends_path = PUBLIC_DIR / "review-trends.json"
+    manifest_path = PUBLIC_DIR / "site-manifest.json"
     style_path = PUBLIC_DIR / "static" / "style.css"
     if not index_path.exists():
         raise SystemExit("public/index.html is missing")
@@ -56,6 +57,8 @@ def main():
         raise SystemExit("public/practice-plan.html is missing")
     if not trends_path.exists():
         raise SystemExit("public/review-trends.json is missing")
+    if not manifest_path.exists():
+        raise SystemExit("public/site-manifest.json is missing")
     if not style_path.exists():
         raise SystemExit("public/static/style.css is missing")
 
@@ -86,6 +89,9 @@ def main():
         "我方阵容",
         "敌方阵容",
         "data-ended-at",
+        "复盘数据覆盖",
+        "data-coverage-panel",
+        "site-manifest.json",
     ):
         if required not in index_html:
             raise SystemExit(f"index page is missing required match-history content: {required}")
@@ -130,6 +136,25 @@ def main():
                 if key not in finding:
                     raise SystemExit(f"review trend finding is missing required field: {key}")
 
+    try:
+        site_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"public/site-manifest.json is invalid JSON: {exc}") from exc
+    for key in (
+        "schema_version",
+        "player_id",
+        "report_count",
+        "finding_count",
+        "topic_count",
+        "high_priority_report_count",
+        "latest_match",
+        "topics",
+    ):
+        if key not in site_manifest:
+            raise SystemExit(f"site manifest is missing required field: {key}")
+    if site_manifest["schema_version"] != 1:
+        raise SystemExit("site manifest must use schema_version=1")
+
     expected_topic_pages = {trend["page"] for trend in trends}
     actual_topic_pages = {path.name for path in topic_pages}
     if actual_topic_pages != expected_topic_pages:
@@ -138,9 +163,16 @@ def main():
         )
 
     practice_html = practice_path.read_text(encoding="utf-8")
-    for required in ("下一次训练计划", "第 1 优先级", "下一局动作", "验收标准"):
+    for required in ("下一次训练计划", "第 1 优先级", "下一局动作", "验收标准", "复盘数据覆盖"):
         if required not in practice_html:
             raise SystemExit(f"practice plan page is missing required content: {required}")
+
+    if site_manifest["report_count"] != len(reports):
+        raise SystemExit("site manifest report_count does not match generated reports")
+    if site_manifest["topic_count"] != len(trends):
+        raise SystemExit("site manifest topic_count does not match review trends")
+    if len(site_manifest["topics"]) != len(trends):
+        raise SystemExit("site manifest topic list does not match review trends")
 
     for trend in trends:
         page_name = trend["page"]

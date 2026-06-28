@@ -283,6 +283,81 @@ body {
 }
 .history-summary .summary-win strong { color: var(--accent-green); }
 .history-summary .summary-loss strong { color: var(--accent-red); }
+.data-coverage {
+    display: grid;
+    gap: 12px;
+    margin-top: 22px;
+    padding: 16px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+}
+.data-coverage .history-title-row {
+    margin-bottom: 0;
+}
+.data-coverage .history-title-row a {
+    color: var(--accent-blue);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.data-coverage .history-title-row a:hover,
+.data-coverage .history-title-row a:focus-visible {
+    text-decoration: underline;
+    outline: none;
+}
+.coverage-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+.coverage-stat {
+    display: grid;
+    gap: 2px;
+    min-height: 68px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-primary);
+}
+.coverage-stat strong {
+    color: var(--text-primary);
+    font-size: 18px;
+}
+.coverage-stat span {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.coverage-latest {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid rgba(63,185,80,0.28);
+    border-radius: 6px;
+    background: rgba(63,185,80,0.08);
+    color: var(--text-primary);
+    text-decoration: none;
+}
+.coverage-latest:hover,
+.coverage-latest:focus-visible {
+    border-color: var(--accent-green);
+    outline: none;
+}
+.coverage-latest span {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+}
+.coverage-latest strong {
+    font-size: 13px;
+}
+.coverage-latest small {
+    margin-left: auto;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
 .history-filters {
     display: grid;
     gap: 12px;
@@ -1300,6 +1375,17 @@ tr:hover { background: rgba(88,166,255,0.05); }
     .history-header h1 { font-size: 25px; }
     .history-header .primary-link { margin-top: 0; }
     .history-summary { gap: 8px 16px; }
+    .coverage-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .coverage-latest {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
+    }
+    .coverage-latest small {
+        margin-left: 0;
+    }
     .history-filter-header {
         flex-direction: column;
         gap: 8px;

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "source": "generated_public_reports",
+  "player_id": "173776719",
+  "report_count": 10,
+  "finding_count": 30,
+  "topic_count": 6,
+  "high_priority_report_count": 10,
+  "known_result_count": 10,
+  "wins": 5,
+  "losses": 5,
+  "latest_match": {
+    "hero": "Dragon Knight",
+    "match_id": "8867124876",
+    "file": "Dragon_Knight_8867124876_20260628_051735.html",
+    "ended_at": "2026-06-26T12:19:55Z",
+    "result": "lose",
+    "review_focus": "高优先级 · 终结比赛"
+  },
+  "topics": [
+    {
+      "topic_id": "death_cost",
+      "focus": "死亡成本",
+      "page": "trend-death-cost.html",
+      "match_count": 10,
+      "finding_count": 10
+    },
+    {
+      "topic_id": "early_resource",
+      "focus": "前10分钟资源",
+      "page": "trend-early-resource.html",
+      "match_count": 5,
+      "finding_count": 5
+    },
+    {
+      "topic_id": "close_game",
+      "focus": "终结比赛",
+      "page": "trend-close-game.html",
+      "match_count": 3,
+      "finding_count": 3
+    },
+    {
+      "topic_id": "item_conversion",
+      "focus": "装备后转化",
+      "page": "trend-item-conversion.html",
+      "match_count": 10,
+      "finding_count": 10
+    },
+    {
+      "topic_id": "resource_continuity",
+      "focus": "中后期资源连续性",
+      "page": "trend-resource-continuity.html",
+      "match_count": 1,
+      "finding_count": 1
+    },
+    {
+      "topic_id": "vision_control",
+      "focus": "视野/控图",
+      "page": "trend-vision-control.html",
+      "match_count": 1,
+      "finding_count": 1
+    }
+  ]
+}
