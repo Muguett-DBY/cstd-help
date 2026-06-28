@@ -1,10 +1,56 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
+  "taxonomy_version": 1,
   "generated_from": "report_findings",
   "trends": [
     {
-      "focus": "高优先级 · 前10分钟资源",
+      "topic_id": "death_cost",
+      "focus": "死亡成本",
+      "count": 10,
+      "finding_count": 10,
+      "priority": "high",
+      "heroes": [
+        "Anti-Mage",
+        "Crystal Maiden",
+        "Dark Seer",
+        "Dawnbreaker",
+        "Doom",
+        "Dragon Knight",
+        "Gyrocopter",
+        "Meepo",
+        "Mirana"
+      ],
+      "source_focuses": [
+        "死亡成本"
+      ],
+      "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+      "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+      "examples": [
+        {
+          "hero": "Dragon Knight",
+          "match_id": "8867124876",
+          "file": "Dragon_Knight_8867124876_20260628_051735.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Anti-Mage",
+          "match_id": "8866174845",
+          "file": "Anti-Mage_8866174845_20260628_051736.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Meepo",
+          "match_id": "8865878802",
+          "file": "Meepo_8865878802_20260628_051737.html",
+          "result": "lose"
+        }
+      ]
+    },
+    {
+      "topic_id": "early_resource",
+      "focus": "前10分钟资源",
       "count": 5,
+      "finding_count": 5,
       "priority": "high",
       "heroes": [
         "Anti-Mage",
@@ -12,6 +58,9 @@
         "Doom",
         "Gyrocopter",
         "Mirana"
+      ],
+      "source_focuses": [
+        "前10分钟资源"
       ],
       "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟35补。",
       "success_metric": "10分钟补刀>=35；前10分钟低效率窗口=0。",
@@ -37,13 +86,18 @@
       ]
     },
     {
-      "focus": "高优先级 · 终结比赛",
+      "topic_id": "close_game",
+      "focus": "终结比赛",
       "count": 3,
+      "finding_count": 3,
       "priority": "high",
       "heroes": [
         "Anti-Mage",
         "Dragon Knight",
         "Meepo"
+      ],
+      "source_focuses": [
+        "终结比赛"
       ],
       "next_action": "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
       "success_metric": "强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
@@ -69,26 +123,90 @@
       ]
     },
     {
-      "focus": "高优先级 · 死亡成本",
-      "count": 2,
-      "priority": "high",
+      "topic_id": "item_conversion",
+      "focus": "装备后转化",
+      "count": 10,
+      "finding_count": 10,
+      "priority": "medium",
       "heroes": [
+        "Anti-Mage",
         "Crystal Maiden",
-        "Dark Seer"
+        "Dark Seer",
+        "Dawnbreaker",
+        "Doom",
+        "Dragon Knight",
+        "Gyrocopter",
+        "Meepo",
+        "Mirana"
       ],
-      "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
-      "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+      "source_focuses": [
+        "装备后转化"
+      ],
+      "next_action": "下一局 Black King Bar 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
+      "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
+      "examples": [
+        {
+          "hero": "Dragon Knight",
+          "match_id": "8867124876",
+          "file": "Dragon_Knight_8867124876_20260628_051735.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Anti-Mage",
+          "match_id": "8866174845",
+          "file": "Anti-Mage_8866174845_20260628_051736.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Meepo",
+          "match_id": "8865878802",
+          "file": "Meepo_8865878802_20260628_051737.html",
+          "result": "lose"
+        }
+      ]
+    },
+    {
+      "topic_id": "resource_continuity",
+      "focus": "中后期资源连续性",
+      "count": 1,
+      "finding_count": 1,
+      "priority": "medium",
+      "heroes": [
+        "Anti-Mage"
+      ],
+      "source_focuses": [
+        "中后期资源连续性"
+      ],
+      "next_action": "下一局10分钟后把低效率窗口从2个压到最多1个；集合前先推出一条安全线。",
+      "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+      "examples": [
+        {
+          "hero": "Anti-Mage",
+          "match_id": "8866174845",
+          "file": "Anti-Mage_8866174845_20260628_051736.html",
+          "result": "lose"
+        }
+      ]
+    },
+    {
+      "topic_id": "vision_control",
+      "focus": "视野/控图",
+      "count": 1,
+      "finding_count": 1,
+      "priority": "medium",
+      "heroes": [
+        "Crystal Maiden"
+      ],
+      "source_focuses": [
+        "视野/控图"
+      ],
+      "next_action": "下一局每次控盾、推塔或守高前先补一组观察/岗哨；死亡后第一波出门优先补入口视野。",
+      "success_metric": "观察+岗哨总数不低于24；25分钟后每次死亡后3分钟内至少补1个视野事件。",
       "examples": [
         {
           "hero": "Crystal Maiden",
           "match_id": "8866935458",
           "file": "Crystal_Maiden_8866935458_20260628_051736.html",
-          "result": "win"
-        },
-        {
-          "hero": "Dark Seer",
-          "match_id": "8866655915",
-          "file": "Dark_Seer_8866655915_20260628_051736.html",
           "result": "win"
         }
       ]

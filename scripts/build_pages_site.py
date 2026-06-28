@@ -16,6 +16,39 @@ PUBLIC_DIR = ROOT / "public"
 STATIC_SOURCE = ROOT / "report" / "static"
 REPORT_NAME_RE = re.compile(r"^(?P<hero>.+)_(?P<match_id>\d{8,})_(?P<stamp>\d{8}_\d{6})\.html$")
 HERO_IMAGE_BASE = "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes"
+PRIORITY_PREFIX_RE = re.compile(r"^(?:高|中|低)优先级\s*[·:：\-]\s*")
+FOCUS_TAXONOMY = (
+    {
+        "topic_id": "early_resource",
+        "focus": "前10分钟资源",
+        "aliases": ("前10分钟资源", "前10分钟发育", "前期资源效率", "前期发育效率", "对线补刀", "对线发育"),
+    },
+    {
+        "topic_id": "death_cost",
+        "focus": "死亡成本",
+        "aliases": ("死亡成本", "无效死亡", "生存与死亡", "生存能力"),
+    },
+    {
+        "topic_id": "item_conversion",
+        "focus": "装备后转化",
+        "aliases": ("装备后转化", "装备转化", "关键装备转化", "强势期转化"),
+    },
+    {
+        "topic_id": "close_game",
+        "focus": "终结比赛",
+        "aliases": ("终结比赛", "结束比赛", "终结能力", "优势终结"),
+    },
+    {
+        "topic_id": "resource_continuity",
+        "focus": "中后期资源连续性",
+        "aliases": ("中后期资源连续性", "中期资源连续性", "后期资源连续性", "资源连续性"),
+    },
+    {
+        "topic_id": "vision_control",
+        "focus": "视野/控图",
+        "aliases": ("视野/控图", "视野与控图", "视野控图", "地图视野"),
+    },
+)
 
 
 class ReportMetadataParser(HTMLParser):
@@ -55,18 +88,16 @@ class CoachFindingParser(HTMLParser):
         self.card_depth = 0
         self.current_field = None
         self.current_parts = []
-        self.finding = {}
-        self.done = False
+        self.finding = None
+        self.findings = []
 
     def handle_starttag(self, tag, attrs):
-        if self.done:
-            return
         attributes = dict(attrs)
         classes = set((attributes.get("class") or "").split())
         if tag.lower() == "div" and "finding-card" in classes and not self.in_card:
             self.in_card = True
             self.card_depth = 1
-            self.finding["review_priority"] = _priority_from_classes(classes)
+            self.finding = {"review_priority": _priority_from_classes(classes)}
             return
         if self.in_card:
             if tag.lower() == "div":
@@ -79,7 +110,7 @@ class CoachFindingParser(HTMLParser):
                 self.current_parts = []
 
     def handle_endtag(self, tag):
-        if not self.in_card or self.done:
+        if not self.in_card:
             return
         if self.current_field and tag.lower() == "div":
             text = _normalize_text("".join(self.current_parts))
@@ -93,13 +124,17 @@ class CoachFindingParser(HTMLParser):
             self.card_depth -= 1
             if self.card_depth <= 0:
                 self.in_card = False
-                self.done = True
+                if self.finding:
+                    self.findings.append(self.finding)
+                self.finding = None
 
     def handle_data(self, data):
         if self.in_card and self.current_field:
             self.current_parts.append(data)
 
     def _store_line(self, text):
+        if self.finding is None:
+            return
         if text.startswith("证据:"):
             self.finding.setdefault("review_evidence", text.removeprefix("证据:").strip())
         elif text.startswith("训练目标:"):
@@ -130,16 +165,31 @@ def _read_embedded_metadata(path):
 
 
 def _read_coach_finding(path):
+    findings = _read_coach_findings(path)
+    if findings:
+        return findings[0]
+    return {
+        "review_focus": "需要查看报告",
+        "review_evidence": "",
+        "next_action": "打开报告查看下一局行动清单。",
+        "success_metric": "以报告内验收标准为准。",
+        "review_priority": "unknown",
+    }
+
+
+def _read_coach_findings(path):
     parser = CoachFindingParser()
     parser.feed(path.read_text(encoding="utf-8"))
-    finding = parser.finding
-    return {
-        "review_focus": finding.get("review_focus") or "需要查看报告",
-        "review_evidence": finding.get("review_evidence") or "",
-        "next_action": finding.get("next_action") or "打开报告查看下一局行动清单。",
-        "success_metric": finding.get("success_metric") or "以报告内验收标准为准。",
-        "review_priority": finding.get("review_priority") or "unknown",
-    }
+    return [
+        {
+            "review_focus": finding.get("review_focus") or "需要查看报告",
+            "review_evidence": finding.get("review_evidence") or "",
+            "next_action": finding.get("next_action") or "打开报告查看下一局行动清单。",
+            "success_metric": finding.get("success_metric") or "以报告内验收标准为准。",
+            "review_priority": finding.get("review_priority") or "unknown",
+        }
+        for finding in parser.findings
+    ]
 
 
 def _normalize_lineup(value):
@@ -151,7 +201,8 @@ def _parse_report(path):
     fallback_hero = _display_hero(match.group("hero")) if match else path.stem
     fallback_match_id = match.group("match_id") if match else ""
     metadata = _read_embedded_metadata(path)
-    coach_finding = _read_coach_finding(path)
+    coach_findings = _read_coach_findings(path)
+    coach_finding = coach_findings[0] if coach_findings else _read_coach_finding(path)
     hero = metadata.get("hero") if isinstance(metadata.get("hero"), dict) else {}
     kda = metadata.get("kda") if isinstance(metadata.get("kda"), dict) else {}
     score = metadata.get("score") if isinstance(metadata.get("score"), dict) else {}
@@ -169,6 +220,7 @@ def _parse_report(path):
         "allies": _normalize_lineup(metadata.get("allies")),
         "enemies": _normalize_lineup(metadata.get("enemies")),
         "size": path.stat().st_size,
+        "review_findings": coach_findings,
         **coach_finding,
     }
 
@@ -230,17 +282,53 @@ def _priority_rank(report):
     return (priority_score, loss_score, death_score, -time_score)
 
 
+def _focus_token(value):
+    without_priority = PRIORITY_PREFIX_RE.sub("", _normalize_text(value))
+    return re.sub(r"[\s·:：/\\_\-]+", "", without_priority).lower()
+
+
+def _classify_focus(value):
+    source_focus = PRIORITY_PREFIX_RE.sub("", _normalize_text(value)) or "需要查看报告"
+    token = _focus_token(source_focus)
+    for topic in FOCUS_TAXONOMY:
+        alias_tokens = {_focus_token(alias) for alias in topic["aliases"]}
+        if token in alias_tokens:
+            return topic["topic_id"], topic["focus"], source_focus
+    return f"custom::{token or 'unknown'}", source_focus, source_focus
+
+
+def _iter_trend_findings(reports):
+    for report in reports:
+        findings = report.get("review_findings")
+        if not isinstance(findings, list) or not findings:
+            findings = [report]
+        for finding in findings:
+            if not isinstance(finding, dict):
+                continue
+            item = {key: value for key, value in report.items() if key != "review_findings"}
+            item.update(finding)
+            yield item
+
+
 def _build_focus_trends(reports):
     grouped = defaultdict(list)
-    for report in reports:
-        focus = report.get("review_focus") or "需要查看报告"
-        grouped[focus].append(report)
+    topic_labels = {}
+    for finding in _iter_trend_findings(reports):
+        topic_id, focus, source_focus = _classify_focus(finding.get("review_focus"))
+        finding["source_focus"] = source_focus
+        grouped[topic_id].append(finding)
+        topic_labels[topic_id] = focus
 
     trends = []
-    for focus, items in grouped.items():
+    for topic_id, items in grouped.items():
         sorted_items = sorted(items, key=_priority_rank)
-        priority = sorted_items[0].get("review_priority") or "unknown"
-        heroes = sorted({str(item.get("hero") or "未知英雄") for item in sorted_items})
+        unique_matches = {}
+        for item_index, item in enumerate(sorted_items):
+            match_key = str(item.get("match_id") or item.get("file") or f"finding-{item_index}")
+            unique_matches.setdefault(match_key, item)
+        representative_items = list(unique_matches.values())
+        priority = representative_items[0].get("review_priority") or "unknown"
+        heroes = sorted({str(item.get("hero") or "未知英雄") for item in representative_items})
         actions = [item.get("next_action") for item in sorted_items if item.get("next_action")]
         metrics = [item.get("success_metric") for item in sorted_items if item.get("success_metric")]
         examples = [
@@ -250,13 +338,16 @@ def _build_focus_trends(reports):
                 "file": item.get("file") or "",
                 "result": "win" if item.get("is_win") is True else "lose" if item.get("is_win") is False else "unknown",
             }
-            for item in sorted_items[:3]
+            for item in representative_items[:3]
         ]
         trends.append({
-            "focus": focus,
-            "count": len(items),
+            "topic_id": topic_id,
+            "focus": topic_labels[topic_id],
+            "count": len(representative_items),
+            "finding_count": len(items),
             "priority": priority,
             "heroes": heroes,
+            "source_focuses": sorted({item["source_focus"] for item in sorted_items}),
             "next_action": actions[0] if actions else "打开报告查看下一局行动清单。",
             "success_metric": metrics[0] if metrics else "以报告内验收标准为准。",
             "examples": examples,
@@ -343,6 +434,11 @@ def _render_focus_trends(trends):
         heroes = "、".join(html.escape(hero) for hero in trend.get("heroes", [])[:5])
         action = html.escape(trend.get("next_action") or "打开报告查看下一局行动清单。")
         metric = html.escape(trend.get("success_metric") or "以报告内验收标准为准。")
+        source_focuses = trend.get("source_focuses") or []
+        source_note = ""
+        if len(source_focuses) > 1:
+            labels = "、".join(html.escape(label) for label in source_focuses)
+            source_note = f'\n                <p class="trend-sources">归并自 {len(source_focuses)} 种报告标签：{labels}</p>'
         examples = []
         for example in trend.get("examples", []):
             file_name = html.escape(example.get("file") or "#", quote=True)
@@ -358,7 +454,7 @@ def _render_focus_trends(trends):
                     <span>{count} 局出现</span>
                 </div>
                 <h3>{focus}</h3>
-                <p class="trend-heroes">涉及英雄：{heroes or "未知"}</p>
+                <p class="trend-heroes">涉及英雄：{heroes or "未知"}</p>{source_note}
                 <p>{action}</p>
                 <p class="trend-metric">验收：{metric}</p>
                 <div class="trend-examples">{example_html}</div>
@@ -379,6 +475,11 @@ def _render_practice_plan(trends, reports, output_path):
         focus = html.escape(trend.get("focus") or "需要查看报告")
         action = html.escape(trend.get("next_action") or "打开报告查看下一局行动清单。")
         metric = html.escape(trend.get("success_metric") or "以报告内验收标准为准。")
+        source_focuses = trend.get("source_focuses") or []
+        taxonomy_note = (
+            f' <span class="taxonomy-note">已归并 {len(source_focuses)} 种等价标签</span>'
+            if len(source_focuses) > 1 else ""
+        )
         heroes = "、".join(html.escape(hero) for hero in trend.get("heroes", [])[:5])
         examples = []
         for example in trend.get("examples", [])[:3]:
@@ -396,7 +497,7 @@ def _render_practice_plan(trends, reports, output_path):
                         <h2>{focus}</h2>
                         <span class="priority-chip {priority_class}">复盘优先级 {priority}</span>
                     </div>
-                    <p class="practice-meta">{html.escape(str(trend.get('count') or 0))} 局出现 · 涉及英雄：{heroes or "未知"}</p>
+                    <p class="practice-meta">{html.escape(str(trend.get('count') or 0))} 局出现 · {html.escape(str(trend.get('finding_count') or trend.get('count') or 0))} 条证据 · 涉及英雄：{heroes or "未知"}{taxonomy_note}</p>
                     <div class="practice-action"><strong>下一局动作</strong><span>{action}</span></div>
                     <div class="practice-action"><strong>验收标准</strong><span>{metric}</span></div>
                     <div class="trend-examples">{example_html}</div>
@@ -439,7 +540,8 @@ def _render_practice_plan(trends, reports, output_path):
 
 def _write_focus_trends_json(trends, output_path):
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
+        "taxonomy_version": 1,
         "generated_from": "report_findings",
         "trends": trends,
     }

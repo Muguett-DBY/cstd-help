@@ -4,6 +4,37 @@ Repository: `E:\DEV\cstd-help`
 Branch: `main`
 Started: 2026-06-28
 
+## Cycle 2 - Global Preparation
+
+- Status: clean `main`, fast-forward synced with `origin/main` at `a211d36`.
+- Previous flagship direction: normalize semantically equivalent finding names so recurring trends and the practice plan do not fragment.
+- Additional root-cause finding: the site parser only consumed the first finding card from each report, so most evidence-backed findings were excluded from cross-match trends.
+- Prompt files re-read from `C:\Users\12031\Desktop\AGENT_PROMPTS_MAIN_PACK`.
+- CI workflow and latest successful run checked: `Deploy Cloudflare Pages`, run `28305478428`.
+
+## Cycle 2 - Stage 1 - IMPROVE
+
+- Prompt: `AGENT_IMPROVE_MAIN.txt`
+- Goal: rebuild recurring-trend aggregation around all report findings and a deterministic semantic taxonomy.
+- Start status: clean, synchronized `main`; no user changes to protect.
+- Plan:
+  - Add failing tests for multi-finding extraction, semantic grouping, per-match deduplication, and trend provenance.
+  - Preserve the first finding for match-row prioritization while using every finding for trends.
+  - Expose canonical topic ids and original labels in JSON/UI so grouping remains auditable.
+  - Rebuild the public site, run CI-equivalent checks, review diff/security, push, and watch Actions.
+- Result:
+  - Parsed all structured finding cards from every report while preserving the first finding for per-match priority display.
+  - Added taxonomy v1 with explicit aliases, canonical topic ids, per-match deduplication, finding counts, and original-label provenance.
+  - Upgraded `review-trends.json` to schema v2 and tightened static validation around aggregation consistency.
+  - Rebuilt the current dataset from 10 first findings to all 30 findings across 6 topics.
+  - Fixed generated HTML trailing whitespace found by `git diff --check` and added a regression test.
+- Browser verification:
+  - History page at 1280px: 10 reports, four top trend cards, no horizontal overflow, no console warnings/errors.
+  - Practice plan: five cards; `死亡成本` and `装备后转化` each correctly show 10 matches / 10 evidence items.
+- Local verification: 42 tests passed; compile, static validation, diff check, and gitleaks passed.
+- Commit / push / CI: pending final stage gate.
+- Next direction: add topic drill-down pages so every aggregated trend exposes all supporting matches, evidence, actions, and acceptance metrics instead of only three examples.
+
 ## Global Preparation
 
 - Status: clean on `main`, synced with `origin/main`.

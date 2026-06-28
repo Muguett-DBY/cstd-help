@@ -1,5 +1,18 @@
 # Iteration Log
 
+## 2026-06-28 - Cycle 2 Stage 1 IMPROVE
+
+- Carry-over: normalize equivalent review focus names across reports.
+- Root-cause finding: trend aggregation currently reads only the first finding card in each report, excluding most available coaching evidence.
+- Target: aggregate all findings through a deterministic, auditable taxonomy while keeping per-match counts accurate.
+- Completed: all 30 report findings now feed 6 canonical trend topics; JSON includes topic ids, finding counts, source labels, and per-match deduplication.
+- User-visible gain: the training plan now surfaces recurring death-cost and item-conversion problems across all 10 matches instead of hiding non-primary findings.
+- Real issue fixed: generated optional fragments no longer leave trailing whitespace.
+- Verified: 42 tests, compileall, static site validation, browser desktop flow, console health, diff check, and gitleaks.
+- CI: pending push.
+- Remaining risk: taxonomy aliases are intentionally curated; unknown labels stay separate until reviewed.
+- Recommended next flagship change: topic drill-down pages with all supporting evidence and report links.
+
 ## 2026-06-28 - Stage 1 IMPROVE
 
 - Goal: turn the existing match history page into a review-entry surface, not just a file list.
