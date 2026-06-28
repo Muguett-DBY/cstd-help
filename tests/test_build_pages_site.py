@@ -265,6 +265,48 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(payload["trends"][0]["focus"], "前10分钟资源")
         self.assertEqual(payload["trends"][0]["count"], 2)
 
+    def test_build_pages_site_writes_site_manifest_and_coverage_panel(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            self._write_report(source, metadata, filename="Mirana_8867002237_20260626_224839.html")
+            second = dict(metadata)
+            second["match_id"] = 8867002240
+            second["hero"] = {"id": 69, "name": "Doom", "slug": "doom_bringer"}
+            second["is_win"] = True
+            second["ended_at"] = "2026-06-27T01:00:00Z"
+            self._write_report(source, second, filename="Doom_8867002240_20260627_090000.html")
+
+            pages_site.build_pages_site(source, public_dir=public)
+            manifest = json.loads((Path(public) / "site-manifest.json").read_text(encoding="utf-8"))
+            index_html = (Path(public) / "index.html").read_text(encoding="utf-8")
+            plan_html = (Path(public) / "practice-plan.html").read_text(encoding="utf-8")
+
+        self.assertEqual(manifest["schema_version"], 1)
+        self.assertEqual(manifest["report_count"], 2)
+        self.assertEqual(manifest["finding_count"], 2)
+        self.assertEqual(manifest["topic_count"], 1)
+        self.assertEqual(manifest["high_priority_report_count"], 2)
+        self.assertEqual(manifest["latest_match"]["hero"], "Doom")
+        self.assertEqual(manifest["latest_match"]["match_id"], "8867002240")
+        self.assertIn("复盘数据覆盖", index_html)
+        self.assertIn("site-manifest.json", index_html)
+        self.assertIn("Doom #8867002240", index_html)
+        self.assertIn("2 场", index_html)
+        self.assertIn("2 条 finding", index_html)
+        self.assertIn("1 个训练主题", index_html)
+        self.assertIn("data-coverage-panel", index_html)
+        self.assertIn("复盘数据覆盖", plan_html)
+
     def test_build_pages_site_writes_practice_plan_page(self):
         metadata = {
             "match_id": 8867002237,
@@ -354,6 +396,7 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".topic-switcher", stylesheet)
         self.assertIn(".topic-filter-button", stylesheet)
         self.assertIn(".topic-empty-state", stylesheet)
+        self.assertIn(".data-coverage", stylesheet)
 
     def test_generated_coaching_pages_have_no_trailing_whitespace(self):
         metadata = {

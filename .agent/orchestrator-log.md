@@ -108,6 +108,38 @@ Started: 2026-06-28
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28307268987`.
 - Next direction: add a generated freshness/coverage manifest so the dashboard explains which reports and latest match produced the current coaching plan.
 
+## Cycle 2 - Stage 4 - IMPROVE
+
+- Prompt: `AGENT_IMPROVE_MAIN.txt`
+- Goal: add a generated coverage/freshness manifest and make the dashboard explain the report set behind the coaching plan.
+- Start status: clean `main`; Stage 3 deployment passed after log closeout (`3ac32cd`, CI `28307298755`).
+- Previous-stage direction: add a generated freshness/coverage manifest so the dashboard explains which reports and latest match produced the current coaching plan.
+- Plan:
+  - Add failing tests for `site-manifest.json` and visible `复盘数据覆盖` panels.
+  - Build a deterministic manifest from parsed reports and canonical trends.
+  - Render the same coverage summary on both history and practice-plan pages.
+  - Tighten static validation so manifest and coverage panels cannot disappear.
+  - Rebuild public output, verify browser desktop/mobile behavior, run local gates, push, and watch Actions.
+- Result:
+  - Added `public/site-manifest.json` with schema version, player id, report count, finding count, topic count, high-priority report count, win/loss counts, latest match, and topic coverage.
+  - Added `复盘数据覆盖` panels to `index.html` and `practice-plan.html`.
+  - Added a JSON link from the panel for auditing the generated source set.
+  - Added responsive coverage-panel styles.
+  - Extended static validation for manifest structure and page coverage.
+- Browser verification:
+  - History page: one coverage panel, manifest link, 10 reports, 30 findings, 6 topics, latest `Dragon Knight #8867124876`, no overflow, no console warnings/errors.
+  - Practice plan: same coverage panel present, no overflow, no console warnings/errors.
+  - Mobile 390px: coverage panel renders 4 stats, no horizontal overflow, no console warnings/errors.
+- Local verification:
+  - `python -m unittest tests.test_build_pages_site.BuildPagesSiteTests.test_build_pages_site_writes_site_manifest_and_coverage_panel tests.test_build_pages_site.BuildPagesSiteTests.test_semantic_trend_provenance_has_visible_styles`: failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 45 tests.
+  - `python -m compileall -q .`: failed once on a static-check indentation regression, then passed after fixing.
+  - `python scripts/check_public_site.py`: passed, 10 report pages plus manifest and coverage validation.
+  - `git diff --check`: passed with only generated HTML CRLF warnings.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+- Commit / Push / CI: pending.
+- Next direction: CHECK-stage audit for stale/orphaned generated pages and broken local links.
+
 ## Global Preparation
 
 - Status: clean on `main`, synced with `origin/main`.

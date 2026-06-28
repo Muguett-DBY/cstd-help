@@ -390,6 +390,92 @@ def _topic_page_filename(topic_id):
     return f"trend-{token}.html"
 
 
+def _count_report_findings(reports):
+    total = 0
+    for report in reports:
+        findings = report.get("review_findings")
+        if isinstance(findings, list) and findings:
+            total += len(findings)
+        else:
+            total += 1
+    return total
+
+
+def _build_site_manifest(reports, trends):
+    sorted_reports = sorted(reports, key=_report_sort_key, reverse=True)
+    newest = sorted_reports[0] if sorted_reports else {}
+    known_results = [report for report in sorted_reports if report.get("is_win") is not None]
+    wins = sum(1 for report in known_results if report["is_win"])
+    losses = len(known_results) - wins
+    latest_match = {
+        "hero": newest.get("hero") or "未知英雄",
+        "match_id": str(newest.get("match_id") or ""),
+        "file": newest.get("file") or "index.html",
+        "ended_at": newest.get("ended_at"),
+        "result": _result_key(newest) if newest else "unknown",
+        "review_focus": newest.get("review_focus") or "需要查看报告",
+    }
+    return {
+        "schema_version": 1,
+        "source": "generated_public_reports",
+        "player_id": "173776719",
+        "report_count": len(sorted_reports),
+        "finding_count": _count_report_findings(sorted_reports),
+        "topic_count": len(trends),
+        "high_priority_report_count": sum(1 for report in sorted_reports if report.get("review_priority") == "high"),
+        "known_result_count": len(known_results),
+        "wins": wins,
+        "losses": losses,
+        "latest_match": latest_match,
+        "topics": [
+            {
+                "topic_id": trend.get("topic_id"),
+                "focus": trend.get("focus"),
+                "page": trend.get("page"),
+                "match_count": trend.get("count"),
+                "finding_count": trend.get("finding_count"),
+            }
+            for trend in trends
+        ],
+    }
+
+
+def _render_coverage_panel(manifest):
+    latest = manifest.get("latest_match") or {}
+    latest_file = html.escape(latest.get("file") or "index.html", quote=True)
+    latest_hero = html.escape(latest.get("hero") or "未知英雄")
+    latest_match_id = html.escape(str(latest.get("match_id") or ""))
+    latest_label = f"{latest_hero} #{latest_match_id}".strip()
+    ended_at = latest.get("ended_at")
+    if ended_at:
+        fallback_time = html.escape(str(ended_at).replace("T", " ").replace("Z", " UTC"))
+        latest_time = (
+            f'<time class="local-time" datetime="{html.escape(str(ended_at), quote=True)}" '
+            f'data-ended-at="{html.escape(str(ended_at), quote=True)}">{fallback_time}</time>'
+        )
+    else:
+        latest_time = '<span class="missing-value">结束时间缺失</span>'
+    return f"""
+    <section class="data-coverage" data-coverage-panel aria-label="复盘数据覆盖">
+        <div class="history-title-row">
+            <h2>复盘数据覆盖</h2>
+            <a href="site-manifest.json">查看覆盖 JSON</a>
+        </div>
+        <div class="coverage-grid">
+            <div class="coverage-stat"><strong>{html.escape(str(manifest.get('report_count') or 0))} 场</strong><span>已复盘比赛</span></div>
+            <div class="coverage-stat"><strong>{html.escape(str(manifest.get('finding_count') or 0))} 条 finding</strong><span>教练证据</span></div>
+            <div class="coverage-stat"><strong>{html.escape(str(manifest.get('topic_count') or 0))} 个训练主题</strong><span>趋势归并</span></div>
+            <div class="coverage-stat"><strong>{html.escape(str(manifest.get('high_priority_report_count') or 0))} 局</strong><span>高优先级复盘</span></div>
+        </div>
+        <a class="coverage-latest" href="{latest_file}">
+            <span>最新比赛</span>
+            <strong>{latest_label}</strong>
+            <small>{latest_time}</small>
+        </a>
+    </section>
+    """.strip()
+
+
 def _hero_image(slug):
     if not slug:
         return ""
@@ -494,8 +580,10 @@ def _render_focus_trends(trends):
     return "".join(cards)
 
 
-def _render_practice_plan(trends, reports, output_path):
+def _render_practice_plan(trends, reports, output_path, manifest=None):
     newest = reports[0] if reports else {}
+    manifest = manifest or _build_site_manifest(reports, trends)
+    coverage_panel = _render_coverage_panel(manifest)
     cards = []
     for index, trend in enumerate(trends[:5], start=1):
         priority = html.escape(_priority_label(trend.get("priority")))
@@ -570,6 +658,7 @@ def _render_practice_plan(trends, reports, output_path):
         </div>
         <a class="primary-link" href="{newest_link}">打开最新复盘</a>
     </header>
+    {coverage_panel}
     <main class="practice-list" aria-label="下一次训练计划">
         {plan_cards}
     </main>
@@ -739,6 +828,10 @@ def _write_focus_trends_json(trends, output_path):
     output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def _write_site_manifest_json(manifest, output_path):
+    output_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def _neighbor_result_text(report):
     if report.get("is_win") is True:
         return "胜利"
@@ -816,7 +909,7 @@ def _report_sort_key(report):
         return datetime.min.replace(tzinfo=timezone.utc)
 
 
-def _render_index(reports, output_path=None):
+def _render_index(reports, output_path=None, focus_trends=None, manifest=None):
     output_path = Path(output_path or PUBLIC_DIR / "index.html")
     reports = sorted(reports, key=_report_sort_key, reverse=True)
     newest = reports[0]
@@ -826,7 +919,9 @@ def _render_index(reports, output_path=None):
     win_rate = round(wins / len(known_results) * 100) if known_results else 0
     report_rows = []
     high_priority_count = sum(1 for report in reports if report.get("review_priority") == "high")
-    focus_trends = _build_focus_trends(reports)
+    focus_trends = focus_trends if focus_trends is not None else _build_focus_trends(reports)
+    manifest = manifest or _build_site_manifest(reports, focus_trends)
+    coverage_panel = _render_coverage_panel(manifest)
 
     for report in reports:
         hero_name = html.escape(report["hero"])
@@ -908,6 +1003,8 @@ def _render_index(reports, output_path=None):
         <span><strong>{win_rate}%</strong> 胜率</span>
         <span><strong>{high_priority_count}</strong> 局高优先级复盘</span>
     </div>
+
+    {coverage_panel}
 
     <section class="history-filters" aria-label="筛选比赛">
         <div class="history-filter-header">
@@ -1065,10 +1162,17 @@ def build_pages_site(source, public_dir=PUBLIC_DIR):
     _inject_report_navigation(public_dir, reports)
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
     focus_trends = _build_focus_trends(reports)
+    site_manifest = _build_site_manifest(reports, focus_trends)
     _write_focus_trends_json(focus_trends, public_dir / "review-trends.json")
+    _write_site_manifest_json(site_manifest, public_dir / "site-manifest.json")
     _render_topic_pages(focus_trends, public_dir)
-    _render_practice_plan(focus_trends, sorted(reports, key=_report_sort_key, reverse=True), public_dir / "practice-plan.html")
-    _render_index(reports, output_path=public_dir / "index.html")
+    _render_practice_plan(
+        focus_trends,
+        sorted(reports, key=_report_sort_key, reverse=True),
+        public_dir / "practice-plan.html",
+        manifest=site_manifest,
+    )
+    _render_index(reports, output_path=public_dir / "index.html", focus_trends=focus_trends, manifest=site_manifest)
     print(f"Built {len(reports)} reports into {public_dir}")
 
 
