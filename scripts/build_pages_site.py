@@ -693,9 +693,19 @@ def _render_topic_pages(trends, public_dir):
             match_results.setdefault(match_key, finding.get("result") or "unknown")
         wins = sum(1 for result in match_results.values() if result == "win")
         losses = sum(1 for result in match_results.values() if result == "lose")
+        hero_names = sorted({str(finding.get("hero") or "未知英雄") for finding in findings})
+        hero_options = [
+            '<option value="all">全部英雄</option>',
+            *[
+                f'<option value="{html.escape(hero_name, quote=True)}">{html.escape(hero_name)}</option>'
+                for hero_name in hero_names
+            ],
+        ]
         evidence_cards = []
         for finding in findings:
-            hero = html.escape(finding.get("hero") or "未知英雄")
+            hero_raw = str(finding.get("hero") or "未知英雄")
+            hero = html.escape(hero_raw)
+            hero_value = html.escape(hero_raw, quote=True)
             match_id = html.escape(str(finding.get("match_id") or ""))
             file_name = html.escape(finding.get("file") or "index.html", quote=True)
             source_focus = html.escape(finding.get("source_focus") or trend.get("focus") or "需要查看报告")
@@ -708,7 +718,7 @@ def _render_topic_pages(trends, public_dir):
             result_text = {"win": "胜利", "lose": "失败"}.get(result, "待确认")
             evidence_cards.append(
                 f"""
-                <article class="topic-evidence-card" data-topic-evidence-card data-result="{result_class}">
+                <article class="topic-evidence-card" data-topic-evidence-card data-result="{result_class}" data-hero="{hero_value}">
                     <div class="topic-evidence-head">
                         <div>
                             <span class="match-result {result_class}">{result_text}</span>
@@ -768,6 +778,11 @@ def _render_topic_pages(trends, public_dir):
                     <button type="button" class="topic-filter-button active" data-topic-filter="all" aria-pressed="true">全部证据</button>
                     <button type="button" class="topic-filter-button" data-topic-filter="win" aria-pressed="false">只看胜利</button>
                     <button type="button" class="topic-filter-button" data-topic-filter="lose" aria-pressed="false">只看失败</button>
+                    <label class="topic-hero-filter">英雄
+                        <select data-topic-hero-filter>
+                            {''.join(hero_options)}
+                        </select>
+                    </label>
                     <button type="button" class="filter-clear-button topic-clear-button" data-topic-clear-filter disabled>清除筛选</button>
                 </div>
             </div>
@@ -792,9 +807,12 @@ def _render_topic_pages(trends, public_dir):
     const countLabel = document.querySelector('[data-topic-card-count]');
     const emptyState = document.querySelector('[data-topic-empty]');
     const clearButton = document.querySelector('[data-topic-clear-filter]');
+    const heroSelect = document.querySelector('[data-topic-hero-filter]');
     const allowedFilters = new Set(['all', 'win', 'lose']);
     const urlParams = new URLSearchParams(window.location.search);
     let selectedFilter = allowedFilters.has(urlParams.get('result')) ? urlParams.get('result') : 'all';
+    const allowedHeroes = new Set(['all', ...Array.from(heroSelect ? heroSelect.options : []).map((option) => option.value)]);
+    let selectedHero = allowedHeroes.has(urlParams.get('hero')) ? urlParams.get('hero') : 'all';
 
     function syncTopicFilterUrl() {{
         const nextParams = new URLSearchParams(window.location.search);
@@ -802,6 +820,11 @@ def _render_topic_pages(trends, public_dir):
             nextParams.delete('result');
         }} else {{
             nextParams.set('result', selectedFilter);
+        }}
+        if (selectedHero === 'all') {{
+            nextParams.delete('hero');
+        }} else {{
+            nextParams.set('hero', selectedHero);
         }}
         const nextQuery = nextParams.toString();
         const nextUrl = nextQuery ? `${{window.location.pathname}}?${{nextQuery}}` : window.location.pathname;
@@ -812,7 +835,9 @@ def _render_topic_pages(trends, public_dir):
         selectedFilter = allowedFilters.has(selected) ? selected : 'all';
         let visible = 0;
         evidenceCards.forEach((card) => {{
-            const shouldShow = selectedFilter === 'all' || card.dataset.result === selectedFilter;
+            const matchesResult = selectedFilter === 'all' || card.dataset.result === selectedFilter;
+            const matchesHero = selectedHero === 'all' || card.dataset.hero === selectedHero;
+            const shouldShow = matchesResult && matchesHero;
             card.hidden = !shouldShow;
             if (shouldShow) visible += 1;
         }});
@@ -821,9 +846,10 @@ def _render_topic_pages(trends, public_dir):
             button.classList.toggle('active', isActive);
             button.setAttribute('aria-pressed', String(isActive));
         }});
+        if (heroSelect) heroSelect.value = selectedHero;
         if (countLabel) countLabel.textContent = String(visible);
         if (emptyState) emptyState.hidden = visible !== 0;
-        if (clearButton) clearButton.disabled = selectedFilter === 'all';
+        if (clearButton) clearButton.disabled = selectedFilter === 'all' && selectedHero === 'all';
         if (options.syncUrl !== false) syncTopicFilterUrl();
     }}
 
@@ -831,7 +857,16 @@ def _render_topic_pages(trends, public_dir):
         button.addEventListener('click', () => applyTopicFilter(button.dataset.topicFilter || 'all'));
     }});
     if (clearButton) {{
-        clearButton.addEventListener('click', () => applyTopicFilter('all'));
+        clearButton.addEventListener('click', () => {{
+            selectedHero = 'all';
+            applyTopicFilter('all');
+        }});
+    }}
+    if (heroSelect) {{
+        heroSelect.addEventListener('change', () => {{
+            selectedHero = allowedHeroes.has(heroSelect.value) ? heroSelect.value : 'all';
+            applyTopicFilter(selectedFilter);
+        }});
     }}
     applyTopicFilter(selectedFilter, {{ syncUrl: false }});
 }})();

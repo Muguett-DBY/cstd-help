@@ -1,5 +1,16 @@
 # Iteration Log
 
+## 2026-06-28 - Long Cycle Stage 2 IMPROVE
+
+- Carry-over: result-only topic filters still required scanning every hero in larger recurring-problem archives.
+- Completed: added an exact-hero selector, combined hero/result filtering, shareable URL state, unified clear behavior, and mobile-safe topic header/statistics layout.
+- User-visible gain: a player can open or share a precise evidence slice such as one hero's losses within the death-cost topic.
+- Real issue fixed: browser QA exposed narrow-screen topic content at risk of horizontal clipping; headings now wrap and statistics use a two-column mobile grid.
+- Verified: target regression tests, 54-test suite, compileall, static site validation, gitleaks, desktop URL-state interaction, mobile rendering, and zero browser console errors.
+- Commit / CI: pending final local gate.
+- Remaining risk: hero matching is exact by design; role-aware filtering needs trustworthy role metadata in every generated topic record.
+- Recommended next flagship change: add a compact section navigator to long match reports so actions, timeline evidence, deaths, items, and findings are reachable without repeated scrolling.
+
 ## 2026-06-28 - Long Cycle Stage 1 IMPROVE
 
 - Carry-over: topic evidence pages needed shareable URL-persisted filters after history filters were completed.

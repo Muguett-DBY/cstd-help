@@ -461,3 +461,29 @@ Started: 2026-06-28
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28319963955`.
 - Risk: topic filters are result-only; hero/role evidence filtering remains the next useful extension.
 - Next stage: Stage 2 IMPROVE.
+
+## 2026-06-28 - Long Cycle Stage 2 IMPROVE - Start
+
+- Stage: 2 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: Add hero-aware topic evidence filtering with URL persistence so larger evidence archives can be narrowed by hero and result.
+- Carry-over: Stage 1 left result-only topic filters; the next useful extension is hero/role evidence filtering.
+- Start state: main branch after `chore: record stage 1 filter deployment` (`8533945`), clean worktree expected after CI success.
+- Constraints: do not touch Docker; do not edit AGENTS.md; no force push or branch changes.
+
+## 2026-06-28 - Long Cycle Stage 2 IMPROVE - Complete
+
+- Completed: topic evidence pages now support combined hero and win/loss filtering, persist both selections in shareable `?result=...&hero=...` URLs, and reset both dimensions through one clear action.
+- User-visible increment: recurring-problem archives can be narrowed to the exact hero/result slice needed for comparison instead of scanning every evidence card.
+- Real issue fixed during browser QA: narrow topic pages needed stronger overflow protection; headings now wrap safely and mobile topic statistics use a stable two-column grid.
+- Local verification:
+  - Target topic-page tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 54 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser: `?result=lose&hero=Legion+Commander` restored one matching card; switching to Dragon Knight preserved the loss filter and showed two cards; clear restored 10/10 cards and removed the query; mobile layout and console were clean after the responsive fix.
+- Commit / push / CI: pending final local gate.
+- Risk: topic filters are exact-hero filters; role grouping is intentionally deferred because the generated report evidence does not currently expose a verified role on every topic card.
+- Next stage: Stage 3 UIUX.
