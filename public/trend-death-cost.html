@@ -40,6 +40,7 @@
                     <button type="button" class="topic-filter-button active" data-topic-filter="all" aria-pressed="true">全部证据</button>
                     <button type="button" class="topic-filter-button" data-topic-filter="win" aria-pressed="false">只看胜利</button>
                     <button type="button" class="topic-filter-button" data-topic-filter="lose" aria-pressed="false">只看失败</button>
+                    <button type="button" class="filter-clear-button topic-clear-button" data-topic-clear-filter disabled>清除筛选</button>
                 </div>
             </div>
             <section class="topic-provenance">
@@ -192,26 +193,49 @@
     const evidenceCards = Array.from(document.querySelectorAll('[data-topic-evidence-card]'));
     const countLabel = document.querySelector('[data-topic-card-count]');
     const emptyState = document.querySelector('[data-topic-empty]');
+    const clearButton = document.querySelector('[data-topic-clear-filter]');
+    const allowedFilters = new Set(['all', 'win', 'lose']);
+    const urlParams = new URLSearchParams(window.location.search);
+    let selectedFilter = allowedFilters.has(urlParams.get('result')) ? urlParams.get('result') : 'all';
 
-    function applyTopicFilter(selected) {
+    function syncTopicFilterUrl() {
+        const nextParams = new URLSearchParams(window.location.search);
+        if (selectedFilter === 'all') {
+            nextParams.delete('result');
+        } else {
+            nextParams.set('result', selectedFilter);
+        }
+        const nextQuery = nextParams.toString();
+        const nextUrl = nextQuery ? `${window.location.pathname}?${nextQuery}` : window.location.pathname;
+        history.replaceState(null, '', nextUrl);
+    }
+
+    function applyTopicFilter(selected, options = {}) {
+        selectedFilter = allowedFilters.has(selected) ? selected : 'all';
         let visible = 0;
         evidenceCards.forEach((card) => {
-            const shouldShow = selected === 'all' || card.dataset.result === selected;
+            const shouldShow = selectedFilter === 'all' || card.dataset.result === selectedFilter;
             card.hidden = !shouldShow;
             if (shouldShow) visible += 1;
         });
         filterButtons.forEach((button) => {
-            const isActive = button.dataset.topicFilter === selected;
+            const isActive = button.dataset.topicFilter === selectedFilter;
             button.classList.toggle('active', isActive);
             button.setAttribute('aria-pressed', String(isActive));
         });
         if (countLabel) countLabel.textContent = String(visible);
         if (emptyState) emptyState.hidden = visible !== 0;
+        if (clearButton) clearButton.disabled = selectedFilter === 'all';
+        if (options.syncUrl !== false) syncTopicFilterUrl();
     }
 
     filterButtons.forEach((button) => {
         button.addEventListener('click', () => applyTopicFilter(button.dataset.topicFilter || 'all'));
     });
+    if (clearButton) {
+        clearButton.addEventListener('click', () => applyTopicFilter('all'));
+    }
+    applyTopicFilter(selectedFilter, { syncUrl: false });
 })();
 </script>
 </body>
