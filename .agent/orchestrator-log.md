@@ -172,7 +172,9 @@ Started: 2026-06-28
   - `python scripts/check_public_site.py`: passed, 10 report pages plus manifest/local-link checks.
   - `git diff --check`: passed.
   - `gitleaks dir . --redact`: passed, no leaks found.
-- Commit / Push / CI: pending.
+- Commit: `fix: audit generated local links` (`c86a911`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28311681379`.
 - Next direction: add shareable URL-persisted filters for the history page so filtered review queues can be reopened or shared.
 
 ## Global Preparation

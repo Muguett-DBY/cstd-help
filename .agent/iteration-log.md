@@ -7,7 +7,8 @@
 - User-visible risk fixed: broken dashboard/report/topic links now fail CI before Cloudflare deployment.
 - Checks: no tracked local database, sensitive-key scan reviewed, 46 tests, compileall, static site validation, HTTP manifest check, diff check, and gitleaks.
 - Browser note: the in-app browser extension blocks direct JSON navigation with `ERR_BLOCKED_BY_CLIENT`; HTTP validation confirmed `site-manifest.json` returns 200 with expected counts.
-- Commit / CI: pending.
+- Commit: `fix: audit generated local links` (`c86a911`), pushed to `origin/main`.
+- CI: passed, `Deploy Cloudflare Pages` run `28311681379`.
 - Remaining risk: static checker validates local link existence, not external CDN hero image availability.
 - Recommended next flagship change: add shareable URL-persisted filters for the history page so filtered review queues can be reopened or shared.
 
