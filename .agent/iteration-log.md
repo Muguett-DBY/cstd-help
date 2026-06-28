@@ -8,7 +8,8 @@
 - User-visible gain: the player can immediately see the plan is based on 10 reports, 30 findings, 6 training topics, and the latest Dragon Knight match.
 - Real issue fixed: static validation caught a broken indentation regression in manifest checks; fixed before commit.
 - Verified: 45 tests, compileall, static site validation, desktop/mobile browser coverage-panel flow, diff check, and gitleaks.
-- Commit / CI: pending.
+- Commit: `feat: add report coverage manifest` (`d56aeae`), pushed to `origin/main`.
+- CI: passed, `Deploy Cloudflare Pages` run `28311495305`.
 - Remaining risk: manifest currently describes generated report coverage, not STRATZ/OpenDota fetch freshness.
 - Recommended next flagship change: add a CHECK-stage link and artifact audit so stale or orphaned generated pages cannot silently ship.
 
