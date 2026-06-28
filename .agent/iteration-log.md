@@ -8,7 +8,8 @@
 - User-visible gain: the player can scan a recurring problem by theme, filter winning/losing examples, and jump between coaching topics without returning to the dashboard.
 - Real issue fixed: mobile topic navigation initially exposed a rough native horizontal scrollbar; it now keeps the scroll affordance without visual noise.
 - Verified: 44 tests, compileall, static site validation, desktop/mobile browser workbench flow, diff check, and gitleaks.
-- Commit / CI: pending.
+- Commit: `feat: upgrade topic evidence workbench` (`252abae`), pushed to `origin/main`.
+- CI: passed, `Deploy Cloudflare Pages` run `28307268987`.
 - Remaining risk: topic pages filter only by result today; hero/role filters could further speed review once more matches accumulate.
 - Recommended next flagship change: add a generated freshness/coverage manifest so the dashboard explains exactly which report set and latest match produced the coaching plan.
 

@@ -103,7 +103,9 @@ Started: 2026-06-28
   - `python scripts/check_public_site.py`: passed, 10 report pages plus topic workbench validation.
   - `git diff --check`: passed with only generated-report CRLF warnings.
   - `gitleaks dir . --redact`: passed, no leaks found.
-- Commit / Push / CI: pending.
+- Commit: `feat: upgrade topic evidence workbench` (`252abae`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28307268987`.
 - Next direction: add a generated freshness/coverage manifest so the dashboard explains which reports and latest match produced the current coaching plan.
 
 ## Global Preparation
