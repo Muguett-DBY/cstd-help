@@ -560,3 +560,32 @@ Started: 2026-06-28
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28363394164`.
 - Risk: checklist progress uses browser localStorage, so it is intentionally per-browser and not synced across devices.
 - Next stage: Stage 5 CHECK.
+
+## 2026-06-29 - Long Cycle Stage 5 CHECK - Start
+
+- Stage: 5 / 6
+- Type: CHECK
+- Prompt: AGENT_CHECK_MAIN.txt
+- Goal: harden generated-site validation around broken anchors, duplicate IDs, report navigation targets, and practice-workbench links so static regressions fail before deploy.
+- Carry-over: Stage 4 recommended strengthening static validation for the new evidence-linked training workflow.
+- Start state: main at `chore: record stage 4 workbench deployment` (`82ab3a4`), Stage 4 closeout CI passed in run `28363460323`, clean worktree.
+- Constraints: do not touch Docker; do not edit AGENTS.md; no force push or branch changes; keep the CHECK diff focused on real validation gaps.
+
+## 2026-06-29 - Long Cycle Stage 5 CHECK - Complete
+
+- Completed: static Pages validation now detects duplicate element IDs, broken local anchors including `href="#..."`, and missing practice-workbench structures.
+- Real risks fixed:
+  - Report section navigation, return-top links, topic anchors, and generated in-page links could previously point to missing IDs without failing CI.
+  - Duplicate IDs in generated pages could silently break navigation or active-section behavior.
+  - The Stage 4 training workbench could regress out of `practice-plan.html` while older broad content checks still passed.
+- Local verification:
+  - New checker tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 57 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Commit/push/CI: pending.
+- Risk: static validation still does not verify external CDN image availability.
+- Next stage: Stage 6 IMPROVE.

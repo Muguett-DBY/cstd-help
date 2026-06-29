@@ -1,5 +1,16 @@
 # Iteration Log
 
+## 2026-06-29 - Long Cycle Stage 5 CHECK
+
+- Goal: harden generated-site validation around anchors, duplicate IDs, report navigation, and practice-workbench links.
+- Completed: added duplicate-id detection, broken-anchor detection for both page-local and cross-page links, and stricter practice-plan workbench requirements in `scripts/check_public_site.py`.
+- Real risks fixed: broken section navigation anchors, repeated IDs, or missing practice workbench controls now fail local validation and CI before Cloudflare deployment.
+- Verified: new tests failed first, then 57-test suite, compileall, static site validation, gitleaks, diff check, and forbidden-file check all passed.
+- Commit: pending.
+- CI: pending.
+- Remaining risk: static validation checks local generated files only; external CDN hero image availability remains outside the gate.
+- Recommended next flagship change: add a compact export/share artifact for the training plan, such as a plain-text next-session checklist generated from the same evidence data.
+
 ## 2026-06-28 - Long Cycle Stage 4 IMPROVE
 
 - Carry-over: connect the training plan to pre-filtered evidence and action checkpoints.
