@@ -837,7 +837,20 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- Commit: pending.
-- Push / CI: pending.
+- Commit: `fix: harden support page validation` (`3e0e2a2`).
+- Push / CI: pushed to `origin/main`; GitHub Actions passed, `Deploy Cloudflare Pages` run `28370064631`.
+- Live check: `https://dota.custard.top/` returned 200 with history, practice-plan, and match-brief links; `https://dota.custard.top/match-brief.txt` returned 200 with latest `Legion Commander #8870219537`.
 - Risk: support-page classification still uses filename conventions for `trend-*.html`, which is acceptable for the current static site generator.
 - Next stage after CI closeout: Stage 6 IMPROVE.
+
+## 2026-06-29 - Long Cycle 2 Stage 5 CHECK - Complete
+
+- Completed stage: 5 / 6.
+- Type: CHECK.
+- Prompt: AGENT_CHECK_MAIN.txt.
+- Stage commit: `fix: harden support page validation` (`3e0e2a2`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28370064631`.
+- Production acceptance: custom domain still served the dashboard and text export after validator hardening.
+- Remaining risk: support-page classification still uses the `trend-*.html` filename convention.
+- Next stage: Stage 6 IMPROVE.

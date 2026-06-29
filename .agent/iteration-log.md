@@ -388,7 +388,8 @@
   - `python -m compileall -q .`: passed.
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: no leaks found.
-- GitHub Actions / CI: pending push.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28370064631`.
+- Live check: `https://dota.custard.top/` and `https://dota.custard.top/match-brief.txt` returned 200 with expected content.
 - Risks:
   - Topic pages are still identified by the `trend-*.html` filename convention.
 - Next best directions:
