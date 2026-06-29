@@ -419,3 +419,23 @@
   - Keep strict public-site validation for every support file and text export.
   - Continue using real STRATZ/OpenDota evidence in the report generator.
 - Recommended flagship next change: no urgent product gap remains in this 6-stage cycle; future work should focus on deeper match data ingestion rather than more summary UI.
+
+## 2026-06-30 - Long Cycle 3 Stage 1 IMPROVE
+
+- Goal: make minute-level lane diagnostics survive when regular minute arrays are missing but STRATZ playback CS events are available.
+- Completed: derived LH/min arrays from `playbackData.csEvents`, surfaced `STRATZ补刀事件` as the visible timeline source, and recorded the source in `data_quality.available`.
+- User-visible gain: reports can produce real 10-minute LH, phase LH/min, and low-efficiency windows from event evidence instead of showing a missing-data caveat.
+- Verification:
+  - New target tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 61 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+- GitHub Actions / CI: pending.
+- Risks:
+  - CS playback still only provides lane last-hit counts; it does not add gold/XP/damage arrays unless STRATZ also exposes those minute arrays.
+- Next best directions:
+  - Attach STRATZ position samples to death events so death findings can point to real map-location evidence.
+  - Expose death-event evidence more clearly in the report UI.
+  - Keep generated-site validation aware of newly exposed evidence-source labels.
+- Recommended flagship next change: enrich death events with nearest STRATZ position samples so coaching advice can target where deaths happened, not just when.

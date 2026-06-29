@@ -570,8 +570,51 @@ def _opendota_minute_stats(opendota_player):
     }
 
 
+def _stratz_playback_cs_minute_stats(stratz_player, duration_min):
+    playback = (stratz_player or {}).get("playbackData") or {}
+    events = playback.get("csEvents") or []
+    if not events:
+        return None
+    max_minute = max(int(duration_min or 0), 1)
+    event_minutes = []
+    for event in events:
+        if not isinstance(event, dict) or not isinstance(event.get("time"), (int, float)):
+            continue
+        minute = int(event["time"] // 60)
+        if minute < 0:
+            continue
+        event_minutes.append(minute)
+        max_minute = max(max_minute, minute + 1)
+    if not event_minutes:
+        return None
+    last_hits = [0] * max_minute
+    for minute in event_minutes:
+        last_hits[minute] += 1
+    return {
+        "lastHitsPerMinute": last_hits,
+        "deniesPerMinute": [],
+        "goldPerMinute": [],
+        "experiencePerMinute": [],
+        "heroDamagePerMinute": [],
+        "towerDamagePerMinute": [],
+        "source": "stratz_playback_cs",
+    }
+
+
+def _timeline_source_label(source):
+    labels = {
+        "opendota_parsed_logs": "OpenDota解析日志",
+        "stratz_stats": "STRATZ分钟数组",
+        "stratz_playback_cs": "STRATZ补刀事件",
+    }
+    if not source:
+        return ""
+    return " + ".join(labels.get(part, part) for part in source.split("+"))
+
+
 def _build_timeline(match_data, stratz_player, duration_min, opendota_player=None, role_profile=None):
     opendota_stats = _opendota_minute_stats(opendota_player)
+    playback_cs_stats = _stratz_playback_cs_minute_stats(stratz_player, duration_min)
     stats = (stratz_player or {}).get("stats") or {}
     stratz_normalized = {
         "lastHitsPerMinute": _as_number_list(stats.get("lastHitsPerMinute")),
@@ -594,6 +637,21 @@ def _build_timeline(match_data, stratz_player, duration_min, opendota_player=Non
         ]:
             normalized[key] = opendota_stats.get(key) or stratz_normalized.get(key) or []
             if not opendota_stats.get(key) and stratz_normalized.get(key) and "stratz_stats" not in source_parts:
+                source_parts.append("stratz_stats")
+        source = "+".join(source_parts)
+    elif playback_cs_stats and not stratz_normalized.get("lastHitsPerMinute"):
+        normalized = {}
+        source_parts = ["stratz_playback_cs"]
+        for key in [
+            "lastHitsPerMinute",
+            "deniesPerMinute",
+            "goldPerMinute",
+            "experiencePerMinute",
+            "heroDamagePerMinute",
+            "towerDamagePerMinute",
+        ]:
+            normalized[key] = playback_cs_stats.get(key) or stratz_normalized.get(key) or []
+            if not playback_cs_stats.get(key) and stratz_normalized.get(key) and "stratz_stats" not in source_parts:
                 source_parts.append("stratz_stats")
         source = "+".join(source_parts)
     else:
@@ -627,6 +685,7 @@ def _build_timeline(match_data, stratz_player, duration_min, opendota_player=Non
     return {
         "available": True,
         "source": source,
+        "source_label": _timeline_source_label(source),
         "duration_minutes_observed": len(lh_by_min),
         "ten_min_last_hits": int(_sum_slice(lh_by_min, 0, 10)),
         "twenty_min_last_hits": int(_sum_slice(lh_by_min, 0, 20)) if len(lh_by_min) >= 20 else None,
@@ -1414,6 +1473,8 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
         available.append("lane_timeline")
         if timeline.get("source") == "opendota_parsed_logs":
             available.append("opendota_parsed_logs")
+        if "stratz_playback_cs" in (timeline.get("source") or ""):
+            available.append("stratz_playback_cs")
         score += 12
     else:
         limitations.append("缺少10分钟补刀/经济时间线，不能评价对线期具体失误")

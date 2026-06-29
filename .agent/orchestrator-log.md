@@ -896,3 +896,39 @@ Started: 2026-06-28
 - Production acceptance: custom domain served the evidence-coverage strip and manifest counts matched the visible values.
 - Remaining risk: freshness values are static until the next Pages build.
 - Final state: all six requested stages are complete locally and deployed after CI.
+
+## 2026-06-30 - Long Cycle 3 - Global Preparation
+
+- Requested control file: `C:\Users\12031\Desktop\AGENT_ORCHESTRATOR_3_LEVELS_V2\03_LONG_6_STAGE_MAIN_V2.txt`.
+- Stage order: `IMPROVE -> IMPROVE -> UIUX -> IMPROVE -> CHECK -> IMPROVE`.
+- Prompt pack: `C:\Users\12031\Desktop\AGENT_PROMPTS_MAIN_PACK`; `AGENT_IMPROVE_MAIN.txt`, `AGENT_UIUX_MAIN.txt`, and `AGENT_CHECK_MAIN.txt` were readable.
+- Start state: `main`, clean worktree, `origin/main` up to date after `git fetch --prune` and `git pull --ff-only`.
+- CI workflow: `.github/workflows/deploy-pages.yml` runs Python dependency install, unit tests, compileall, static Pages validation, then Wrangler Pages deploy.
+- Project shape: Python static Dota review generator; no `package.json`; validation commands are Python/unit/static-site based.
+- Carry-over direction from the last iteration: no urgent summary-UI gap remained; future work should focus on deeper match data ingestion rather than more summary UI.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; stay on `main`; no force push; no branch creation.
+
+## 2026-06-30 - Long Cycle 3 Stage 1 IMPROVE - Start
+
+- Stage: 1 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: convert STRATZ playback `csEvents` into a deterministic minute-level lane timeline when regular minute arrays are missing.
+- Carry-over: this directly advances the deeper real-data ingestion direction from the prior cycle.
+- User-visible increment: reports can still show 10-minute last hits, phase LH/min, and low-efficiency windows from real playback CS events instead of falling back to missing-data caveats.
+- Start state: main at `chore: record stage 6 evidence deployment` (`f3e80e5`), clean worktree, origin/main up to date.
+
+## 2026-06-30 - Long Cycle 3 Stage 1 IMPROVE - Local Complete
+
+- Completed: added STRATZ playback `csEvents` lane-timeline derivation when OpenDota logs and STRATZ minute arrays do not include LH/min arrays.
+- User-visible increment: affected reports now show 10-minute LH, phase LH/min, low-efficiency windows, and a visible `时间线来源：STRATZ补刀事件` label from real playback events.
+- Data-quality increment: `data_quality.available` now records `stratz_playback_cs` when that evidence source powers the timeline.
+- Local verification:
+  - New target tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 61 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, and custom-domain acceptance for Stage 1.
