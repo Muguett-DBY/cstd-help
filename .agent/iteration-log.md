@@ -345,7 +345,8 @@
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: no leaks found.
   - Playwright CLI desktop/mobile screenshots rendered the command bar; local HTTP/static checks found 3 command links, 3 cards, and 3 anchors.
-- GitHub Actions / CI: pending push.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28369377149`.
+- Live check: `https://dota.custard.top/match-brief.html` returned 200 and contained the command bar, commitment anchors, and latest `Legion Commander #8870219537`.
 - Risks:
   - The command bar does not yet track the currently visible commitment while scrolling.
 - Next best directions:

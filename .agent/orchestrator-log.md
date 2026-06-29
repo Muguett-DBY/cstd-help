@@ -754,7 +754,20 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
   - Browser fallback QA: local `match-brief.html` returned 200 with 3 command links, 3 card anchors, and 3 cards; Playwright CLI desktop/mobile screenshots rendered the command bar without obvious overlap.
-- Commit: pending.
-- Push / CI: pending.
+- Commit: `feat: improve brief scan navigation` (`bfa8cca`).
+- Push / CI: pushed to `origin/main`; GitHub Actions passed, `Deploy Cloudflare Pages` run `28369377149`.
+- Live check: `https://dota.custard.top/match-brief.html` returned 200 and contained `brief-command-bar`, `赛前承诺导航`, `brief-commitment-3`, and latest `Legion Commander #8870219537` context.
 - Risk: command bar is static and does not highlight active scroll position yet.
 - Next stage after CI closeout: Stage 4 IMPROVE.
+
+## 2026-06-29 - Long Cycle 2 Stage 3 UIUX - Complete
+
+- Completed stage: 3 / 6.
+- Type: UIUX.
+- Prompt: AGENT_UIUX_MAIN.txt.
+- Stage commit: `feat: improve brief scan navigation` (`bfa8cca`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28369377149`.
+- Production acceptance: custom domain served the sticky scan navigation with three commitment anchors.
+- Remaining risk: the command bar does not track the currently visible commitment while scrolling.
+- Next stage: Stage 4 IMPROVE.
