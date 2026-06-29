@@ -1,5 +1,21 @@
 # Iteration Log
 
+## 2026-06-30 - Long Cycle 3 Stage 5 CHECK
+
+- Goal: prevent future generated report regressions where evidence-source coverage disappears but CI still passes.
+- Completed: added static-site validation for report evidence-source coverage and a regression test that fails on a report missing `证据来源与覆盖`.
+- Real issue fixed: `scripts/check_public_site.py` now rejects report pages missing source list hooks or required source rows for stats, timeline, purchases, deaths, and death positions.
+- Verification:
+  - New CHECK test failed before implementation, then passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 67 tests.
+  - `python -m compileall -q .`: passed.
+  - `gitleaks dir . --redact`: no leaks found.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28391396819`.
+- Live check: latest `Legion Commander #8870219537` report returned 200 with seven evidence-source rows.
+- Remaining risk: validator proves coverage is visible; analyzer tests remain responsible for semantic source-row correctness.
+- Recommended next flagship change: cross-reference deaths with low-efficiency windows so the report can show where deaths directly interrupted resource flow.
+
 ## 2026-06-30 - Long Cycle 3 Stage 4 IMPROVE
 
 - Goal: make every precise report claim auditable by showing source availability and coverage inside the match report.

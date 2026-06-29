@@ -1090,3 +1090,15 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 5 closeout log.
+
+## 2026-06-30 - Long Cycle 3 Stage 5 CHECK - Complete
+
+- Completed stage: 5 / 6.
+- Type: CHECK.
+- Prompt: AGENT_CHECK_MAIN.txt.
+- Stage commit: `fix: require report evidence coverage in static checks` (`c864f15`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28391396819`.
+- Production acceptance: latest `Legion Commander #8870219537` report returned 200 with `证据来源与覆盖`, seven evidence-source rows, and `覆盖 12/12 次已定位死亡`.
+- Remaining risk: the static validator checks visible evidence-source labels, not semantic correctness of every source row; semantic correctness is covered by analyzer tests.
+- Next stage: Stage 6 IMPROVE.
