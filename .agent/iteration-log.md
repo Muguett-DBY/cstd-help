@@ -474,7 +474,8 @@
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: no leaks found.
   - Browser QA passed at the default desktop viewport and 390x844 mobile viewport; event cards had no horizontal overflow and console logs were clean.
-- Deployment: pending commit, push, GitHub Actions, and live-domain acceptance.
+- Deployment: feature commit `2b87436` pushed; GitHub Actions run `28389527343` passed. The latest 10 real reports were then regenerated from cached playback evidence and staged for the public-site refresh.
+- Real-report review: latest `Legion Commander #8870219537` shows purchase timing, 10-minute LH, timeline provenance, and 12/12 located deaths; the visible event grid contains ten position-evidence cards without horizontal page overflow.
 - Risks:
   - Coordinates intentionally remain raw x/y samples until a verified Dota map transform is available.
 - Next best directions:

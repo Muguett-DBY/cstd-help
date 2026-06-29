@@ -1008,3 +1008,18 @@ Started: 2026-06-28
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
   - In-app browser QA: report title matched `Anti-Mage`; event navigation reached `#match-events`; two death cards rendered at desktop and 390x844 mobile widths; no horizontal page overflow or console errors.
 - Pending: commit, push, GitHub Actions, and custom-domain acceptance for Stage 3.
+
+## 2026-06-30 - Long Cycle 3 Stage 3 UIUX - Complete
+
+- Completed stage: 3 / 6.
+- Type: UIUX.
+- Prompt: AGENT_UIUX_MAIN.txt.
+- Stage commit: `feat: show death position evidence in reports` (`2b87436`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28389527343`.
+- Real-report refresh: regenerated the most recent 10 matches from cached STRATZ/OpenDota evidence after live STRATZ requests were blocked by Cloudflare; rebuilt `public/` from only those 10 new reports.
+- Real-report acceptance: latest `Legion Commander #8870219537` contains 12 located deaths, ten visible death evidence cards, purchase timing, 10-minute last hits, and a visible timeline-source label; report title is hero-first.
+- Browser acceptance: latest real report loaded with the correct title, event anchor, 10 position labels, no page-level horizontal overflow, and no console errors.
+- Public corpus: `site-manifest.json` remains report_count=10 with latest `Legion Commander #8870219537`.
+- Remaining risk: live STRATZ refresh is Cloudflare-blocked in this environment, so the rebuild used the already cached real playback payloads; map-region names remain intentionally uninferred.
+- Next stage: Stage 4 IMPROVE.
