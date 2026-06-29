@@ -9,6 +9,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import urlencode
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,6 +51,11 @@ FOCUS_TAXONOMY = (
         "aliases": ("视野/控图", "视野与控图", "视野控图", "地图视野"),
     },
 )
+
+
+def _write_utf8(path, text):
+    normalized = str(text).replace("\r\n", "\n").replace("\r", "\n")
+    Path(path).write_bytes(normalized.encode("utf-8"))
 
 
 class ReportMetadataParser(HTMLParser):
@@ -390,6 +396,106 @@ def _topic_page_filename(topic_id):
     return f"trend-{token}.html"
 
 
+def _practice_token(value, fallback):
+    token = re.sub(r"[^a-zA-Z0-9_-]+", "-", str(value or "")).strip("-")
+    return token or fallback
+
+
+def _filtered_topic_href(topic_page, **params):
+    clean_params = {key: value for key, value in params.items() if value}
+    if not clean_params:
+        return topic_page
+    return f"{topic_page}?{urlencode(clean_params)}"
+
+
+def _trend_result_counts(trend):
+    counts = {"win": 0, "lose": 0, "unknown": 0}
+    for finding in trend.get("findings") or []:
+        result = finding.get("result") if finding.get("result") in counts else "unknown"
+        counts[result] += 1
+    if not any(counts.values()):
+        for example in trend.get("examples") or []:
+            result = example.get("result") if example.get("result") in counts else "unknown"
+            counts[result] += 1
+    return counts
+
+
+def _primary_trend_hero(trend):
+    hero_counts = defaultdict(int)
+    for finding in trend.get("findings") or []:
+        hero = finding.get("hero")
+        if hero:
+            hero_counts[str(hero)] += 1
+    if hero_counts:
+        return sorted(hero_counts.items(), key=lambda item: (-item[1], item[0]))[0][0]
+    heroes = trend.get("heroes") or []
+    return str(heroes[0]) if heroes else ""
+
+
+def _render_practice_evidence_links(trend, topic_page):
+    counts = _trend_result_counts(trend)
+    primary_hero = _primary_trend_hero(trend)
+    links = [
+        (
+            "失败证据",
+            counts["lose"],
+            _filtered_topic_href(topic_page, result="lose"),
+        ),
+        (
+            "胜利样本",
+            counts["win"],
+            _filtered_topic_href(topic_page, result="win"),
+        ),
+    ]
+    if primary_hero:
+        links.append((
+            f"{primary_hero} 专项",
+            None,
+            _filtered_topic_href(topic_page, hero=primary_hero),
+        ))
+    rendered = []
+    for label, count, href in links:
+        text = label if count is None else f"{label} {count}"
+        rendered.append(f'<a href="{html.escape(href, quote=True)}">{html.escape(text)}</a>')
+    return (
+        '<div class="practice-evidence-links" aria-label="训练证据入口">'
+        f'{"".join(rendered)}'
+        '</div>'
+    )
+
+
+def _render_practice_checklist(trend, index):
+    token = _practice_token(trend.get("topic_id"), f"topic-{index}")
+    focus = trend.get("focus") or "需要查看报告"
+    action = trend.get("next_action") or "打开报告查看下一局行动清单。"
+    metric = trend.get("success_metric") or "以报告内验收标准为准。"
+    checkpoints = (
+        ("赛前锁定", f"本局只盯一个主题：{focus}。"),
+        ("对局中执行", action),
+        ("赛后验收", metric),
+    )
+    items = []
+    for item_index, (label, text) in enumerate(checkpoints, start=1):
+        check_id = f"practice-{token}-{item_index}"
+        check_key = f"{token}:{item_index}"
+        items.append(
+            '<label class="practice-check-item">'
+            f'<input id="{html.escape(check_id, quote=True)}" type="checkbox" '
+            f'data-practice-check="{html.escape(check_key, quote=True)}">'
+            f'<span><strong>{html.escape(label)}</strong>{html.escape(text)}</span>'
+            '</label>'
+        )
+    return (
+        '<section class="practice-checklist" aria-label="下一局检查点">'
+        '<div class="practice-checklist-head">'
+        '<strong>下一局检查点</strong>'
+        '<span data-practice-progress>0 / 3</span>'
+        '</div>'
+        f'{"".join(items)}'
+        '</section>'
+    )
+
+
 def _count_report_findings(reports):
     total = 0
     for report in reports:
@@ -592,12 +698,15 @@ def _render_practice_plan(trends, reports, output_path, manifest=None):
         action = html.escape(trend.get("next_action") or "打开报告查看下一局行动清单。")
         metric = html.escape(trend.get("success_metric") or "以报告内验收标准为准。")
         source_focuses = trend.get("source_focuses") or []
-        topic_page = html.escape(trend.get("page") or "index.html", quote=True)
+        topic_page_raw = trend.get("page") or "index.html"
+        topic_page = html.escape(topic_page_raw, quote=True)
         taxonomy_note = (
             f' <span class="taxonomy-note">已归并 {len(source_focuses)} 种等价标签</span>'
             if len(source_focuses) > 1 else ""
         )
         heroes = "、".join(html.escape(hero) for hero in trend.get("heroes", [])[:5])
+        evidence_links = _render_practice_evidence_links(trend, topic_page_raw)
+        checklist = _render_practice_checklist(trend, index)
         examples = []
         for example in trend.get("examples", [])[:3]:
             file_name = html.escape(example.get("file") or "#", quote=True)
@@ -607,7 +716,7 @@ def _render_practice_plan(trends, reports, output_path, manifest=None):
         example_html = " ".join(examples) if examples else '<span class="missing-value">暂无样本</span>'
         cards.append(
             f"""
-            <article class="practice-card">
+            <article class="practice-card" data-practice-card data-priority="{priority_class}" data-practice-state="todo">
                 <div class="practice-rank">第 {index} 优先级</div>
                 <div class="practice-main">
                     <div class="practice-title-row">
@@ -617,6 +726,8 @@ def _render_practice_plan(trends, reports, output_path, manifest=None):
                     <p class="practice-meta">{html.escape(str(trend.get('count') or 0))} 局出现 · {html.escape(str(trend.get('finding_count') or trend.get('count') or 0))} 条证据 · 涉及英雄：{heroes or "未知"}{taxonomy_note}</p>
                     <div class="practice-action"><strong>下一局动作</strong><span>{action}</span></div>
                     <div class="practice-action"><strong>验收标准</strong><span>{metric}</span></div>
+                    {evidence_links}
+                    {checklist}
                     <div class="trend-examples">{example_html}</div>
                 </div>
             </article>
@@ -659,14 +770,131 @@ def _render_practice_plan(trends, reports, output_path, manifest=None):
         <a class="primary-link" href="{newest_link}">打开最新复盘</a>
     </header>
     {coverage_panel}
+    <section class="practice-workbench" aria-label="训练任务工作台">
+        <div class="practice-workbench-head">
+            <div>
+                <h2>训练任务工作台</h2>
+                <p>先看失败证据，下一局只执行当前主题检查点，赛后再用验收标准复盘。</p>
+            </div>
+            <strong><span data-practice-visible-count>{len(cards)}</span> / {len(cards)} 项任务</strong>
+        </div>
+        <div class="practice-filter-row" role="group" aria-label="筛选训练任务">
+            <button type="button" class="filter-button active" data-practice-filter="all" aria-pressed="true">全部任务</button>
+            <button type="button" class="filter-button" data-practice-filter="high" aria-pressed="false">只看高优先级</button>
+            <button type="button" class="filter-button" data-practice-filter="todo" aria-pressed="false">未完成</button>
+            <button type="button" class="filter-button" data-practice-filter="done" aria-pressed="false">已完成</button>
+        </div>
+    </section>
     <main class="practice-list" aria-label="下一次训练计划">
         {plan_cards}
     </main>
+    <div class="topic-empty-state" data-practice-empty hidden>
+        <strong>没有符合当前筛选的训练任务</strong>
+        <span>切回全部任务，或完成更多比赛复盘后重新生成。</span>
+    </div>
 {other_topics_block}</div>
+<script>
+(function setupPracticeWorkbench() {{
+    const storageKey = 'dota-practice-checks:v1';
+    const cards = Array.from(document.querySelectorAll('[data-practice-card]'));
+    const checks = Array.from(document.querySelectorAll('[data-practice-check]'));
+    const filterButtons = Array.from(document.querySelectorAll('[data-practice-filter]'));
+    const countLabel = document.querySelector('[data-practice-visible-count]');
+    const emptyState = document.querySelector('[data-practice-empty]');
+    const allowedFilters = new Set(['all', 'high', 'todo', 'done']);
+    const params = new URLSearchParams(window.location.search);
+    let selectedFilter = allowedFilters.has(params.get('practice')) ? params.get('practice') : 'all';
+
+    function readState() {{
+        try {{
+            return JSON.parse(localStorage.getItem(storageKey) || '{{}}');
+        }} catch (error) {{
+            return {{}};
+        }}
+    }}
+
+    function writeState(state) {{
+        try {{
+            localStorage.setItem(storageKey, JSON.stringify(state));
+        }} catch (error) {{
+            return;
+        }}
+    }}
+
+    let checkState = readState();
+
+    function syncPracticeUrl() {{
+        const nextParams = new URLSearchParams(window.location.search);
+        if (selectedFilter === 'all') {{
+            nextParams.delete('practice');
+        }} else {{
+            nextParams.set('practice', selectedFilter);
+        }}
+        const nextQuery = nextParams.toString();
+        const nextUrl = nextQuery ? `${{window.location.pathname}}?${{nextQuery}}` : window.location.pathname;
+        history.replaceState(null, '', nextUrl);
+    }}
+
+    function updateCardState(card) {{
+        const cardChecks = Array.from(card.querySelectorAll('[data-practice-check]'));
+        const done = cardChecks.filter((check) => check.checked).length;
+        const total = cardChecks.length;
+        const state = total > 0 && done === total ? 'done' : done > 0 ? 'todo' : 'todo';
+        card.dataset.practiceState = state;
+        const progress = card.querySelector('[data-practice-progress]');
+        if (progress) progress.textContent = `${{done}} / ${{total}}`;
+    }}
+
+    function cardMatches(card) {{
+        if (selectedFilter === 'high') return card.dataset.priority === 'high';
+        if (selectedFilter === 'done') return card.dataset.practiceState === 'done';
+        if (selectedFilter === 'todo') return card.dataset.practiceState !== 'done';
+        return true;
+    }}
+
+    function applyPracticeFilter(options = {{}}) {{
+        let visible = 0;
+        cards.forEach((card) => {{
+            updateCardState(card);
+            const shouldShow = cardMatches(card);
+            card.hidden = !shouldShow;
+            if (shouldShow) visible += 1;
+        }});
+        filterButtons.forEach((button) => {{
+            const isActive = button.dataset.practiceFilter === selectedFilter;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+        }});
+        if (countLabel) countLabel.textContent = String(visible);
+        if (emptyState) emptyState.hidden = visible !== 0;
+        if (options.syncUrl !== false) syncPracticeUrl();
+    }}
+
+    checks.forEach((check) => {{
+        const key = check.dataset.practiceCheck;
+        check.checked = Boolean(checkState[key]);
+        check.addEventListener('change', () => {{
+            checkState = readState();
+            checkState[key] = check.checked;
+            writeState(checkState);
+            applyPracticeFilter();
+        }});
+    }});
+
+    filterButtons.forEach((button) => {{
+        button.addEventListener('click', () => {{
+            selectedFilter = allowedFilters.has(button.dataset.practiceFilter) ? button.dataset.practiceFilter : 'all';
+            applyPracticeFilter();
+        }});
+    }});
+
+    applyPracticeFilter({{ syncUrl: false }});
+}})();
+</script>
 </body>
 </html>
 """
-    output_path.write_text(plan_html, encoding="utf-8")
+    _write_utf8(output_path, plan_html)
 
 
 def _render_topic_pages(trends, public_dir):
@@ -874,7 +1102,7 @@ def _render_topic_pages(trends, public_dir):
 </body>
 </html>
 """
-        (public_dir / trend["page"]).write_text(page_html, encoding="utf-8")
+        _write_utf8(public_dir / trend["page"], page_html)
 
 
 def _write_focus_trends_json(trends, output_path):
@@ -884,11 +1112,11 @@ def _write_focus_trends_json(trends, output_path):
         "generated_from": "report_findings",
         "trends": trends,
     }
-    output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    _write_utf8(output_path, json.dumps(payload, ensure_ascii=False, indent=2))
 
 
 def _write_site_manifest_json(manifest, output_path):
-    output_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    _write_utf8(output_path, json.dumps(manifest, ensure_ascii=False, indent=2))
 
 
 REPORT_SECTION_NAV_ITEMS = (
@@ -1050,7 +1278,7 @@ def _inject_report_navigation(public_dir, reports):
         else:
             text = text.replace("<body>", f"<body>\n{neighbors}", 1)
         text = _ensure_report_section_navigation(text)
-        path.write_text(text, encoding="utf-8")
+        _write_utf8(path, text)
 
 
 def _report_sort_key(report):
@@ -1341,7 +1569,7 @@ applyMatchFilters();
 </body>
 </html>
 """
-    output_path.write_text(index_html, encoding="utf-8")
+    _write_utf8(output_path, index_html)
 
 
 def build_pages_site(source, public_dir=PUBLIC_DIR):

@@ -1,5 +1,17 @@
 # Iteration Log
 
+## 2026-06-28 - Long Cycle Stage 4 IMPROVE
+
+- Carry-over: connect the training plan to pre-filtered evidence and action checkpoints.
+- Completed: upgraded `practice-plan.html` into a training task workbench with state filters, local checkbox progress, per-topic next-game checkpoints, and evidence links for failure cases, winning samples, and the primary hero.
+- User-visible gain: the player can move from "what to train" directly to filtered proof games and use the same page as a next-game execution checklist.
+- Real issues fixed: practice tasks no longer point only to three example matches, and generated Pages files now use LF newlines on Windows so unchanged artifacts do not stay dirty after builds.
+- Verified: target tests, 55-test suite, compileall, static site validation, gitleaks, diff check, desktop task/checklist persistence, pre-filtered evidence jump, mobile 390px rendering, and zero browser console errors.
+- Commit: pending.
+- CI: pending.
+- Remaining risk: checklist progress is local to one browser because the site is static.
+- Recommended next flagship CHECK item: harden generated-site validation around broken anchors, duplicate IDs, report navigation targets, and practice-workbench links so static regressions fail before deploy.
+
 ## 2026-06-28 - Long Cycle Stage 3 UIUX
 
 - Carry-over: long report pages had high-quality evidence but were slow to navigate during an actual replay review session.

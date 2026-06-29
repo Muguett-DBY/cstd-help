@@ -524,3 +524,37 @@ Started: 2026-06-28
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28321347459`.
 - Risk: section navigation is static HTML/JS, so future generated report sections need matching IDs to appear in the rail.
 - Next stage: Stage 4 IMPROVE.
+
+## 2026-06-28 - Long Cycle Stage 4 IMPROVE - Start
+
+- Stage: 4 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: connect the generated training plan to pre-filtered evidence and per-topic action checkpoints so the player can move from "what to train" to "which games prove it" and "what to execute next game".
+- Carry-over: Stage 3 recommended connecting the training plan more directly to pre-filtered evidence and action checkpoints.
+- Start state: main at `chore: record stage 3 navigation deployment` (`2935277`), Stage 3 closeout CI passed in run `28321377046`, clean worktree.
+- Constraints: do not touch Docker; do not edit AGENTS.md; no force push or branch changes; no new frontend dependency.
+
+## 2026-06-28 - Long Cycle Stage 4 IMPROVE - Complete
+
+- Completed: `practice-plan.html` is now a training task workbench with URL-filtered task states, local checkbox progress, per-topic next-game checkpoints, and evidence links that open topic pages pre-filtered by result or hero.
+- User-visible increment: the player can jump from a training task directly into `?result=lose` failure evidence, compare `?result=win` samples, and track whether the next-game checklist is done without leaving the static site.
+- Real issues fixed:
+  - The previous plan linked only example matches, so it did not connect the training task to the complete evidence archive or filtered failure cases.
+  - Generated Pages files now write UTF-8 with LF newlines, avoiding Windows CRLF churn that made unchanged public artifacts appear dirty after each build.
+  - A source/output mix-up during generation was recovered by restoring generated public files and rebuilding from a separate 10-report staging source; no Docker or protected files were touched.
+- Browser verification:
+  - Desktop: 4 task cards, 12 checks, 4 loss-evidence links, `done` filter persisted as `?practice=done`, 3/3 progress survived reload, and console errors were zero.
+  - Evidence jump: `trend-death-cost.html?result=lose` opened with `只看失败` active and 6 / 10 evidence cards visible.
+  - Mobile 390px: `?practice=todo` rendered 3 visible unfinished cards after one completed card, document width matched viewport width, and console errors were zero.
+- Local verification:
+  - Target practice-plan tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 55 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Commit/push/CI: pending.
+- Risk: checklist progress uses browser localStorage, so it is intentionally per-browser and not synced across devices.
+- Next stage: Stage 5 CHECK.
