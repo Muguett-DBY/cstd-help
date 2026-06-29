@@ -367,7 +367,8 @@
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: no leaks found.
   - Manual output review confirmed `public/match-brief.txt` contains latest `Legion Commander #8870219537`, three commitments, and win/loss evidence.
-- GitHub Actions / CI: pending push.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28369747011`.
+- Live check: `https://dota.custard.top/match-brief.html` linked the export, and `https://dota.custard.top/match-brief.txt` returned 200 with latest match context and failure evidence.
 - Risks:
   - The text export is static at build time and does not reflect browser-local checklist state.
 - Next best directions:

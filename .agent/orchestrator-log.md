@@ -796,7 +796,20 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
   - Manual output review: `public/match-brief.txt` contains `Legion Commander #8870219537`, three commitments, failure evidence, and winning-sample evidence.
-- Commit: pending.
-- Push / CI: pending.
+- Commit: `feat: add brief text export` (`12d001a`).
+- Push / CI: pushed to `origin/main`; GitHub Actions passed, `Deploy Cloudflare Pages` run `28369747011`.
+- Live check: `https://dota.custard.top/match-brief.html` linked `match-brief.txt`; `https://dota.custard.top/match-brief.txt` returned 200 and contained latest `Legion Commander #8870219537`, `承诺 1：死亡成本`, and failure evidence links.
 - Risk: text export is build-time static and does not include browser-local checklist state.
 - Next stage after CI closeout: Stage 5 CHECK.
+
+## 2026-06-29 - Long Cycle 2 Stage 4 IMPROVE - Complete
+
+- Completed stage: 4 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: add brief text export` (`12d001a`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28369747011`.
+- Production acceptance: custom domain served both the HTML execution card and the text export.
+- Remaining risk: the text export is static at build time and does not include browser-local checklist state.
+- Next stage: Stage 5 CHECK.
