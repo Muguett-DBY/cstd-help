@@ -176,6 +176,7 @@ def _find_unresolved_item_references(public_dir=PUBLIC_DIR):
 def main():
     index_path = PUBLIC_DIR / "index.html"
     practice_path = PUBLIC_DIR / "practice-plan.html"
+    practice_text_path = PUBLIC_DIR / "practice-plan.txt"
     trends_path = PUBLIC_DIR / "review-trends.json"
     manifest_path = PUBLIC_DIR / "site-manifest.json"
     style_path = PUBLIC_DIR / "static" / "style.css"
@@ -183,6 +184,8 @@ def main():
         raise SystemExit("public/index.html is missing")
     if not practice_path.exists():
         raise SystemExit("public/practice-plan.html is missing")
+    if not practice_text_path.exists():
+        raise SystemExit("public/practice-plan.txt is missing")
     if not trends_path.exists():
         raise SystemExit("public/review-trends.json is missing")
     if not manifest_path.exists():
@@ -328,6 +331,10 @@ def main():
     ):
         if required not in practice_html:
             raise SystemExit(f"practice plan page is missing required content: {required}")
+    practice_text = practice_text_path.read_text(encoding="utf-8")
+    for required in ("Dota 2 下一局训练清单", "玩家 173776719", "失败证据：", "胜利样本：", "检查点："):
+        if required not in practice_text:
+            raise SystemExit(f"practice plan text export is missing required content: {required}")
 
     if site_manifest["report_count"] != len(reports):
         raise SystemExit("site manifest report_count does not match generated reports")
