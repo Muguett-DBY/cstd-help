@@ -13,7 +13,7 @@
 
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
-<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 18 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Anti-Mage_8866000193_20260630_091312.html"><span class="neighbor-label">上一局（更新）</span><strong>Anti-Mage #8866000193</strong><small>胜利 · 高优先级 · 前10分钟资源</small></a><span class="neighbor-card disabled"><span class="neighbor-label">下一局（更早）</span><strong>没有相邻比赛</strong><small>当前已经是这一侧的边界。</small></span></div></nav>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 18 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Anti-Mage_8866000193_20260630_094730.html"><span class="neighbor-label">上一局（更新）</span><strong>Anti-Mage #8866000193</strong><small>胜利 · 高优先级 · 前10分钟资源</small></a><span class="neighbor-card disabled"><span class="neighbor-label">下一局（更早）</span><strong>没有相邻比赛</strong><small>当前已经是这一侧的边界。</small></span></div></nav>
         <h1>Meepo 复盘报告</h1>
         <div class="subtitle">比赛ID: 8865878802 | 结束于 2026-06-26 01:14 | 时长 70.3分钟</div>
         <div class="result-badge lose">失败</div>
@@ -91,9 +91,9 @@
                 </div>
 
                 <div class="goal-row">
-                    <div class="goal-title">死亡前后资源变化</div>
-                    <div class="goal-body"><strong>训练目标:</strong> 下一局把死亡前后资源明显下降窗口从4个压到最多1个。</div>
-                    <div class="goal-body muted"><strong>验收标准:</strong> 死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。</div>
+                    <div class="goal-title">重复死亡坐标</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> 重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。</div>
                 </div>
 
             </div>
@@ -144,14 +144,14 @@
                 <div class="finding-line muted"><strong>系统检查:</strong> 系统已定位的死亡分钟优先检查装备冷却、队友距离、敌方控制威胁和撤退路线。 位置采样: 9.0分 x=80,y=168（死亡时）；23.7分 x=138,y=128（死亡时）；38.9分 x=100,y=122（死亡前6秒）；41.6分 x=148,y=164（死亡前2秒）；53.4分 x=102,y=76（死亡前4秒）；58.9分 x=118,y=146（死亡时）；优先确认是否在无视野高坡、带线深处或队友脱节位置。 连续死亡簇: 38.9-41.6分钟、69.4-69.7分钟。</div>
             </div>
 
-            <div class="finding-card high">
-                <div class="finding-title">高优先级 · 死亡前后资源变化</div>
-                <div class="finding-line"><strong>证据:</strong> 死亡前后资源下降窗口: 23.7分死亡前后：补刀/分 15.7→6.7（-9.0），平均GPM 687.0→957.0（+270.0）（20-23分钟→24-27分钟）；38.9分死亡前后：补刀/分 17.7→4.7（-13.0），平均GPM 1096.0→842.7（-253.3）（35-38分钟→39-42分钟）；53.4分死亡前后：补刀/分 18.3→13.0（-5.3），平均GPM 1535.7→535.3（-1000.4）（50-53分钟→54-57分钟）；58.9分死亡前后：补刀/分 20.0→13.7（-6.3），平均GPM 915.7→1275.0（+359.3）（55-58分钟→59-62分钟）。</div>
-                <div class="finding-line"><strong>影响:</strong> 死亡相邻阶段的补刀或经济节奏明显下滑，会让一次阵亡继续影响下一段刷钱、守塔或控图节奏。</div>
-                <div class="finding-line"><strong>行动:</strong> 下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。</div>
-                <div class="finding-line"><strong>训练目标:</strong> 下一局把死亡前后资源明显下降窗口从4个压到最多1个。</div>
-                <div class="finding-line"><strong>验收标准:</strong> 死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。</div>
-                <div class="finding-line muted"><strong>系统检查:</strong> 系统只比较死亡前后真实分钟数组，不判断死亡原因；逐一回看这些窗口的复活路径、TP落点、是否空走等人、是否重复进入无视野区域。</div>
+            <div class="finding-card medium">
+                <div class="finding-title">中优先级 · 重复死亡坐标</div>
+                <div class="finding-line"><strong>证据:</strong> 重复死亡坐标簇: 23.7、69.4、69.7分重复死亡坐标簇，中心x=145.3,y=130.7，样本3次。</div>
+                <div class="finding-line"><strong>影响:</strong> 同一 raw 坐标附近重复死亡，说明至少有一个可回放复查的高风险场景在反复出现。</div>
+                <div class="finding-line"><strong>行动:</strong> 下一局每次进入这些重复坐标对应的回放场景前，先确认三个条件：队友能否接应、敌方关键控制是否露头、自己是否有明确撤退路线；任一条件缺失就先退回安全资源点。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。</div>
+                <div class="finding-line"><strong>验收标准:</strong> 重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> 系统只按 STRATZ raw x/y 距离聚类，不转换成地图区域名；需要回放确认这些点对应的入口、线口、目标区或高低坡。</div>
             </div>
 
         </div>
@@ -597,6 +597,10 @@
                         <strong>8</strong>
                         <span>坐标点</span>
                     </div>
+                    <div class="death-review-metric">
+                        <strong>1</strong>
+                        <span>重复簇</span>
+                    </div>
                 </div>
                 <div class="death-review-body">
 
@@ -672,6 +676,11 @@
                     <line class="death-coordinate-axis" x1="127.5" y1="0" x2="127.5" y2="255"></line>
                     <line class="death-coordinate-axis" x1="0" y1="127.5" x2="255" y2="127.5"></line>
 
+                    <circle class="death-coordinate-cluster-ring" cx="145.3" cy="124.30000000000001" r="14">
+                        <title>23.7、69.4、69.7分重复死亡坐标簇，中心x=145.3,y=130.7，样本3次</title>
+                    </circle>
+
+
                     <circle class="death-coordinate-point" cx="80" cy="87" r="6" data-minute="9.0">
                         <title>9.0分 x=80,y=168</title>
                     </circle>
@@ -724,6 +733,18 @@
                     <span class="death-coordinate-chip" data-minute="69.7">69.7分 x=152,y=128</span>
 
                 </div>
+
+                <div class="death-coordinate-clusters">
+                    <div class="death-coordinate-cluster-title">重复死亡坐标簇</div>
+                    <div class="death-coordinate-note">只按 STRATZ 原始x/y距离聚类；不生成地图区域名，具体入口/线口/目标区需要回放确认。</div>
+
+                    <div class="death-coordinate-cluster-row">
+                        <strong>23.7、69.4、69.7分重复死亡坐标簇，中心x=145.3,y=130.7，样本3次</strong>
+                        <span>原始样本：23.7分 x=138,y=128；69.4分 x=146,y=136；69.7分 x=152,y=128</span>
+                    </div>
+
+                </div>
+
             </div>
 
 
@@ -757,7 +778,7 @@
             </div>
 
             <div class="compact-row">
-                <strong>死亡前后资源变化</strong>：死亡前后资源下降窗口: 23.7分死亡前后：补刀/分 15.7→6.7（-9.0），平均GPM 687.0→957.0（+270.0）（20-23分钟→24-27分钟）；38.9分死亡前后：补刀/分 17.7→4.7（-13.0），平均GPM 1096.0→842.7（-253.3）（35-38分钟→39-42分钟）；53.4分死亡前后：补刀/分 18.3→13.0（-5.3），平均GPM 1535.7→535.3（-1000.4）（50-53分钟→54-57分钟）；58.9分死亡前后：补刀/分 20.0→13.7（-6.3），平均GPM 915.7→1275.0（+359.3）（55-58分钟→59-62分钟）。 死亡相邻阶段的补刀或经济节奏明显下滑，会让一次阵亡继续影响下一段刷钱、守塔或控图节奏。
+                <strong>重复死亡坐标</strong>：重复死亡坐标簇: 23.7、69.4、69.7分重复死亡坐标簇，中心x=145.3,y=130.7，样本3次。 同一 raw 坐标附近重复死亡，说明至少有一个可回放复查的高风险场景在反复出现。
             </div>
 
         </div>
@@ -813,7 +834,7 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 09:13:12
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 09:47:31
     </div>
 
 </div>

@@ -1419,3 +1419,35 @@ Started: 2026-06-28
   - Death-adjacent deltas are exact adjacent resource comparisons, not causal labels.
   - Public reports are static until the next fetch/build/deploy cycle.
 - Recommended next flagship change: add a verified Dota map coordinate transform and objective-event overlays before giving named-map-region death advice.
+
+## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Start
+
+- Stage: 1 / 2.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Goal: advance the map-position evidence direction without inventing named map regions by detecting repeated death coordinate clusters from real STRATZ x/y samples and turning them into visible report evidence plus coach findings.
+- Carry-over: previous recommended flagship change was a verified Dota map coordinate transform and objective overlays; this stage takes the safe first step by making repeated raw-coordinate danger patterns auditable before any region naming.
+- User-visible increment: reports should show repeated death coordinate clusters on top of the existing death coordinate map, with exact minutes and raw centers.
+- Start state: main at `chore: record stage 6 delta deployment` (`d3e4a32`), clean worktree, `git pull --ff-only` already up to date.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; do not infer death causes or named map regions from raw x/y coordinates.
+
+## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Local Complete
+
+- Completed: added deterministic repeated death coordinate clustering from real STRATZ raw x/y death-position samples.
+- Report UI: the death coordinate map now draws cluster rings, adds a `重复死亡坐标簇` evidence block, and exposes a fourth workbench count for repeated clusters.
+- Coaching findings: added `重复死亡坐标` findings with exact minutes, raw cluster centers, sample count, and an explicit caveat that the system does not convert raw coordinates into map-region names.
+- Public refresh: regenerated 18 reports from real STRATZ details and rebuilt `public/`.
+- Real-report acceptance: latest `Legion Commander #8870219537` report `Legion_Commander_8870219537_20260630_094728.html` shows two repeated coordinate clusters: `22.7、33.8分` centered at `x=137.0,y=129.0`, and `25.3、43.5分` centered at `x=125.0,y=72.0`.
+- Site-level acceptance: `review-trends.json` now has a `重复死亡坐标` topic with 14 reports/findings, and the training plan includes the new topic.
+- Browser verification:
+  - Desktop history/report/topic/practice pages: no duplicate IDs, no horizontal overflow, no console warnings/errors.
+  - Mobile 390x844 latest report/practice plan: repeated cluster rows are readable, no horizontal overflow, no console warnings/errors.
+- Local verification:
+  - New target tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 83 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 1 closeout log.

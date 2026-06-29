@@ -346,6 +346,10 @@
                         <strong>{{ events.death_map_points|length if events.death_map_points else 0 }}</strong>
                         <span>坐标点</span>
                     </div>
+                    <div class="death-review-metric">
+                        <strong>{{ events.death_position_clusters|length if events.death_position_clusters else 0 }}</strong>
+                        <span>重复簇</span>
+                    </div>
                 </div>
                 <div class="death-review-body">
             {% endif %}
@@ -373,6 +377,11 @@
                     <rect class="death-coordinate-bg" x="0" y="0" width="255" height="255" rx="8"></rect>
                     <line class="death-coordinate-axis" x1="127.5" y1="0" x2="127.5" y2="255"></line>
                     <line class="death-coordinate-axis" x1="0" y1="127.5" x2="255" y2="127.5"></line>
+                    {% for cluster in events.death_position_clusters[:6] %}
+                    <circle class="death-coordinate-cluster-ring" cx="{{ cluster.plot_x }}" cy="{{ cluster.plot_y }}" r="{{ cluster.radius }}">
+                        <title>{{ cluster.evidence_label }}</title>
+                    </circle>
+                    {% endfor %}
                     {% for point in events.death_map_points[:12] %}
                     <circle class="death-coordinate-point" cx="{{ point.plot_x }}" cy="{{ point.plot_y }}" r="6" data-minute="{{ point.minute }}">
                         <title>{{ point.label }}</title>
@@ -384,6 +393,18 @@
                     <span class="death-coordinate-chip" data-minute="{{ point.minute }}">{{ point.label }}</span>
                     {% endfor %}
                 </div>
+                {% if events.death_position_clusters %}
+                <div class="death-coordinate-clusters">
+                    <div class="death-coordinate-cluster-title">重复死亡坐标簇</div>
+                    <div class="death-coordinate-note">只按 STRATZ 原始x/y距离聚类；不生成地图区域名，具体入口/线口/目标区需要回放确认。</div>
+                    {% for cluster in events.death_position_clusters[:6] %}
+                    <div class="death-coordinate-cluster-row">
+                        <strong>{{ cluster.evidence_label }}</strong>
+                        <span>原始样本：{{ cluster.points|join("；") }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
             {% endif %}
             {% else %}

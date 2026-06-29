@@ -1,5 +1,23 @@
 # Iteration Log
 
+## 2026-06-30 - Short Cycle Stage 1 IMPROVE
+
+- Goal: advance the map-position evidence direction without inventing named map regions by detecting repeated death coordinate clusters from real STRATZ raw x/y samples.
+- Completed: added `events.death_position_clusters`, visible `重复死亡坐标簇` rows/rings on the death coordinate map, and `重复死亡坐标` findings with exact minutes, raw centers, and sample counts.
+- User-visible gain: latest `Legion Commander #8870219537` now shows two repeated coordinate clusters, including `22.7、33.8分` at center `x=137.0,y=129.0` and `25.3、43.5分` at center `x=125.0,y=72.0`.
+- Real issue fixed: the map section no longer leaves the player to manually infer repeated danger spots from a raw list of x/y chips; repeated raw-coordinate patterns are surfaced directly while still requiring replay confirmation.
+- Verification:
+  - New target tests failed before implementation, then passed.
+  - `python main.py --skip-fetch --recent 18 --force`: regenerated 18 reports from real STRATZ details.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 83 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser desktop/mobile QA passed with no overflow, no duplicate IDs, and no console errors.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Remaining risk: repeated clusters are raw-coordinate evidence only; they still do not name map regions or infer death causes without replay confirmation.
+- Next UIUX direction: make the report's long evidence pages faster to scan by upgrading the death/event evidence area with a clearer sticky/segmented evidence workspace and better mobile jump behavior.
+
 ## 2026-06-30 - Long Cycle 4 Stage 6 IMPROVE
 
 - Goal: compare each real death's pre-death and post-death resource pace so the report can coach recovery behavior from observed minute arrays, not inference.

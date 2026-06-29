@@ -3,8 +3,8 @@
   "source": "generated_public_reports",
   "player_id": "173776719",
   "report_count": 18,
-  "finding_count": 48,
-  "topic_count": 8,
+  "finding_count": 60,
+  "topic_count": 9,
   "high_priority_report_count": 18,
   "known_result_count": 18,
   "wins": 9,
@@ -16,7 +16,7 @@
   "latest_match": {
     "hero": "Legion Commander",
     "match_id": "8870219537",
-    "file": "Legion_Commander_8870219537_20260630_091309.html",
+    "file": "Legion_Commander_8870219537_20260630_094728.html",
     "ended_at": "2026-06-28T03:26:38Z",
     "result": "lose",
     "review_focus": "高优先级 · 死亡成本"
@@ -30,11 +30,18 @@
       "finding_count": 18
     },
     {
+      "topic_id": "custom::重复死亡坐标",
+      "focus": "重复死亡坐标",
+      "page": "trend-custom-97ad93fe24.html",
+      "match_count": 14,
+      "finding_count": 14
+    },
+    {
       "topic_id": "custom::死亡前后资源变化",
       "focus": "死亡前后资源变化",
       "page": "trend-custom-0568eadc6b.html",
-      "match_count": 11,
-      "finding_count": 11
+      "match_count": 10,
+      "finding_count": 10
     },
     {
       "topic_id": "close_game",
@@ -61,8 +68,8 @@
       "topic_id": "item_conversion",
       "focus": "装备后转化",
       "page": "trend-item-conversion.html",
-      "match_count": 5,
-      "finding_count": 5
+      "match_count": 4,
+      "finding_count": 4
     },
     {
       "topic_id": "vision_control",
