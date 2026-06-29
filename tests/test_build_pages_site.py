@@ -396,6 +396,7 @@ class BuildPagesSiteTests(unittest.TestCase):
             plan_html = (Path(public) / "practice-plan.html").read_text(encoding="utf-8")
             plan_text = (Path(public) / "practice-plan.txt").read_text(encoding="utf-8")
             brief_html = (Path(public) / "match-brief.html").read_text(encoding="utf-8")
+            brief_text = (Path(public) / "match-brief.txt").read_text(encoding="utf-8")
 
         self.assertIn("practice-plan.html", index_html)
         self.assertIn("match-brief.html", index_html)
@@ -426,6 +427,8 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("失败证据：trend-early-resource.html?result=lose", plan_text)
         self.assertIn("赛前执行卡", brief_html)
         self.assertIn("三条核心承诺", brief_html)
+        self.assertIn("match-brief.txt", brief_html)
+        self.assertIn("导出执行卡", brief_html)
         self.assertIn("对局中只盯", brief_html)
         self.assertIn("赛后复核", brief_html)
         self.assertIn("失败证据", brief_html)
@@ -442,6 +445,14 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("赛前只盯", brief_html)
         self.assertIn('href="#brief-commitment-1"', brief_html)
         self.assertIn('id="brief-commitment-1"', brief_html)
+        self.assertIn("Dota 2 赛前执行卡", brief_text)
+        self.assertIn("玩家 173776719", brief_text)
+        self.assertIn("最新复盘：Doom #8867002240", brief_text)
+        self.assertIn("承诺 1：前10分钟资源", brief_text)
+        self.assertIn("对局中只盯：下一局前10分钟低效率窗口=0。", brief_text)
+        self.assertIn("赛后复核：10分钟补刀>=35。", brief_text)
+        self.assertIn("失败证据：trend-early-resource.html?result=lose", brief_text)
+        self.assertIn("胜利样本：trend-early-resource.html?result=win", brief_text)
 
     def test_build_pages_site_writes_topic_evidence_pages_and_links(self):
         metadata = {
