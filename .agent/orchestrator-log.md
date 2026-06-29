@@ -712,7 +712,20 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - HTTP/browser fallback QA: local `match-brief.html` returned 200 with 3 proof grids and both win/loss links; Playwright CLI screenshot confirmed desktop layout.
-- Commit: pending.
-- Push / CI: pending.
+- Commit: `feat: add win loss proof lanes` (`2294d9b`).
+- Push / CI: pushed to `origin/main`; GitHub Actions passed, `Deploy Cloudflare Pages` run `28367152171`.
+- Live check: `https://dota.custard.top/match-brief.html` returned 200 and contained `brief-proof-grid`, `胜利样本`, and latest `Legion Commander #8870219537` context.
 - Risk: winning samples are topic-level, not hero-specific yet.
 - Next stage after CI closeout: Stage 3 UIUX.
+
+## 2026-06-29 - Long Cycle 2 Stage 2 IMPROVE - Complete
+
+- Completed stage: 2 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: add win loss proof lanes` (`2294d9b`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28367152171`.
+- Production acceptance: custom domain served the proof-lane execution card with both failure and winning-sample evidence links.
+- Remaining risk: winning samples are still topic-level rather than hero-specific comparisons.
+- Next stage: Stage 3 UIUX.

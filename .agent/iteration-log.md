@@ -323,7 +323,8 @@
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: no leaks found.
   - HTTP/browser fallback QA returned 200 with 3 proof grids and win/loss links; Playwright CLI desktop screenshot rendered correctly.
-- GitHub Actions / CI: pending push.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28367152171`.
+- Live check: `https://dota.custard.top/match-brief.html` returned 200 and contained `brief-proof-grid`, `胜利样本`, and latest `Legion Commander #8870219537`.
 - Risks:
   - Winning samples are still topic-level rather than hero-specific comparisons.
 - Next best directions:
