@@ -81,7 +81,10 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check for `AGENTS.md`, Docker files, and docker-compose paths: passed.
-- Deployment status: pending commit, push, GitHub Actions, and live-domain check.
+- Commit: `feat: add death recovery diagnostics` (`8391fa8`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28405999617`.
+- Live check: `https://dota.custard.top/Legion_Commander_8870219537_20260630_042955.html` returned 200 and contains `死亡后恢复窗口`, `已恢复资源`, `death-coordinate-map`, and 8 death-after recovery rows.
 - Next direction: Stage 3 UIUX should fix mobile timeline scanning, especially the wide phase table, and make death review sections faster to consume.
 
 ## Cycle 2 - Global Preparation
