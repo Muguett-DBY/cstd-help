@@ -53,6 +53,37 @@ Started: 2026-06-28
 - Remaining risk: the plot uses raw STRATZ coordinates only; it still avoids named map-region advice until a verified Dota coordinate transform is implemented.
 - Next direction: add deterministic death-after resource recovery diagnostics so the report shows what happened in the minutes immediately after each death.
 
+## Long Cycle 4 - Stage 2 - IMPROVE
+
+- Prompt: `AGENT_IMPROVE_MAIN.txt`.
+- Goal: quantify what happens in the 3 minutes after each located death using real minute-level LH/GPM data.
+- TDD:
+  - Added tests for `timeline.death_recovery_windows` from death events plus STRATZ minute arrays.
+  - Added generated-report test requiring `死亡后恢复窗口`, the exact death-after minute range, LH gain, average GPM, and recovery status.
+  - Tests failed before implementation with missing `death_recovery_windows` and missing report section, then passed after implementation.
+- Result:
+  - Added deterministic death-after recovery windows with death minute, observed range, LH gain, average GPM, and status label.
+  - Added `死亡后恢复` findings when recovery is genuinely low, with concrete next-game action and acceptance metric.
+  - Rendered `死亡后恢复窗口` in the report 时间线诊断 section.
+  - Corrected the first implementation after real-report review: low LH alone no longer marks a window as `恢复不足` when GPM is already strong; both LH and GPM must be low when both are available.
+  - Rebuilt the latest 10 public reports from cached real match data generated at `20260630_042955/042956`.
+- Real-data verification:
+  - Every regenerated report now shows death-after recovery windows.
+  - Latest Legion Commander report shows 8 recovery windows; examples include `11.2分死亡后11-14分钟：25补，平均GPM 504.3，已恢复资源` and later partial/strong recovery rows.
+  - After threshold correction, the previous false positives on high-GPM core windows disappeared from core findings.
+- Browser verification:
+  - Desktop Chrome at 1280x900: recovery section present, 8 rows, death coordinate map still present, no horizontal page overflow, no console errors.
+  - Mobile Chrome at 390x844: recovery rows readable and no horizontal page overflow; existing timeline table is still too wide for comfortable mobile scanning.
+- Local verification:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 73 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check for `AGENTS.md`, Docker files, and docker-compose paths: passed.
+- Deployment status: pending commit, push, GitHub Actions, and live-domain check.
+- Next direction: Stage 3 UIUX should fix mobile timeline scanning, especially the wide phase table, and make death review sections faster to consume.
+
 ## Cycle 2 - Global Preparation
 
 - Status: clean `main`, fast-forward synced with `origin/main` at `a211d36`.

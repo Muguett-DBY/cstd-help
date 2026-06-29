@@ -914,6 +914,76 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("低效率窗口 10-12分钟", html)
         self.assertIn("11.0分死亡", html)
 
+    def test_death_recovery_windows_measure_post_death_resources(self):
+        match = self._base_match()
+        match["deaths"] = 1
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [6] * 10 + [0, 1, 0, 6, 6],
+                    "goldPerMinute": [420] * 10 + [120, 150, 130, 420, 430],
+                },
+                "playbackData": {
+                    "deathEvents": [{"time": 600}],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        recovery = result["timeline"]["death_recovery_windows"][0]
+        finding = next(f for f in result["review_findings"] if f["category"] == "death_recovery")
+
+        self.assertEqual(recovery["minute"], 10.0)
+        self.assertEqual(recovery["window_label"], "10-13分钟")
+        self.assertEqual(recovery["lh_gain"], 1)
+        self.assertAlmostEqual(recovery["avg_gpm"], 133.3)
+        self.assertEqual(recovery["status_label"], "恢复不足")
+        self.assertIn("10.0分后10-13分钟 1补/133.3平均GPM", finding["evidence"])
+        self.assertIn("3分钟内先补到", finding["action"])
+
+    def test_generated_report_shows_death_recovery_windows(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match["deaths"] = 1
+            stratz_data = {
+                "players": [{
+                    "steamAccount": {"id": 173776719},
+                    "isRadiant": True,
+                    "hero": {"id": 1, "displayName": "Anti-Mage"},
+                    "position": "POSITION_1",
+                    "role": "CORE",
+                    "stats": {
+                        "lastHitsPerMinute": [6] * 10 + [0, 1, 0, 6, 6],
+                        "goldPerMinute": [420] * 10 + [120, 150, 130, 420, 430],
+                    },
+                    "playbackData": {
+                        "deathEvents": [{"time": 600}],
+                    },
+                }],
+            }
+            analysis = analyze_match(match, stratz_data=stratz_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+        generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("死亡后恢复窗口", html)
+        self.assertIn("10.0分死亡后10-13分钟", html)
+        self.assertIn("1补", html)
+        self.assertIn("平均GPM 133.3", html)
+        self.assertIn("恢复不足", html)
+
     def test_review_findings_are_structured_and_prompt_is_limited_to_them(self):
         analysis = analyze_match(self._base_match())
 

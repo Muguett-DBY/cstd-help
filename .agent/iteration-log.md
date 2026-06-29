@@ -1,5 +1,22 @@
 # Iteration Log
 
+## 2026-06-30 - Long Cycle 4 Stage 2 IMPROVE
+
+- Goal: measure whether each death was followed by a real resource recovery or another dead window.
+- Completed: added `timeline.death_recovery_windows`, `死亡后恢复` findings, and a visible `死亡后恢复窗口` section in 时间线诊断.
+- Real issue fixed during review: the first threshold marked low-LH/high-GPM windows as `恢复不足`; after real-report inspection it now requires both LH and GPM to be low when both metrics exist.
+- User-visible gain: latest `Legion Commander #8870219537` now shows exact recovery rows such as `11.2分死亡后11-14分钟：25补，平均GPM 504.3，已恢复资源`.
+- Verification:
+  - New target tests failed before implementation, then passed.
+  - `python main.py --skip-fetch --recent 10 --force`: generated 10 reports from cached real STRATZ detail after live STRATZ fetch was blocked by Cloudflare.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 73 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser desktop/mobile report QA passed with no horizontal page overflow or console errors; recovery rows are readable on mobile.
+- Remaining risk: mobile 时间线 phase table is still wide and awkward to scan, even though the page itself does not horizontally overflow.
+- Recommended next direction: Stage 3 UIUX should convert the mobile timeline/death review area into a more readable stacked workbench.
+
 ## 2026-06-30 - Long Cycle 4 Stage 1 IMPROVE
 
 - Goal: expose real death-position evidence as a visual report section without inventing map regions.

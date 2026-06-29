@@ -258,6 +258,15 @@
             <div class="compact-row">{{ window.evidence_label }}；该窗口平均 {{ window.avg_lh }} 补/分钟。</div>
             {% endfor %}
             {% endif %}
+            {% if timeline.death_recovery_windows %}
+            <div class="subsection-title">死亡后恢复窗口</div>
+            {% for window in timeline.death_recovery_windows[:8] %}
+            <div class="compact-row">
+                {{ window.minute }}分死亡后{{ window.window_label }}：
+                {% if window.lh_gain is not none %}{{ window.lh_gain }}补{% else %}无补刀数组{% endif %}{% if window.avg_gpm is not none %}，平均GPM {{ window.avg_gpm }}{% endif %}，{{ window.status_label }}。
+            </div>
+            {% endfor %}
+            {% endif %}
             {% else %}
             <div class="compact-row">当前公共数据源未提供分钟级时间线；系统只能按总量指标给低置信度判断，后续抓取拿到分钟数组后会自动重跑。</div>
             {% endif %}

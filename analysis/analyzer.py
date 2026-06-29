@@ -209,6 +209,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
     )
     result["events"]["post_item_windows"] = _build_post_item_windows(result["events"], result["timeline"])
     result["timeline"]["death_overlap_windows"] = _build_death_overlap_windows(result["timeline"], result["events"])
+    result["timeline"]["death_recovery_windows"] = _build_death_recovery_windows(result["timeline"], result["events"])
 
     benchmarks = _load_json("benchmarks.json")
     role = _benchmark_role(context)
@@ -898,6 +899,7 @@ CATEGORY_LABELS = {
     "lane_farm": "前10分钟资源",
     "resource_continuity": "中后期资源连续性",
     "death_resource_overlap": "死亡打断资源",
+    "death_recovery": "死亡后恢复",
     "death_review": "死亡成本",
     "item_timing": "装备后转化",
     "map_impact": "地图影响力",
@@ -1169,6 +1171,73 @@ def _build_death_overlap_windows(timeline, events):
     return overlaps
 
 
+def _build_death_recovery_windows(timeline, events, window_minutes=3):
+    if not timeline.get("available") or not events.get("deaths"):
+        return []
+    lh_by_minute = timeline.get("last_hits_by_minute") or []
+    gold_by_minute = timeline.get("gold_by_minute") or []
+    if not lh_by_minute and not gold_by_minute:
+        return []
+
+    max_minutes = max(len(lh_by_minute), len(gold_by_minute))
+    windows = []
+    for death in events.get("deaths") or []:
+        death_time = death.get("time")
+        if not isinstance(death_time, (int, float)):
+            continue
+        start = int(death_time // 60)
+        if start >= max_minutes:
+            continue
+        end = min(start + window_minutes, max_minutes)
+        observed_minutes = max(end - start, 0)
+        if observed_minutes <= 0:
+            continue
+        lh_gain = int(_sum_slice(lh_by_minute, start, end)) if lh_by_minute else None
+        avg_gpm = _avg_slice(gold_by_minute, start, end) if gold_by_minute else None
+        lh_per_min = round(lh_gain / observed_minutes, 1) if lh_gain is not None else None
+        low_lh = lh_per_min is not None and lh_per_min < 2
+        low_gold = avg_gpm is not None and avg_gpm < 260
+        strong_lh = lh_per_min is not None and lh_per_min >= 4
+        strong_gold = avg_gpm is not None and avg_gpm >= 420
+        if lh_per_min is not None and avg_gpm is not None:
+            is_low = low_lh and low_gold
+        elif lh_per_min is not None:
+            is_low = low_lh
+        else:
+            is_low = low_gold
+        if is_low:
+            status = "low"
+            status_label = "恢复不足"
+        elif strong_lh or strong_gold:
+            status = "recovered"
+            status_label = "已恢复资源"
+        else:
+            status = "partial"
+            status_label = "一般恢复"
+        minute = death.get("minute")
+        if minute is None:
+            minute = round(death_time / 60, 1)
+        resource_parts = []
+        if lh_gain is not None:
+            resource_parts.append(f"{lh_gain}补")
+        if avg_gpm is not None:
+            resource_parts.append(f"{avg_gpm}平均GPM")
+        windows.append({
+            "minute": minute,
+            "start_minute": start,
+            "end_minute": end,
+            "window_label": f"{start}-{end}分钟",
+            "observed_minutes": observed_minutes,
+            "lh_gain": lh_gain,
+            "lh_per_min": lh_per_min,
+            "avg_gpm": avg_gpm,
+            "status": status,
+            "status_label": status_label,
+            "evidence_label": f"{minute}分后{start}-{end}分钟 {'/'.join(resource_parts)}",
+        })
+    return windows
+
+
 def _support_profile():
     return {
         "id": "support",
@@ -1237,6 +1306,7 @@ def _default_training_goal(category):
         "lane_farm": "下一局先把前10分钟资源路线打完整，让系统能用分钟级补刀线验收。",
         "resource_continuity": "下一局10分钟后每次集合前先推出一条安全线，减少连续断补窗口。",
         "death_resource_overlap": "下一局把死亡重叠低效率窗口压到0，死亡后先恢复一波安全资源。",
+        "death_recovery": "下一局每次死亡后3分钟内完成一波可记录的资源恢复。",
         "death_review": "下一局把死亡压到每10分钟最多1次，避免连续短时间重复阵亡。",
         "item_timing": "下一局每件关键装备成型后立刻绑定一个可记录的地图动作。",
         "map_impact": "下一局把刷钱路线接到推塔、参战或控图目标上。",
@@ -1251,6 +1321,7 @@ def _default_success_metric(category):
         "lane_farm": "10分钟补刀不低于本局；前10分钟低效率窗口=0。",
         "resource_continuity": "10分钟后低效率窗口不超过1个；单个窗口不超过2分钟。",
         "death_resource_overlap": "死亡与低效率窗口重叠=0；死亡后3分钟内补回一波安全线或安全野区资源。",
+        "death_recovery": "死亡后3分钟补刀>=6或平均GPM>=300；恢复不足窗口=0。",
         "death_review": "每10分钟死亡不高于1.0；连续5分钟内死亡簇=0。",
         "item_timing": f"{FARM_ACCELERATION_SUCCESS_METRIC}；{MAP_CONVERSION_SUCCESS_METRIC}。",
         "map_impact": "参战率>=40%；关键装备后2分钟至少完成一次地图动作。",
@@ -1401,6 +1472,28 @@ def _build_review_findings(result):
             "系统只按死亡分钟和低效率补刀窗口做时间重叠；优先复核这些分钟前后的兵线位置、TP状态和队友是否能接应。",
             f"下一局把死亡重叠低效率窗口从{total_overlaps}次压到0；死亡后3分钟先恢复一波安全资源。",
             "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+        ))
+
+    recovery_windows = timeline.get("death_recovery_windows") or []
+    low_recovery_windows = [
+        window for window in recovery_windows
+        if window.get("status") == "low"
+    ]
+    if low_recovery_windows and role_id in ("pos1", "pos2", "pos3", "unknown", "unknown_lane"):
+        evidence = "；".join(
+            window.get("evidence_label")
+            for window in low_recovery_windows[:4]
+            if window.get("evidence_label")
+        )
+        findings.append(_finding(
+            "high",
+            "death_recovery",
+            f"死亡后恢复不足: {evidence}。",
+            "死亡后的资源恢复窗口偏低，会把一次阵亡放大成连续掉经济和少打关键装备时间。",
+            "下一局复活后第一波只执行一个可验收动作：TP安全线、收近区野，或跟队友拿已有视野目标；3分钟内先补到6补或300平均GPM，再接高风险带线。",
+            "系统按死亡分钟后的真实补刀/经济数组计算，不判断死亡原因；优先核对这些窗口有没有空走、等人、重复阵亡或无兵线可收。",
+            f"下一局把死亡后恢复不足窗口从{len(low_recovery_windows)}个压到0；每次复活先完成一波资源恢复。",
+            "死亡后3分钟补刀>=6或平均GPM>=300；恢复不足窗口=0。",
         ))
 
     if events.get("deaths"):
