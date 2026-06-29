@@ -1023,3 +1023,33 @@ Started: 2026-06-28
 - Public corpus: `site-manifest.json` remains report_count=10 with latest `Legion Commander #8870219537`.
 - Remaining risk: live STRATZ refresh is Cloudflare-blocked in this environment, so the rebuild used the already cached real playback payloads; map-region names remain intentionally uninferred.
 - Next stage: Stage 4 IMPROVE.
+
+## 2026-06-30 - Long Cycle 3 Stage 4 IMPROVE - Start
+
+- Stage: 4 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: add visible evidence-source coverage to each generated match report.
+- Carry-over: Stage 3 exposed death-position evidence; this stage makes the report say which evidence sources are available, partial, missing, or not applicable.
+- User-visible increment: the player can tell whether time-line, deaths, death positions, items, fights, and vision came from OpenDota, STRATZ minute arrays, STRATZ playback, or are unavailable.
+- Start state: main at `chore: publish refreshed position evidence reports` (`04e0e04`), worktree already contains the Stage 4 implementation and regenerated public reports from cached real data.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; keep source labels factual and do not infer map-region names.
+
+## 2026-06-30 - Long Cycle 3 Stage 4 IMPROVE - Local Complete
+
+- Completed: added deterministic `data_quality.evidence_sources` rows for core stats, timeline, purchases, deaths, death positions, fight events, and vision events.
+- Report UI: added `证据来源与覆盖` inside the data-quality section, with source, status, and coverage details for each major evidence type.
+- User-visible increment: latest real reports now show labels such as `STRATZ位置采样` and `覆盖 12/12 次已定位死亡`, so precise coaching advice is auditable.
+- Public refresh: regenerated the latest 10 cached real reports and rebuilt `public/` from exactly that report set.
+- Browser verification:
+  - Desktop report `Legion Commander #8870219537`: evidence-source section visible, seven rows rendered, no horizontal overflow, no clipped rows, and no console warnings/errors.
+  - Mobile 390x844: evidence-source rows remained visible without horizontal overflow.
+- Local verification:
+  - New target tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 66 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 4 closeout log.

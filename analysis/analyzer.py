@@ -612,6 +612,20 @@ def _timeline_source_label(source):
     return " + ".join(labels.get(part, part) for part in source.split("+"))
 
 
+def _event_source_label(source):
+    labels = {
+        "opendota_parsed_logs": "OpenDota解析日志",
+        "opendota_teamfights": "OpenDota团战事件",
+        "opendota_vision": "OpenDota视野事件",
+        "stratz_playback": "STRATZ回放事件",
+        "stratz_position_samples": "STRATZ位置采样",
+        "valve_replay": "Valve回放事件",
+    }
+    if not source:
+        return "未获取"
+    return " + ".join(labels.get(part, part) for part in source.split("+"))
+
+
 def _build_timeline(match_data, stratz_player, duration_min, opendota_player=None, role_profile=None):
     opendota_stats = _opendota_minute_stats(opendota_player)
     playback_cs_stats = _stratz_playback_cs_minute_stats(stratz_player, duration_min)
@@ -939,9 +953,12 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     source_parts = set()
 
     purchases = opendota_purchases or stratz_purchases
+    purchase_source = None
     if opendota_purchases:
+        purchase_source = "opendota_parsed_logs"
         source_parts.add("opendota_parsed_logs")
     elif stratz_purchases:
+        purchase_source = "stratz_playback"
         source_parts.add("stratz_playback")
 
     death_candidates = [
@@ -951,6 +968,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         (opendota_teamfight_deaths, "opendota_teamfights", 0),
     ]
     available_death_candidates = [candidate for candidate in death_candidates if candidate[0]]
+    death_source = None
     if available_death_candidates:
         deaths, death_source, _ = max(
             available_death_candidates,
@@ -969,20 +987,31 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         source_parts.add("stratz_position_samples")
 
     kills = opendota_kills or stratz_kills
+    kill_source = None
     if opendota_kills:
+        kill_source = "opendota_parsed_logs"
         source_parts.add("opendota_parsed_logs")
     elif stratz_kills:
+        kill_source = "stratz_playback"
         source_parts.add("stratz_playback")
 
     assists = opendota_assists or stratz_assists
+    assist_source = None
     if opendota_assists:
+        assist_source = "opendota_parsed_logs"
         source_parts.add("opendota_parsed_logs")
     elif stratz_assists:
+        assist_source = "stratz_playback"
         source_parts.add("stratz_playback")
 
     vision_events = opendota_observer_wards + opendota_sentry_wards
+    vision_source = None
     if vision_events:
+        vision_source = "opendota_vision"
         source_parts.add("opendota_vision")
+
+    fight_sources = sorted({item for item in (kill_source, assist_source) if item})
+    fight_source = "+".join(fight_sources) if fight_sources else None
 
     source = "+".join(sorted(source_parts)) if source_parts else None
     expected_deaths = int(expected_deaths or 0)
@@ -997,6 +1026,11 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     return {
         "available": bool(source),
         "source": source,
+        "purchase_source": purchase_source,
+        "death_source": death_source,
+        "position_source": "stratz_position_samples" if death_position_count else None,
+        "fight_source": fight_source,
+        "vision_source": vision_source,
         "purchases": purchases,
         "key_purchases": _key_purchases(purchases),
         "deaths": deaths,
@@ -1513,6 +1547,99 @@ def _benchmark_role(context):
     return "carry"
 
 
+def _build_evidence_sources(result):
+    timeline = result.get("timeline") or {}
+    events = result.get("events") or {}
+    timeline_metrics = []
+    if timeline.get("last_hits_by_minute"):
+        timeline_metrics.append("补刀")
+    if timeline.get("gold_by_minute"):
+        timeline_metrics.append("经济")
+    if timeline.get("hero_damage_by_minute"):
+        timeline_metrics.append("英雄伤害")
+    if timeline.get("tower_damage_by_minute"):
+        timeline_metrics.append("推塔伤害")
+    timeline_minutes = timeline.get("duration_minutes_observed") or 0
+    timeline_coverage = (
+        f"覆盖 {timeline_minutes} 分钟：{'、'.join(timeline_metrics)}"
+        if timeline.get("available") and timeline_metrics
+        else "未获取分钟级时间线"
+    )
+
+    purchases = events.get("purchases") or []
+    key_purchases = events.get("key_purchases") or []
+    purchase_coverage = (
+        f"{len(purchases)}条购买；{len(key_purchases)}个关键装备完成点"
+        if purchases else "未获取购买时间"
+    )
+
+    observed_deaths = events.get("death_count_observed") or 0
+    death_positions = events.get("death_position_count") or 0
+    no_deaths = (events.get("death_count_expected") or 0) == 0 and observed_deaths == 0
+    death_position_coverage = (
+        f"覆盖 {death_positions}/{observed_deaths} 次已定位死亡"
+        if observed_deaths else "本局没有已定位死亡"
+    )
+    fight_count = len(events.get("kills") or []) + len(events.get("assists") or [])
+    vision_count = len(events.get("vision_events") or [])
+
+    return [
+        {
+            "id": "core_stats",
+            "label": "比赛核心数据",
+            "source": "OpenDota比赛核心数据",
+            "coverage": "KDA、GPM、XPM、补刀、伤害与最终装备",
+            "status": "available",
+        },
+        {
+            "id": "timeline",
+            "label": "分钟时间线",
+            "source": timeline.get("source_label") or "未获取",
+            "coverage": timeline_coverage,
+            "status": "available" if timeline.get("available") else "missing",
+        },
+        {
+            "id": "purchases",
+            "label": "购买时间",
+            "source": _event_source_label(events.get("purchase_source")),
+            "coverage": purchase_coverage,
+            "status": "available" if purchases else "missing",
+        },
+        {
+            "id": "deaths",
+            "label": "死亡时间",
+            "source": "不适用" if no_deaths else _event_source_label(events.get("death_source")),
+            "coverage": events.get("death_coverage_label") or "未获取死亡事件",
+            "status": "available" if no_deaths or events.get("death_timeline_complete") else "partial",
+        },
+        {
+            "id": "death_positions",
+            "label": "死亡位置",
+            "source": "不适用" if no_deaths else _event_source_label(events.get("position_source")),
+            "coverage": death_position_coverage,
+            "status": (
+                "available" if no_deaths or (observed_deaths and death_positions == observed_deaths)
+                else "partial" if death_positions
+                else "missing"
+            ),
+        },
+        {
+            "id": "fight_events",
+            "label": "击杀/助攻事件",
+            "source": _event_source_label(events.get("fight_source")),
+            "coverage": f"{fight_count}条个人击杀/助攻事件" if fight_count else "未获取个人击杀/助攻事件",
+            "status": "available" if fight_count else "missing",
+        },
+        {
+            "id": "vision_events",
+            "label": "视野事件",
+            "source": _event_source_label(events.get("vision_source")),
+            "coverage": f"{vision_count}条插眼事件" if vision_count else "未获取插眼事件",
+            "status": "available" if vision_count else "missing",
+        },
+    ]
+
+
 def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota_data=None):
     available = ["opendota_core_stats"]
     limitations = []
@@ -1606,6 +1733,7 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
         "score": min(score, 100),
         "available": available,
         "limitations": limitations,
+        "evidence_sources": _build_evidence_sources(result),
     }
 
 
