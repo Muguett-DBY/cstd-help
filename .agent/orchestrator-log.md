@@ -1337,3 +1337,15 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 5 closeout log.
+
+## 2026-06-30 - Long Cycle 4 Stage 5 CHECK - Complete
+
+- Completed stage: 5 / 6.
+- Type: CHECK.
+- Prompt: AGENT_CHECK_MAIN.txt.
+- Stage commit: `fix: validate death review coverage` (`47920b9`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28407553060`; unit tests, compile, static Pages validation, and Cloudflare deployment all succeeded.
+- Production acceptance: `https://dota.custard.top/` and `site-manifest.json` returned 200; the history page contained `死亡复盘覆盖`, and live counters matched the 10-report set at 10 workbenches, 10 recovery reports, 9 coordinate maps, and 9 complete death reviews.
+- Remaining risk: post-death rows show exact recovery totals but do not compare the same player's resource pace immediately before and after each death.
+- Next stage: Stage 6 IMPROVE will add deterministic death-adjacent resource deltas from real minute arrays.
