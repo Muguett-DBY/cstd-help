@@ -7,8 +7,8 @@
 - User-visible gain: the player can copy or save a plain-text next-game checklist with priority topics, actions, acceptance metrics, failure evidence links, win-sample links, hero-specific links, and execution checkpoints.
 - Real issue fixed: the training plan now has a portable artifact instead of requiring the interactive HTML page to be open before queueing.
 - Verified: target export test, static validation for the new text file, browser link presence, HTTP 200/content check for `practice-plan.txt`, 57 unit tests, compileall, full public-site validation, gitleaks, diff check, and forbidden-file check.
-- Commit: pending.
-- CI: pending.
+- Commit: `feat: add portable practice plan export` (`4872655`).
+- CI: passed, `Deploy Cloudflare Pages` run `28364459477`.
 - Remaining risk: text export is generated at build time and does not include local checkbox completion state.
 - Recommended next flagship change: add live-domain smoke checks for `practice-plan.txt`, filtered topic evidence links, and report-section anchors after deploy.
 

@@ -619,6 +619,8 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- Commit/push/CI: pending.
+- Commit: `feat: add portable practice plan export` (`4872655`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28364459477`.
 - Risk: the text export is static at build time; it does not include per-browser checkbox completion state.
 - Next stage: final online acceptance.
