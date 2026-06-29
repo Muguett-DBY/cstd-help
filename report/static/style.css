@@ -1716,6 +1716,62 @@ body {
 .death-position-label.muted {
     color: var(--text-secondary);
 }
+.death-coordinate-map {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: minmax(180px, 255px) minmax(0, 1fr);
+    gap: 14px;
+    align-items: start;
+    padding: 12px;
+    border: 1px solid rgba(248,81,73,0.22);
+    border-radius: 6px;
+    background: rgba(248,81,73,0.05);
+}
+.death-coordinate-note {
+    grid-column: 1 / -1;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.45;
+}
+.death-coordinate-plot {
+    width: 100%;
+    max-width: 255px;
+    aspect-ratio: 1;
+    overflow: visible;
+}
+.death-coordinate-bg {
+    fill: rgba(13,17,23,0.92);
+    stroke: rgba(139,148,158,0.42);
+    stroke-width: 1;
+}
+.death-coordinate-axis {
+    stroke: rgba(139,148,158,0.28);
+    stroke-width: 1;
+}
+.death-coordinate-point {
+    fill: var(--accent-red);
+    stroke: #ffffff;
+    stroke-width: 2;
+}
+.death-coordinate-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+.death-coordinate-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(248,81,73,0.28);
+    background: rgba(248,81,73,0.1);
+    color: var(--text-primary);
+    font-size: 12px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
 
 .rating { font-weight: 600; }
 .rating.excellent { color: var(--accent-green); }
@@ -1930,6 +1986,13 @@ tr:hover { background: rgba(88,166,255,0.05); }
     }
     .practice-filter-row .filter-button {
         flex: 1 1 128px;
+    }
+    .death-coordinate-map {
+        grid-template-columns: 1fr;
+    }
+    .death-coordinate-plot {
+        justify-self: center;
+        max-width: min(255px, 100%);
     }
     .brief-hero,
     .brief-grid {

@@ -830,6 +830,32 @@ def _attach_position_samples_to_deaths(deaths, position_events, max_age_seconds=
     return enriched
 
 
+def _build_death_map_points(deaths):
+    points = []
+    for death in deaths or []:
+        position = death.get("position") or {}
+        x = _clean_position_value(position.get("x"))
+        y = _clean_position_value(position.get("y"))
+        if x is None or y is None:
+            continue
+        plot_x = max(0, min(255, x))
+        plot_y = 255 - max(0, min(255, y))
+        minute = death.get("minute")
+        if minute is None and isinstance(death.get("time"), (int, float)):
+            minute = round(death["time"] / 60, 1)
+        label_prefix = f"{minute}分 " if minute is not None else ""
+        points.append({
+            "minute": minute,
+            "x": x,
+            "y": y,
+            "plot_x": plot_x,
+            "plot_y": plot_y,
+            "label": f"{label_prefix}x={x},y={y}",
+            "position_label": death.get("position_label") or _death_position_label({"x": x, "y": y}, 0),
+        })
+    return points
+
+
 def _normalize_opendota_vision_events(events, ward_type):
     normalized = []
     for event in events or []:
@@ -985,6 +1011,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         deaths = []
     deaths = _attach_position_samples_to_deaths(deaths, stratz_positions)
     death_position_count = len([item for item in deaths if item.get("position")])
+    death_map_points = _build_death_map_points(deaths)
     if death_position_count:
         source_parts.add("stratz_position_samples")
 
@@ -1041,6 +1068,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         "death_count_missing": missing_deaths,
         "death_timeline_complete": missing_deaths == 0,
         "death_position_count": death_position_count,
+        "death_map_points": death_map_points,
         "position_sample_count": len(stratz_positions),
         "has_death_positions": death_position_count > 0,
         "death_coverage_label": death_coverage_label,

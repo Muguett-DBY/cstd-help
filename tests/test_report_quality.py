@@ -1051,6 +1051,69 @@ class ReportQualityTests(unittest.TestCase):
 
         generator.REPORT_DIR = old_report_dir
 
+    def test_death_position_samples_build_raw_coordinate_map_points(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "playbackData": {
+                    "deathEvents": [{"time": 420}, {"time": 930}],
+                    "playerUpdatePositionEvents": [
+                        {"time": 390, "x": 122, "y": 140},
+                        {"time": 930, "x": 88, "y": 164},
+                    ],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+
+        self.assertEqual(result["events"]["death_map_points"][0]["minute"], 7.0)
+        self.assertEqual(result["events"]["death_map_points"][0]["x"], 122)
+        self.assertEqual(result["events"]["death_map_points"][0]["y"], 140)
+        self.assertEqual(result["events"]["death_map_points"][0]["plot_y"], 115)
+        self.assertIn("x=122,y=140", result["events"]["death_map_points"][0]["label"])
+
+    def test_generated_report_shows_raw_death_coordinate_map(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match["deaths"] = 1
+            stratz_data = {
+                "players": [{
+                    "steamAccount": {"id": 173776719},
+                    "isRadiant": True,
+                    "hero": {"id": 1, "displayName": "Anti-Mage"},
+                    "position": "POSITION_1",
+                    "role": "CORE",
+                    "playbackData": {
+                        "deathEvents": [{"time": 420}],
+                        "playerUpdatePositionEvents": [{"time": 390, "x": 122, "y": 140}],
+                    },
+                }],
+            }
+            analysis = analyze_match(match, stratz_data=stratz_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+        generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("死亡坐标图", html)
+        self.assertIn("death-coordinate-map", html)
+        self.assertIn('data-minute="7.0"', html)
+        self.assertIn("x=122,y=140", html)
+        self.assertIn("原始x/y坐标", html)
+
     def test_generated_report_avoids_raw_less_than_signs_in_metric_text(self):
         from report.generator import generate_report
         import report.generator as generator
