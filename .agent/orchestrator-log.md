@@ -624,3 +624,21 @@ Started: 2026-06-28
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28364459477`.
 - Risk: the text export is static at build time; it does not include per-browser checkbox completion state.
 - Next stage: final online acceptance.
+
+## 2026-06-29 - Long Cycle Final Online Acceptance - Complete
+
+- Campaign status: all 6 / 6 stages completed in the required `IMPROVE -> IMPROVE -> UIUX -> IMPROVE -> CHECK -> IMPROVE` order.
+- Final deployed stage commit: `chore: record stage 6 export deployment` (`2311b6f`).
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28364548302`; deployment URL `https://8205033a.cstd-help.pages.dev`.
+- Repository status: `Muguett-DBY/cstd-help` is public and uses `main` as its default branch.
+- Live custom-domain verification:
+  - `https://dota.custard.top/`: 200; rendered 10-match history, latest Legion Commander report, evidence coverage, filters, priority queue, and trend links.
+  - `https://dota.custard.top/practice-plan.html`: 200; rendered 4 evidence-driven tasks, 12 checkpoints, state filters, and the `practice-plan.txt` export link.
+  - `https://dota.custard.top/practice-plan.txt`: 200; contained the player id, priorities, actions, acceptance metrics, failure/win evidence links, hero links, and execution checkpoints.
+  - `https://dota.custard.top/trend-death-cost.html?result=lose`: 200; browser state applied `只看失败` and showed 6 / 10 evidence cards.
+  - Latest Legion Commander report: 200; hero-first title, 8 report navigation links, next-action checklist, 10/20-minute data, low-efficiency windows, 12 located deaths, and 27.7-minute Black King Bar event were present.
+  - Mobile 390px practice-plan check: 4 task cards and 4 filters rendered, export remained visible, document width equaled viewport width, and console errors were zero.
+  - Direct Pages smoke: `https://8205033a.cstd-help.pages.dev/practice-plan.txt` returned 200 with the expected title and player id.
+- Final local release gates: 57 tests passed; compileall, public-site validation for 10 reports, gitleaks, diff check, and forbidden-file check passed.
+- Protected scope: no Docker or `AGENTS.md` changes were made.
+- Residual risks: practice checkbox state remains browser-local by design; the text export reflects build-time evidence and does not include local checkbox state; external CDN image availability is outside static validation.
