@@ -671,7 +671,20 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
   - Browser fallback QA: Playwright CLI screenshots for desktop 1280px and mobile 390px rendered the execution card; HTTP check returned 200 with 3 cards and latest Legion Commander match.
-- Commit: pending.
-- Push / CI: pending.
+- Commit: `feat: add pre-match execution brief` (`71bc201`).
+- Push / CI: pushed to `origin/main`; GitHub Actions passed, `Deploy Cloudflare Pages` run `28366750310`.
+- Live check: `https://dota.custard.top/match-brief.html`, `/`, and `/practice-plan.html` returned 200 and contained `赛前执行卡` plus latest `Legion Commander #8870219537` context.
 - Risk: `match-brief.html` is build-time static; it intentionally does not include browser-local checklist completion state.
 - Next stage after CI closeout: Stage 2 IMPROVE.
+
+## 2026-06-29 - Long Cycle 2 Stage 1 IMPROVE - Complete
+
+- Completed stage: 1 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: add pre-match execution brief` (`71bc201`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28366750310`.
+- Production acceptance: custom domain served the new pre-match execution card and linked it from the dashboard and practice plan.
+- Remaining risk: the pre-match card is static at build time and does not sync browser-local checklist progress.
+- Next stage: Stage 2 IMPROVE.

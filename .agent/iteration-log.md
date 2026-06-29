@@ -302,7 +302,7 @@
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: no leaks found.
   - Playwright CLI desktop/mobile screenshots rendered the execution card; HTTP check returned 200 with 3 cards and latest Legion Commander match.
-- GitHub Actions / CI: pending push.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28366750310`.
 - Risks:
   - The pre-match card is static at build time and does not include browser-local checklist progress.
 - Next best directions:
