@@ -7,8 +7,8 @@
 - User-visible gain: the player can move from "what to train" directly to filtered proof games and use the same page as a next-game execution checklist.
 - Real issues fixed: practice tasks no longer point only to three example matches, and generated Pages files now use LF newlines on Windows so unchanged artifacts do not stay dirty after builds.
 - Verified: target tests, 55-test suite, compileall, static site validation, gitleaks, diff check, desktop task/checklist persistence, pre-filtered evidence jump, mobile 390px rendering, and zero browser console errors.
-- Commit: pending.
-- CI: pending.
+- Commit: `feat: add practice task workbench` (`bc0a56a`), pushed to `origin/main`.
+- CI: passed, `Deploy Cloudflare Pages` run `28363394164`.
 - Remaining risk: checklist progress is local to one browser because the site is static.
 - Recommended next flagship CHECK item: harden generated-site validation around broken anchors, duplicate IDs, report navigation targets, and practice-workbench links so static regressions fail before deploy.
 

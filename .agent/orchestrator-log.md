@@ -555,6 +555,8 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- Commit/push/CI: pending.
+- Commit: `feat: add practice task workbench` (`bc0a56a`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28363394164`.
 - Risk: checklist progress uses browser localStorage, so it is intentionally per-browser and not synced across devices.
 - Next stage: Stage 5 CHECK.
