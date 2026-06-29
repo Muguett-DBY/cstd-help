@@ -19,6 +19,22 @@ REQUIRED_REPORT_TEXT = [
     "低效率窗口",
     "数据缺口",
 ]
+SUPPORT_HTML_PAGES = frozenset({
+    "index.html",
+    "practice-plan.html",
+    "match-brief.html",
+})
+SUPPORT_TEXT_EXPORTS = frozenset({
+    "practice-plan.txt",
+    "match-brief.txt",
+})
+REQUIRED_SUPPORT_FILES = frozenset({
+    *SUPPORT_HTML_PAGES,
+    *SUPPORT_TEXT_EXPORTS,
+    "review-trends.json",
+    "site-manifest.json",
+    "static/style.css",
+})
 
 
 class TitleParser(HTMLParser):
@@ -86,6 +102,20 @@ def _parse_page(public_dir, page):
     parser = LocalLinkParser()
     parser.feed(page.read_text(encoding="utf-8"))
     return parser
+
+
+def _is_topic_page(path):
+    return Path(path).suffix == ".html" and Path(path).name.startswith("trend-")
+
+
+def _is_report_page(path):
+    path = Path(path)
+    return path.suffix == ".html" and path.name not in SUPPORT_HTML_PAGES and not _is_topic_page(path)
+
+
+def _report_pages(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    return sorted(path for path in public_dir.glob("*.html") if _is_report_page(path))
 
 
 def _find_local_link_issues(public_dir=PUBLIC_DIR):
@@ -174,37 +204,21 @@ def _find_unresolved_item_references(public_dir=PUBLIC_DIR):
 
 
 def main():
-    index_path = PUBLIC_DIR / "index.html"
-    practice_path = PUBLIC_DIR / "practice-plan.html"
-    brief_path = PUBLIC_DIR / "match-brief.html"
-    practice_text_path = PUBLIC_DIR / "practice-plan.txt"
-    brief_text_path = PUBLIC_DIR / "match-brief.txt"
-    trends_path = PUBLIC_DIR / "review-trends.json"
-    manifest_path = PUBLIC_DIR / "site-manifest.json"
-    style_path = PUBLIC_DIR / "static" / "style.css"
-    if not index_path.exists():
-        raise SystemExit("public/index.html is missing")
-    if not practice_path.exists():
-        raise SystemExit("public/practice-plan.html is missing")
-    if not brief_path.exists():
-        raise SystemExit("public/match-brief.html is missing")
-    if not practice_text_path.exists():
-        raise SystemExit("public/practice-plan.txt is missing")
-    if not brief_text_path.exists():
-        raise SystemExit("public/match-brief.txt is missing")
-    if not trends_path.exists():
-        raise SystemExit("public/review-trends.json is missing")
-    if not manifest_path.exists():
-        raise SystemExit("public/site-manifest.json is missing")
-    if not style_path.exists():
-        raise SystemExit("public/static/style.css is missing")
+    required_paths = {name: PUBLIC_DIR / name for name in REQUIRED_SUPPORT_FILES}
+    for name, path in sorted(required_paths.items()):
+        if not path.exists():
+            raise SystemExit(f"public/{name} is missing")
+
+    index_path = required_paths["index.html"]
+    practice_path = required_paths["practice-plan.html"]
+    brief_path = required_paths["match-brief.html"]
+    practice_text_path = required_paths["practice-plan.txt"]
+    brief_text_path = required_paths["match-brief.txt"]
+    trends_path = required_paths["review-trends.json"]
+    manifest_path = required_paths["site-manifest.json"]
 
     topic_pages = sorted(PUBLIC_DIR.glob("trend-*.html"))
-    reports = sorted(
-        path
-        for path in PUBLIC_DIR.glob("*.html")
-        if path.name not in {"index.html", "practice-plan.html", "match-brief.html"} and not path.name.startswith("trend-")
-    )
+    reports = _report_pages(PUBLIC_DIR)
     if not reports:
         raise SystemExit("public contains no report HTML files")
 

@@ -86,6 +86,20 @@ class BuildPagesSiteTests(unittest.TestCase):
 
         self.assertEqual(issues, ["Dragon_Knight_1.html -> Item #600"])
 
+    def test_static_site_checker_classifies_support_pages_and_exports(self):
+        support_pages = {
+            "index.html",
+            "practice-plan.html",
+            "match-brief.html",
+            "trend-death-cost.html",
+        }
+        for name in support_pages:
+            self.assertFalse(check_public_site._is_report_page(Path(name)), name)
+
+        self.assertTrue(check_public_site._is_report_page(Path("Legion_Commander_8870219537.html")))
+        self.assertIn("practice-plan.txt", check_public_site.REQUIRED_SUPPORT_FILES)
+        self.assertIn("match-brief.txt", check_public_site.REQUIRED_SUPPORT_FILES)
+
     def test_parse_report_uses_embedded_match_metadata(self):
         metadata = {
             "match_id": 8867002237,

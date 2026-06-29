@@ -376,3 +376,23 @@
   - Add freshness/context directly into the execution card.
   - Add active-section highlighting only if commitments expand beyond three.
 - Recommended flagship next change: harden the Pages validator so future generated support pages and text exports cannot be misclassified or left stale.
+
+## 2026-06-29 - Long Cycle 2 Stage 5 CHECK
+
+- Goal: fix a real validation risk instead of returning a status-only CHECK.
+- Completed: centralized support-file definitions and report-page classification in `scripts/check_public_site.py`.
+- User-visible protection: future generated support pages and text exports are less likely to break the public site by being counted as match reports or omitted from required-file validation.
+- Verification:
+  - New CHECK regression test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 59 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+- GitHub Actions / CI: pending push.
+- Risks:
+  - Topic pages are still identified by the `trend-*.html` filename convention.
+- Next best directions:
+  - Add freshness/context directly into the execution card.
+  - Add source/report count to the text export if needed.
+  - Keep Cloudflare Pages acceptance checks on every push.
+- Recommended flagship next change: add a freshness strip to the execution card so the player can see exactly how much evidence the card is based on before queueing.

@@ -813,3 +813,31 @@ Started: 2026-06-28
 - Production acceptance: custom domain served both the HTML execution card and the text export.
 - Remaining risk: the text export is static at build time and does not include browser-local checklist state.
 - Next stage: Stage 5 CHECK.
+
+## 2026-06-29 - Long Cycle 2 Stage 5 CHECK - Start
+
+- Stage: 5 / 6
+- Type: CHECK
+- Prompt: AGENT_CHECK_MAIN.txt
+- Goal: harden generated-site validation around support-page classification and text exports.
+- Root cause: support HTML pages and text exports were listed inline inside `main()`, while report-page classification was a separate ad hoc comprehension. That made future support pages easy to misclassify as match reports or forget from required-file checks.
+- Start state: main at `chore: record stage 4 export deployment` (`b0926ce`), clean worktree, CI passed in run `28369832337`.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; keep the latest 10-report public set.
+
+## 2026-06-29 - Long Cycle 2 Stage 5 CHECK - Local Complete
+
+- Completed: centralized support-file definitions in `scripts/check_public_site.py` and added `_is_report_page()` / `_report_pages()` so report classification is tested and reused.
+- Bug/risk fixed: `index.html`, `practice-plan.html`, `match-brief.html`, and `trend-*.html` are explicitly non-report pages; `practice-plan.txt` and `match-brief.txt` are explicitly required support exports.
+- Regression coverage: added a CHECK test that failed before implementation because `_is_report_page()` did not exist, then passed after the validation fix.
+- Local verification:
+  - New CHECK regression test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 59 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Commit: pending.
+- Push / CI: pending.
+- Risk: support-page classification still uses filename conventions for `trend-*.html`, which is acceptable for the current static site generator.
+- Next stage after CI closeout: Stage 6 IMPROVE.
