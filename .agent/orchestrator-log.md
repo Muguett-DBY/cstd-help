@@ -982,3 +982,29 @@ Started: 2026-06-28
 - Production acceptance: `https://dota.custard.top/` returned 200 and included the latest report context; `site-manifest.json` returned 200 with report_count=10 and latest `Legion Commander #8870219537`.
 - Remaining risk: death positions are raw sampled x/y coordinates only; the system does not infer named map regions without a verified coordinate transform.
 - Next stage: Stage 3 UIUX.
+
+## 2026-06-30 - Long Cycle 3 Stage 3 UIUX - Start
+
+- Stage: 3 / 6
+- Type: UIUX
+- Prompt: AGENT_UIUX_MAIN.txt
+- Goal: expose real death-position samples directly beside each death time in the HTML event section.
+- Carry-over: Stage 2 attached position evidence to structured findings; this stage makes that evidence scannable without searching the coaching text.
+- User-visible increment: each located death shows its minute, sampled x/y coordinate, and sample age in a compact evidence card.
+- Start state: main at `chore: record stage 2 death position deployment` (`55e8c28`), clean worktree, CI passed in run `28388695806`.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; do not infer named map regions.
+
+## 2026-06-30 - Long Cycle 3 Stage 3 UIUX - Local Complete
+
+- Completed: replaced the death-time pill row with responsive evidence cards that keep the death minute and real position sample together; deaths without a sample explicitly show `无位置采样`.
+- User-visible increment: the event section now displays evidence such as `7.0分` plus `死亡位置：x=122,y=140（死亡前30秒）` in the same visual unit.
+- Local verification:
+  - New report-rendering test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 63 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+  - In-app browser QA: report title matched `Anti-Mage`; event navigation reached `#match-events`; two death cards rendered at desktop and 390x844 mobile widths; no horizontal page overflow or console errors.
+- Pending: commit, push, GitHub Actions, and custom-domain acceptance for Stage 3.

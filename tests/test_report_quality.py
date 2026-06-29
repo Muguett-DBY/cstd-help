@@ -841,6 +841,43 @@ class ReportQualityTests(unittest.TestCase):
 
         generator.REPORT_DIR = old_report_dir
 
+    def test_generated_report_shows_death_position_samples_in_event_section(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match["deaths"] = 2
+            stratz_data = {
+                "players": [{
+                    "steamAccount": {"id": 173776719},
+                    "isRadiant": True,
+                    "hero": {"id": 1, "displayName": "Anti-Mage"},
+                    "position": "POSITION_1",
+                    "role": "CORE",
+                    "playbackData": {
+                        "deathEvents": [{"time": 420}, {"time": 930}],
+                        "playerUpdatePositionEvents": [
+                            {"time": 390, "x": 122, "y": 140},
+                            {"time": 900, "x": 88, "y": 164},
+                        ],
+                    },
+                }],
+            }
+            analysis = analyze_match(match, stratz_data=stratz_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+            self.assertIn("死亡位置", html)
+            self.assertIn("x=122,y=140", html)
+            self.assertIn("死亡前30秒", html)
+            self.assertIn("death-event-card", html)
+
+        generator.REPORT_DIR = old_report_dir
+
     def test_generated_report_avoids_raw_less_than_signs_in_metric_text(self):
         from report.generator import generate_report
         import report.generator as generator

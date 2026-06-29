@@ -461,3 +461,24 @@
   - Add static validation that generated reports expose death position evidence when present.
   - Keep all death-location advice tied to real samples rather than inferred map zones.
 - Recommended flagship next change: make death position samples visible in the report UI, not just inside the structured finding and AI prompt.
+
+## 2026-06-30 - Long Cycle 3 Stage 3 UIUX
+
+- Goal: make real death-position evidence immediately visible in the event section.
+- Completed: rendered each located death as a responsive evidence card with death minute, x/y sample, and sample age; missing samples remain explicit rather than inferred.
+- User-visible gain: the player can scan the exact death review targets without finding the same evidence inside a longer coaching paragraph.
+- Verification:
+  - New target rendering test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 63 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser QA passed at the default desktop viewport and 390x844 mobile viewport; event cards had no horizontal overflow and console logs were clean.
+- Deployment: pending commit, push, GitHub Actions, and live-domain acceptance.
+- Risks:
+  - Coordinates intentionally remain raw x/y samples until a verified Dota map transform is available.
+- Next best directions:
+  - Show evidence-source coverage explicitly in every generated report.
+  - Add validation that unsupported map-region claims cannot appear without real evidence.
+  - Cross-reference deaths with low-efficiency windows using deterministic timing.
+- Recommended flagship next change: add a visible source-provenance summary so every precise claim can be traced to OpenDota or STRATZ evidence.
