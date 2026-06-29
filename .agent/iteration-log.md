@@ -410,7 +410,8 @@
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: no leaks found.
   - Playwright CLI desktop/mobile screenshots showed the freshness strip without overlap.
-- GitHub Actions / CI: pending push.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28370478876`.
+- Live check: `https://dota.custard.top/match-brief.html` returned 200 with `证据覆盖`, `10 场复盘`, `16 条教练证据`, `4 个训练主题`, and latest `Legion Commander #8870219537`.
 - Risks:
   - Freshness values are static until the next Pages build.
 - Next best directions:

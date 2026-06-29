@@ -879,7 +879,20 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
   - Browser fallback QA: local `match-brief.html` returned 200 with freshness content; Playwright CLI desktop/mobile screenshots showed the freshness strip without overlap.
-- Commit: pending.
-- Push / CI: pending.
+- Commit: `feat: show brief evidence coverage` (`57919bf`).
+- Push / CI: pushed to `origin/main`; GitHub Actions passed, `Deploy Cloudflare Pages` run `28370478876`.
+- Live check: `https://dota.custard.top/match-brief.html` returned 200 and contained `证据覆盖`, `10 场复盘`, `16 条教练证据`, `4 个训练主题`, and latest `Legion Commander #8870219537`; `site-manifest.json` matched report_count=10, finding_count=16, topic_count=4.
 - Risk: freshness values are build-time static and update on the next site build.
 - Next stage after CI closeout: final six-stage summary.
+
+## 2026-06-30 - Long Cycle 2 Stage 6 IMPROVE - Complete
+
+- Completed stage: 6 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: show brief evidence coverage` (`57919bf`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28370478876`.
+- Production acceptance: custom domain served the evidence-coverage strip and manifest counts matched the visible values.
+- Remaining risk: freshness values are static until the next Pages build.
+- Final state: all six requested stages are complete locally and deployed after CI.
