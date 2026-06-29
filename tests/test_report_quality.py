@@ -278,6 +278,70 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("低效率窗口", result["timeline"]["low_efficiency_windows"][0]["label"])
         self.assertIn("lane_timeline", result["data_quality"]["available"])
 
+    def test_stratz_playback_cs_events_create_lane_timeline_when_minute_arrays_missing(self):
+        match = self._base_match()
+        match["duration"] = 1200
+        cs_counts = [5, 5, 5, 5, 5, 1, 1, 1, 6, 6, 7, 7]
+        cs_events = [
+            {"time": minute * 60 + index + 1}
+            for minute, count in enumerate(cs_counts)
+            for index in range(count)
+        ]
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "lane": "SAFE_LANE",
+                "role": "CORE",
+                "playbackData": {
+                    "csEvents": cs_events,
+                },
+            }]
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+
+        self.assertTrue(result["timeline"]["available"])
+        self.assertEqual(result["timeline"]["source"], "stratz_playback_cs")
+        self.assertEqual(result["timeline"]["ten_min_last_hits"], 40)
+        self.assertEqual(result["timeline"]["phases"][0]["label"], "0-10")
+        self.assertAlmostEqual(result["timeline"]["phases"][0]["lh_per_min"], 4.0)
+        self.assertEqual(result["timeline"]["low_efficiency_windows"][0]["label"], "低效率窗口 5-8分钟")
+        self.assertIn("lane_timeline", result["data_quality"]["available"])
+        self.assertIn("stratz_playback_cs", result["data_quality"]["available"])
+
+    def test_report_shows_timeline_source_for_stratz_playback_cs(self):
+        from report import generator
+        from report.generator import generate_report
+
+        match = self._base_match()
+        match["duration"] = 1200
+        cs_events = [{"time": minute * 60 + index + 1} for minute in range(10) for index in range(5)]
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "playbackData": {"csEvents": cs_events},
+            }]
+        }
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            analysis = analyze_match(match, stratz_data=stratz_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+        generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("时间线来源", html)
+        self.assertIn("STRATZ补刀事件", html)
+
     def test_timeline_merges_opendota_farm_with_stratz_damage_arrays(self):
         match = self._base_match()
         opendota_data = {

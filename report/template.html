@@ -201,6 +201,9 @@
                     <div class="stat-label">20分钟平均GPM</div>
                 </div>
             </div>
+            {% if timeline.source_label %}
+            <div class="compact-row">时间线来源：{{ timeline.source_label }}</div>
+            {% endif %}
             {% if timeline.phases %}
             <table style="margin-top:16px;">
                 <thead>
