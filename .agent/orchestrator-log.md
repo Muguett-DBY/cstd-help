@@ -1451,3 +1451,18 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 1 closeout log.
+
+## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Complete
+
+- Completed stage: 1 / 2.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: surface repeated death coordinate clusters` (`130228e`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28410448019`; unit tests, compile, static Pages validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports, 60 findings, 9 topics, and latest report `Legion_Commander_8870219537_20260630_094728.html`.
+  - Latest Legion Commander report returned 200 with hero-first title, `重复死亡坐标簇`, `中心x=137.0,y=129.0`, `中心x=125.0,y=72.0`, and `不转换成地图区域名`.
+  - `trend-custom-97ad93fe24.html` returned 200 with `重复死亡坐标` evidence; `practice-plan.html` includes the new topic.
+- Remaining risk: repeated coordinate clusters still require replay confirmation and do not name map regions or infer death causes.
+- Next stage: Stage 2 UIUX should make the long match report evidence area faster to scan, especially the death/event evidence workbench on mobile.

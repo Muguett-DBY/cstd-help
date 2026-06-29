@@ -15,6 +15,8 @@
   - `gitleaks dir . --redact`: no leaks found.
   - Browser desktop/mobile QA passed with no overflow, no duplicate IDs, and no console errors.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Deployment: committed as `feat: surface repeated death coordinate clusters` (`130228e`), pushed to `main`, and `Deploy Cloudflare Pages` run `28410448019` passed.
+- Production acceptance: custom-domain manifest reports 18 reports, 60 findings, and 9 topics; latest Legion Commander report, the repeated-coordinate trend page, and the practice plan all include `重复死亡坐标` evidence.
 - Remaining risk: repeated clusters are raw-coordinate evidence only; they still do not name map regions or infer death causes without replay confirmation.
 - Next UIUX direction: make the report's long evidence pages faster to scan by upgrading the death/event evidence area with a clearer sticky/segmented evidence workspace and better mobile jump behavior.
 
