@@ -46,7 +46,12 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check for `AGENTS.md`, Docker files, and docker-compose paths: passed.
-- Deployment status: pending commit, push, GitHub Actions, and live-domain check.
+- Commit: `feat: add raw death coordinate map` (`28ebbd8`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28393634468`.
+- Live check: `https://dota.custard.top/Legion_Commander_8870219537_20260630_041720.html` returned 200 and contains `死亡坐标图`, `death-coordinate-map`, `原始x/y坐标`, and 12 plotted points.
+- Remaining risk: the plot uses raw STRATZ coordinates only; it still avoids named map-region advice until a verified Dota coordinate transform is implemented.
+- Next direction: add deterministic death-after resource recovery diagnostics so the report shows what happened in the minutes immediately after each death.
 
 ## Cycle 2 - Global Preparation
 

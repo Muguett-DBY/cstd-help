@@ -1,5 +1,23 @@
 # Iteration Log
 
+## 2026-06-30 - Long Cycle 4 Stage 1 IMPROVE
+
+- Goal: expose real death-position evidence as a visual report section without inventing map regions.
+- Completed: added deterministic `death_map_points`, a report `死亡坐标图` SVG scatter plot, responsive coordinate chips, and tests covering both analysis output and generated HTML.
+- User-visible gain: latest `Legion Commander #8870219537` now shows 12 raw STRATZ death coordinate points, including labels like `11.2分 x=94,y=168`, directly inside `死亡/装备事件`.
+- Verification:
+  - New target tests failed before implementation, then passed.
+  - `python main.py --skip-fetch --recent 10 --force`: generated 10 reports from cached real STRATZ detail after live STRATZ fetch was blocked by Cloudflare.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 71 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser desktop/mobile report QA passed with no horizontal overflow or console errors.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28393634468`.
+- Live check: latest `Legion Commander #8870219537` report returned 200 and contains `死亡坐标图`, raw coordinate note, and 12 plotted points.
+- Remaining risk: raw coordinates are not converted to named map regions until a verified Dota coordinate transform exists.
+- Recommended next direction: add death-after resource recovery diagnostics, using real minute-level LH/gold data to show whether each death was followed by a recovery or a dead window.
+
 ## 2026-06-30 - Long Cycle 3 Stage 6 IMPROVE
 
 - Goal: connect deaths with low-efficiency windows so reports show where real deaths interrupted resource flow.
