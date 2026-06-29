@@ -39,6 +39,40 @@ class BuildPagesSiteTests(unittest.TestCase):
 
         self.assertEqual(issues, ["index.html -> missing-report.html"])
 
+    def test_static_site_checker_detects_broken_anchor_links(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "index.html").write_text(
+                '<html><body><a href="#missing-local">bad local</a>'
+                '<a href="present.html#ok">ok</a>'
+                '<a href="present.html#missing">bad target</a>'
+                '<section id="present"></section></body></html>',
+                encoding="utf-8",
+            )
+            (public_path / "present.html").write_text('<html><body><div id="ok"></div></body></html>', encoding="utf-8")
+
+            issues = check_public_site._find_anchor_issues(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "index.html -> #missing-local",
+                "index.html -> present.html#missing",
+            ],
+        )
+
+    def test_static_site_checker_detects_duplicate_ids(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "index.html").write_text(
+                '<html><body><section id="dup"></section><div id="dup"></div></body></html>',
+                encoding="utf-8",
+            )
+
+            issues = check_public_site._find_duplicate_id_issues(public_path)
+
+        self.assertEqual(issues, ["index.html -> duplicate id 'dup'"])
+
     def test_static_site_checker_detects_unresolved_item_names(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)

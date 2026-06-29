@@ -2,6 +2,7 @@ import json
 import re
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 try:
     from build_pages_site import _parse_report
@@ -47,11 +48,15 @@ class LocalLinkParser(HTMLParser):
     def __init__(self):
         super().__init__()
         self.links = []
+        self.ids = []
 
     def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        element_id = attributes.get("id")
+        if element_id:
+            self.ids.append(element_id)
         if tag.lower() not in {"a", "link", "script", "img"}:
             return
-        attributes = dict(attrs)
         for name in ("href", "src"):
             value = attributes.get(name)
             if value:
@@ -77,12 +82,17 @@ def _strip_link_suffix(value):
     return value.split("#", 1)[0].split("?", 1)[0]
 
 
+def _parse_page(public_dir, page):
+    parser = LocalLinkParser()
+    parser.feed(page.read_text(encoding="utf-8"))
+    return parser
+
+
 def _find_local_link_issues(public_dir=PUBLIC_DIR):
     public_dir = Path(public_dir)
     issues = []
     for page in sorted(public_dir.glob("*.html")):
-        parser = LocalLinkParser()
-        parser.feed(page.read_text(encoding="utf-8"))
+        parser = _parse_page(public_dir, page)
         for raw_link in parser.links:
             if not _is_local_asset_reference(raw_link):
                 continue
@@ -96,6 +106,59 @@ def _find_local_link_issues(public_dir=PUBLIC_DIR):
                 issues.append(f"{page.name} -> {raw_link}")
                 continue
             if not target_path.exists():
+                issues.append(f"{page.name} -> {raw_link}")
+    return issues
+
+
+def _find_duplicate_id_issues(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    issues = []
+    for page in sorted(public_dir.glob("*.html")):
+        parser = _parse_page(public_dir, page)
+        seen = set()
+        duplicates = []
+        for element_id in parser.ids:
+            if element_id in seen and element_id not in duplicates:
+                duplicates.append(element_id)
+            seen.add(element_id)
+        for element_id in sorted(duplicates):
+            issues.append(f"{page.name} -> duplicate id '{element_id}'")
+    return issues
+
+
+def _find_anchor_issues(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    public_root = public_dir.resolve()
+    id_cache = {}
+    issues = []
+
+    def ids_for(target_path):
+        resolved = target_path.resolve()
+        if resolved not in id_cache:
+            parser = _parse_page(public_dir, target_path)
+            id_cache[resolved] = set(parser.ids)
+        return id_cache[resolved]
+
+    for page in sorted(public_dir.glob("*.html")):
+        parser = _parse_page(public_dir, page)
+        for raw_link in parser.links:
+            normalized = raw_link.strip()
+            if not normalized or normalized.startswith(("http://", "https://", "mailto:", "tel:", "data:")):
+                continue
+            parsed = urlsplit(normalized)
+            fragment = unquote(parsed.fragment)
+            if not fragment:
+                continue
+            target_name = _strip_link_suffix(normalized)
+            target_path = page if not target_name else (page.parent / target_name)
+            resolved = target_path.resolve()
+            try:
+                resolved.relative_to(public_root)
+            except ValueError:
+                continue
+            if not resolved.exists():
+                continue
+            if fragment not in ids_for(resolved):
                 issues.append(f"{page.name} -> {raw_link}")
     return issues
 
@@ -140,6 +203,16 @@ def main():
     if local_link_issues:
         preview = "; ".join(local_link_issues[:10])
         raise SystemExit(f"public contains broken local links: {preview}")
+
+    duplicate_ids = _find_duplicate_id_issues(PUBLIC_DIR)
+    if duplicate_ids:
+        preview = "; ".join(duplicate_ids[:10])
+        raise SystemExit(f"public contains duplicate element ids: {preview}")
+
+    anchor_issues = _find_anchor_issues(PUBLIC_DIR)
+    if anchor_issues:
+        preview = "; ".join(anchor_issues[:10])
+        raise SystemExit(f"public contains broken anchor links: {preview}")
 
     unresolved_items = _find_unresolved_item_references(PUBLIC_DIR)
     if unresolved_items:
@@ -240,7 +313,19 @@ def main():
         )
 
     practice_html = practice_path.read_text(encoding="utf-8")
-    for required in ("下一次训练计划", "第 1 优先级", "下一局动作", "验收标准", "复盘数据覆盖"):
+    for required in (
+        "下一次训练计划",
+        "第 1 优先级",
+        "下一局动作",
+        "验收标准",
+        "复盘数据覆盖",
+        "practice-workbench",
+        "data-practice-filter",
+        "data-practice-check",
+        "data-practice-empty",
+        "result=lose",
+        "result=win",
+    ):
         if required not in practice_html:
             raise SystemExit(f"practice plan page is missing required content: {required}")
 
