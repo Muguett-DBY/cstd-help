@@ -397,3 +397,24 @@
   - Add source/report count to the text export if needed.
   - Keep Cloudflare Pages acceptance checks on every push.
 - Recommended flagship next change: add a freshness strip to the execution card so the player can see exactly how much evidence the card is based on before queueing.
+
+## 2026-06-29 - Long Cycle 2 Stage 6 IMPROVE
+
+- Goal: make evidence coverage visible on the pre-match execution card.
+- Completed: added a `证据覆盖` strip to `match-brief.html` showing `10 场复盘`, `16 条教练证据`, and `4 个训练主题`.
+- User-visible gain: the player can judge the evidence base of the three commitments before using them in the next match.
+- Verification:
+  - Target UI tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 59 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Playwright CLI desktop/mobile screenshots showed the freshness strip without overlap.
+- GitHub Actions / CI: pending push.
+- Risks:
+  - Freshness values are static until the next Pages build.
+- Next best directions:
+  - Consider active-section highlighting only if the execution card expands beyond three commitments.
+  - Keep strict public-site validation for every support file and text export.
+  - Continue using real STRATZ/OpenDota evidence in the report generator.
+- Recommended flagship next change: no urgent product gap remains in this 6-stage cycle; future work should focus on deeper match data ingestion rather than more summary UI.

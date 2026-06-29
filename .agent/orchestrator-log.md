@@ -854,3 +854,32 @@ Started: 2026-06-28
 - Production acceptance: custom domain still served the dashboard and text export after validator hardening.
 - Remaining risk: support-page classification still uses the `trend-*.html` filename convention.
 - Next stage: Stage 6 IMPROVE.
+
+## 2026-06-29 - Long Cycle 2 Stage 6 IMPROVE - Start
+
+- Stage: 6 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: add visible evidence freshness/context to the pre-match execution card.
+- Carry-over: Stage 5 recommended making the card show exactly how much evidence it is based on before queueing.
+- Start state: main at `chore: record stage 5 validation deployment` (`869eeaa`), clean worktree, CI passed in run `28370162029`.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; keep the latest 10-report public set.
+
+## 2026-06-29 - Long Cycle 2 Stage 6 IMPROVE - Local Complete
+
+- Completed: added a `证据覆盖` strip to `match-brief.html`, showing report count, coach-evidence count, and topic count directly under the summary cards.
+- User-visible increment: before queueing, the player can see that the current execution card is based on `10 场复盘`, `16 条教练证据`, and `4 个训练主题`, rather than trusting an opaque summary.
+- Static validation: `scripts/check_public_site.py` now requires the execution card to include the freshness strip and report-count marker.
+- Local verification:
+  - Target UI tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 59 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+  - Browser fallback QA: local `match-brief.html` returned 200 with freshness content; Playwright CLI desktop/mobile screenshots showed the freshness strip without overlap.
+- Commit: pending.
+- Push / CI: pending.
+- Risk: freshness values are build-time static and update on the next site build.
+- Next stage after CI closeout: final six-stage summary.

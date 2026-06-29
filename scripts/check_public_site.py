@@ -368,6 +368,8 @@ def main():
         "practice-plan.html",
         "match-brief.txt",
         "导出执行卡",
+        "证据覆盖",
+        "data-brief-report-count",
         "brief-card",
         "brief-command-bar",
         "brief-proof-grid",
