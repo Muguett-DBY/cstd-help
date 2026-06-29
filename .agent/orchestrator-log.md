@@ -932,3 +932,15 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, and custom-domain acceptance for Stage 1.
+
+## 2026-06-30 - Long Cycle 3 Stage 1 IMPROVE - Complete
+
+- Completed stage: 1 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: derive lane timeline from playback cs` (`81f79ef`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28388235464`.
+- Production acceptance: `https://dota.custard.top/` returned 200; `site-manifest.json` returned 200 with report_count=10 and latest `Legion Commander #8870219537`.
+- Remaining risk: STRATZ playback CS evidence only supplies real last-hit timing unless other minute arrays are also available.
+- Next stage: Stage 2 IMPROVE.

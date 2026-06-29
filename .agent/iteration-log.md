@@ -431,7 +431,8 @@
   - `python -m compileall -q .`: passed.
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: no leaks found.
-- GitHub Actions / CI: pending.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28388235464`.
+- Live check: `https://dota.custard.top/` and `https://dota.custard.top/site-manifest.json` returned 200; manifest still reported 10 reports and latest `Legion Commander #8870219537`.
 - Risks:
   - CS playback still only provides lane last-hit counts; it does not add gold/XP/damage arrays unless STRATZ also exposes those minute arrays.
 - Next best directions:
