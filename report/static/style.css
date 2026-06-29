@@ -778,6 +778,107 @@ body {
     flex-wrap: wrap;
     gap: 8px;
 }
+.brief-hero {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 22px;
+}
+.brief-hero > div {
+    display: grid;
+    gap: 3px;
+    min-height: 92px;
+    padding: 14px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+}
+.brief-hero span,
+.brief-card-top,
+.brief-step strong,
+.brief-evidence strong {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+}
+.brief-hero strong {
+    color: var(--text-primary);
+    font-size: 20px;
+}
+.brief-hero small {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.brief-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    padding-top: 24px;
+}
+.brief-card {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    min-height: 360px;
+    padding: 16px;
+    border: 1px solid rgba(88,166,255,0.26);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+}
+.brief-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.brief-rank {
+    color: var(--accent-blue);
+}
+.brief-card h2 {
+    font-size: 18px;
+    line-height: 1.3;
+}
+.brief-step,
+.brief-evidence {
+    display: grid;
+    gap: 4px;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-primary);
+}
+.brief-step span,
+.brief-evidence span {
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+.brief-evidence {
+    border-color: rgba(248,81,73,0.26);
+}
+.brief-footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+    padding: 14px;
+    border: 1px solid rgba(63,185,80,0.28);
+    border-radius: 6px;
+    background: rgba(63,185,80,0.08);
+}
+.brief-footer strong {
+    flex: 0 0 auto;
+    color: var(--accent-green);
+}
+.brief-footer span {
+    min-width: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+.brief-footer .primary-link {
+    flex: 0 0 auto;
+    margin-top: 0;
+}
 .practice-card {
     display: grid;
     grid-template-columns: 128px minmax(0, 1fr);
@@ -1660,6 +1761,21 @@ tr:hover { background: rgba(88,166,255,0.05); }
     }
     .practice-filter-row .filter-button {
         flex: 1 1 128px;
+    }
+    .brief-hero,
+    .brief-grid {
+        grid-template-columns: 1fr;
+    }
+    .brief-card {
+        min-height: 0;
+    }
+    .brief-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .brief-footer .primary-link {
+        width: 100%;
+        justify-content: center;
     }
     .practice-title-row {
         flex-direction: column;

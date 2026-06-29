@@ -642,3 +642,36 @@ Started: 2026-06-28
 - Final local release gates: 57 tests passed; compileall, public-site validation for 10 reports, gitleaks, diff check, and forbidden-file check passed.
 - Protected scope: no Docker or `AGENTS.md` changes were made.
 - Residual risks: practice checkbox state remains browser-local by design; the text export reflects build-time evidence and does not include local checkbox state; external CDN image availability is outside static validation.
+
+## 2026-06-29 - Long Cycle 2 Stage 1 IMPROVE - Start
+
+- Stage: 1 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: turn the existing next-session training plan into an even faster pre-match execution surface that can be read immediately before queueing.
+- Carry-over: the prior cycle left a build-time practice export and browser-local checklist; the next high-value step is making the plan usable at match start, not only as a post-review page.
+- Start state: main at `chore: record six-stage completion` (`cc86b37`), clean worktree, origin/main up to date, latest tracked public report set preserved.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; no branch changes; no force push; keep generated public reports on the latest tracked 10-match set.
+
+## 2026-06-29 - Long Cycle 2 Stage 1 IMPROVE - Local Complete
+
+- Completed: generated `match-brief.html`, linked it from the dashboard and practice plan, and styled it as a 30-second pre-match execution card with three evidence-ranked commitments.
+- User-visible increment: before queueing, the player can open one page showing the latest reviewed match, the three highest-priority habits to execute, direct failure-evidence links, and a post-game review loop.
+- Real issues fixed:
+  - Legacy source reports with old final-item slots are upgraded during Pages build so published reports no longer show unresolved `Item #...` labels.
+  - Static validation now treats `match-brief.html` as a first-class non-report page and requires its core execution-card content.
+  - A temporary default-source rebuild mixed in an older 886 report set; public was restored to the latest tracked 10-report source before the final build.
+- Local verification:
+  - New `match-brief.html` test failed before implementation, then passed.
+  - New legacy item-slot upgrade test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 58 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+  - Browser fallback QA: Playwright CLI screenshots for desktop 1280px and mobile 390px rendered the execution card; HTTP check returned 200 with 3 cards and latest Legion Commander match.
+- Commit: pending.
+- Push / CI: pending.
+- Risk: `match-brief.html` is build-time static; it intentionally does not include browser-local checklist completion state.
+- Next stage after CI closeout: Stage 2 IMPROVE.

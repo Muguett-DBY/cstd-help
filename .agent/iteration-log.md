@@ -289,3 +289,24 @@
   - Add URL-persisted filters for shareable history views.
   - Add a freshness manifest showing source report count and latest match id.
 - Recommended flagship next change: normalize trend taxonomy so the practice plan groups equivalent issues across heroes and roles more intelligently.
+
+## 2026-06-29 - Long Cycle 2 Stage 1 IMPROVE
+
+- Goal: make the training plan usable immediately before queueing the next ranked match.
+- Completed: added `match-brief.html`, a 30-second pre-match execution card generated from the same evidence-ranked trends as the practice plan.
+- User-visible gain: the dashboard and training plan now link to a compact page with latest match context, three core commitments, failure evidence links, and the post-game review loop.
+- Real issue fixed: legacy report item slots are upgraded during Pages build, preventing unresolved `Item #...` labels from reaching public reports.
+- Verification:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 58 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Playwright CLI desktop/mobile screenshots rendered the execution card; HTTP check returned 200 with 3 cards and latest Legion Commander match.
+- GitHub Actions / CI: pending push.
+- Risks:
+  - The pre-match card is static at build time and does not include browser-local checklist progress.
+- Next best directions:
+  - Add role/hero-aware drill-down from the pre-match card into comparable wins and losses.
+  - Add a generated recent-match freshness block to the execution card itself.
+  - Keep tightening stale public artifact detection in CHECK.
+- Recommended flagship next change: add hero-specific comparison lanes so each core commitment shows the closest winning sample beside the failure evidence.
