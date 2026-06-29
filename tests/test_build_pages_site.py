@@ -395,8 +395,11 @@ class BuildPagesSiteTests(unittest.TestCase):
             index_html = (Path(public) / "index.html").read_text(encoding="utf-8")
             plan_html = (Path(public) / "practice-plan.html").read_text(encoding="utf-8")
             plan_text = (Path(public) / "practice-plan.txt").read_text(encoding="utf-8")
+            brief_html = (Path(public) / "match-brief.html").read_text(encoding="utf-8")
 
         self.assertIn("practice-plan.html", index_html)
+        self.assertIn("match-brief.html", index_html)
+        self.assertIn("match-brief.html", plan_html)
         self.assertIn("practice-plan.txt", plan_html)
         self.assertIn("导出训练清单", plan_html)
         self.assertIn("下一次训练计划", plan_html)
@@ -421,6 +424,15 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("下一局前10分钟低效率窗口=0。", plan_text)
         self.assertIn("10分钟补刀>=35。", plan_text)
         self.assertIn("失败证据：trend-early-resource.html?result=lose", plan_text)
+        self.assertIn("赛前执行卡", brief_html)
+        self.assertIn("三条核心承诺", brief_html)
+        self.assertIn("对局中只盯", brief_html)
+        self.assertIn("赛后复核", brief_html)
+        self.assertIn("失败证据", brief_html)
+        self.assertIn("Doom #8867002240", brief_html)
+        self.assertIn('href="practice-plan.html"', brief_html)
+        self.assertIn('href="trend-early-resource.html?result=lose"', brief_html)
+        self.assertIn('class="brief-card"', brief_html)
 
     def test_build_pages_site_writes_topic_evidence_pages_and_links(self):
         metadata = {
@@ -529,6 +541,38 @@ class BuildPagesSiteTests(unittest.TestCase):
                 )
             report_data = (Path(public) / report_path.name).read_bytes()
             self.assertNotIn(b"\r\n", report_data, f"{report_path.name} should be written with LF newlines")
+
+    def test_build_pages_site_upgrades_legacy_item_slots_to_names(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            report_path = self._write_report(source, metadata)
+            text = report_path.read_text(encoding="utf-8")
+            legacy_items = (
+                '<div class="item-slot item-name" title="Item #1856">1856</div>'
+                '<div class="item-slot item-name" title="Item #214">214</div>'
+                '<div class="item-slot item-name" title="Item #254">254</div>'
+            )
+            report_path.write_text(text.replace("</body>", legacy_items + "</body>"), encoding="utf-8")
+
+            pages_site.build_pages_site(source, public_dir=public)
+            report_html = (Path(public) / report_path.name).read_text(encoding="utf-8")
+
+        self.assertNotIn("Item #1856", report_html)
+        self.assertNotIn("Item #214", report_html)
+        self.assertNotIn("Item #254", report_html)
+        self.assertIn("Crella&#x27;s Crozier", report_html)
+        self.assertIn("Tranquil Boots", report_html)
+        self.assertIn("Glimmer Cape", report_html)
 
     def test_build_pages_site_injects_adjacent_report_navigation(self):
         metadata = {

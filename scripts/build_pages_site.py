@@ -5,6 +5,7 @@ import json
 import os
 import re
 import shutil
+import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 from html.parser import HTMLParser
@@ -13,10 +14,19 @@ from urllib.parse import urlencode
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from analysis.analyzer import _item_detail
+
 DEFAULT_SOURCE = Path(r"C:\Users\12031\Desktop\REVIEW_REPORT")
 PUBLIC_DIR = ROOT / "public"
 STATIC_SOURCE = ROOT / "report" / "static"
 REPORT_NAME_RE = re.compile(r"^(?P<hero>.+)_(?P<match_id>\d{8,})_(?P<stamp>\d{8}_\d{6})\.html$")
+LEGACY_ITEM_SLOT_RE = re.compile(
+    r'(<div class="item-slot item-name" title=")(?:Item #|ID )(?P<item_id>\d+)(">\s*)(?:Item #)?\d+(\s*</div>)',
+    re.MULTILINE,
+)
 HERO_IMAGE_BASE = "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes"
 PRIORITY_PREFIX_RE = re.compile(r"^(?:高|中|低)优先级\s*[·:：\-]\s*")
 FOCUS_TAXONOMY = (
@@ -237,6 +247,21 @@ def _copy_static_assets(public_dir):
         shutil.copytree(STATIC_SOURCE, public_dir / "static", dirs_exist_ok=True)
 
 
+def _upgrade_legacy_item_slots(text):
+    def replace(match):
+        item_id = int(match.group("item_id"))
+        item_name = _item_detail(item_id).get("name") or f"Item #{item_id}"
+        if item_name.startswith("Item #"):
+            return match.group(0)
+        return (
+            f'{match.group(1)}ID {item_id}{match.group(3)}'
+            f'{html.escape(item_name)}'
+            f'{match.group(4)}'
+        )
+
+    return LEGACY_ITEM_SLOT_RE.sub(replace, text)
+
+
 def _copy_reports(source, public_dir):
     reports = sorted(source.glob("*.html"), key=lambda item: item.stat().st_mtime, reverse=True)
     if not reports:
@@ -252,6 +277,8 @@ def _copy_reports(source, public_dir):
         seen_matches.add(dedupe_key)
         target = public_dir / report.name
         shutil.copy2(report, target)
+        upgraded_text = _upgrade_legacy_item_slots(target.read_text(encoding="utf-8"))
+        _write_utf8(target, upgraded_text)
         copied.append(_parse_report(target))
     return copied
 
@@ -531,6 +558,107 @@ def _render_practice_plan_text(trends, manifest):
     return "\n".join(lines).rstrip() + "\n"
 
 
+def _trend_failure_evidence(trend):
+    findings = trend.get("findings") or []
+    for finding in findings:
+        if finding.get("result") == "lose" and finding.get("review_evidence"):
+            return finding.get("review_evidence")
+    for finding in findings:
+        if finding.get("review_evidence"):
+            return finding.get("review_evidence")
+    return "该主题暂无单独失败证据文本，打开完整证据页查看。"
+
+
+def _render_match_brief(trends, reports, output_path, manifest=None):
+    newest = reports[0] if reports else {}
+    manifest = manifest or _build_site_manifest(reports, trends)
+    latest = manifest.get("latest_match") or {}
+    latest_file = html.escape(latest.get("file") or newest.get("file") or "index.html", quote=True)
+    latest_hero = html.escape(latest.get("hero") or newest.get("hero") or "未知英雄")
+    latest_match_id = html.escape(str(latest.get("match_id") or newest.get("match_id") or ""))
+    latest_focus = html.escape(latest.get("review_focus") or newest.get("review_focus") or "需要查看报告")
+
+    cards = []
+    for index, trend in enumerate(trends[:3], start=1):
+        focus = html.escape(trend.get("focus") or "需要查看报告")
+        action = html.escape(trend.get("next_action") or "打开报告查看下一局行动清单。")
+        metric = html.escape(trend.get("success_metric") or "以报告内验收标准为准。")
+        evidence = html.escape(_trend_failure_evidence(trend))
+        topic_page_raw = trend.get("page") or "index.html"
+        failure_href = html.escape(_filtered_topic_href(topic_page_raw, result="lose"), quote=True)
+        cards.append(
+            f"""
+            <article class="brief-card">
+                <div class="brief-card-top">
+                    <span class="brief-rank">承诺 {index}</span>
+                    <span>{html.escape(str(trend.get('count') or 0))} 局出现</span>
+                </div>
+                <h2>{focus}</h2>
+                <div class="brief-step"><strong>对局中只盯</strong><span>{action}</span></div>
+                <div class="brief-step"><strong>赛后复核</strong><span>{metric}</span></div>
+                <div class="brief-evidence"><strong>失败证据</strong><span>{evidence}</span></div>
+                <a class="topic-report-link" href="{failure_href}">打开失败证据</a>
+            </article>
+            """.strip()
+        )
+    card_html = "".join(cards) if cards else '<div class="trend-empty">暂无可生成的赛前执行卡。</div>'
+    brief_html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dota 2 赛前执行卡</title>
+    <meta name="description" content="根据最近 Dota 2 复盘证据生成的下一局赛前执行卡。">
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body class="history-page brief-page">
+<div class="container history-container">
+    <header class="history-header">
+        <div>
+            <a class="back-link" href="index.html">&larr; 比赛历史</a>
+            <div class="history-eyebrow">玩家 173776719</div>
+            <h1>赛前执行卡</h1>
+            <p>下一局开打前只看这三件事。每一条都来自已有复盘证据，不新增推断。</p>
+        </div>
+        <a class="primary-link" href="{latest_file}">打开最新复盘</a>
+        <a class="primary-link secondary-link" href="practice-plan.html">完整训练计划</a>
+    </header>
+
+    <section class="brief-hero" aria-label="赛前摘要">
+        <div>
+            <span>最新复盘</span>
+            <strong>{latest_hero} #{latest_match_id}</strong>
+            <small>当前重点：{latest_focus}</small>
+        </div>
+        <div>
+            <span>三条核心承诺</span>
+            <strong>{min(len(trends), 3)}</strong>
+            <small>死亡、转化、控图等主题按证据优先级排序。</small>
+        </div>
+        <div>
+            <span>使用方式</span>
+            <strong>30 秒</strong>
+            <small>赛前读承诺；对局中只盯动作；赛后按指标复核。</small>
+        </div>
+    </section>
+
+    <main class="brief-grid" aria-label="三条核心承诺">
+        {card_html}
+    </main>
+
+    <section class="brief-footer">
+        <strong>复盘闭环</strong>
+        <span>打完后回到完整训练计划勾选执行情况，再打开失败证据对照同类问题是否减少。</span>
+        <a class="primary-link secondary-link" href="practice-plan.html">回到训练计划</a>
+    </section>
+</div>
+</body>
+</html>
+"""
+    _write_utf8(output_path, brief_html)
+
+
 def _count_report_findings(reports):
     total = 0
     for report in reports:
@@ -803,6 +931,7 @@ def _render_practice_plan(trends, reports, output_path, manifest=None):
             <p>根据最近报告里的反复问题排序。每条只使用报告已有证据、动作和验收标准。</p>
         </div>
         <a class="primary-link" href="{newest_link}">打开最新复盘</a>
+        <a class="primary-link secondary-link" href="match-brief.html">赛前执行卡</a>
         <a class="primary-link secondary-link" href="practice-plan.txt">导出训练清单</a>
     </header>
     {coverage_panel}
@@ -1412,6 +1541,7 @@ def _render_index(reports, output_path=None, focus_trends=None, manifest=None):
         </div>
         <a class="primary-link" href="{html.escape(newest['file'], quote=True)}">打开最新复盘</a>
         <a class="primary-link secondary-link" href="practice-plan.html">下一次训练计划</a>
+        <a class="primary-link secondary-link" href="match-brief.html">赛前执行卡</a>
     </header>
 
     <div class="history-summary" aria-label="历史比赛统计">
@@ -1631,6 +1761,12 @@ def build_pages_site(source, public_dir=PUBLIC_DIR):
         focus_trends,
         sorted(reports, key=_report_sort_key, reverse=True),
         public_dir / "practice-plan.html",
+        manifest=site_manifest,
+    )
+    _render_match_brief(
+        focus_trends,
+        sorted(reports, key=_report_sort_key, reverse=True),
+        public_dir / "match-brief.html",
         manifest=site_manifest,
     )
     _write_utf8(public_dir / "practice-plan.txt", _render_practice_plan_text(focus_trends, site_manifest))
