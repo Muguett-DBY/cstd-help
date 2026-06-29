@@ -944,6 +944,10 @@ class ReportQualityTests(unittest.TestCase):
         self.assertAlmostEqual(recovery["avg_gpm"], 133.3)
         self.assertEqual(recovery["status_label"], "恢复不足")
         self.assertIn("10.0分后10-13分钟 1补/133.3平均GPM", finding["evidence"])
+        self.assertIn(
+            "10.0分死亡前后：补刀/分 6.0→0.3（-5.7），平均GPM 420.0→133.3（-286.7）",
+            finding["evidence"],
+        )
         self.assertIn("3分钟内先补到", finding["action"])
 
     def test_generated_report_shows_death_recovery_windows(self):
@@ -983,6 +987,143 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("1补", html)
         self.assertIn("平均GPM 133.3", html)
         self.assertIn("恢复不足", html)
+
+    def test_death_resource_deltas_compare_before_and_after_pace(self):
+        match = self._base_match()
+        match["deaths"] = 1
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [6] * 10 + [1, 1, 1, 6, 6],
+                    "goldPerMinute": [500] * 10 + [200, 200, 200, 450, 450],
+                },
+                "playbackData": {
+                    "deathEvents": [{"time": 600}],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        delta = result["timeline"]["death_resource_deltas"][0]
+
+        self.assertEqual(delta["minute"], 10.0)
+        self.assertEqual(delta["before_window_label"], "7-10分钟")
+        self.assertEqual(delta["after_window_label"], "10-13分钟")
+        self.assertEqual(delta["before_lh"], 18)
+        self.assertEqual(delta["after_lh"], 3)
+        self.assertEqual(delta["before_lh_per_min"], 6.0)
+        self.assertEqual(delta["after_lh_per_min"], 1.0)
+        self.assertEqual(delta["lh_per_min_delta"], -5.0)
+        self.assertEqual(delta["before_avg_gpm"], 500.0)
+        self.assertEqual(delta["after_avg_gpm"], 200.0)
+        self.assertEqual(delta["avg_gpm_delta"], -300.0)
+        self.assertEqual(delta["status"], "declined")
+        self.assertEqual(delta["status_label"], "补刀与经济均下降")
+
+    def test_death_resource_deltas_skip_fractional_death_minute(self):
+        match = self._base_match()
+        match["deaths"] = 1
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [6] * 20,
+                    "goldPerMinute": [500] * 20,
+                },
+                "playbackData": {
+                    "deathEvents": [{"time": 810}],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        delta = result["timeline"]["death_resource_deltas"][0]
+
+        self.assertEqual(delta["minute"], 13.5)
+        self.assertEqual(delta["before_window_label"], "10-13分钟")
+        self.assertEqual(delta["after_window_label"], "14-17分钟")
+        self.assertEqual(delta["excluded_partial_minute"], 13)
+
+    def test_death_resource_delta_finding_flags_significant_post_death_drop(self):
+        match = self._base_match()
+        match["deaths"] = 1
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [8] * 10 + [5, 5, 5, 8, 8],
+                    "goldPerMinute": [500] * 10 + [650, 650, 650, 700, 700],
+                },
+                "playbackData": {
+                    "deathEvents": [{"time": 600}],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        finding = next(
+            item for item in result["review_findings"]
+            if item["category"] == "death_resource_delta"
+        )
+
+        self.assertEqual(finding["category_label"], "死亡前后资源变化")
+        self.assertIn("死亡前后资源下降窗口", finding["evidence"])
+        self.assertIn("10.0分死亡前后：补刀/分 8.0→5.0（-3.0）", finding["evidence"])
+        self.assertIn("平均GPM 500.0→650.0（+150.0）", finding["evidence"])
+        self.assertIn("复活后", finding["action"])
+        self.assertIn("不判断死亡原因", finding["replay_check"])
+
+    def test_generated_report_shows_death_resource_deltas(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match["deaths"] = 1
+            stratz_data = {
+                "players": [{
+                    "steamAccount": {"id": 173776719},
+                    "isRadiant": True,
+                    "hero": {"id": 1, "displayName": "Anti-Mage"},
+                    "position": "POSITION_1",
+                    "role": "CORE",
+                    "stats": {
+                        "lastHitsPerMinute": [6] * 10 + [1, 1, 1, 6, 6],
+                        "goldPerMinute": [500] * 10 + [200, 200, 200, 450, 450],
+                    },
+                    "playbackData": {
+                        "deathEvents": [{"time": 600}],
+                    },
+                }],
+            }
+            analysis = analyze_match(match, stratz_data=stratz_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+        generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("死亡前后资源变化", html)
+        self.assertIn("10.0分死亡", html)
+        self.assertIn("补刀/分钟 6.0→1.0（-5.0）", html)
+        self.assertIn("平均GPM 500.0→200.0（-300.0）", html)
+        self.assertIn("补刀与经济均下降", html)
+        self.assertIn("变化只描述时间相邻数据，不代表死亡原因", html)
 
     def test_generated_report_has_mobile_timeline_and_death_review_workbench(self):
         from report.generator import generate_report

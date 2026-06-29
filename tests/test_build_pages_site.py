@@ -1,4 +1,5 @@
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -72,6 +73,45 @@ class BuildPagesSiteTests(unittest.TestCase):
             issues = check_public_site._find_duplicate_id_issues(public_path)
 
         self.assertEqual(issues, ["index.html -> duplicate id 'dup'"])
+
+    def test_practice_plan_custom_topic_check_ids_are_unique(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            self._write_report(
+                source,
+                metadata,
+                filename="Mirana_8867002237_20260626_224839.html",
+                focus="死亡前后资源变化",
+            )
+            second = dict(metadata)
+            second["match_id"] = 8867002240
+            second["hero"] = {"id": 69, "name": "Doom", "slug": "doom_bringer"}
+            self._write_report(
+                source,
+                second,
+                filename="Doom_8867002240_20260626_224840.html",
+                focus="死亡打断资源",
+            )
+
+            pages_site.build_pages_site(source, public_dir=public)
+            public_path = Path(public)
+            plan_html = (public_path / "practice-plan.html").read_text(encoding="utf-8")
+            duplicate_issues = check_public_site._find_duplicate_id_issues(public_path)
+
+        custom_ids = re.findall(r'id="(practice-custom-[^"]+)"', plan_html)
+        self.assertEqual(duplicate_issues, [])
+        self.assertEqual(len(custom_ids), 6)
+        self.assertEqual(len(custom_ids), len(set(custom_ids)))
 
     def test_static_site_checker_detects_unresolved_item_names(self):
         with tempfile.TemporaryDirectory() as public:
