@@ -4,6 +4,50 @@ Repository: `E:\DEV\cstd-help`
 Branch: `main`
 Started: 2026-06-28
 
+## Long Cycle 4 - Global Preparation
+
+- Prompt: `C:\Users\12031\Desktop\AGENT_ORCHESTRATOR_3_LEVELS_V2\03_LONG_6_STAGE_MAIN_V2.txt`.
+- Required sequence: IMPROVE, IMPROVE, UIUX, IMPROVE, CHECK, IMPROVE.
+- Start status: clean `main`, synchronized with `origin/main` at `32cc021`; no protected user changes to preserve.
+- Project notes: `NEXT_STEPS.md` and `ROADMAP.md` are absent, so continuation is based on `.agent/iteration-log.md` and this orchestrator log.
+- Current flagship direction: keep map-position advice tied to real STRATZ/OpenDota evidence until a verified Dota coordinate transform exists.
+- Safety constraints: no `AGENTS.md` changes, no Docker file/process changes, no new branch, no force push, no `git add .`.
+- Stage plan:
+  - Stage 1 IMPROVE: show raw death-coordinate evidence in reports.
+  - Stage 2 IMPROVE: add deterministic death-after resource recovery diagnostics.
+  - Stage 3 UIUX: make death review faster to scan and act on.
+  - Stage 4 IMPROVE: surface report/site coverage for death-position and recovery evidence.
+  - Stage 5 CHECK: harden static validation so death evidence cannot silently disappear.
+  - Stage 6 IMPROVE: final evidence-backed coaching increment after the previous stages.
+
+## Long Cycle 4 - Stage 1 - IMPROVE
+
+- Prompt: `AGENT_IMPROVE_MAIN.txt`.
+- Goal: make reports show real raw death-coordinate evidence instead of leaving position samples buried in text.
+- TDD:
+  - Added tests for `events.death_map_points` from STRATZ `playerUpdatePositionEvents`.
+  - Added generated-report test requiring `死亡坐标图`, `death-coordinate-map`, `data-minute`, raw `x/y`, and the `原始x/y坐标` note.
+  - Tests failed before implementation with missing `death_map_points` and missing report section, then passed after implementation.
+- Result:
+  - Added deterministic `death_map_points` with minute, raw x/y, clamped SVG plot coordinates, and readable labels.
+  - Rendered a `死亡坐标图` SVG scatter plot in the report death-event section.
+  - Added responsive styling so the map and coordinate chips remain readable on desktop and 390px mobile.
+  - Rebuilt the latest 10 public reports from cached real match data generated at `20260630_041720`.
+- Real-data verification:
+  - 9 of 10 regenerated reports contain death-coordinate maps; Rubick has no map because the real data has no located death point.
+  - Latest Legion Commander report shows 12 plotted death points and exact labels such as `11.2分 x=94,y=168`.
+- Browser verification:
+  - Desktop Chrome at 1280x900: coordinate map visible, 12 points, no horizontal overflow, no console errors.
+  - Mobile Chrome at 390x844: coordinate map visible, 12 chips, no horizontal overflow, screenshot reviewed.
+- Local verification:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 71 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check for `AGENTS.md`, Docker files, and docker-compose paths: passed.
+- Deployment status: pending commit, push, GitHub Actions, and live-domain check.
+
 ## Cycle 2 - Global Preparation
 
 - Status: clean `main`, fast-forward synced with `origin/main` at `a211d36`.
