@@ -688,3 +688,31 @@ Started: 2026-06-28
 - Production acceptance: custom domain served the new pre-match execution card and linked it from the dashboard and practice plan.
 - Remaining risk: the pre-match card is static at build time and does not sync browser-local checklist progress.
 - Next stage: Stage 2 IMPROVE.
+
+## 2026-06-29 - Long Cycle 2 Stage 2 IMPROVE - Start
+
+- Stage: 2 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: add comparable winning evidence beside each pre-match commitment so the card shows both what failed and what a better sample looks like.
+- Carry-over: Stage 1 recommended hero/topic comparison lanes from the pre-match card into wins and losses.
+- Start state: main at `chore: record stage 1 brief deployment` (`840b03b`), clean worktree, CI passed in run `28366861561`.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; keep the latest 10-report public set.
+
+## 2026-06-29 - Long Cycle 2 Stage 2 IMPROVE - Local Complete
+
+- Completed: each pre-match commitment now renders a two-column proof lane with `失败证据` and `胜利样本` plus filtered topic links for `result=lose` and `result=win`.
+- User-visible increment: the player can compare the mistake pattern against a winning sample directly from the 30-second execution card.
+- Real issue fixed: topics without a real winning sample no longer duplicate failure text under `胜利样本`; they explicitly say that no win sample exists yet.
+- Local verification:
+  - Target `match-brief.html` test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 58 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - HTTP/browser fallback QA: local `match-brief.html` returned 200 with 3 proof grids and both win/loss links; Playwright CLI screenshot confirmed desktop layout.
+- Commit: pending.
+- Push / CI: pending.
+- Risk: winning samples are topic-level, not hero-specific yet.
+- Next stage after CI closeout: Stage 3 UIUX.

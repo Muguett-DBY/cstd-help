@@ -310,3 +310,24 @@
   - Add a generated recent-match freshness block to the execution card itself.
   - Keep tightening stale public artifact detection in CHECK.
 - Recommended flagship next change: add hero-specific comparison lanes so each core commitment shows the closest winning sample beside the failure evidence.
+
+## 2026-06-29 - Long Cycle 2 Stage 2 IMPROVE
+
+- Goal: make the pre-match execution card more actionable by pairing failure evidence with a winning comparison sample.
+- Completed: each commitment now shows `失败证据` and `胜利样本` side by side, with filtered topic links for both losing and winning evidence.
+- User-visible gain: the player can see what to avoid and what a better sample looked like without leaving the execution-card workflow.
+- Real issue fixed: themes without a real winning sample now say `暂无胜利样本` instead of reusing failure text under a misleading label.
+- Verification:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 58 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - HTTP/browser fallback QA returned 200 with 3 proof grids and win/loss links; Playwright CLI desktop screenshot rendered correctly.
+- GitHub Actions / CI: pending push.
+- Risks:
+  - Winning samples are still topic-level rather than hero-specific comparisons.
+- Next best directions:
+  - UI/UX pass on the execution card for mobile readability and scan speed.
+  - Add source freshness/context directly into the execution card.
+  - Add hero-specific comparison where enough reports exist.
+- Recommended flagship next change: make the pre-match execution card visually faster to scan on mobile and desktop.
