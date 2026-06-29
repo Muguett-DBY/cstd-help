@@ -280,9 +280,16 @@
             <div class="compact-row">{{ events.death_coverage_label }}{% if events.death_gap_note %}；{{ events.death_gap_note }}{% endif %}</div>
             {% endif %}
             {% if events.deaths %}
-            <div class="event-list">
+            <div class="death-event-grid">
                 {% for item in events.deaths[:10] %}
-                <span class="event-pill danger">{{ item.minute }}分</span>
+                <div class="death-event-card">
+                    <span class="event-pill danger">{{ item.minute }}分</span>
+                    {% if item.position_label %}
+                    <span class="death-position-label">死亡位置：{{ item.position_label }}</span>
+                    {% else %}
+                    <span class="death-position-label muted">死亡位置：无位置采样</span>
+                    {% endif %}
+                </div>
                 {% endfor %}
             </div>
             {% else %}
