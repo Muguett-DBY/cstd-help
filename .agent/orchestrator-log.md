@@ -1384,3 +1384,38 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 6 closeout log.
+
+## 2026-06-30 - Long Cycle 4 Stage 6 IMPROVE - Complete
+
+- Completed stage: 6 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: add death resource delta diagnostics` (`ee2fef0`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28409150631`; unit tests, compile, static Pages validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `https://dota.custard.top/` returned 200 and contained `死亡复盘覆盖` plus `死亡前后资源变化`.
+  - `site-manifest.json` returned 18 reports, 48 findings, 18 death workbenches, 18 recovery reports, 17 coordinate maps, and 17 complete death reviews.
+  - `https://dota.custard.top/Legion_Commander_8870219537_20260630_091309.html` returned 200 with hero-first title, `死亡前后资源下降窗口`, `25.3分死亡前后：补刀/分 8.7→3.3（-5.4）`, `30.4分死亡（27-30分钟 → 31-34分钟）`, and `不判断死亡原因`.
+  - `practice-plan` returned 200 with `死亡前后资源变化` and hashed custom checklist IDs such as `practice-custom-0568eadc6b-1`.
+- Remaining risk: the delta diagnosis intentionally describes adjacent resource changes only; it does not infer why each death happened, and raw death x/y coordinates remain untranslated until a verified Dota map transform exists.
+- Final state: all six requested Long Cycle 4 stages are complete, pushed to `main`, CI-passed, and custom-domain checked.
+
+## 2026-06-30 - Long Cycle 4 - Final Status
+
+- Completed stages: 6 / 6.
+- Stage commits:
+  - Stage 1: `feat: add raw death coordinate map` (`28ebbd8`) plus log deploy `d98f64e`.
+  - Stage 2: `feat: add death recovery diagnostics` (`8391fa8`) plus log deploy `ebc02cb`.
+  - Stage 3: `feat: improve mobile death review UI` (`e238bca`) plus log deploy `6eaed03`.
+  - Stage 4: `feat: surface death review coverage` (`eeb8502`) plus log deploy `578898c`.
+  - Stage 5: `fix: validate death review coverage` (`47920b9`) plus log deploy `740a024`.
+  - Stage 6: `feat: add death resource delta diagnostics` (`ee2fef0`).
+- Final local gates: 81 tests, compileall, static Pages validation, gitleaks, diff check, forbidden-file check, and desktop/mobile browser QA passed.
+- Final CI state: feature deployment run `28409150631` passed; final log closeout deployment pending at the time of this entry.
+- Final production state: custom domain serves latest hero-first 18-report history with raw death coordinate maps where available, recovery windows, death-adjacent resource deltas, death-review coverage counters, trend pages, and a practice plan.
+- Remaining risks:
+  - Death positions remain raw x/y samples until a verified Dota map transform exists.
+  - Death-adjacent deltas are exact adjacent resource comparisons, not causal labels.
+  - Public reports are static until the next fetch/build/deploy cycle.
+- Recommended next flagship change: add a verified Dota map coordinate transform and objective-event overlays before giving named-map-region death advice.

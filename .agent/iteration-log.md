@@ -17,8 +17,10 @@
   - `git diff --check`: passed.
   - Browser desktop/mobile QA passed with no horizontal overflow, no duplicate IDs, and no console errors.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Deployment: committed as `feat: add death resource delta diagnostics` (`ee2fef0`), pushed to `main`, and `Deploy Cloudflare Pages` run `28409150631` passed.
+- Production acceptance: `https://dota.custard.top/Legion_Commander_8870219537_20260630_091309.html` returned 200 with hero-first title, `死亡前后资源下降窗口`, exact 25.3/30.4 minute delta evidence, and the `不判断死亡原因` caveat; the practice plan serves hashed custom checklist IDs.
 - Remaining risk: the delta diagnosis intentionally describes adjacent resource changes only; it does not infer the cause of each death or convert raw x/y coordinates into named map regions.
-- Pending: commit, push, GitHub Actions, live Cloudflare Pages acceptance, and final Stage 6 closeout log.
+- Status: Stage 6 and the Long Cycle 4 six-stage run are complete; only this log-only closeout commit remains.
 
 ## 2026-06-30 - Long Cycle 4 Stage 5 CHECK
 
