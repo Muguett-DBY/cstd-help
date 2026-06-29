@@ -858,6 +858,53 @@ def _build_death_map_points(deaths):
     return points
 
 
+def _distance_between_points(left, right):
+    return ((left["x"] - right["x"]) ** 2 + (left["y"] - right["y"]) ** 2) ** 0.5
+
+
+def _format_minute_list(minutes):
+    return "、".join(str(minute) for minute in minutes if minute is not None)
+
+
+def _build_death_position_clusters(points, radius=14):
+    clusters = []
+    used = set()
+    for index, point in enumerate(points or []):
+        if index in used:
+            continue
+        members = [
+            (member_index, member)
+            for member_index, member in enumerate(points or [])
+            if member_index not in used and _distance_between_points(point, member) <= radius
+        ]
+        if len(members) < 2:
+            continue
+        member_points = [member for _, member in members]
+        for member_index, _ in members:
+            used.add(member_index)
+        center_x = round(sum(member["x"] for member in member_points) / len(member_points), 1)
+        center_y = round(sum(member["y"] for member in member_points) / len(member_points), 1)
+        minutes = [member.get("minute") for member in member_points if member.get("minute") is not None]
+        minutes_text = _format_minute_list(minutes)
+        label_prefix = f"{minutes_text}分" if minutes_text else f"{len(member_points)}次"
+        clusters.append({
+            "death_count": len(member_points),
+            "minutes": minutes,
+            "minutes_label": f"{minutes_text}分" if minutes_text else "",
+            "center_x": center_x,
+            "center_y": center_y,
+            "plot_x": max(0, min(255, center_x)),
+            "plot_y": 255 - max(0, min(255, center_y)),
+            "radius": radius,
+            "points": [member.get("label") for member in member_points if member.get("label")],
+            "evidence_label": (
+                f"{label_prefix}重复死亡坐标簇，中心x={center_x},y={center_y}，"
+                f"样本{len(member_points)}次"
+            ),
+        })
+    return sorted(clusters, key=lambda item: (-item["death_count"], item["minutes"][0] if item["minutes"] else 999))
+
+
 def _normalize_opendota_vision_events(events, ward_type):
     normalized = []
     for event in events or []:
@@ -902,6 +949,7 @@ CATEGORY_LABELS = {
     "death_resource_overlap": "死亡打断资源",
     "death_recovery": "死亡后恢复",
     "death_resource_delta": "死亡前后资源变化",
+    "death_position_pattern": "重复死亡坐标",
     "death_review": "死亡成本",
     "item_timing": "装备后转化",
     "map_impact": "地图影响力",
@@ -1016,6 +1064,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     deaths = _attach_position_samples_to_deaths(deaths, stratz_positions)
     death_position_count = len([item for item in deaths if item.get("position")])
     death_map_points = _build_death_map_points(deaths)
+    death_position_clusters = _build_death_position_clusters(death_map_points)
     if death_position_count:
         source_parts.add("stratz_position_samples")
 
@@ -1073,6 +1122,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         "death_timeline_complete": missing_deaths == 0,
         "death_position_count": death_position_count,
         "death_map_points": death_map_points,
+        "death_position_clusters": death_position_clusters,
         "position_sample_count": len(stratz_positions),
         "has_death_positions": death_position_count > 0,
         "death_coverage_label": death_coverage_label,
@@ -1427,6 +1477,7 @@ def _default_training_goal(category):
         "death_resource_overlap": "下一局把死亡重叠低效率窗口压到0，死亡后先恢复一波安全资源。",
         "death_recovery": "下一局每次死亡后3分钟内完成一波可记录的资源恢复。",
         "death_resource_delta": "下一局每次死亡后先完成一波可记录的资源恢复，再接高风险带线或集合。",
+        "death_position_pattern": "下一局把重复死亡坐标簇逐一回放，赛前写下每个重复场景的撤退条件。",
         "death_review": "下一局把死亡压到每10分钟最多1次，避免连续短时间重复阵亡。",
         "item_timing": "下一局每件关键装备成型后立刻绑定一个可记录的地图动作。",
         "map_impact": "下一局把刷钱路线接到推塔、参战或控图目标上。",
@@ -1443,6 +1494,7 @@ def _default_success_metric(category):
         "death_resource_overlap": "死亡与低效率窗口重叠=0；死亡后3分钟内补回一波安全线或安全野区资源。",
         "death_recovery": "死亡后3分钟补刀>=6或平均GPM>=300；恢复不足窗口=0。",
         "death_resource_delta": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
+        "death_position_pattern": "重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。",
         "death_review": "每10分钟死亡不高于1.0；连续5分钟内死亡簇=0。",
         "item_timing": f"{FARM_ACCELERATION_SUCCESS_METRIC}；{MAP_CONVERSION_SUCCESS_METRIC}。",
         "map_impact": "参战率>=40%；关键装备后2分钟至少完成一次地图动作。",
@@ -1685,6 +1737,24 @@ def _build_review_findings(result):
             replay_check,
             "下一局优先让系统拿到死亡时间线；拿到后按死亡分钟分阶段修正带线和参团风险。",
             "数据验收：下一份报告死亡覆盖率=100%；否则只记录数据缺口，不给分钟级死亡结论。",
+        ))
+
+    position_clusters = events.get("death_position_clusters") or []
+    if position_clusters:
+        evidence = "；".join(
+            cluster.get("evidence_label")
+            for cluster in position_clusters[:3]
+            if cluster.get("evidence_label")
+        )
+        findings.append(_finding(
+            "high" if len(position_clusters) >= 2 else "medium",
+            "death_position_pattern",
+            f"重复死亡坐标簇: {evidence}。",
+            "同一 raw 坐标附近重复死亡，说明至少有一个可回放复查的高风险场景在反复出现。",
+            "下一局每次进入这些重复坐标对应的回放场景前，先确认三个条件：队友能否接应、敌方关键控制是否露头、自己是否有明确撤退路线；任一条件缺失就先退回安全资源点。",
+            "系统只按 STRATZ raw x/y 距离聚类，不转换成地图区域名；需要回放确认这些点对应的入口、线口、目标区或高低坡。",
+            f"下一局把重复死亡坐标簇从{len(position_clusters)}个压到最多1个；每个重复点赛前写一条撤退规则。",
+            "重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。",
         ))
 
     resource_delta_windows = timeline.get("death_resource_deltas") or []

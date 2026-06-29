@@ -1346,6 +1346,45 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(result["events"]["death_map_points"][0]["plot_y"], 115)
         self.assertIn("x=122,y=140", result["events"]["death_map_points"][0]["label"])
 
+    def test_death_position_samples_build_repeated_coordinate_clusters(self):
+        match = self._base_match()
+        match["deaths"] = 3
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "playbackData": {
+                    "deathEvents": [{"time": 420}, {"time": 540}, {"time": 930}],
+                    "playerUpdatePositionEvents": [
+                        {"time": 420, "x": 120, "y": 140},
+                        {"time": 540, "x": 126, "y": 144},
+                        {"time": 930, "x": 88, "y": 164},
+                    ],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        cluster = result["events"]["death_position_clusters"][0]
+        finding = next(
+            item for item in result["review_findings"]
+            if item["category"] == "death_position_pattern"
+        )
+
+        self.assertEqual(cluster["death_count"], 2)
+        self.assertEqual(cluster["minutes"], [7.0, 9.0])
+        self.assertEqual(cluster["center_x"], 123.0)
+        self.assertEqual(cluster["center_y"], 142.0)
+        self.assertIn("7.0、9.0分", cluster["evidence_label"])
+        self.assertIn("中心x=123.0,y=142.0", cluster["evidence_label"])
+        self.assertEqual(finding["category_label"], "重复死亡坐标")
+        self.assertIn("重复死亡坐标簇", finding["evidence"])
+        self.assertIn("7.0、9.0分", finding["evidence"])
+        self.assertIn("不转换成地图区域名", finding["replay_check"])
+
     def test_generated_report_shows_raw_death_coordinate_map(self):
         from report.generator import generate_report
         import report.generator as generator
@@ -1380,6 +1419,45 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn('data-minute="7.0"', html)
         self.assertIn("x=122,y=140", html)
         self.assertIn("原始x/y坐标", html)
+
+    def test_generated_report_shows_repeated_death_coordinate_clusters(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match["deaths"] = 3
+            stratz_data = {
+                "players": [{
+                    "steamAccount": {"id": 173776719},
+                    "isRadiant": True,
+                    "hero": {"id": 1, "displayName": "Anti-Mage"},
+                    "position": "POSITION_1",
+                    "role": "CORE",
+                    "playbackData": {
+                        "deathEvents": [{"time": 420}, {"time": 540}, {"time": 930}],
+                        "playerUpdatePositionEvents": [
+                            {"time": 420, "x": 120, "y": 140},
+                            {"time": 540, "x": 126, "y": 144},
+                            {"time": 930, "x": 88, "y": 164},
+                        ],
+                    },
+                }],
+            }
+            analysis = analyze_match(match, stratz_data=stratz_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+        generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("重复死亡坐标簇", html)
+        self.assertIn("death-coordinate-clusters", html)
+        self.assertIn("中心x=123.0,y=142.0", html)
+        self.assertIn("7.0、9.0分", html)
+        self.assertIn("不生成地图区域名", html)
 
     def test_generated_report_avoids_raw_less_than_signs_in_metric_text(self):
         from report.generator import generate_report

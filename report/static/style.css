@@ -1841,6 +1841,12 @@ body {
     stroke: #ffffff;
     stroke-width: 2;
 }
+.death-coordinate-cluster-ring {
+    fill: rgba(248,81,73,0.08);
+    stroke: rgba(248,81,73,0.72);
+    stroke-width: 2;
+    stroke-dasharray: 5 4;
+}
 .death-coordinate-list {
     display: flex;
     flex-wrap: wrap;
@@ -1858,6 +1864,34 @@ body {
     color: var(--text-primary);
     font-size: 12px;
     line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+.death-coordinate-clusters {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 8px;
+    padding-top: 2px;
+}
+.death-coordinate-cluster-title {
+    color: var(--accent-red);
+    font-weight: 700;
+    font-size: 13px;
+}
+.death-coordinate-cluster-row {
+    display: grid;
+    gap: 3px;
+    padding: 8px 10px;
+    border-left: 3px solid rgba(248,81,73,0.72);
+    background: rgba(248,81,73,0.08);
+}
+.death-coordinate-cluster-row strong {
+    color: var(--text-primary);
+    font-size: 13px;
+}
+.death-coordinate-cluster-row span {
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.45;
     overflow-wrap: anywhere;
 }
 
