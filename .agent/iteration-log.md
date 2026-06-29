@@ -1,5 +1,21 @@
 # Iteration Log
 
+## 2026-06-30 - Long Cycle 4 Stage 5 CHECK
+
+- Goal: prevent death-review UI and coverage metadata from silently disappearing while generic static-site checks still pass.
+- Completed: added `_find_death_review_coverage_issues()` to require the death workbench, recovery section, mobile phase cards, overview coverage panel, and all four death-review manifest counters.
+- Consistency gate: the checker now recomputes coverage counts from every generated report and rejects manifest values that do not match the report set.
+- Verification:
+  - New CHECK test failed before implementation because the helper did not exist, then passed after the validation was added.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 76 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Remaining risk: reports show post-death recovery totals, but do not yet compare each death's pre-death resource pace with the immediate post-death pace.
+- Recommended next direction: Stage 6 should add exact before/after death resource deltas from real minute arrays.
+
 ## 2026-06-30 - Long Cycle 4 Stage 4 IMPROVE
 
 - Goal: show death-review evidence coverage on the site overview instead of hiding it inside individual match reports.

@@ -1312,3 +1312,28 @@ Started: 2026-06-28
   - Death/resource overlap is time-based only and intentionally does not infer death cause.
   - Public reports are static until the next fetch/build/deploy cycle.
 - Recommended next flagship change: add a verified Dota map coordinate transform before converting raw x/y samples into named map-region guidance.
+
+## 2026-06-30 - Long Cycle 4 Stage 5 CHECK - Start
+
+- Stage: 5 / 6
+- Type: CHECK
+- Prompt: AGENT_CHECK_MAIN.txt
+- Goal: harden static Pages validation around the complete death-review experience and its site-level coverage counters.
+- Risk found: Stage 4 exposed death-review coverage on the history page, but CI did not specifically require the report workbench, recovery section, mobile phase cards, overview panel, or internally consistent manifest counters.
+- Start state: main at `chore: record stage 4 coverage deployment` (`578898c`), clean worktree, CI passed in run `28407017928`.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; keep CHECK changes limited to validation, tests, and execution logs.
+
+## 2026-06-30 - Long Cycle 4 Stage 5 CHECK - Local Complete
+
+- Completed: added `_find_death_review_coverage_issues()` and wired it into `scripts/check_public_site.py`.
+- Report gates: every report must retain `death-review-workbench`, `death-review-summary`, `死亡后恢复窗口`, and mobile `timeline-phase-cards`.
+- Site gates: the history page must retain `死亡复盘覆盖`; the manifest must expose all four death-review counters and each count must equal evidence parsed from the current report set.
+- Regression coverage: the new CHECK test failed before implementation because the helper did not exist, then passed after the validation was added.
+- Local verification:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 76 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 5 closeout log.

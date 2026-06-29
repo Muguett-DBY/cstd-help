@@ -108,6 +108,36 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_missing_death_review_coverage(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Legion_Commander_8870219537.html").write_text(
+                "<html><head><title>Legion Commander 复盘报告</title></head>"
+                "<body>"
+                "下一局行动清单 时间线诊断 10分钟补刀 低效率窗口 数据缺口 死亡/装备事件"
+                "</body></html>",
+                encoding="utf-8",
+            )
+            (public_path / "index.html").write_text("<html><body>复盘数据覆盖</body></html>", encoding="utf-8")
+            (public_path / "site-manifest.json").write_text(
+                json.dumps({"schema_version": 1, "report_count": 1}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            issues = check_public_site._find_death_review_coverage_issues(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "Legion_Commander_8870219537.html -> missing death review coverage: "
+                "death-review-workbench, death-review-summary, 死亡后恢复窗口, timeline-phase-cards",
+                "index.html -> missing death review coverage panel",
+                "site-manifest.json -> missing death review coverage fields: "
+                "death_review_workbench_report_count, death_recovery_window_report_count, "
+                "death_coordinate_map_report_count, complete_death_review_report_count",
+            ],
+        )
+
     def test_static_site_checker_classifies_support_pages_and_exports(self):
         support_pages = {
             "index.html",

@@ -29,6 +29,18 @@ REQUIRED_REPORT_EVIDENCE_SOURCE_TEXT = [
     "死亡时间",
     "死亡位置",
 ]
+REQUIRED_DEATH_REVIEW_REPORT_TEXT = [
+    "death-review-workbench",
+    "death-review-summary",
+    "死亡后恢复窗口",
+    "timeline-phase-cards",
+]
+REQUIRED_DEATH_REVIEW_MANIFEST_FIELDS = [
+    "death_review_workbench_report_count",
+    "death_recovery_window_report_count",
+    "death_coordinate_map_report_count",
+    "complete_death_review_report_count",
+]
 SUPPORT_HTML_PAGES = frozenset({
     "index.html",
     "practice-plan.html",
@@ -223,6 +235,64 @@ def _find_report_evidence_source_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_death_review_coverage_issues(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    issues = []
+    for report in _report_pages(public_dir):
+        text = report.read_text(encoding="utf-8")
+        missing = [item for item in REQUIRED_DEATH_REVIEW_REPORT_TEXT if item not in text]
+        if missing:
+            issues.append(f"{report.name} -> missing death review coverage: {', '.join(missing)}")
+
+    index_path = public_dir / "index.html"
+    if index_path.exists() and "死亡复盘覆盖" not in index_path.read_text(encoding="utf-8"):
+        issues.append("index.html -> missing death review coverage panel")
+
+    manifest_path = public_dir / "site-manifest.json"
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            manifest = {}
+        missing_fields = [
+            field for field in REQUIRED_DEATH_REVIEW_MANIFEST_FIELDS
+            if field not in manifest
+        ]
+        if missing_fields:
+            issues.append(
+                "site-manifest.json -> missing death review coverage fields: "
+                + ", ".join(missing_fields)
+            )
+        else:
+            expected = {
+                "death_review_workbench_report_count": 0,
+                "death_recovery_window_report_count": 0,
+                "death_coordinate_map_report_count": 0,
+                "complete_death_review_report_count": 0,
+            }
+            for report in _report_pages(public_dir):
+                evidence = (_parse_report(report).get("death_evidence") or {})
+                if evidence.get("has_death_review_workbench"):
+                    expected["death_review_workbench_report_count"] += 1
+                if evidence.get("has_death_recovery_windows"):
+                    expected["death_recovery_window_report_count"] += 1
+                if evidence.get("has_death_coordinate_map"):
+                    expected["death_coordinate_map_report_count"] += 1
+                if evidence.get("has_complete_death_review"):
+                    expected["complete_death_review_report_count"] += 1
+            mismatches = [
+                f"{field} expected {expected[field]} got {manifest.get(field)}"
+                for field in REQUIRED_DEATH_REVIEW_MANIFEST_FIELDS
+                if manifest.get(field) != expected[field]
+            ]
+            if mismatches:
+                issues.append(
+                    "site-manifest.json -> inconsistent death review coverage fields: "
+                    + ", ".join(mismatches)
+                )
+    return issues
+
+
 def main():
     required_paths = {name: PUBLIC_DIR / name for name in REQUIRED_SUPPORT_FILES}
     for name, path in sorted(required_paths.items()):
@@ -266,6 +336,11 @@ def main():
     if evidence_source_issues:
         preview = "; ".join(evidence_source_issues[:10])
         raise SystemExit(f"public reports are missing evidence source coverage: {preview}")
+
+    death_review_issues = _find_death_review_coverage_issues(PUBLIC_DIR)
+    if death_review_issues:
+        preview = "; ".join(death_review_issues[:10])
+        raise SystemExit(f"public death review coverage is incomplete: {preview}")
 
     index_html = index_path.read_text(encoding="utf-8")
     if "Dota 2 天梯复盘报告" not in index_html:
