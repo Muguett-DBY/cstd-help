@@ -1065,3 +1065,28 @@ Started: 2026-06-28
 - Production acceptance: `https://dota.custard.top/Legion_Commander_8870219537_20260630_032336.html` returned 200 and contained hero-first title, `证据来源与覆盖`, `STRATZ位置采样`, `覆盖 12/12 次已定位死亡`, and timeline-source text.
 - Remaining risk: evidence source coverage reports factual source availability; STRATZ live refresh is still Cloudflare-blocked in this environment, so public refresh used cached real payloads.
 - Next stage: Stage 5 CHECK.
+
+## 2026-06-30 - Long Cycle 3 Stage 5 CHECK - Start
+
+- Stage: 5 / 6
+- Type: CHECK
+- Prompt: AGENT_CHECK_MAIN.txt
+- Goal: harden static Pages validation so report pages cannot ship without visible evidence-source coverage.
+- Risk found: Stage 4 added `证据来源与覆盖` to reports, but the generated-site checker still only required older report sections; a future template regression could drop source coverage while CI stayed green.
+- Start state: main at `chore: record stage 4 evidence coverage deployment` (`e108a04`), clean worktree, CI passed in run `28391242756`.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; keep CHECK diff focused on validation and regression tests.
+
+## 2026-06-30 - Long Cycle 3 Stage 5 CHECK - Local Complete
+
+- Completed: added `_find_report_evidence_source_issues()` and wired it into `scripts/check_public_site.py`.
+- Real risk fixed: report pages now fail static validation if they are missing `证据来源与覆盖`, evidence-source list/row hooks, or core source rows for stats, timeline, purchases, deaths, and death positions.
+- Regression coverage: new CHECK test failed before implementation because the checker had no evidence-source validation helper, then passed after the fix.
+- Local verification:
+  - Target CHECK test failed before implementation, then passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 67 tests.
+  - `python -m compileall -q .`: passed.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 5 closeout log.

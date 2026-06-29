@@ -19,6 +19,16 @@ REQUIRED_REPORT_TEXT = [
     "低效率窗口",
     "数据缺口",
 ]
+REQUIRED_REPORT_EVIDENCE_SOURCE_TEXT = [
+    "证据来源与覆盖",
+    "evidence-source-list",
+    "evidence-source-row",
+    "比赛核心数据",
+    "分钟时间线",
+    "购买时间",
+    "死亡时间",
+    "死亡位置",
+]
 SUPPORT_HTML_PAGES = frozenset({
     "index.html",
     "practice-plan.html",
@@ -203,6 +213,16 @@ def _find_unresolved_item_references(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_report_evidence_source_issues(public_dir=PUBLIC_DIR):
+    issues = []
+    for report in _report_pages(public_dir):
+        text = report.read_text(encoding="utf-8")
+        missing = [item for item in REQUIRED_REPORT_EVIDENCE_SOURCE_TEXT if item not in text]
+        if missing:
+            issues.append(f"{report.name} -> missing evidence source coverage: {', '.join(missing)}")
+    return issues
+
+
 def main():
     required_paths = {name: PUBLIC_DIR / name for name in REQUIRED_SUPPORT_FILES}
     for name, path in sorted(required_paths.items()):
@@ -241,6 +261,11 @@ def main():
     if unresolved_items:
         preview = "; ".join(unresolved_items[:10])
         raise SystemExit(f"public contains unresolved item names: {preview}")
+
+    evidence_source_issues = _find_report_evidence_source_issues(PUBLIC_DIR)
+    if evidence_source_issues:
+        preview = "; ".join(evidence_source_issues[:10])
+        raise SystemExit(f"public reports are missing evidence source coverage: {preview}")
 
     index_html = index_path.read_text(encoding="utf-8")
     if "Dota 2 天梯复盘报告" not in index_html:
