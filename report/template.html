@@ -283,6 +283,16 @@
             </div>
             {% endfor %}
             {% endif %}
+            {% if timeline.death_resource_deltas %}
+            <div class="subsection-title">死亡前后资源变化</div>
+            <div class="compact-row muted">同一玩家死亡前后各取最多3分钟真实样本；窗口不足时按实际分钟数换算，非整分钟死亡会跳过含事件的混合分钟。变化只描述时间相邻数据，不代表死亡原因。</div>
+            {% for window in timeline.death_resource_deltas[:8] %}
+            <div class="compact-row">
+                {{ window.minute }}分死亡（{{ window.before_window_label }} → {{ window.after_window_label }}）：
+                {% if window.before_lh_per_min is not none %}补刀/分钟 {{ window.before_lh_per_min }}→{{ window.after_lh_per_min }}（{{ "%+.1f"|format(window.lh_per_min_delta) }}）{% endif %}{% if window.before_avg_gpm is not none %}{% if window.before_lh_per_min is not none %}，{% endif %}平均GPM {{ window.before_avg_gpm }}→{{ window.after_avg_gpm }}（{{ "%+.1f"|format(window.avg_gpm_delta) }}）{% endif %}；{{ window.status_label }}。
+            </div>
+            {% endfor %}
+            {% endif %}
             {% else %}
             <div class="compact-row">当前公共数据源未提供分钟级时间线；系统只能按总量指标给低置信度判断，后续抓取拿到分钟数组后会自动重跑。</div>
             {% endif %}

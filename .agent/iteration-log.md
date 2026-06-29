@@ -1,5 +1,25 @@
 # Iteration Log
 
+## 2026-06-30 - Long Cycle 4 Stage 6 IMPROVE
+
+- Goal: compare each real death's pre-death and post-death resource pace so the report can coach recovery behavior from observed minute arrays, not inference.
+- Completed: added `timeline.death_resource_deltas`, visible `死亡前后资源变化` rows, and `死亡前后资源变化` findings with exact signed LH/min and average GPM deltas.
+- Real issue fixed during review: fractional-minute deaths now skip the mixed death minute; `13.6分死亡` compares `10-13分钟` to `14-17分钟`.
+- Real issue fixed during final static validation: Chinese custom training topics now hash their practice checklist token, fixing duplicate `practice-custom-*` IDs in `practice-plan.html`.
+- User-visible gain: latest `Legion Commander #8870219537` now has a second high-priority finding, `死亡前后资源变化`, with concrete evidence such as `25.3分死亡前后：补刀/分 8.7→3.3（-5.4）` and a next-game action to finish one safe resource action after respawn.
+- Verification:
+  - New target tests failed before implementation, then passed.
+  - `python main.py --skip-fetch --recent 18 --force`: regenerated 18 reports from real STRATZ details.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 81 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - `git diff --check`: passed.
+  - Browser desktop/mobile QA passed with no horizontal overflow, no duplicate IDs, and no console errors.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Remaining risk: the delta diagnosis intentionally describes adjacent resource changes only; it does not infer the cause of each death or convert raw x/y coordinates into named map regions.
+- Pending: commit, push, GitHub Actions, live Cloudflare Pages acceptance, and final Stage 6 closeout log.
+
 ## 2026-06-30 - Long Cycle 4 Stage 5 CHECK
 
 - Goal: prevent death-review UI and coverage metadata from silently disappearing while generic static-site checks still pass.

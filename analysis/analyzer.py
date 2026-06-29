@@ -210,6 +210,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
     result["events"]["post_item_windows"] = _build_post_item_windows(result["events"], result["timeline"])
     result["timeline"]["death_overlap_windows"] = _build_death_overlap_windows(result["timeline"], result["events"])
     result["timeline"]["death_recovery_windows"] = _build_death_recovery_windows(result["timeline"], result["events"])
+    result["timeline"]["death_resource_deltas"] = _build_death_resource_deltas(result["timeline"], result["events"])
 
     benchmarks = _load_json("benchmarks.json")
     role = _benchmark_role(context)
@@ -900,6 +901,7 @@ CATEGORY_LABELS = {
     "resource_continuity": "中后期资源连续性",
     "death_resource_overlap": "死亡打断资源",
     "death_recovery": "死亡后恢复",
+    "death_resource_delta": "死亡前后资源变化",
     "death_review": "死亡成本",
     "item_timing": "装备后转化",
     "map_impact": "地图影响力",
@@ -1238,6 +1240,123 @@ def _build_death_recovery_windows(timeline, events, window_minutes=3):
     return windows
 
 
+def _build_death_resource_deltas(timeline, events, window_minutes=3):
+    if not timeline.get("available") or not events.get("deaths"):
+        return []
+    lh_by_minute = timeline.get("last_hits_by_minute") or []
+    gold_by_minute = timeline.get("gold_by_minute") or []
+    if not lh_by_minute and not gold_by_minute:
+        return []
+
+    max_minutes = max(len(lh_by_minute), len(gold_by_minute))
+    deltas = []
+    for death in events.get("deaths") or []:
+        death_time = death.get("time")
+        if not isinstance(death_time, (int, float)):
+            continue
+        before_end = int(death_time // 60)
+        has_partial_death_minute = death_time % 60 != 0
+        after_start = before_end + 1 if has_partial_death_minute else before_end
+        before_start = max(0, before_end - window_minutes)
+        after_end = min(after_start + window_minutes, max_minutes)
+        if before_start >= before_end or after_start >= after_end:
+            continue
+
+        before_lh_values = lh_by_minute[before_start:min(before_end, len(lh_by_minute))]
+        after_lh_values = lh_by_minute[after_start:min(after_end, len(lh_by_minute))]
+        before_gold_values = gold_by_minute[before_start:min(before_end, len(gold_by_minute))]
+        after_gold_values = gold_by_minute[after_start:min(after_end, len(gold_by_minute))]
+
+        has_lh_pair = bool(before_lh_values and after_lh_values)
+        has_gold_pair = bool(before_gold_values and after_gold_values)
+        if not has_lh_pair and not has_gold_pair:
+            continue
+
+        before_lh = int(sum(before_lh_values)) if has_lh_pair else None
+        after_lh = int(sum(after_lh_values)) if has_lh_pair else None
+        before_lh_per_min = (
+            round(before_lh / len(before_lh_values), 1) if has_lh_pair else None
+        )
+        after_lh_per_min = (
+            round(after_lh / len(after_lh_values), 1) if has_lh_pair else None
+        )
+        lh_per_min_delta = (
+            round(after_lh_per_min - before_lh_per_min, 1) if has_lh_pair else None
+        )
+        before_avg_gpm = (
+            round(sum(before_gold_values) / len(before_gold_values), 1) if has_gold_pair else None
+        )
+        after_avg_gpm = (
+            round(sum(after_gold_values) / len(after_gold_values), 1) if has_gold_pair else None
+        )
+        avg_gpm_delta = (
+            round(after_avg_gpm - before_avg_gpm, 1) if has_gold_pair else None
+        )
+
+        metric_deltas = [
+            value for value in (lh_per_min_delta, avg_gpm_delta)
+            if value is not None
+        ]
+        metric_labels = []
+        if lh_per_min_delta is not None:
+            metric_labels.append("补刀")
+        if avg_gpm_delta is not None:
+            metric_labels.append("经济")
+        joined_metrics = "与".join(metric_labels)
+        if all(value < 0 for value in metric_deltas):
+            status = "declined"
+            status_label = f"{joined_metrics}均下降" if len(metric_labels) > 1 else f"{joined_metrics}下降"
+        elif all(value == 0 for value in metric_deltas):
+            status = "flat"
+            status_label = f"{joined_metrics}持平"
+        elif all(value >= 0 for value in metric_deltas):
+            status = "maintained"
+            status_label = f"{joined_metrics}未下降"
+        else:
+            status = "mixed"
+            status_label = f"{joined_metrics}变化不一致"
+
+        minute = death.get("minute")
+        if minute is None:
+            minute = round(death_time / 60, 1)
+        evidence_parts = []
+        if lh_per_min_delta is not None:
+            evidence_parts.append(
+                f"补刀/分 {before_lh_per_min}→{after_lh_per_min}（{lh_per_min_delta:+.1f}）"
+            )
+        if avg_gpm_delta is not None:
+            evidence_parts.append(
+                f"平均GPM {before_avg_gpm}→{after_avg_gpm}（{avg_gpm_delta:+.1f}）"
+            )
+        deltas.append({
+            "minute": minute,
+            "before_window_label": f"{before_start}-{before_end}分钟",
+            "after_window_label": f"{after_start}-{after_end}分钟",
+            "excluded_partial_minute": before_end if has_partial_death_minute else None,
+            "before_lh": before_lh,
+            "after_lh": after_lh,
+            "before_lh_per_min": before_lh_per_min,
+            "after_lh_per_min": after_lh_per_min,
+            "lh_per_min_delta": lh_per_min_delta,
+            "before_avg_gpm": before_avg_gpm,
+            "after_avg_gpm": after_avg_gpm,
+            "avg_gpm_delta": avg_gpm_delta,
+            "status": status,
+            "status_label": status_label,
+            "evidence_label": f"{minute}分死亡前后：{'，'.join(evidence_parts)}",
+        })
+    return deltas
+
+
+def _has_meaningful_death_resource_drop(window):
+    lh_delta = window.get("lh_per_min_delta")
+    gpm_delta = window.get("avg_gpm_delta")
+    return (
+        (isinstance(lh_delta, (int, float)) and lh_delta <= -2.0)
+        or (isinstance(gpm_delta, (int, float)) and gpm_delta <= -150.0)
+    )
+
+
 def _support_profile():
     return {
         "id": "support",
@@ -1307,6 +1426,7 @@ def _default_training_goal(category):
         "resource_continuity": "下一局10分钟后每次集合前先推出一条安全线，减少连续断补窗口。",
         "death_resource_overlap": "下一局把死亡重叠低效率窗口压到0，死亡后先恢复一波安全资源。",
         "death_recovery": "下一局每次死亡后3分钟内完成一波可记录的资源恢复。",
+        "death_resource_delta": "下一局每次死亡后先完成一波可记录的资源恢复，再接高风险带线或集合。",
         "death_review": "下一局把死亡压到每10分钟最多1次，避免连续短时间重复阵亡。",
         "item_timing": "下一局每件关键装备成型后立刻绑定一个可记录的地图动作。",
         "map_impact": "下一局把刷钱路线接到推塔、参战或控图目标上。",
@@ -1322,6 +1442,7 @@ def _default_success_metric(category):
         "resource_continuity": "10分钟后低效率窗口不超过1个；单个窗口不超过2分钟。",
         "death_resource_overlap": "死亡与低效率窗口重叠=0；死亡后3分钟内补回一波安全线或安全野区资源。",
         "death_recovery": "死亡后3分钟补刀>=6或平均GPM>=300；恢复不足窗口=0。",
+        "death_resource_delta": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
         "death_review": "每10分钟死亡不高于1.0；连续5分钟内死亡簇=0。",
         "item_timing": f"{FARM_ACCELERATION_SUCCESS_METRIC}；{MAP_CONVERSION_SUCCESS_METRIC}。",
         "map_impact": "参战率>=40%；关键装备后2分钟至少完成一次地图动作。",
@@ -1480,11 +1601,19 @@ def _build_review_findings(result):
         if window.get("status") == "low"
     ]
     if low_recovery_windows and role_id in ("pos1", "pos2", "pos3", "unknown", "unknown_lane"):
-        evidence = "；".join(
-            window.get("evidence_label")
-            for window in low_recovery_windows[:4]
-            if window.get("evidence_label")
-        )
+        delta_by_minute = {
+            window.get("minute"): window
+            for window in timeline.get("death_resource_deltas") or []
+            if window.get("minute") is not None
+        }
+        evidence_rows = []
+        for window in low_recovery_windows[:4]:
+            row_parts = [window.get("evidence_label")]
+            delta = delta_by_minute.get(window.get("minute"))
+            if delta and delta.get("evidence_label"):
+                row_parts.append(delta["evidence_label"])
+            evidence_rows.append("；".join(part for part in row_parts if part))
+        evidence = "；".join(evidence_rows)
         findings.append(_finding(
             "high",
             "death_recovery",
@@ -1556,6 +1685,28 @@ def _build_review_findings(result):
             replay_check,
             "下一局优先让系统拿到死亡时间线；拿到后按死亡分钟分阶段修正带线和参团风险。",
             "数据验收：下一份报告死亡覆盖率=100%；否则只记录数据缺口，不给分钟级死亡结论。",
+        ))
+
+    resource_delta_windows = timeline.get("death_resource_deltas") or []
+    dropped_resource_windows = [
+        window for window in resource_delta_windows
+        if _has_meaningful_death_resource_drop(window)
+    ]
+    if dropped_resource_windows and role_id in ("pos1", "pos2", "pos3", "unknown", "unknown_lane"):
+        evidence = "；".join(
+            f"{window.get('evidence_label')}（{window.get('before_window_label')}→{window.get('after_window_label')}）"
+            for window in dropped_resource_windows[:4]
+            if window.get("evidence_label")
+        )
+        findings.append(_finding(
+            "high" if len(dropped_resource_windows) >= 2 else "medium",
+            "death_resource_delta",
+            f"死亡前后资源下降窗口: {evidence}。",
+            "死亡相邻阶段的补刀或经济节奏明显下滑，会让一次阵亡继续影响下一段刷钱、守塔或控图节奏。",
+            "下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。",
+            "系统只比较死亡前后真实分钟数组，不判断死亡原因；逐一回看这些窗口的复活路径、TP落点、是否空走等人、是否重复进入无视野区域。",
+            f"下一局把死亡前后资源明显下降窗口从{len(dropped_resource_windows)}个压到最多1个。",
+            "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
         ))
 
     if role_id == "support":

@@ -432,7 +432,11 @@ def _topic_page_filename(topic_id):
 
 
 def _practice_token(value, fallback):
-    token = re.sub(r"[^a-zA-Z0-9_-]+", "-", str(value or "")).strip("-")
+    raw = str(value or "")
+    if raw.startswith("custom::"):
+        digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:10]
+        return f"custom-{digest}"
+    token = re.sub(r"[^a-zA-Z0-9_-]+", "-", raw).strip("-")
     return token or fallback
 
 

@@ -1349,3 +1349,38 @@ Started: 2026-06-28
 - Production acceptance: `https://dota.custard.top/` and `site-manifest.json` returned 200; the history page contained `死亡复盘覆盖`, and live counters matched the 10-report set at 10 workbenches, 10 recovery reports, 9 coordinate maps, and 9 complete death reviews.
 - Remaining risk: post-death rows show exact recovery totals but do not compare the same player's resource pace immediately before and after each death.
 - Next stage: Stage 6 IMPROVE will add deterministic death-adjacent resource deltas from real minute arrays.
+
+## 2026-06-30 - Long Cycle 4 Stage 6 IMPROVE - Start
+
+- Stage: 6 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: compare each real death's preceding resource pace with the immediate post-death pace using only observed minute arrays.
+- Carry-over: Stage 5 confirmed every report exposes recovery windows, but those absolute post-death totals do not show how sharply the same player's pace changed around the death.
+- User-visible increment: add `死亡前后资源变化` with exact before/after LH per minute, average GPM, and signed deltas for each supported death event.
+- Start state: main at `chore: record stage 5 death coverage validation` (`740a024`), clean worktree, CI passed in run `28407613769`.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; do not infer causality, benchmark quality, or map regions from the deltas.
+
+## 2026-06-30 - Long Cycle 4 Stage 6 IMPROVE - Local Complete
+
+- Completed: added deterministic `timeline.death_resource_deltas` by comparing each death's preceding resource pace with the immediate post-death pace using real `lastHitsPerMinute` and `goldPerMinute` arrays.
+- Boundary fix found by reading the real report: fractional-minute deaths now skip the mixed event minute, so `13.6分死亡` compares `10-13分钟` to `14-17分钟` instead of contaminating the post window with minute 13.
+- Coaching findings: added `死亡前后资源变化` findings when a real death-adjacent window has a meaningful LH/min or GPM drop; evidence includes exact signed before/after deltas and explicitly says the system does not judge death cause.
+- Report UI: added `死亡前后资源变化` under 时间线诊断 with exact before/after windows, signed deltas, and a no-causality caveat.
+- Static-site fix found during final validation: custom Chinese training topics now use hashed practice checklist IDs, fixing duplicate `practice-custom-*` IDs in `practice-plan.html`.
+- Public refresh: regenerated the full 18-report history from real STRATZ details and rebuilt `public/`; the manifest now reports 18 reports, 48 findings, 18 death workbenches, 18 recovery reports, 17 coordinate maps, and 17 complete death reviews.
+- Real-report acceptance: latest `Legion Commander #8870219537` report `Legion_Commander_8870219537_20260630_091309.html` has hero-first title, `死亡前后资源变化`, high-priority `死亡前后资源变化` finding, and exact evidence such as `25.3分死亡前后：补刀/分 8.7→3.3（-5.4）` and `30.4分死亡（27-30分钟 → 31-34分钟）`.
+- Browser verification:
+  - Desktop history page: 18-report manifest, `死亡复盘覆盖`, no duplicate IDs, no horizontal overflow.
+  - Desktop latest report: hero-first title, exact delta evidence, `不判断死亡原因` caveat, no duplicate IDs, no horizontal overflow.
+  - Desktop practice plan: `死亡前后资源变化` topic present and custom checklist IDs unique.
+  - Mobile 390x844 report/practice plan: no horizontal overflow; report shows mobile phase cards and hides the desktop phase table.
+- Local verification:
+  - New target tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 81 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 6 closeout log.
