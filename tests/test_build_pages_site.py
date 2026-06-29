@@ -429,10 +429,13 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("对局中只盯", brief_html)
         self.assertIn("赛后复核", brief_html)
         self.assertIn("失败证据", brief_html)
+        self.assertIn("胜利样本", brief_html)
         self.assertIn("Doom #8867002240", brief_html)
         self.assertIn('href="practice-plan.html"', brief_html)
         self.assertIn('href="trend-early-resource.html?result=lose"', brief_html)
+        self.assertIn('href="trend-early-resource.html?result=win"', brief_html)
         self.assertIn('class="brief-card"', brief_html)
+        self.assertIn('class="brief-proof-grid"', brief_html)
 
     def test_build_pages_site_writes_topic_evidence_pages_and_links(self):
         metadata = {

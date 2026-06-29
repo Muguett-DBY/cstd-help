@@ -559,14 +559,33 @@ def _render_practice_plan_text(trends, manifest):
 
 
 def _trend_failure_evidence(trend):
+    return _trend_result_evidence(
+        trend,
+        "lose",
+        "该主题暂无单独失败证据文本，打开完整证据页查看。",
+        fallback_to_any=True,
+    )
+
+
+def _trend_win_evidence(trend):
+    return _trend_result_evidence(
+        trend,
+        "win",
+        "暂无胜利样本；本主题先按失败证据执行，后续胜局会自动补入。",
+        fallback_to_any=False,
+    )
+
+
+def _trend_result_evidence(trend, result, fallback, fallback_to_any):
     findings = trend.get("findings") or []
     for finding in findings:
-        if finding.get("result") == "lose" and finding.get("review_evidence"):
+        if finding.get("result") == result and finding.get("review_evidence"):
             return finding.get("review_evidence")
-    for finding in findings:
-        if finding.get("review_evidence"):
-            return finding.get("review_evidence")
-    return "该主题暂无单独失败证据文本，打开完整证据页查看。"
+    if fallback_to_any:
+        for finding in findings:
+            if finding.get("review_evidence"):
+                return finding.get("review_evidence")
+    return fallback
 
 
 def _render_match_brief(trends, reports, output_path, manifest=None):
@@ -583,9 +602,11 @@ def _render_match_brief(trends, reports, output_path, manifest=None):
         focus = html.escape(trend.get("focus") or "需要查看报告")
         action = html.escape(trend.get("next_action") or "打开报告查看下一局行动清单。")
         metric = html.escape(trend.get("success_metric") or "以报告内验收标准为准。")
-        evidence = html.escape(_trend_failure_evidence(trend))
+        failure_evidence = html.escape(_trend_failure_evidence(trend))
+        win_evidence = html.escape(_trend_win_evidence(trend))
         topic_page_raw = trend.get("page") or "index.html"
         failure_href = html.escape(_filtered_topic_href(topic_page_raw, result="lose"), quote=True)
+        win_href = html.escape(_filtered_topic_href(topic_page_raw, result="win"), quote=True)
         cards.append(
             f"""
             <article class="brief-card">
@@ -596,8 +617,10 @@ def _render_match_brief(trends, reports, output_path, manifest=None):
                 <h2>{focus}</h2>
                 <div class="brief-step"><strong>对局中只盯</strong><span>{action}</span></div>
                 <div class="brief-step"><strong>赛后复核</strong><span>{metric}</span></div>
-                <div class="brief-evidence"><strong>失败证据</strong><span>{evidence}</span></div>
-                <a class="topic-report-link" href="{failure_href}">打开失败证据</a>
+                <div class="brief-proof-grid">
+                    <div class="brief-evidence"><strong>失败证据</strong><span>{failure_evidence}</span><a class="topic-report-link" href="{failure_href}">打开失败证据</a></div>
+                    <div class="brief-evidence win-sample"><strong>胜利样本</strong><span>{win_evidence}</span><a class="topic-report-link" href="{win_href}">打开胜利样本</a></div>
+                </div>
             </article>
             """.strip()
         )

@@ -346,8 +346,11 @@ def main():
         "对局中只盯",
         "赛后复核",
         "失败证据",
+        "胜利样本",
+        "result=win",
         "practice-plan.html",
         "brief-card",
+        "brief-proof-grid",
     ):
         if required not in brief_html:
             raise SystemExit(f"match brief page is missing required content: {required}")

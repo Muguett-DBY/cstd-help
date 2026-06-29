@@ -856,6 +856,17 @@ body {
 .brief-evidence {
     border-color: rgba(248,81,73,0.26);
 }
+.brief-proof-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+.brief-evidence.win-sample {
+    border-color: rgba(63,185,80,0.28);
+}
+.brief-evidence .topic-report-link {
+    margin-top: 3px;
+}
 .brief-footer {
     display: flex;
     align-items: center;
@@ -1768,6 +1779,9 @@ tr:hover { background: rgba(88,166,255,0.05); }
     }
     .brief-card {
         min-height: 0;
+    }
+    .brief-proof-grid {
+        grid-template-columns: 1fr;
     }
     .brief-footer {
         align-items: flex-start;
