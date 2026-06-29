@@ -452,7 +452,8 @@
   - `python -m compileall -q .`: passed.
   - `python scripts/check_public_site.py`: passed, 10 report pages.
   - `gitleaks dir . --redact`: no leaks found.
-- GitHub Actions / CI: pending.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28388612290`.
+- Live check: `https://dota.custard.top/` and `https://dota.custard.top/site-manifest.json` returned 200; manifest still reported 10 reports and latest `Legion Commander #8870219537`.
 - Risks:
   - The system intentionally labels raw x/y samples only; it does not infer lane, jungle, Roshan, high-ground, or tower-area names without a verified map transform.
 - Next best directions:

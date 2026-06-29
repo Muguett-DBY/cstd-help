@@ -970,3 +970,15 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, and custom-domain acceptance for Stage 2.
+
+## 2026-06-30 - Long Cycle 3 Stage 2 IMPROVE - Complete
+
+- Completed stage: 2 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: attach position evidence to deaths` (`14a05d7`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28388612290`.
+- Production acceptance: `https://dota.custard.top/` returned 200 and included the latest report context; `site-manifest.json` returned 200 with report_count=10 and latest `Legion Commander #8870219537`.
+- Remaining risk: death positions are raw sampled x/y coordinates only; the system does not infer named map regions without a verified coordinate transform.
+- Next stage: Stage 3 UIUX.
