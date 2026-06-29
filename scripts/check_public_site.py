@@ -350,6 +350,7 @@ def main():
         "result=win",
         "practice-plan.html",
         "brief-card",
+        "brief-command-bar",
         "brief-proof-grid",
     ):
         if required not in brief_html:

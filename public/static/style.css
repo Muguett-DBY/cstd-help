@@ -809,6 +809,62 @@ body {
     color: var(--text-secondary);
     font-size: 12px;
 }
+.brief-command-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 8px 0;
+    background: rgba(13, 17, 23, 0.96);
+}
+.brief-command-bar > span {
+    color: var(--accent-blue);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.brief-command-track {
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.brief-command-track::-webkit-scrollbar {
+    display: none;
+}
+.brief-command-link {
+    display: grid;
+    flex: 1 1 0;
+    min-width: min(240px, 72vw);
+    min-height: 48px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    text-decoration: none;
+}
+.brief-command-link:hover,
+.brief-command-link:focus-visible {
+    border-color: var(--accent-blue);
+    outline: none;
+}
+.brief-command-link span {
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+}
+.brief-command-link strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+}
 .brief-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1776,6 +1832,19 @@ tr:hover { background: rgba(88,166,255,0.05); }
     .brief-hero,
     .brief-grid {
         grid-template-columns: 1fr;
+    }
+    .brief-command-bar {
+        grid-template-columns: 1fr;
+        gap: 7px;
+        margin-inline: -12px;
+        padding: 8px 12px;
+    }
+    .brief-command-link {
+        flex: 0 0 min(78vw, 260px);
+        scroll-snap-align: start;
+    }
+    .brief-command-track {
+        scroll-snap-type: x proximity;
     }
     .brief-card {
         min-height: 0;
