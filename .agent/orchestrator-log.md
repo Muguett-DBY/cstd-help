@@ -1133,3 +1133,34 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and final closeout logs.
+
+## 2026-06-30 - Long Cycle 3 Stage 6 IMPROVE - Complete
+
+- Completed stage: 6 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: cross reference deaths with low efficiency windows` (`30bc9c8`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28391972379`.
+- Production acceptance: `https://dota.custard.top/Legion_Commander_8870219537_20260630_034916.html` returned 200 and contained hero-first title, `死亡打断资源窗口`, `低效率窗口 25-27分钟含 25.3分死亡`, `低效率窗口 32-36分钟含 32.2分死亡、33.8分死亡`, and `证据来源与覆盖`.
+- Remaining risk: overlap diagnosis is strictly time-based; it does not infer the cause of the death or named map region.
+- Final state: all six requested Long Cycle 3 stages are complete, pushed to `main`, CI-passed, and custom-domain checked.
+
+## 2026-06-30 - Long Cycle 3 - Final Status
+
+- Completed stages: 6 / 6.
+- Stage commits:
+  - Stage 1: `feat: derive lane timeline from playback cs` (`81f79ef`).
+  - Stage 2: `feat: attach position evidence to deaths` (`14a05d7`).
+  - Stage 3: `feat: show death position evidence in reports` (`2b87436`) plus public refresh `04e0e04`.
+  - Stage 4: `feat: show report evidence source coverage` (`0353345`).
+  - Stage 5: `fix: require report evidence coverage in static checks` (`c864f15`).
+  - Stage 6: `feat: cross reference deaths with low efficiency windows` (`30bc9c8`).
+- Final local gates: 69 tests, compileall, static Pages validation, gitleaks, diff check, forbidden-file check, and desktop/mobile report browser QA passed.
+- Final CI state: last feature deployment run `28391972379` passed; final log closeout pending at the time of this entry.
+- Final production state: custom domain serves latest hero-first reports with event-level death positions, evidence-source coverage, and death/resource overlap windows.
+- Remaining risks:
+  - Death positions remain raw x/y samples until a verified Dota map transform exists.
+  - Death/resource overlap is time-based only and intentionally does not infer death cause.
+  - Public reports are static until the next fetch/build/deploy cycle.
+- Recommended next flagship change: add a verified Dota map coordinate transform before converting raw x/y samples into named map-region guidance.

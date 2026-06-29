@@ -1,5 +1,23 @@
 # Iteration Log
 
+## 2026-06-30 - Long Cycle 3 Stage 6 IMPROVE
+
+- Goal: connect deaths with low-efficiency windows so reports show where real deaths interrupted resource flow.
+- Completed: added `timeline.death_overlap_windows`, high-priority `死亡打断资源` findings, and a visible `死亡打断资源窗口` subsection in report 时间线诊断.
+- User-visible gain: latest `Legion Commander #8870219537` now shows exact overlap evidence such as `低效率窗口 25-27分钟含 25.3分死亡` and `低效率窗口 32-36分钟含 32.2分死亡、33.8分死亡`.
+- Verification:
+  - New target tests failed before implementation, then passed.
+  - `python main.py --skip-fetch --recent 10 --force`: generated 10 new reports after live STRATZ detail fetch succeeded.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 69 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser desktop/mobile report QA passed with no horizontal overflow or console errors.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28391972379`.
+- Live check: latest `Legion Commander #8870219537` report returned 200 with the new overlap section and evidence-source coverage.
+- Remaining risk: overlap diagnosis is time-based only; it does not infer death cause or named map region.
+- Recommended next direction: improve map-position interpretation only after adding a verified Dota coordinate transform; otherwise keep advice tied to raw samples and event timing.
+
 ## 2026-06-30 - Long Cycle 3 Stage 5 CHECK
 
 - Goal: prevent future generated report regressions where evidence-source coverage disappears but CI still passes.
