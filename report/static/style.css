@@ -745,6 +745,39 @@ body {
     gap: 14px;
     padding-top: 24px;
 }
+.practice-workbench {
+    display: grid;
+    gap: 12px;
+    margin-top: 22px;
+    padding: 16px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+}
+.practice-workbench-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+.practice-workbench-head h2 {
+    font-size: 16px;
+}
+.practice-workbench-head p {
+    margin-top: 3px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.practice-workbench-head strong {
+    flex: 0 0 auto;
+    color: var(--accent-blue);
+    font-size: 12px;
+}
+.practice-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
 .practice-card {
     display: grid;
     grid-template-columns: 128px minmax(0, 1fr);
@@ -753,6 +786,12 @@ body {
     border: 1px solid var(--border);
     border-radius: 6px;
     background: var(--bg-secondary);
+}
+.practice-card[hidden] {
+    display: none;
+}
+.practice-card[data-practice-state="done"] {
+    border-color: rgba(63,185,80,0.36);
 }
 .practice-rank {
     color: var(--accent-blue);
@@ -802,6 +841,71 @@ body {
 .practice-action span {
     color: var(--text-primary);
     font-size: 13px;
+}
+.practice-evidence-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.practice-evidence-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 5px 9px;
+    border: 1px solid rgba(88,166,255,0.34);
+    border-radius: 6px;
+    background: rgba(88,166,255,0.08);
+    color: var(--accent-blue);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.practice-evidence-links a:hover,
+.practice-evidence-links a:focus-visible {
+    border-color: var(--accent-blue);
+    color: var(--text-primary);
+    outline: none;
+}
+.practice-checklist {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-primary);
+}
+.practice-checklist-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.practice-checklist-head strong {
+    color: var(--text-primary);
+}
+.practice-check-item {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 9px;
+    align-items: start;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+.practice-check-item input {
+    width: 16px;
+    height: 16px;
+    margin-top: 3px;
+    accent-color: var(--accent-green);
+}
+.practice-check-item span {
+    display: grid;
+    gap: 2px;
+}
+.practice-check-item strong {
+    color: var(--text-secondary);
+    font-size: 11px;
 }
 .practice-more-topics {
     display: flex;
@@ -1546,6 +1650,16 @@ tr:hover { background: rgba(88,166,255,0.05); }
     .practice-card {
         grid-template-columns: 1fr;
         gap: 10px;
+    }
+    .practice-workbench-head {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .practice-workbench-head strong {
+        width: 100%;
+    }
+    .practice-filter-row .filter-button {
+        flex: 1 1 128px;
     }
     .practice-title-row {
         flex-direction: column;

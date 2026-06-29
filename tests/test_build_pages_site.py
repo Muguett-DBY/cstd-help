@@ -367,6 +367,17 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("前10分钟资源", plan_html)
         self.assertIn("下一局前10分钟低效率窗口=0。", plan_html)
         self.assertIn("10分钟补刀&gt;=35。", plan_html)
+        self.assertIn('class="practice-workbench"', plan_html)
+        self.assertIn('data-practice-filter="todo"', plan_html)
+        self.assertIn('data-practice-visible-count', plan_html)
+        self.assertIn('data-practice-card', plan_html)
+        self.assertIn("下一局检查点", plan_html)
+        self.assertIn('data-practice-check', plan_html)
+        self.assertIn('data-practice-empty', plan_html)
+        self.assertIn("localStorage", plan_html)
+        self.assertIn('href="trend-early-resource.html?result=lose"', plan_html)
+        self.assertIn('href="trend-early-resource.html?result=win"', plan_html)
+        self.assertIn('href="trend-early-resource.html?hero=', plan_html)
 
     def test_build_pages_site_writes_topic_evidence_pages_and_links(self):
         metadata = {
@@ -439,6 +450,10 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".topic-filter-button", stylesheet)
         self.assertIn(".topic-empty-state", stylesheet)
         self.assertIn(".data-coverage", stylesheet)
+        self.assertIn(".practice-workbench", stylesheet)
+        self.assertIn(".practice-evidence-links", stylesheet)
+        self.assertIn(".practice-checklist", stylesheet)
+        self.assertIn(".practice-card[hidden]", stylesheet)
         self.assertIn(".report-section-nav", stylesheet)
         self.assertIn(".skip-link", stylesheet)
         self.assertIn(".report-top-link", stylesheet)
@@ -458,15 +473,19 @@ class BuildPagesSiteTests(unittest.TestCase):
             "enemies": [{"name": "Axe", "slug": "axe"}],
         }
         with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
-            self._write_report(source, metadata)
+            report_path = self._write_report(source, metadata)
             pages_site.build_pages_site(source, public_dir=public)
 
             for filename in ("index.html", "practice-plan.html"):
-                lines = (Path(public) / filename).read_text(encoding="utf-8").splitlines()
+                data = (Path(public) / filename).read_bytes()
+                self.assertNotIn(b"\r\n", data, f"{filename} should be written with LF newlines")
+                lines = data.decode("utf-8").splitlines()
                 self.assertFalse(
                     any(line != line.rstrip() for line in lines),
                     f"{filename} contains trailing whitespace",
                 )
+            report_data = (Path(public) / report_path.name).read_bytes()
+            self.assertNotIn(b"\r\n", report_data, f"{report_path.name} should be written with LF newlines")
 
     def test_build_pages_site_injects_adjacent_report_navigation(self):
         metadata = {
