@@ -9,6 +9,10 @@
   "known_result_count": 10,
   "wins": 4,
   "losses": 6,
+  "death_review_workbench_report_count": 10,
+  "death_recovery_window_report_count": 10,
+  "death_coordinate_map_report_count": 9,
+  "complete_death_review_report_count": 9,
   "latest_match": {
     "hero": "Legion Commander",
     "match_id": "8870219537",
