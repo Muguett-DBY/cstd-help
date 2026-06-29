@@ -1,5 +1,20 @@
 # Iteration Log
 
+## 2026-06-30 - Long Cycle 4 Stage 4 IMPROVE
+
+- Goal: show death-review evidence coverage on the site overview instead of hiding it inside individual match reports.
+- Completed: parsed report-level death evidence flags, added site-manifest death coverage counts, and rendered a `死亡复盘覆盖` subsection in the shared coverage panel.
+- User-visible gain: the history page now states that the latest 10-match set has 10 death review panels, 10 recovery-window reports, 9 coordinate-map reports, and 9 complete death reviews.
+- Verification:
+  - New coverage test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 75 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser desktop/mobile coverage-panel QA passed with no horizontal overflow.
+- Remaining risk: the static validator validates generic coverage today; it does not yet specifically fail a site missing death-review coverage fields.
+- Recommended next direction: Stage 5 CHECK should harden `scripts/check_public_site.py` around death-review UI, recovery windows, and manifest coverage counts.
+
 ## 2026-06-30 - Long Cycle 4 Stage 3 UIUX
 
 - Goal: make timeline and death-review evidence easier to scan on mobile while keeping desktop density.

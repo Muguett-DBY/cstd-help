@@ -467,6 +467,12 @@ body {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
 }
+.coverage-subtitle {
+    margin-top: 4px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+}
 .coverage-stat {
     display: grid;
     gap: 2px;

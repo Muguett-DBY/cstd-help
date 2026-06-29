@@ -120,6 +120,35 @@ Started: 2026-06-28
 - Live check: `https://dota.custard.top/Legion_Commander_8870219537_20260630_081552.html` returned 200 and contains `timeline-phase-cards`, `death-review-workbench`, `death-review-summary`, `death-coordinate-map`, and `死亡后恢复窗口`.
 - Next direction: Stage 4 should surface report/site evidence coverage for the new death recovery and death UI evidence so history pages show which reports have complete death-review data.
 
+## Long Cycle 4 - Stage 4 - IMPROVE
+
+- Prompt: `AGENT_IMPROVE_MAIN.txt`.
+- Goal: surface death-review evidence coverage at the site level, not only inside individual reports.
+- TDD:
+  - Extended the site-manifest/coverage-panel test to require death review workbench count, death recovery window count, death coordinate map count, and complete death review count.
+  - Added stylesheet coverage for the new coverage subtitle.
+  - Coverage test failed before implementation with missing manifest keys, then passed after implementation.
+- Result:
+  - `_parse_report` now records `death_evidence` flags for `death-review-workbench`, `死亡后恢复窗口`, and `death-coordinate-map`.
+  - `site-manifest.json` now includes `death_review_workbench_report_count`, `death_recovery_window_report_count`, `death_coordinate_map_report_count`, and `complete_death_review_report_count`.
+  - The shared coverage panel now includes a `死亡复盘覆盖` subsection.
+  - Rebuilt the latest 10 public reports from cached real match data generated at `20260630_081552/081553`.
+- Real-data verification:
+  - Latest rebuilt site manifest: 10 reports, 10 death-review panels, 10 recovery-window reports, 9 coordinate-map reports, 9 complete death-review reports.
+  - The single non-complete case is a real data limitation: Rubick has no death coordinate map in the cached source.
+- Browser verification:
+  - Desktop Chrome at 1280x900: coverage panel shows 8 coverage stats including death coverage; no horizontal overflow.
+  - Mobile Chrome at 390x844: coverage panel remains readable in two columns; no horizontal overflow.
+- Local verification:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 75 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check for `AGENTS.md`, Docker files, and docker-compose paths: passed.
+- Deployment status: pending commit, push, GitHub Actions, and live-domain check.
+- Next direction: Stage 5 CHECK should make the static validator reject reports/sites where death-review UI, recovery windows, or coverage manifest fields silently disappear.
+
 ## Cycle 2 - Global Preparation
 
 - Status: clean `main`, fast-forward synced with `origin/main` at `a211d36`.

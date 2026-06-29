@@ -217,12 +217,19 @@ def _parse_report(path):
     match = REPORT_NAME_RE.match(path.name)
     fallback_hero = _display_hero(match.group("hero")) if match else path.stem
     fallback_match_id = match.group("match_id") if match else ""
+    report_text = path.read_text(encoding="utf-8")
     metadata = _read_embedded_metadata(path)
     coach_findings = _read_coach_findings(path)
     coach_finding = coach_findings[0] if coach_findings else _read_coach_finding(path)
     hero = metadata.get("hero") if isinstance(metadata.get("hero"), dict) else {}
     kda = metadata.get("kda") if isinstance(metadata.get("kda"), dict) else {}
     score = metadata.get("score") if isinstance(metadata.get("score"), dict) else {}
+    death_evidence = {
+        "has_death_review_workbench": 'class="death-review-workbench"' in report_text,
+        "has_death_recovery_windows": "死亡后恢复窗口" in report_text,
+        "has_death_coordinate_map": 'class="death-coordinate-map"' in report_text,
+    }
+    death_evidence["has_complete_death_review"] = all(death_evidence.values())
 
     return {
         "file": path.name,
@@ -238,6 +245,7 @@ def _parse_report(path):
         "enemies": _normalize_lineup(metadata.get("enemies")),
         "size": path.stat().st_size,
         "review_findings": coach_findings,
+        "death_evidence": death_evidence,
         **coach_finding,
     }
 
@@ -759,6 +767,22 @@ def _build_site_manifest(reports, trends):
     known_results = [report for report in sorted_reports if report.get("is_win") is not None]
     wins = sum(1 for report in known_results if report["is_win"])
     losses = len(known_results) - wins
+    death_review_workbench_count = sum(
+        1 for report in sorted_reports
+        if (report.get("death_evidence") or {}).get("has_death_review_workbench")
+    )
+    death_recovery_window_count = sum(
+        1 for report in sorted_reports
+        if (report.get("death_evidence") or {}).get("has_death_recovery_windows")
+    )
+    death_coordinate_map_count = sum(
+        1 for report in sorted_reports
+        if (report.get("death_evidence") or {}).get("has_death_coordinate_map")
+    )
+    complete_death_review_count = sum(
+        1 for report in sorted_reports
+        if (report.get("death_evidence") or {}).get("has_complete_death_review")
+    )
     latest_match = {
         "hero": newest.get("hero") or "未知英雄",
         "match_id": str(newest.get("match_id") or ""),
@@ -778,6 +802,10 @@ def _build_site_manifest(reports, trends):
         "known_result_count": len(known_results),
         "wins": wins,
         "losses": losses,
+        "death_review_workbench_report_count": death_review_workbench_count,
+        "death_recovery_window_report_count": death_recovery_window_count,
+        "death_coordinate_map_report_count": death_coordinate_map_count,
+        "complete_death_review_report_count": complete_death_review_count,
         "latest_match": latest_match,
         "topics": [
             {
@@ -818,6 +846,13 @@ def _render_coverage_panel(manifest):
             <div class="coverage-stat"><strong>{html.escape(str(manifest.get('finding_count') or 0))} 条 finding</strong><span>教练证据</span></div>
             <div class="coverage-stat"><strong>{html.escape(str(manifest.get('topic_count') or 0))} 个训练主题</strong><span>趋势归并</span></div>
             <div class="coverage-stat"><strong>{html.escape(str(manifest.get('high_priority_report_count') or 0))} 局</strong><span>高优先级复盘</span></div>
+        </div>
+        <div class="coverage-subtitle">死亡复盘覆盖</div>
+        <div class="coverage-grid">
+            <div class="coverage-stat"><strong>{html.escape(str(manifest.get('death_review_workbench_report_count') or 0))} 局</strong><span>死亡复盘面板</span></div>
+            <div class="coverage-stat"><strong>{html.escape(str(manifest.get('death_recovery_window_report_count') or 0))} 局</strong><span>恢复窗口</span></div>
+            <div class="coverage-stat"><strong>{html.escape(str(manifest.get('death_coordinate_map_report_count') or 0))} 局</strong><span>坐标图</span></div>
+            <div class="coverage-stat"><strong>{html.escape(str(manifest.get('complete_death_review_report_count') or 0))} 局</strong><span>完整死亡复盘</span></div>
         </div>
         <a class="coverage-latest" href="{latest_file}">
             <span>最新比赛</span>
