@@ -248,7 +248,13 @@ def _format_events(events):
             death_line += f"；{events.get('death_gap_note')}"
         lines.append(death_line)
     if deaths:
-        lines.append("- 死亡事件: " + "；".join(f"{item.get('minute')}分钟" for item in deaths[:8]))
+        death_parts = []
+        for item in deaths[:8]:
+            text = f"{item.get('minute')}分钟"
+            if item.get("position_label"):
+                text += f" {item.get('position_label')}"
+            death_parts.append(text)
+        lines.append("- 死亡事件: " + "；".join(death_parts))
     else:
         lines.append("- 死亡事件: 公共数据源未提供 death_log")
     return "\n".join(lines)

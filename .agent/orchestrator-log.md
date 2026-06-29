@@ -944,3 +944,29 @@ Started: 2026-06-28
 - Production acceptance: `https://dota.custard.top/` returned 200; `site-manifest.json` returned 200 with report_count=10 and latest `Legion Commander #8870219537`.
 - Remaining risk: STRATZ playback CS evidence only supplies real last-hit timing unless other minute arrays are also available.
 - Next stage: Stage 2 IMPROVE.
+
+## 2026-06-30 - Long Cycle 3 Stage 2 IMPROVE - Start
+
+- Stage: 2 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: enrich death events with real STRATZ `playerUpdatePositionEvents` samples.
+- Carry-over: Stage 1 improved lane timing from playback data; the next coaching gap is knowing where deaths occurred, not just the minute.
+- User-visible increment: death findings can cite exact sampled x/y positions near each death when STRATZ playback provides them.
+- Start state: main at `chore: record stage 1 playback timeline deployment` (`98a96da`), clean worktree, CI passed in run `28388328621`.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; use only real position samples, no inferred map location labels.
+
+## 2026-06-30 - Long Cycle 3 Stage 2 IMPROVE - Local Complete
+
+- Completed: normalized STRATZ `playerUpdatePositionEvents`, attached the nearest death-before position sample to each death event when the sample is within 45 seconds, and exposed those labels in death findings and AI prompt event text.
+- User-visible increment: reports can now include death evidence such as `7.0分 x=122,y=140（死亡前30秒）`, making the replay target concrete without inventing map names.
+- Data-quality increment: `data_quality.available` records `stratz_position_samples` when deaths have attached position evidence.
+- Local verification:
+  - New target test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 62 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, and custom-domain acceptance for Stage 2.

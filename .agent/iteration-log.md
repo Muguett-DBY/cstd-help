@@ -440,3 +440,23 @@
   - Expose death-event evidence more clearly in the report UI.
   - Keep generated-site validation aware of newly exposed evidence-source labels.
 - Recommended flagship next change: enrich death events with nearest STRATZ position samples so coaching advice can target where deaths happened, not just when.
+
+## 2026-06-30 - Long Cycle 3 Stage 2 IMPROVE
+
+- Goal: add real map-position evidence to death events when STRATZ playback position samples are available.
+- Completed: normalized `playerUpdatePositionEvents`, attached the latest pre-death sample within 45 seconds to each death event, and carried those labels into death findings plus AI prompt event formatting.
+- User-visible gain: death review can point to specific sampled coordinates, for example `x=122,y=140（死亡前30秒）`, so replay checks target the real death location instead of vague “站位问题”.
+- Verification:
+  - New target test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 62 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+- GitHub Actions / CI: pending.
+- Risks:
+  - The system intentionally labels raw x/y samples only; it does not infer lane, jungle, Roshan, high-ground, or tower-area names without a verified map transform.
+- Next best directions:
+  - Improve the HTML event section so death position labels are visible next to each death pill.
+  - Add static validation that generated reports expose death position evidence when present.
+  - Keep all death-location advice tied to real samples rather than inferred map zones.
+- Recommended flagship next change: make death position samples visible in the report UI, not just inside the structured finding and AI prompt.

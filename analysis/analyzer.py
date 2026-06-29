@@ -755,6 +755,66 @@ def _normalize_opendota_timed_events(events):
     return normalized
 
 
+def _clean_position_value(value):
+    if not isinstance(value, (int, float)):
+        return None
+    return int(value) if float(value).is_integer() else round(value, 1)
+
+
+def _normalize_position_events(events, source="stratz"):
+    normalized = []
+    for event in events or []:
+        if not isinstance(event, dict):
+            continue
+        event_time = event.get("time")
+        x = _clean_position_value(event.get("x"))
+        y = _clean_position_value(event.get("y"))
+        if not isinstance(event_time, (int, float)) or x is None or y is None:
+            continue
+        normalized.append({
+            "time": event_time,
+            "minute": round(event_time / 60, 1),
+            "x": x,
+            "y": y,
+            "source": source,
+        })
+    return sorted(normalized, key=lambda item: item["time"])
+
+
+def _death_position_label(position, age_seconds):
+    if not position:
+        return ""
+    age_text = "死亡时" if age_seconds == 0 else f"死亡前{age_seconds}秒"
+    return f"x={position.get('x')},y={position.get('y')}（{age_text}）"
+
+
+def _attach_position_samples_to_deaths(deaths, position_events, max_age_seconds=45):
+    if not deaths or not position_events:
+        return deaths
+    enriched = []
+    for death in deaths:
+        item = dict(death)
+        death_time = item.get("time")
+        if not isinstance(death_time, (int, float)):
+            enriched.append(item)
+            continue
+        candidates = [
+            event for event in position_events
+            if event.get("time") <= death_time and death_time - event.get("time") <= max_age_seconds
+        ]
+        if candidates:
+            sample = candidates[-1]
+            age = int(round(death_time - sample["time"]))
+            position = {"x": sample["x"], "y": sample["y"]}
+            item["position"] = position
+            item["position_source"] = sample.get("source")
+            item["position_sample_time"] = sample.get("time")
+            item["position_sample_age_seconds"] = age
+            item["position_label"] = _death_position_label(position, age)
+        enriched.append(item)
+    return enriched
+
+
 def _normalize_opendota_vision_events(events, ward_type):
     normalized = []
     for event in events or []:
@@ -852,6 +912,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     stratz_deaths = _normalize_timed_events(playback.get("deathEvents"), source="stratz")
     stratz_kills = _normalize_timed_events(playback.get("killEvents"), source="stratz")
     stratz_assists = _normalize_timed_events(playback.get("assistEvents"), source="stratz")
+    stratz_positions = _normalize_position_events(playback.get("playerUpdatePositionEvents"), source="stratz")
 
     opendota_purchases = []
     opendota_deaths = []
@@ -902,6 +963,10 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         source_parts.add(death_source)
     else:
         deaths = []
+    deaths = _attach_position_samples_to_deaths(deaths, stratz_positions)
+    death_position_count = len([item for item in deaths if item.get("position")])
+    if death_position_count:
+        source_parts.add("stratz_position_samples")
 
     kills = opendota_kills or stratz_kills
     if opendota_kills:
@@ -939,6 +1004,9 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         "death_count_observed": observed_deaths,
         "death_count_missing": missing_deaths,
         "death_timeline_complete": missing_deaths == 0,
+        "death_position_count": death_position_count,
+        "position_sample_count": len(stratz_positions),
+        "has_death_positions": death_position_count > 0,
         "death_coverage_label": death_coverage_label,
         "death_gap_note": (
             f"公共数据源未提供剩余 {missing_deaths} 次死亡的分钟级事件。"
@@ -1235,10 +1303,19 @@ def _build_review_findings(result):
         evidence = (
             f"{coverage}，时间: {death_minutes}分钟；每10分钟死亡 {derived.get('deaths_per_10_min', 0)}。"
         )
+        death_position_labels = [
+            f"{item.get('minute')}分 {item.get('position_label')}"
+            for item in death_events
+            if item.get("position_label")
+        ]
+        if death_position_labels:
+            evidence += " 死亡位置: " + "；".join(death_position_labels[:6]) + "。"
         if missing_note:
             evidence += f" {missing_note}"
         cluster_labels = _death_cluster_labels(events["deaths"])
         replay_check = "系统已定位的死亡分钟优先检查装备冷却、队友距离、敌方控制威胁和撤退路线。"
+        if death_position_labels:
+            replay_check += " 位置采样: " + "；".join(death_position_labels[:6]) + "；优先确认是否在无视野高坡、带线深处或队友脱节位置。"
         death_action = "下一局每次带线或参团前先判断敌方关键控制、己方TP支援、撤退路线和买活/盾时间。"
         if cluster_labels:
             replay_check += " 连续死亡簇: " + "、".join(cluster_labels[:4]) + "。"
@@ -1500,6 +1577,8 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
 
     if has_fight_log:
         available.append("fight_log")
+        if events.get("has_death_positions"):
+            available.append("stratz_position_samples")
         score += 7
     else:
         limitations.append("缺少团战/击杀日志，不能还原每次死亡和团战站位")
