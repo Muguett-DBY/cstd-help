@@ -591,3 +591,34 @@ Started: 2026-06-28
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28363713371`.
 - Risk: static validation still does not verify external CDN image availability.
 - Next stage: Stage 6 IMPROVE.
+
+## 2026-06-29 - Long Cycle Stage 6 IMPROVE - Start
+
+- Stage: 6 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: add a compact export/share artifact for the training plan, generated from the same evidence data as `practice-plan.html`.
+- Carry-over: Stage 5 recommended a plain-text next-session checklist generated from current training topics.
+- Start state: main at `chore: record stage 5 validation deployment` (`f0432dd`), Stage 5 closeout CI passed in run `28363786094`, clean worktree.
+- Constraints: do not touch Docker; do not edit AGENTS.md; no force push or branch changes; keep the export static and evidence-derived.
+
+## 2026-06-29 - Long Cycle Stage 6 IMPROVE - Complete
+
+- Completed: generated `practice-plan.txt` from the same trend evidence as the HTML training workbench and linked it from `practice-plan.html` as `导出训练清单`.
+- User-visible increment: the player can copy or save a compact next-game checklist with priority topics, actions, acceptance metrics, failure-evidence links, win-sample links, hero-specific links, and the 3-step execution checkpoint.
+- Stability improvement: static validation now requires `practice-plan.txt` and verifies its core training/export content.
+- Browser / HTTP verification:
+  - `practice-plan.html` rendered one `practice-plan.txt` export link, 4 task cards, no horizontal overflow, and no console errors.
+  - Direct browser navigation to `.txt` was blocked by the in-app browser extension, matching earlier JSON blocking behavior.
+  - HTTP request to `http://127.0.0.1:8026/practice-plan.txt` returned 200 and contained title, player id, failure evidence, and checkpoint content.
+- Local verification:
+  - Export test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 57 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Commit/push/CI: pending.
+- Risk: the text export is static at build time; it does not include per-browser checkbox completion state.
+- Next stage: final online acceptance.

@@ -394,8 +394,11 @@ class BuildPagesSiteTests(unittest.TestCase):
             pages_site.build_pages_site(source, public_dir=public)
             index_html = (Path(public) / "index.html").read_text(encoding="utf-8")
             plan_html = (Path(public) / "practice-plan.html").read_text(encoding="utf-8")
+            plan_text = (Path(public) / "practice-plan.txt").read_text(encoding="utf-8")
 
         self.assertIn("practice-plan.html", index_html)
+        self.assertIn("practice-plan.txt", plan_html)
+        self.assertIn("导出训练清单", plan_html)
         self.assertIn("下一次训练计划", plan_html)
         self.assertIn("第 1 优先级", plan_html)
         self.assertIn("前10分钟资源", plan_html)
@@ -412,6 +415,12 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn('href="trend-early-resource.html?result=lose"', plan_html)
         self.assertIn('href="trend-early-resource.html?result=win"', plan_html)
         self.assertIn('href="trend-early-resource.html?hero=', plan_html)
+        self.assertIn("Dota 2 下一局训练清单", plan_text)
+        self.assertIn("玩家 173776719", plan_text)
+        self.assertIn("第 1 优先级：前10分钟资源", plan_text)
+        self.assertIn("下一局前10分钟低效率窗口=0。", plan_text)
+        self.assertIn("10分钟补刀>=35。", plan_text)
+        self.assertIn("失败证据：trend-early-resource.html?result=lose", plan_text)
 
     def test_build_pages_site_writes_topic_evidence_pages_and_links(self):
         metadata = {

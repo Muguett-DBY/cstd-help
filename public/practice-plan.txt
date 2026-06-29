@@ -1,0 +1,40 @@
+Dota 2 下一局训练清单
+玩家 173776719
+基于 10 场复盘、16 条教练证据生成。
+最新复盘：Legion Commander #8870219537
+
+第 1 优先级：死亡成本
+- 出现：10 局 / 10 条证据
+- 下一局动作：下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。
+- 验收标准：每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。
+- 失败证据：trend-death-cost.html?result=lose
+- 胜利样本：trend-death-cost.html?result=win
+- 英雄专项：trend-death-cost.html?hero=Dragon+Knight
+- 检查点：赛前锁定本主题；对局中执行动作；赛后按验收标准复盘。
+
+第 2 优先级：终结比赛
+- 出现：1 局 / 1 条证据
+- 下一局动作：下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。
+- 验收标准：强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。
+- 失败证据：trend-close-game.html?result=lose
+- 胜利样本：trend-close-game.html?result=win
+- 英雄专项：trend-close-game.html?hero=Dragon+Knight
+- 检查点：赛前锁定本主题；对局中执行动作；赛后按验收标准复盘。
+
+第 3 优先级：视野/控图
+- 出现：3 局 / 3 条证据
+- 下一局动作：下一局每次控盾、推塔或守高前先补一组观察/岗哨；死亡后第一波出门优先补入口视野。
+- 验收标准：观察+岗哨总数不低于15；25分钟后每次死亡后3分钟内至少补1个视野事件。
+- 失败证据：trend-vision-control.html?result=lose
+- 胜利样本：trend-vision-control.html?result=win
+- 英雄专项：trend-vision-control.html?hero=Earth+Spirit
+- 检查点：赛前锁定本主题；对局中执行动作；赛后按验收标准复盘。
+
+第 4 优先级：装备后转化
+- 出现：2 局 / 2 条证据
+- 下一局动作：下一局 Hand of Midas 成型后立刻执行预设动作，避免装备完成后的空转窗口。
+- 验收标准：刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。
+- 失败证据：trend-item-conversion.html?result=lose
+- 胜利样本：trend-item-conversion.html?result=win
+- 英雄专项：trend-item-conversion.html?hero=Chaos+Knight
+- 检查点：赛前锁定本主题；对局中执行动作；赛后按验收标准复盘。

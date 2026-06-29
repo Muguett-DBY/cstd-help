@@ -1,5 +1,17 @@
 # Iteration Log
 
+## 2026-06-29 - Long Cycle Stage 6 IMPROVE
+
+- Carry-over: add a compact export/share artifact for the training plan.
+- Completed: generated `practice-plan.txt` from the same evidence topics as the HTML workbench and linked it from `practice-plan.html` as `导出训练清单`.
+- User-visible gain: the player can copy or save a plain-text next-game checklist with priority topics, actions, acceptance metrics, failure evidence links, win-sample links, hero-specific links, and execution checkpoints.
+- Real issue fixed: the training plan now has a portable artifact instead of requiring the interactive HTML page to be open before queueing.
+- Verified: target export test, static validation for the new text file, browser link presence, HTTP 200/content check for `practice-plan.txt`, 57 unit tests, compileall, full public-site validation, gitleaks, diff check, and forbidden-file check.
+- Commit: pending.
+- CI: pending.
+- Remaining risk: text export is generated at build time and does not include local checkbox completion state.
+- Recommended next flagship change: add live-domain smoke checks for `practice-plan.txt`, filtered topic evidence links, and report-section anchors after deploy.
+
 ## 2026-06-29 - Long Cycle Stage 5 CHECK
 
 - Goal: harden generated-site validation around anchors, duplicate IDs, report navigation, and practice-workbench links.
