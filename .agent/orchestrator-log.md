@@ -1102,3 +1102,34 @@ Started: 2026-06-28
 - Production acceptance: latest `Legion Commander #8870219537` report returned 200 with `证据来源与覆盖`, seven evidence-source rows, and `覆盖 12/12 次已定位死亡`.
 - Remaining risk: the static validator checks visible evidence-source labels, not semantic correctness of every source row; semantic correctness is covered by analyzer tests.
 - Next stage: Stage 6 IMPROVE.
+
+## 2026-06-30 - Long Cycle 3 Stage 6 IMPROVE - Start
+
+- Stage: 6 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: cross-reference deaths with low-efficiency windows so reports show where real deaths interrupted resource flow.
+- Carry-over: Stage 5 recommended adding deterministic timing links between death events and low-resource windows.
+- User-visible increment: reports can show `死亡打断资源窗口` with exact low-efficiency windows and death minutes.
+- Start state: main at `chore: record stage 5 evidence validation deployment` (`5cd06b9`), clean worktree, CI passed by public Actions API for run `28391486168`.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; use only death times and minute timeline windows, no inferred map regions or blame.
+
+## 2026-06-30 - Long Cycle 3 Stage 6 IMPROVE - Local Complete
+
+- Completed: added deterministic `timeline.death_overlap_windows` by matching death minutes against low-efficiency windows.
+- Report UI: added `死亡打断资源窗口` under 时间线诊断 when overlap evidence exists.
+- Coaching findings: added high-priority `死亡打断资源` findings when deaths and low-efficiency windows overlap, with an exact action to recover one safe wave/resource pocket before rejoining risky map movement.
+- Public refresh: live STRATZ detail fetch succeeded for the latest 10 matches, then `public/` was rebuilt from exactly those 10 newly generated reports.
+- Real-report acceptance: latest `Legion Commander #8870219537` now shows three overlap windows, including `低效率窗口 25-27分钟含 25.3分死亡` and `低效率窗口 32-36分钟含 32.2分死亡、33.8分死亡`.
+- Browser verification:
+  - Desktop latest report: title correct, nonblank, `死亡打断资源窗口` visible, three overlap rows, no horizontal overflow, no console warnings/errors.
+  - Mobile 390x844: same three overlap rows visible, no horizontal overflow, no console warnings/errors.
+- Local verification:
+  - New target tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 69 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and final closeout logs.

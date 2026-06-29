@@ -208,6 +208,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         expected_deaths=deaths,
     )
     result["events"]["post_item_windows"] = _build_post_item_windows(result["events"], result["timeline"])
+    result["timeline"]["death_overlap_windows"] = _build_death_overlap_windows(result["timeline"], result["events"])
 
     benchmarks = _load_json("benchmarks.json")
     role = _benchmark_role(context)
@@ -870,6 +871,7 @@ CATEGORY_LABELS = {
     "closing": "终结比赛",
     "lane_farm": "前10分钟资源",
     "resource_continuity": "中后期资源连续性",
+    "death_resource_overlap": "死亡打断资源",
     "death_review": "死亡成本",
     "item_timing": "装备后转化",
     "map_impact": "地图影响力",
@@ -1112,6 +1114,33 @@ def _build_post_item_windows(events, timeline, window_seconds=120):
     return windows
 
 
+def _build_death_overlap_windows(timeline, events):
+    if not timeline.get("available") or not events.get("deaths"):
+        return []
+    overlaps = []
+    for window in timeline.get("low_efficiency_windows") or []:
+        start = window.get("start_minute")
+        end = window.get("end_minute")
+        if not isinstance(start, (int, float)) or not isinstance(end, (int, float)):
+            continue
+        deaths = [
+            death for death in events.get("deaths") or []
+            if isinstance(death.get("minute"), (int, float)) and start <= death.get("minute") < end
+        ]
+        if not deaths:
+            continue
+        death_minutes = [death.get("minute") for death in deaths]
+        overlap = dict(window)
+        overlap["death_minutes"] = death_minutes
+        overlap["death_count"] = len(death_minutes)
+        overlap["evidence_label"] = (
+            f"{window.get('label')}含 "
+            f"{'、'.join(f'{minute}分死亡' for minute in death_minutes)}"
+        )
+        overlaps.append(overlap)
+    return overlaps
+
+
 def _support_profile():
     return {
         "id": "support",
@@ -1179,6 +1208,7 @@ def _default_training_goal(category):
     defaults = {
         "lane_farm": "下一局先把前10分钟资源路线打完整，让系统能用分钟级补刀线验收。",
         "resource_continuity": "下一局10分钟后每次集合前先推出一条安全线，减少连续断补窗口。",
+        "death_resource_overlap": "下一局把死亡重叠低效率窗口压到0，死亡后先恢复一波安全资源。",
         "death_review": "下一局把死亡压到每10分钟最多1次，避免连续短时间重复阵亡。",
         "item_timing": "下一局每件关键装备成型后立刻绑定一个可记录的地图动作。",
         "map_impact": "下一局把刷钱路线接到推塔、参战或控图目标上。",
@@ -1192,6 +1222,7 @@ def _default_success_metric(category):
     defaults = {
         "lane_farm": "10分钟补刀不低于本局；前10分钟低效率窗口=0。",
         "resource_continuity": "10分钟后低效率窗口不超过1个；单个窗口不超过2分钟。",
+        "death_resource_overlap": "死亡与低效率窗口重叠=0；死亡后3分钟内补回一波安全线或安全野区资源。",
         "death_review": "每10分钟死亡不高于1.0；连续5分钟内死亡簇=0。",
         "item_timing": f"{FARM_ACCELERATION_SUCCESS_METRIC}；{MAP_CONVERSION_SUCCESS_METRIC}。",
         "map_impact": "参战率>=40%；关键装备后2分钟至少完成一次地图动作。",
@@ -1323,6 +1354,25 @@ def _build_review_findings(result):
             "系统已标记这些异常分钟，优先和死亡、购买、击杀事件时间点交叉核对。",
             f"下一局10分钟后把低效率窗口从{len(late_low_windows)}个压到最多1个；集合前先推出一条安全线。",
             "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+        ))
+
+    overlap_windows = timeline.get("death_overlap_windows") or []
+    if overlap_windows and role_id in ("pos1", "pos2", "unknown"):
+        evidence = "；".join(
+            window.get("evidence_label")
+            for window in overlap_windows[:3]
+            if window.get("evidence_label")
+        )
+        total_overlaps = sum(window.get("death_count", 0) for window in overlap_windows)
+        findings.append(_finding(
+            "high",
+            "death_resource_overlap",
+            f"死亡与低效率窗口重叠: {evidence}。",
+            "死亡分钟与补刀低效率窗口重叠，说明这次阵亡已经实际打断了资源连续性，而不只是面板死亡数偏高。",
+            "下一局10分钟后死亡或被迫回补后，先补回一波安全线，再决定是否继续集合、带线或进野区。",
+            "系统只按死亡分钟和低效率补刀窗口做时间重叠；优先复核这些分钟前后的兵线位置、TP状态和队友是否能接应。",
+            f"下一局把死亡重叠低效率窗口从{total_overlaps}次压到0；死亡后3分钟先恢复一波安全资源。",
+            "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
         ))
 
     if events.get("deaths"):

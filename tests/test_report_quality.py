@@ -846,6 +846,74 @@ class ReportQualityTests(unittest.TestCase):
             death_finding["evidence"],
         )
 
+    def test_timeline_cross_references_deaths_inside_low_efficiency_windows(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [6] * 10 + [1, 1, 6, 6, 6, 1, 1, 6, 6, 6],
+                    "goldPerMinute": [400] * 20,
+                },
+                "playbackData": {
+                    "deathEvents": [
+                        {"time": 660},
+                        {"time": 960},
+                    ],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        overlap = result["timeline"]["death_overlap_windows"][0]
+
+        self.assertEqual(overlap["label"], "低效率窗口 10-12分钟")
+        self.assertEqual(overlap["death_minutes"], [11.0])
+        overlap_finding = next(f for f in result["review_findings"] if f["category"] == "death_resource_overlap")
+        self.assertIn("低效率窗口 10-12分钟含 11.0分死亡", overlap_finding["evidence"])
+        self.assertIn("先补回一波安全线", overlap_finding["action"])
+
+    def test_generated_report_shows_death_overlap_windows(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match["deaths"] = 1
+            stratz_data = {
+                "players": [{
+                    "steamAccount": {"id": 173776719},
+                    "isRadiant": True,
+                    "hero": {"id": 1, "displayName": "Anti-Mage"},
+                    "position": "POSITION_1",
+                    "role": "CORE",
+                    "stats": {
+                        "lastHitsPerMinute": [6] * 10 + [1, 1, 6, 6, 6],
+                        "goldPerMinute": [400] * 15,
+                    },
+                    "playbackData": {
+                        "deathEvents": [{"time": 660}],
+                    },
+                }],
+            }
+            analysis = analyze_match(match, stratz_data=stratz_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+        generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("死亡打断资源窗口", html)
+        self.assertIn("低效率窗口 10-12分钟", html)
+        self.assertIn("11.0分死亡", html)
+
     def test_review_findings_are_structured_and_prompt_is_limited_to_them(self):
         analysis = analyze_match(self._base_match())
 

@@ -252,6 +252,12 @@
             {% else %}
             <div class="compact-row">未发现连续低效率窗口。</div>
             {% endif %}
+            {% if timeline.death_overlap_windows %}
+            <div class="subsection-title">死亡打断资源窗口</div>
+            {% for window in timeline.death_overlap_windows %}
+            <div class="compact-row">{{ window.evidence_label }}；该窗口平均 {{ window.avg_lh }} 补/分钟。</div>
+            {% endfor %}
+            {% endif %}
             {% else %}
             <div class="compact-row">当前公共数据源未提供分钟级时间线；系统只能按总量指标给低置信度判断，后续抓取拿到分钟数组后会自动重跑。</div>
             {% endif %}
