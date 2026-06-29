@@ -354,3 +354,24 @@
   - Add freshness/context directly into the execution card.
   - Add active-section highlighting if the card grows beyond three commitments.
 - Recommended flagship next change: add a compact text export for the pre-match execution card so the same three commitments can be opened outside the HTML page.
+
+## 2026-06-29 - Long Cycle 2 Stage 4 IMPROVE
+
+- Goal: add a portable plain-text export for the pre-match execution card.
+- Completed: generated `match-brief.txt` and linked it from `match-brief.html` as `导出执行卡`.
+- User-visible gain: the same three pre-match commitments can be opened as lightweight text, including latest match context, action metrics, failure evidence, and winning-sample evidence.
+- Verification:
+  - Target export test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 58 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Manual output review confirmed `public/match-brief.txt` contains latest `Legion Commander #8870219537`, three commitments, and win/loss evidence.
+- GitHub Actions / CI: pending push.
+- Risks:
+  - The text export is static at build time and does not reflect browser-local checklist state.
+- Next best directions:
+  - CHECK should harden generated-site validation around support-page classification and text exports.
+  - Add freshness/context directly into the execution card.
+  - Add active-section highlighting only if commitments expand beyond three.
+- Recommended flagship next change: harden the Pages validator so future generated support pages and text exports cannot be misclassified or left stale.

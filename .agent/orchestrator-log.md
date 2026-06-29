@@ -771,3 +771,32 @@ Started: 2026-06-28
 - Production acceptance: custom domain served the sticky scan navigation with three commitment anchors.
 - Remaining risk: the command bar does not track the currently visible commitment while scrolling.
 - Next stage: Stage 4 IMPROVE.
+
+## 2026-06-29 - Long Cycle 2 Stage 4 IMPROVE - Start
+
+- Stage: 4 / 6
+- Type: IMPROVE
+- Prompt: AGENT_IMPROVE_MAIN.txt
+- Goal: add a portable plain-text export for the pre-match execution card.
+- Carry-over: Stage 3 made the HTML card faster to scan; the next improvement is making the same three commitments usable outside the page.
+- Start state: main at `chore: record stage 3 navigation deployment` (`68e48ab`), clean worktree, CI passed in run `28369457147`.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; keep the latest 10-report public set.
+
+## 2026-06-29 - Long Cycle 2 Stage 4 IMPROVE - Local Complete
+
+- Completed: generated `match-brief.txt` from the same top-three trend evidence used by `match-brief.html`, and linked it from the execution-card header as `导出执行卡`.
+- User-visible increment: the player can open a lightweight text version with latest match context, the three commitments, exact action/metric text, and win/loss evidence links plus excerpts.
+- Static validation: `scripts/check_public_site.py` now requires `match-brief.txt` and validates its core headings, commitments, actions, and evidence links.
+- Local verification:
+  - Target export test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 58 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+  - Manual output review: `public/match-brief.txt` contains `Legion Commander #8870219537`, three commitments, failure evidence, and winning-sample evidence.
+- Commit: pending.
+- Push / CI: pending.
+- Risk: text export is build-time static and does not include browser-local checklist state.
+- Next stage after CI closeout: Stage 5 CHECK.

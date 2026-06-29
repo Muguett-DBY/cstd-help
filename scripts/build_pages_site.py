@@ -558,6 +558,37 @@ def _render_practice_plan_text(trends, manifest):
     return "\n".join(lines).rstrip() + "\n"
 
 
+def _render_match_brief_text(trends, manifest):
+    latest = manifest.get("latest_match") or {}
+    lines = [
+        "Dota 2 赛前执行卡",
+        "玩家 173776719",
+        f"基于 {manifest.get('report_count') or 0} 场复盘、{manifest.get('finding_count') or 0} 条教练证据生成。",
+    ]
+    if latest.get("hero") and latest.get("match_id"):
+        lines.append(f"最新复盘：{latest.get('hero')} #{latest.get('match_id')}")
+    lines.append("")
+
+    for index, trend in enumerate(trends[:3], start=1):
+        focus = trend.get("focus") or "需要查看报告"
+        action = trend.get("next_action") or "打开报告查看下一局行动清单。"
+        metric = trend.get("success_metric") or "以报告内验收标准为准。"
+        topic_page = trend.get("page") or "index.html"
+        lines.extend([
+            f"承诺 {index}：{focus}",
+            f"- 出现：{trend.get('count') or 0} 局 / {trend.get('finding_count') or trend.get('count') or 0} 条证据",
+            f"- 对局中只盯：{action}",
+            f"- 赛后复核：{metric}",
+            f"- 失败证据：{_filtered_topic_href(topic_page, result='lose')}",
+            f"- 失败证据摘录：{_trend_failure_evidence(trend)}",
+            f"- 胜利样本：{_filtered_topic_href(topic_page, result='win')}",
+            f"- 胜利样本摘录：{_trend_win_evidence(trend)}",
+            "",
+        ])
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def _trend_failure_evidence(trend):
     return _trend_result_evidence(
         trend,
@@ -661,6 +692,7 @@ def _render_match_brief(trends, reports, output_path, manifest=None):
         </div>
         <a class="primary-link" href="{latest_file}">打开最新复盘</a>
         <a class="primary-link secondary-link" href="practice-plan.html">完整训练计划</a>
+        <a class="primary-link secondary-link" href="match-brief.txt">导出执行卡</a>
     </header>
 
     <section class="brief-hero" aria-label="赛前摘要">
@@ -1810,6 +1842,7 @@ def build_pages_site(source, public_dir=PUBLIC_DIR):
         manifest=site_manifest,
     )
     _write_utf8(public_dir / "practice-plan.txt", _render_practice_plan_text(focus_trends, site_manifest))
+    _write_utf8(public_dir / "match-brief.txt", _render_match_brief_text(focus_trends, site_manifest))
     _render_index(reports, output_path=public_dir / "index.html", focus_trends=focus_trends, manifest=site_manifest)
     print(f"Built {len(reports)} reports into {public_dir}")
 

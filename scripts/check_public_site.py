@@ -178,6 +178,7 @@ def main():
     practice_path = PUBLIC_DIR / "practice-plan.html"
     brief_path = PUBLIC_DIR / "match-brief.html"
     practice_text_path = PUBLIC_DIR / "practice-plan.txt"
+    brief_text_path = PUBLIC_DIR / "match-brief.txt"
     trends_path = PUBLIC_DIR / "review-trends.json"
     manifest_path = PUBLIC_DIR / "site-manifest.json"
     style_path = PUBLIC_DIR / "static" / "style.css"
@@ -189,6 +190,8 @@ def main():
         raise SystemExit("public/match-brief.html is missing")
     if not practice_text_path.exists():
         raise SystemExit("public/practice-plan.txt is missing")
+    if not brief_text_path.exists():
+        raise SystemExit("public/match-brief.txt is missing")
     if not trends_path.exists():
         raise SystemExit("public/review-trends.json is missing")
     if not manifest_path.exists():
@@ -349,12 +352,18 @@ def main():
         "胜利样本",
         "result=win",
         "practice-plan.html",
+        "match-brief.txt",
+        "导出执行卡",
         "brief-card",
         "brief-command-bar",
         "brief-proof-grid",
     ):
         if required not in brief_html:
             raise SystemExit(f"match brief page is missing required content: {required}")
+    brief_text = brief_text_path.read_text(encoding="utf-8")
+    for required in ("Dota 2 赛前执行卡", "玩家 173776719", "承诺 1：", "对局中只盯：", "失败证据：", "胜利样本："):
+        if required not in brief_text:
+            raise SystemExit(f"match brief text export is missing required content: {required}")
 
     if site_manifest["report_count"] != len(reports):
         raise SystemExit("site manifest report_count does not match generated reports")
