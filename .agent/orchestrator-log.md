@@ -586,6 +586,8 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- Commit/push/CI: pending.
+- Commit: `fix: harden static site validation` (`a1209cd`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28363713371`.
 - Risk: static validation still does not verify external CDN image availability.
 - Next stage: Stage 6 IMPROVE.
