@@ -87,6 +87,36 @@ Started: 2026-06-28
 - Live check: `https://dota.custard.top/Legion_Commander_8870219537_20260630_042955.html` returned 200 and contains `死亡后恢复窗口`, `已恢复资源`, `death-coordinate-map`, and 8 death-after recovery rows.
 - Next direction: Stage 3 UIUX should fix mobile timeline scanning, especially the wide phase table, and make death review sections faster to consume.
 
+## Long Cycle 4 - Stage 3 - UIUX
+
+- Prompt: `AGENT_UIUX_MAIN.txt`.
+- Goal: make the new timeline/death evidence readable and fast to scan on mobile, without removing the dense desktop table.
+- UI/UX audit findings:
+  - P1: mobile 时间线诊断 used the desktop phase table, making the right-side metrics awkward to inspect.
+  - P2: death events had detailed evidence but no immediate count summary, so the player had to scan the full death list before understanding coverage.
+- TDD:
+  - Added generated-report test requiring `timeline-phase-cards`, `death-review-workbench`, `death-review-summary`, and summary labels for located deaths, recovery windows, and coordinate points.
+  - Added stylesheet test requiring mobile timeline/death-review classes and mobile phase-table rules.
+  - Tests failed before implementation, then passed after the template/CSS changes.
+- Result:
+  - Kept the desktop `timeline-phase-table` for dense scanning.
+  - Added mobile-first `timeline-phase-cards` with stage, LH/min,正补,平均GPM,英雄伤害,推塔伤害.
+  - Added a `death-review-workbench` summary row showing `已定位死亡`, `恢复窗口`, and `坐标点` before the detailed death list.
+  - Rebuilt the latest 10 public reports from cached real match data generated at `20260630_081552/081553`.
+- Browser verification:
+  - Desktop Chrome at 1280x900: phase table visible, phase cards hidden, no horizontal overflow, no console errors.
+  - Mobile Chrome at 390x844: phase table hidden, 4 phase cards visible, no horizontal overflow, no console errors.
+  - Mobile death section: death workbench visible with values `12 / 12 / 12` for latest Legion Commander, readable width 336px.
+- Local verification:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 75 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check for `AGENTS.md`, Docker files, and docker-compose paths: passed.
+- Deployment status: pending commit, push, GitHub Actions, and live-domain check.
+- Next direction: Stage 4 should surface report/site evidence coverage for the new death recovery and death UI evidence so history pages show which reports have complete death-review data.
+
 ## Cycle 2 - Global Preparation
 
 - Status: clean `main`, fast-forward synced with `origin/main` at `a211d36`.

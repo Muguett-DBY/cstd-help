@@ -1,5 +1,21 @@
 # Iteration Log
 
+## 2026-06-30 - Long Cycle 4 Stage 3 UIUX
+
+- Goal: make timeline and death-review evidence easier to scan on mobile while keeping desktop density.
+- Completed: added mobile `timeline-phase-cards`, kept desktop phase table, and introduced a `death-review-workbench` summary for located deaths, recovery windows, and coordinate points.
+- User-visible gain: latest `Legion Commander #8870219537` now shows mobile timeline phase cards instead of a wide table, and the death section opens with `12` located deaths, `12` recovery windows, and `12` coordinate points.
+- Verification:
+  - New UIUX tests failed before implementation, then passed.
+  - `python main.py --skip-fetch --recent 10 --force`: generated 10 reports from cached real STRATZ detail after live STRATZ fetch was blocked by Cloudflare.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 75 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser desktop/mobile report QA passed with no horizontal overflow or console errors; mobile hides the phase table and shows 4 cards.
+- Remaining risk: coverage is visible inside each report, but the history/site overview does not yet summarize which matches have complete death review coverage.
+- Recommended next direction: Stage 4 should add site-level death evidence coverage for recovery windows and coordinate maps.
+
 ## 2026-06-30 - Long Cycle 4 Stage 2 IMPROVE
 
 - Goal: measure whether each death was followed by a real resource recovery or another dead window.

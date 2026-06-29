@@ -219,7 +219,7 @@
             <div class="compact-row">时间线来源：{{ timeline.source_label }}</div>
             {% endif %}
             {% if timeline.phases %}
-            <table style="margin-top:16px;">
+            <table class="timeline-phase-table">
                 <thead>
                     <tr>
                         <th>阶段</th>
@@ -243,6 +243,22 @@
                     {% endfor %}
                 </tbody>
             </table>
+            <div class="timeline-phase-cards" aria-label="阶段摘要">
+                {% for phase in timeline.phases %}
+                <div class="timeline-phase-card">
+                    <div class="timeline-phase-head">
+                        <strong>{{ phase.label }}分钟</strong>
+                        <span>LH/min {{ phase.lh_per_min }}</span>
+                    </div>
+                    <div class="timeline-phase-metrics">
+                        <span><strong>{{ phase.last_hits }}</strong><small>正补</small></span>
+                        <span><strong>{{ phase.avg_gpm }}</strong><small>平均GPM</small></span>
+                        <span><strong>{{ phase.hero_damage }}</strong><small>英雄伤害</small></span>
+                        <span><strong>{{ phase.tower_damage }}</strong><small>推塔伤害</small></span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
             {% endif %}
             <div class="subsection-title">低效率窗口</div>
             {% if timeline.low_efficiency_windows %}
@@ -305,6 +321,24 @@
             {% endfor %}
             {% endif %}
             <div class="subsection-title">死亡时间</div>
+            {% if events.deaths %}
+            <div class="death-review-workbench">
+                <div class="death-review-summary" aria-label="死亡复盘摘要">
+                    <div class="death-review-metric">
+                        <strong>{{ events.death_count_observed }}</strong>
+                        <span>已定位死亡</span>
+                    </div>
+                    <div class="death-review-metric">
+                        <strong>{{ timeline.death_recovery_windows|length if timeline and timeline.death_recovery_windows else 0 }}</strong>
+                        <span>恢复窗口</span>
+                    </div>
+                    <div class="death-review-metric">
+                        <strong>{{ events.death_map_points|length if events.death_map_points else 0 }}</strong>
+                        <span>坐标点</span>
+                    </div>
+                </div>
+                <div class="death-review-body">
+            {% endif %}
             {% if events.death_coverage_label %}
             <div class="compact-row">{{ events.death_coverage_label }}{% if events.death_gap_note %}；{{ events.death_gap_note }}{% endif %}</div>
             {% endif %}
@@ -344,6 +378,10 @@
             {% endif %}
             {% else %}
             <div class="compact-row">当前公共数据源未提供死亡分钟事件；系统只能记录面板死亡总数，无法给出分钟级死亡诊断。</div>
+            {% endif %}
+            {% if events.deaths %}
+                </div>
+            </div>
             {% endif %}
         </div>
     </div>
