@@ -517,6 +517,42 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("death_review", categories)
         self.assertIn("item_timing", categories)
 
+    def test_stratz_position_samples_are_attached_to_death_events(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "lane": "SAFE_LANE",
+                "role": "CORE",
+                "playbackData": {
+                    "deathEvents": [{"time": 420}, {"time": 930}],
+                    "playerUpdatePositionEvents": [
+                        {"time": 390, "x": 122, "y": 140},
+                        {"time": 900, "x": 88, "y": 164},
+                        {"time": 960, "x": 90, "y": 166},
+                    ],
+                },
+            }]
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+
+        first_death = result["events"]["deaths"][0]
+        second_death = result["events"]["deaths"][1]
+        self.assertEqual(first_death["position"], {"x": 122, "y": 140})
+        self.assertEqual(first_death["position_sample_age_seconds"], 30)
+        self.assertIn("x=122,y=140", first_death["position_label"])
+        self.assertEqual(second_death["position"], {"x": 88, "y": 164})
+        self.assertEqual(second_death["position_sample_age_seconds"], 30)
+        self.assertIn("stratz_position_samples", result["data_quality"]["available"])
+        death_finding = next(f for f in result["review_findings"] if f["category"] == "death_review")
+        self.assertIn("死亡位置", death_finding["evidence"])
+        self.assertIn("x=122,y=140", death_finding["replay_check"])
+
     def test_key_item_post_windows_use_item_specific_conversion_metrics(self):
         match = self._base_match()
         stratz_data = {
