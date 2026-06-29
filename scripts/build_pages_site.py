@@ -627,6 +627,9 @@ def _render_match_brief(trends, reports, output_path, manifest=None):
     latest_hero = html.escape(latest.get("hero") or newest.get("hero") or "未知英雄")
     latest_match_id = html.escape(str(latest.get("match_id") or newest.get("match_id") or ""))
     latest_focus = html.escape(latest.get("review_focus") or newest.get("review_focus") or "需要查看报告")
+    report_count = html.escape(str(manifest.get("report_count") or 0))
+    finding_count = html.escape(str(manifest.get("finding_count") or 0))
+    topic_count = html.escape(str(manifest.get("topic_count") or 0))
 
     cards = []
     command_links = []
@@ -711,6 +714,14 @@ def _render_match_brief(trends, reports, output_path, manifest=None):
             <strong>30 秒</strong>
             <small>赛前读承诺；对局中只盯动作；赛后按指标复核。</small>
         </div>
+    </section>
+
+    <section class="brief-freshness" aria-label="证据覆盖">
+        <strong>证据覆盖</strong>
+        <span data-brief-report-count>{report_count} 场复盘</span>
+        <span>{finding_count} 条教练证据</span>
+        <span>{topic_count} 个训练主题</span>
+        <small>只引用已生成报告和主题证据。</small>
     </section>
 
 {command_bar_html}
