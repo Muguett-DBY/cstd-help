@@ -984,6 +984,62 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("平均GPM 133.3", html)
         self.assertIn("恢复不足", html)
 
+    def test_generated_report_has_mobile_timeline_and_death_review_workbench(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match["deaths"] = 2
+            stratz_data = {
+                "players": [{
+                    "steamAccount": {"id": 173776719},
+                    "isRadiant": True,
+                    "hero": {"id": 1, "displayName": "Anti-Mage"},
+                    "position": "POSITION_1",
+                    "role": "CORE",
+                    "stats": {
+                        "lastHitsPerMinute": [6] * 10 + [1, 1, 1, 6, 6, 5, 5, 5, 4, 4],
+                        "goldPerMinute": [420] * 10 + [120, 150, 130, 420, 430, 410, 410, 410, 390, 390],
+                    },
+                    "playbackData": {
+                        "deathEvents": [{"time": 600}, {"time": 960}],
+                        "playerUpdatePositionEvents": [
+                            {"time": 600, "x": 122, "y": 140},
+                            {"time": 960, "x": 88, "y": 164},
+                        ],
+                    },
+                }],
+            }
+            analysis = analyze_match(match, stratz_data=stratz_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+        generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("timeline-phase-cards", html)
+        self.assertIn("timeline-phase-card", html)
+        self.assertIn("death-review-workbench", html)
+        self.assertIn("death-review-summary", html)
+        self.assertIn("已定位死亡", html)
+        self.assertIn("恢复窗口", html)
+        self.assertIn("坐标点", html)
+
+    def test_report_styles_include_mobile_timeline_cards(self):
+        with open("report/static/style.css", "r", encoding="utf-8") as f:
+            stylesheet = f.read()
+
+        self.assertIn(".timeline-phase-cards", stylesheet)
+        self.assertIn(".timeline-phase-card", stylesheet)
+        self.assertIn(".death-review-workbench", stylesheet)
+        self.assertIn(".death-review-summary", stylesheet)
+        self.assertIn("@media (max-width: 720px)", stylesheet)
+        self.assertIn("#timeline-diagnosis .timeline-phase-table", stylesheet)
+        self.assertIn(".timeline-phase-cards {", stylesheet)
+
     def test_review_findings_are_structured_and_prompt_is_limited_to_them(self):
         analysis = analyze_match(self._base_match())
 

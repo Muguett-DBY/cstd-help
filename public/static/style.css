@@ -152,6 +152,54 @@ body {
 #timeline-diagnosis table {
     min-width: 640px;
 }
+.timeline-phase-table {
+    margin-top: 16px;
+}
+.timeline-phase-cards {
+    display: none;
+}
+.timeline-phase-card {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-primary);
+}
+.timeline-phase-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.timeline-phase-head strong {
+    color: var(--text-primary);
+    font-size: 13px;
+}
+.timeline-phase-head span {
+    color: var(--accent-blue);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.timeline-phase-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.timeline-phase-metrics span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.timeline-phase-metrics strong {
+    color: var(--text-primary);
+    font-size: 15px;
+}
+.timeline-phase-metrics small {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
 
 .report-neighbors {
     display: grid;
@@ -1688,6 +1736,40 @@ body {
     background: rgba(248,81,73,0.12);
     border-color: rgba(248,81,73,0.28);
 }
+.death-review-workbench {
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid rgba(248,81,73,0.2);
+    border-radius: 6px;
+    background: rgba(248,81,73,0.04);
+}
+.death-review-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.death-review-metric {
+    display: grid;
+    gap: 2px;
+    min-height: 58px;
+    padding: 10px;
+    border: 1px solid rgba(248,81,73,0.2);
+    border-radius: 6px;
+    background: rgba(13,17,23,0.7);
+}
+.death-review-metric strong {
+    color: var(--accent-red);
+    font-size: 20px;
+    line-height: 1.1;
+}
+.death-review-metric span {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.death-review-body {
+    min-width: 0;
+}
 .death-event-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -1961,6 +2043,17 @@ tr:hover { background: rgba(88,166,255,0.05); }
     .report-top-link {
         width: 44px;
     }
+    #timeline-diagnosis .section-body {
+        overflow-x: visible;
+    }
+    #timeline-diagnosis .timeline-phase-table {
+        display: none;
+    }
+    .timeline-phase-cards {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+    }
     .quality-row,
     .goal-row {
         grid-template-columns: 1fr;
@@ -1989,6 +2082,16 @@ tr:hover { background: rgba(88,166,255,0.05); }
     }
     .death-coordinate-map {
         grid-template-columns: 1fr;
+    }
+    .death-review-summary {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .death-review-metric {
+        min-height: 54px;
+        padding: 8px;
+    }
+    .death-review-metric strong {
+        font-size: 18px;
     }
     .death-coordinate-plot {
         justify-self: center;
