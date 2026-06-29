@@ -553,6 +553,111 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("死亡位置", death_finding["evidence"])
         self.assertIn("x=122,y=140", death_finding["replay_check"])
 
+    def test_data_quality_lists_granular_evidence_sources_and_coverage(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [5] * 30,
+                    "goldPerMinute": [350] * 10 + [600] * 20,
+                },
+                "playbackData": {
+                    "purchaseEvents": [{"time": 760, "itemId": 145}],
+                    "deathEvents": [{"time": 420}, {"time": 930}],
+                    "killEvents": [{"time": 840}],
+                    "assistEvents": [{"time": 900}],
+                    "playerUpdatePositionEvents": [
+                        {"time": 390, "x": 122, "y": 140},
+                        {"time": 900, "x": 88, "y": 164},
+                    ],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        sources = {
+            item["id"]: item
+            for item in result["data_quality"]["evidence_sources"]
+        }
+
+        self.assertEqual(sources["timeline"]["source"], "STRATZ分钟数组")
+        self.assertEqual(sources["purchases"]["source"], "STRATZ回放事件")
+        self.assertIn("1条购买", sources["purchases"]["coverage"])
+        self.assertEqual(sources["deaths"]["source"], "STRATZ回放事件")
+        self.assertEqual(sources["deaths"]["coverage"], "已定位 2/2 次死亡")
+        self.assertEqual(sources["death_positions"]["source"], "STRATZ位置采样")
+        self.assertEqual(sources["death_positions"]["coverage"], "覆盖 2/2 次已定位死亡")
+        self.assertEqual(sources["fight_events"]["source"], "STRATZ回放事件")
+
+    def test_generated_report_shows_evidence_source_coverage(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match["deaths"] = 1
+            stratz_data = {
+                "players": [{
+                    "steamAccount": {"id": 173776719},
+                    "isRadiant": True,
+                    "hero": {"id": 1, "displayName": "Anti-Mage"},
+                    "position": "POSITION_1",
+                    "role": "CORE",
+                    "stats": {
+                        "lastHitsPerMinute": [5] * 30,
+                        "goldPerMinute": [350] * 10 + [600] * 20,
+                    },
+                    "playbackData": {
+                        "purchaseEvents": [{"time": 760, "itemId": 145}],
+                        "deathEvents": [{"time": 420}],
+                        "playerUpdatePositionEvents": [{"time": 390, "x": 122, "y": 140}],
+                    },
+                }],
+            }
+            analysis = analyze_match(match, stratz_data=stratz_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+            self.assertIn("证据来源与覆盖", html)
+            self.assertIn("STRATZ分钟数组", html)
+            self.assertIn("STRATZ位置采样", html)
+            self.assertIn("覆盖 1/1 次已定位死亡", html)
+
+        generator.REPORT_DIR = old_report_dir
+
+    def test_evidence_sources_mark_zero_death_match_as_not_applicable(self):
+        match = self._base_match()
+        match["deaths"] = 0
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        sources = {
+            item["id"]: item
+            for item in result["data_quality"]["evidence_sources"]
+        }
+
+        self.assertEqual(sources["deaths"]["source"], "不适用")
+        self.assertEqual(sources["deaths"]["status"], "available")
+        self.assertEqual(sources["death_positions"]["source"], "不适用")
+        self.assertEqual(sources["death_positions"]["status"], "available")
+
     def test_key_item_post_windows_use_item_specific_conversion_metrics(self):
         match = self._base_match()
         stratz_data = {

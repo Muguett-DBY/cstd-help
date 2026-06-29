@@ -97,6 +97,20 @@
                     {% endif %}
                 </div>
             </div>
+            {% if data_quality.evidence_sources %}
+            <div class="subsection-title evidence-source-heading">证据来源与覆盖</div>
+            <div class="evidence-source-list">
+                {% for item in data_quality.evidence_sources %}
+                <div class="evidence-source-row {{ item.status }}">
+                    <div class="evidence-source-name">{{ item.label }}</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">{{ item.source }}</span>
+                        <span class="evidence-source-coverage">{{ item.coverage }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endif %}
