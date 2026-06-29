@@ -114,7 +114,10 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check for `AGENTS.md`, Docker files, and docker-compose paths: passed.
-- Deployment status: pending commit, push, GitHub Actions, and live-domain check.
+- Commit: `feat: improve mobile death review UI` (`e238bca`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28406427112`.
+- Live check: `https://dota.custard.top/Legion_Commander_8870219537_20260630_081552.html` returned 200 and contains `timeline-phase-cards`, `death-review-workbench`, `death-review-summary`, `death-coordinate-map`, and `死亡后恢复窗口`.
 - Next direction: Stage 4 should surface report/site evidence coverage for the new death recovery and death UI evidence so history pages show which reports have complete death-review data.
 
 ## Cycle 2 - Global Preparation
