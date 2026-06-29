@@ -146,7 +146,10 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check for `AGENTS.md`, Docker files, and docker-compose paths: passed.
-- Deployment status: pending commit, push, GitHub Actions, and live-domain check.
+- Commit: `feat: surface death review coverage` (`eeb8502`).
+- Push: pushed to `origin/main`.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28406928707`.
+- Live check: after cache-busting poll, `https://dota.custard.top/index.html` contains `死亡复盘覆盖`; `site-manifest.json` contains death coverage fields with values 10/10/9/9.
 - Next direction: Stage 5 CHECK should make the static validator reject reports/sites where death-review UI, recovery windows, or coverage manifest fields silently disappear.
 
 ## Cycle 2 - Global Preparation
