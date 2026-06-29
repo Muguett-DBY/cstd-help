@@ -1,5 +1,22 @@
 # Iteration Log
 
+## 2026-06-30 - Long Cycle 3 Stage 4 IMPROVE
+
+- Goal: make every precise report claim auditable by showing source availability and coverage inside the match report.
+- Completed: added deterministic evidence-source coverage rows for core stats, timeline, purchases, deaths, death positions, fight events, and vision events; regenerated the latest 10 public reports from cached real STRATZ/OpenDota data.
+- User-visible gain: the latest reports now show `证据来源与覆盖`, including factual labels like `STRATZ位置采样` and `覆盖 12/12 次已定位死亡`.
+- Verification:
+  - New target tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 66 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser desktop/mobile report QA passed with no horizontal overflow or console errors.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28391147465`.
+- Live check: latest `Legion Commander #8870219537` report returned 200 and contained the evidence-source coverage section.
+- Remaining risk: live STRATZ refresh is still blocked by Cloudflare in this environment; regenerated public reports used cached real payloads.
+- Recommended next CHECK item: harden static validation so future report pages cannot ship without evidence-source coverage and source/coverage rows.
+
 ## 2026-06-29 - Long Cycle Stage 6 IMPROVE
 
 - Carry-over: add a compact export/share artifact for the training plan.
