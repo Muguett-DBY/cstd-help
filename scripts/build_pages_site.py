@@ -598,6 +598,7 @@ def _render_match_brief(trends, reports, output_path, manifest=None):
     latest_focus = html.escape(latest.get("review_focus") or newest.get("review_focus") or "需要查看报告")
 
     cards = []
+    command_links = []
     for index, trend in enumerate(trends[:3], start=1):
         focus = html.escape(trend.get("focus") or "需要查看报告")
         action = html.escape(trend.get("next_action") or "打开报告查看下一局行动清单。")
@@ -607,9 +608,13 @@ def _render_match_brief(trends, reports, output_path, manifest=None):
         topic_page_raw = trend.get("page") or "index.html"
         failure_href = html.escape(_filtered_topic_href(topic_page_raw, result="lose"), quote=True)
         win_href = html.escape(_filtered_topic_href(topic_page_raw, result="win"), quote=True)
+        commitment_id = f"brief-commitment-{index}"
+        command_links.append(
+            f'<a class="brief-command-link" href="#{commitment_id}"><span>承诺 {index}</span><strong>{focus}</strong></a>'
+        )
         cards.append(
             f"""
-            <article class="brief-card">
+            <article class="brief-card" id="{commitment_id}">
                 <div class="brief-card-top">
                     <span class="brief-rank">承诺 {index}</span>
                     <span>{html.escape(str(trend.get('count') or 0))} 局出现</span>
@@ -625,6 +630,16 @@ def _render_match_brief(trends, reports, output_path, manifest=None):
             """.strip()
         )
     card_html = "".join(cards) if cards else '<div class="trend-empty">暂无可生成的赛前执行卡。</div>'
+    command_bar_html = ""
+    if command_links:
+        command_bar_html = f"""
+    <nav class="brief-command-bar" aria-label="赛前承诺导航">
+        <span>赛前只盯</span>
+        <div class="brief-command-track">
+            {''.join(command_links)}
+        </div>
+    </nav>
+""".rstrip()
     brief_html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -665,6 +680,8 @@ def _render_match_brief(trends, reports, output_path, manifest=None):
             <small>赛前读承诺；对局中只盯动作；赛后按指标复核。</small>
         </div>
     </section>
+
+{command_bar_html}
 
     <main class="brief-grid" aria-label="三条核心承诺">
         {card_html}

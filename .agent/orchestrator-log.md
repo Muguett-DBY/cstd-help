@@ -729,3 +729,32 @@ Started: 2026-06-28
 - Production acceptance: custom domain served the proof-lane execution card with both failure and winning-sample evidence links.
 - Remaining risk: winning samples are still topic-level rather than hero-specific comparisons.
 - Next stage: Stage 3 UIUX.
+
+## 2026-06-29 - Long Cycle 2 Stage 3 UIUX - Start
+
+- Stage: 3 / 6
+- Type: UIUX
+- Prompt: AGENT_UIUX_MAIN.txt
+- Goal: make the pre-match execution card faster to scan on mobile and desktop by adding a compact commitment navigation strip.
+- Carry-over: Stage 2 made the card more useful but the three commitments were only visible after scanning the card grid.
+- Start state: main at `chore: record stage 2 proof deployment` (`1b2fe00`), clean worktree, CI passed in run `28369055368`.
+- Constraints: do not touch Docker; do not edit `AGENTS.md`; keep the latest 10-report public set.
+
+## 2026-06-29 - Long Cycle 2 Stage 3 UIUX - Local Complete
+
+- Completed: added a sticky `赛前只盯` command bar to `match-brief.html`, with one compact link per generated commitment and matching card anchors.
+- User-visible increment: on desktop the player sees all three commitments in the first viewport; on mobile the commitments become a horizontal chip strip before the detailed cards.
+- Static validation: `match-brief.html` now must include `brief-command-bar` so future builds cannot silently drop the scan navigation.
+- Local verification:
+  - Target UI tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 58 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+  - Browser fallback QA: local `match-brief.html` returned 200 with 3 command links, 3 card anchors, and 3 cards; Playwright CLI desktop/mobile screenshots rendered the command bar without obvious overlap.
+- Commit: pending.
+- Push / CI: pending.
+- Risk: command bar is static and does not highlight active scroll position yet.
+- Next stage after CI closeout: Stage 4 IMPROVE.

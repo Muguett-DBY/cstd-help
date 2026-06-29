@@ -436,6 +436,12 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn('href="trend-early-resource.html?result=win"', brief_html)
         self.assertIn('class="brief-card"', brief_html)
         self.assertIn('class="brief-proof-grid"', brief_html)
+        self.assertIn('aria-label="赛前承诺导航"', brief_html)
+        self.assertIn('class="brief-command-bar"', brief_html)
+        self.assertIn('class="brief-command-link"', brief_html)
+        self.assertIn("赛前只盯", brief_html)
+        self.assertIn('href="#brief-commitment-1"', brief_html)
+        self.assertIn('id="brief-commitment-1"', brief_html)
 
     def test_build_pages_site_writes_topic_evidence_pages_and_links(self):
         metadata = {
@@ -512,6 +518,8 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".practice-evidence-links", stylesheet)
         self.assertIn(".practice-checklist", stylesheet)
         self.assertIn(".practice-card[hidden]", stylesheet)
+        self.assertIn(".brief-command-bar", stylesheet)
+        self.assertIn(".brief-command-link", stylesheet)
         self.assertIn(".report-section-nav", stylesheet)
         self.assertIn(".skip-link", stylesheet)
         self.assertIn(".report-top-link", stylesheet)

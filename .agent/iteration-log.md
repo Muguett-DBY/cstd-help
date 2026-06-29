@@ -332,3 +332,24 @@
   - Add source freshness/context directly into the execution card.
   - Add hero-specific comparison where enough reports exist.
 - Recommended flagship next change: make the pre-match execution card visually faster to scan on mobile and desktop.
+
+## 2026-06-29 - Long Cycle 2 Stage 3 UIUX
+
+- Goal: make the pre-match execution card faster to scan before queueing.
+- Completed: added a sticky `赛前只盯` command bar to `match-brief.html`, with compact links to each generated commitment card.
+- User-visible gain: desktop users can see the three priorities immediately; mobile users get a horizontal strip of commitment chips before the detailed cards.
+- Verification:
+  - Target UI tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 58 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 10 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Playwright CLI desktop/mobile screenshots rendered the command bar; local HTTP/static checks found 3 command links, 3 cards, and 3 anchors.
+- GitHub Actions / CI: pending push.
+- Risks:
+  - The command bar does not yet track the currently visible commitment while scrolling.
+- Next best directions:
+  - Add a portable export for the pre-match execution card.
+  - Add freshness/context directly into the execution card.
+  - Add active-section highlighting if the card grows beyond three commitments.
+- Recommended flagship next change: add a compact text export for the pre-match execution card so the same three commitments can be opened outside the HTML page.
