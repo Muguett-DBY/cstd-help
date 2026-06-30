@@ -932,3 +932,12 @@
 - Verification: 103 tests, compileall, static public-site validation, gitleaks, diff check, desktop/mobile browser QA, GitHub Actions run `28456361936`, and live custom-domain checks passed.
 - Risk: correct provenance adds another full-width block before the decision card, especially noticeable on mobile.
 - Recommended next direction: consolidate report-top navigation and source status into a compact responsive evidence header while keeping exact timestamps directly accessible.
+
+## 2026-07-01 - Long Cycle 7 Stage 3 UIUX
+
+- Goal: bring the actionable decision card into the first mobile viewport without removing source transparency.
+- Completed: report navigation and provenance now share a responsive context deck; exact timestamps use a native disclosure with visible source status.
+- Browser result: desktop decision card begins at 500px; mobile 390x844 begins at 611px, remains in the first viewport, and has no overflow. Expanding provenance shows all three source timestamps.
+- Verification: 103 tests, compileall, static validation, gitleaks, diff check, GitHub Actions run `28457101078`, and live mobile interaction acceptance passed.
+- Risk: source time is clear, but users still need a direct match-specific statement about which evidence classes support the advice.
+- Recommended next direction: expose a compact per-match evidence completeness summary tied to the existing deterministic source coverage.
