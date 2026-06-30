@@ -1492,6 +1492,21 @@ Started: 2026-06-28
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 2 closeout log.
 
+## 2026-06-30 - Long Cycle 6 Stage 2 IMPROVE - Complete
+
+- Completed stage: 2 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: add OpenDota performance context` (`79ec340`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28437943940`; tests, compile, static validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` and latest report returned 200 with 18 reports and latest file `Legion_Commander_8870219537_20260630_202728.html`.
+  - Live report contains `分路与参战画像`, `performance-context-grid`, 66% lane efficiency, 68% participation, 12m52s dead time / 27.7%, `OpenDota对局汇总字段`, and a hero-first title.
+  - Live action ordering places `高优先级 · 死亡后目标损失` before `中优先级 · 英雄样本短板`.
+- Remaining risk: the report still contains several replay-oriented raw-coordinate checks; Stage 3 should improve first-screen decision flow, while a later evidence stage should reduce remaining manual interpretation.
+- Next stage: Stage 3 UIUX will make the highest-cost evidence and one executable next-match rule immediately scannable on desktop and mobile.
+
 ## 2026-06-30 - Long Cycle 5 Stage 2 IMPROVE - Complete
 
 - Completed stage: 2 / 6.

@@ -811,3 +811,5 @@
   - Browser QA passed at 1280x720 and 390x844 with working section navigation, no console errors, no overlap, and no horizontal overflow.
 - Risk: OpenDota aggregate fields prove the measured result but not why it happened; findings therefore retain only threshold facts and event-backed actions.
 - Recommended next direction: improve the report's first-screen decision flow so the highest-cost evidence and one next-match rule are visible before long detail sections.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28437943940`.
+- Production acceptance: live `dota.custard.top` serves 18 reports and latest `Legion_Commander_8870219537_20260630_202728.html` with the performance context values and event-first recommendation ordering.
