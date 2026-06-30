@@ -1532,6 +1532,21 @@ Started: 2026-06-28
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 3 closeout log.
 
+## 2026-06-30 - Long Cycle 5 Stage 3 UIUX - Complete
+
+- Completed stage: 3 / 6.
+- Type: UIUX.
+- Prompt: AGENT_UIUX_MAIN.txt.
+- Stage commit: `feat: add objective event workbench` (`ebfeb95`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28420439204`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports, 70 findings, 10 topics, and latest report `Legion_Commander_8870219537_20260630_142543.html`.
+  - Latest Legion Commander report returned 200 with hero-first title, `objective-review-workbench`, lost-event filter, `data-objective-filtering`, exact `相隔15秒` death/objective window, and `来源：OpenDota 目标事件`.
+  - `trend-custom-bac9d883f8.html`, `index.html`, and `practice-plan.html` returned 200 with `死亡后目标损失`.
+- Remaining risk: the workbench improves scanning and filtering only; death/objective windows remain temporal evidence and intentionally do not assign causality.
+- Next stage: Stage 4 IMPROVE should add a deterministic post-objective coaching target that converts the new objective/death evidence into one explicit next-match drill.
+
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 2.
