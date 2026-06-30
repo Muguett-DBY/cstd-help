@@ -1817,3 +1817,17 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 1 closeout log.
+
+## 2026-06-30 - Long Cycle 6 Stage 1 IMPROVE - Complete
+
+- Completed stage: 1 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: add OpenDota benchmark percentiles` (`223f76d`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28436322975`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports and latest report `Legion_Commander_8870219537_20260630_195426.html`.
+  - Latest Legion Commander report returned 200 with `英雄样本百分位`, `OpenDota英雄样本百分位`, `benchmark-grid`, `复盘报告`, and without `接失去`.
+- Remaining risk: OpenDota percentiles are public same-hero sample comparisons only; they indicate review priority but do not replace event/replay evidence.
+- Next stage: Stage 2 IMPROVE should continue by exposing another reliable OpenDota context field, with lane efficiency and teamfight participation as the best candidates.

@@ -790,6 +790,7 @@
   - `python scripts/check_public_site.py`: passed, 18 report pages.
   - `gitleaks dir . --redact`: no leaks found.
   - Browser QA passed on desktop and 390x844 mobile; benchmark section rendered, no console errors, and no horizontal overflow.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28436322975`; live `dota.custard.top` serves latest report `Legion_Commander_8870219537_20260630_195426.html` with the benchmark section.
 - Risks:
   - Percentiles are OpenDota public sample comparisons only; they should guide review focus, not replace replay/event evidence.
 - Recommended next direction: use the same source-backed approach to expose lane efficiency and teamfight participation as deterministic context.
