@@ -322,6 +322,19 @@
                 {% endfor %}
             </div>
             <div class="compact-row muted">来源：OpenDota 目标事件；“本人直接参与”仅表示事件记录中的本人最后一击或持盾，不代表整段目标决策归因。</div>
+            {% if events.death_objective_windows %}
+            <div class="subsection-title" id="death-objective-windows">死亡后目标窗口</div>
+            <div class="objective-window-list">
+                {% for window in events.death_objective_windows %}
+                <div class="compact-row objective-window-row">
+                    <span class="event-pill danger">{{ window.death_minute }}分死亡</span>
+                    <strong>{{ window.objective_display_label }}</strong>
+                    <span>{{ window.objective_minute }}分 · 相隔{{ window.elapsed_seconds }}秒</span>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="compact-row muted">该窗口只表示时间相邻：真实死亡发生后90秒内记录到目标损失，不代表死亡造成目标损失。</div>
+            {% endif %}
             {% else %}
             <div class="compact-row">当前公共数据源未提供地图目标事件，无法还原塔、兵营、肉山和不朽盾时间线。</div>
             {% endif %}

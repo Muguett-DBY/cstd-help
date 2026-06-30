@@ -13,7 +13,7 @@
 
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
-<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 15 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Dark_Seer_8866655915_20260630_140108.html"><span class="neighbor-label">上一局（更新）</span><strong>Dark Seer #8866655915</strong><small>胜利 · 高优先级 · 死亡成本</small></a><a class="neighbor-card" href="Anti-Mage_8866174845_20260630_140108.html"><span class="neighbor-label">下一局（更早）</span><strong>Anti-Mage #8866174845</strong><small>失败 · 高优先级 · 终结比赛</small></a></div></nav>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 15 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Dark_Seer_8866655915_20260630_141039.html"><span class="neighbor-label">上一局（更新）</span><strong>Dark Seer #8866655915</strong><small>胜利 · 高优先级 · 死亡成本</small></a><a class="neighbor-card" href="Anti-Mage_8866174845_20260630_141040.html"><span class="neighbor-label">下一局（更早）</span><strong>Anti-Mage #8866174845</strong><small>失败 · 高优先级 · 终结比赛</small></a></div></nav>
         <h1>Doom 复盘报告</h1>
         <div class="subtitle">比赛ID: 8866610277 | 结束于 2026-06-26 12:19 | 时长 55.9分钟</div>
         <div class="result-badge win">胜利</div>
@@ -52,10 +52,10 @@
 - 补刀总量580，LH/min 10.38
 
 下一局只盯这几件事
-1. 死亡成本: 下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。 验收：每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。
-2. 重复死亡坐标: 下一局每次进入这些重复坐标对应的回放场景前，先确认三个条件：队友能否接应、敌方关键控制是否露头、自己是否有明确撤退路线；任一条件缺失就先退回安全资源点。 验收：重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。
-3. 死亡前后资源变化: 下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。 验收：死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。
-4. 装备后转化: 下一局刷钱装完成后保持5分钟不断线刷线野；强势装完成后2分钟内明确一个地图动作：控盾、推塔、逼高、入侵或带线牵制。 验收：刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。</div>
+1. 死亡后目标损失: 下一局预计要接塔、肉山或高地时，提前90秒停止单独深入；若刚死亡，复活后的第一决策优先处理兵线、目标入口或明确的对侧交换。 验收：死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0。
+2. 死亡成本: 下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。 验收：每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。
+3. 重复死亡坐标: 下一局每次进入这些重复坐标对应的回放场景前，先确认三个条件：队友能否接应、敌方关键控制是否露头、自己是否有明确撤退路线；任一条件缺失就先退回安全资源点。 验收：重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。
+4. 死亡前后资源变化: 下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。 验收：死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。</div>
         </div>
     </div>
 
@@ -65,6 +65,12 @@
         <div class="section-header">&#127919; 下一局量化目标</div>
         <div class="section-body">
             <div class="goal-list">
+
+                <div class="goal-row">
+                    <div class="goal-title">死亡后目标损失</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局把死亡后90秒内失去目标窗口从5个压到0。</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0。</div>
+                </div>
 
                 <div class="goal-row">
                     <div class="goal-title">死亡成本</div>
@@ -97,6 +103,16 @@
     <div class="section priority-section" id="next-actions">
         <div class="section-header">&#127919; 下一局行动清单</div>
         <div class="section-body">
+
+            <div class="finding-card high">
+                <div class="finding-title">高优先级 · 死亡后目标损失</div>
+                <div class="finding-line"><strong>证据:</strong> 死亡后90秒内失去目标: 11.4分死亡 → 12.2分失去中路一塔（44秒）；11.4分死亡 → 12.5分失去上路一塔（64秒）；12.2分死亡 → 12.2分失去中路一塔（0秒）；12.2分死亡 → 12.5分失去上路一塔（20秒）；45.2分死亡 → 45.8分失去中路二塔（38秒）。</div>
+                <div class="finding-line"><strong>影响:</strong> 这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。</div>
+                <div class="finding-line"><strong>行动:</strong> 下一局预计要接塔、肉山或高地时，提前90秒停止单独深入；若刚死亡，复活后的第一决策优先处理兵线、目标入口或明确的对侧交换。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局把死亡后90秒内失去目标窗口从5个压到0。</div>
+                <div class="finding-line"><strong>验收标准:</strong> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> 系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。</div>
+            </div>
 
             <div class="finding-card high">
                 <div class="finding-title">高优先级 · 死亡成本</div>
@@ -678,6 +694,43 @@
             </div>
             <div class="compact-row muted">来源：OpenDota 目标事件；“本人直接参与”仅表示事件记录中的本人最后一击或持盾，不代表整段目标决策归因。</div>
 
+            <div class="subsection-title" id="death-objective-windows">死亡后目标窗口</div>
+            <div class="objective-window-list">
+
+                <div class="compact-row objective-window-row">
+                    <span class="event-pill danger">11.4分死亡</span>
+                    <strong>失去中路一塔</strong>
+                    <span>12.2分 · 相隔44秒</span>
+                </div>
+
+                <div class="compact-row objective-window-row">
+                    <span class="event-pill danger">11.4分死亡</span>
+                    <strong>失去上路一塔</strong>
+                    <span>12.5分 · 相隔64秒</span>
+                </div>
+
+                <div class="compact-row objective-window-row">
+                    <span class="event-pill danger">12.2分死亡</span>
+                    <strong>失去中路一塔</strong>
+                    <span>12.2分 · 相隔0秒</span>
+                </div>
+
+                <div class="compact-row objective-window-row">
+                    <span class="event-pill danger">12.2分死亡</span>
+                    <strong>失去上路一塔</strong>
+                    <span>12.5分 · 相隔20秒</span>
+                </div>
+
+                <div class="compact-row objective-window-row">
+                    <span class="event-pill danger">45.2分死亡</span>
+                    <strong>失去中路二塔</strong>
+                    <span>45.8分 · 相隔38秒</span>
+                </div>
+
+            </div>
+            <div class="compact-row muted">该窗口只表示时间相邻：真实死亡发生后90秒内记录到目标损失，不代表死亡造成目标损失。</div>
+
+
             <div class="subsection-title">关键购买</div>
 
             <div class="event-list">
@@ -915,6 +968,10 @@
         <div class="section-body">
 
             <div class="compact-row">
+                <strong>死亡后目标损失</strong>：死亡后90秒内失去目标: 11.4分死亡 → 12.2分失去中路一塔（44秒）；11.4分死亡 → 12.5分失去上路一塔（64秒）；12.2分死亡 → 12.2分失去中路一塔（0秒）；12.2分死亡 → 12.5分失去上路一塔（20秒）；45.2分死亡 → 45.8分失去中路二塔（38秒）。 这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。
+            </div>
+
+            <div class="compact-row">
                 <strong>死亡成本</strong>：已定位 7/7 次死亡，时间: 10.0, 11.4, 12.2, 14.3, 15.4, 34.5, 45.2分钟；每10分钟死亡 1.25。 死亡位置: 10.0分 x=94,y=158（死亡时）；11.4分 x=82,y=164（死亡时）；12.2分 x=70,y=142（死亡前1秒）；14.3分 x=76,y=160（死亡时）；15.4分 x=78,y=148（死亡时）；34.5分 x=194,y=100（死亡时）。 核心或节奏位的连续死亡会直接交出地图区域和关键目标时间。
             </div>
 
@@ -983,7 +1040,7 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 14:01:08
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 14:10:40
     </div>
 
 </div>
