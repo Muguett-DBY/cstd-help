@@ -281,6 +281,45 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_missing_or_mismatched_report_evidence_completeness(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Mirana_8867002237.html").write_text(
+                '<html><head><title>Mirana 复盘报告</title></head><body>'
+                '<div class="evidence-source-list">'
+                '<div class="evidence-source-row available"><div class="evidence-source-name">比赛核心数据</div></div>'
+                '<div class="evidence-source-row partial"><div class="evidence-source-name">死亡时间</div></div>'
+                '<div class="evidence-source-row missing"><div class="evidence-source-name">视野事件</div></div>'
+                '</div>'
+                '</body></html>',
+                encoding="utf-8",
+            )
+            (public_path / "Doom_8867002240.html").write_text(
+                '<html><head><title>Doom 复盘报告</title></head><body>'
+                '<div class="evidence-source-list">'
+                '<div class="evidence-source-row available"><div class="evidence-source-name">比赛核心数据</div></div>'
+                '</div>'
+                '<section class="report-evidence-completeness" data-report-evidence-completeness '
+                'data-evidence-total="2" data-evidence-complete="1" data-evidence-usable="1" '
+                'data-evidence-partial="0" data-evidence-missing="1">'
+                '<div class="evidence-completeness-summary">本局证据完整度</div>'
+                '<span class="evidence-completeness-chip available">比赛核心数据</span>'
+                '</section>'
+                '</body></html>',
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_report_evidence_completeness_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "Doom_8867002240.html -> evidence completeness mismatch: total expected 1 got 2; missing expected 0 got 1",
+                "Mirana_8867002237.html -> missing report evidence completeness summary",
+            ],
+        )
+
     def test_static_site_checker_detects_report_text_quality_issues(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
@@ -979,6 +1018,11 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".report-context-deck", stylesheet)
         self.assertIn(".source-provenance-summary", stylesheet)
         self.assertIn(".report-source-provenance[open]", stylesheet)
+        self.assertIn(".report-evidence-completeness", stylesheet)
+        self.assertIn(".evidence-completeness-summary", stylesheet)
+        self.assertIn(".evidence-completeness-chips", stylesheet)
+        self.assertIn(".evidence-completeness-chip", stylesheet)
+        self.assertIn(".evidence-completeness-details", stylesheet)
         self.assertIn(".practice-workbench", stylesheet)
         self.assertIn(".practice-evidence-links", stylesheet)
         self.assertIn(".practice-checklist", stylesheet)
@@ -1097,6 +1141,60 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("Anti-Mage", latest_html)
         self.assertIn("Anti-Mage_8866000193_20260625_160037.html", latest_html)
         self.assertIn("终结比赛", latest_html)
+
+    def test_build_pages_site_injects_report_evidence_completeness_summary(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            report_path = self._write_report(source, metadata)
+            text = report_path.read_text(encoding="utf-8")
+            evidence_sources = (
+                '<section class="section" id="data-quality">'
+                '<div class="evidence-source-list">'
+                '<div class="evidence-source-row available">'
+                '<div class="evidence-source-name">比赛核心数据</div>'
+                '<div class="evidence-source-detail"><span class="evidence-source-origin">OpenDota比赛核心数据</span>'
+                '<span class="evidence-source-coverage">KDA、GPM、XPM</span></div>'
+                '</div>'
+                '<div class="evidence-source-row partial">'
+                '<div class="evidence-source-name">死亡时间</div>'
+                '<div class="evidence-source-detail"><span class="evidence-source-origin">STRATZ回放事件</span>'
+                '<span class="evidence-source-coverage">已定位 5/7 次死亡</span></div>'
+                '</div>'
+                '<div class="evidence-source-row missing">'
+                '<div class="evidence-source-name">视野事件</div>'
+                '<div class="evidence-source-detail"><span class="evidence-source-origin">OpenDota视野事件</span>'
+                '<span class="evidence-source-coverage">公共数据未提供</span></div>'
+                '</div>'
+                '</div></section>'
+            )
+            report_path.write_text(text.replace("</body>", evidence_sources + "</body>"), encoding="utf-8")
+
+            pages_site.build_pages_site(source, public_dir=public)
+            report_html = (Path(public) / report_path.name).read_text(encoding="utf-8")
+
+        self.assertIn('data-report-evidence-completeness', report_html)
+        self.assertIn('data-evidence-total="3"', report_html)
+        self.assertIn('data-evidence-complete="1"', report_html)
+        self.assertIn('data-evidence-usable="2"', report_html)
+        self.assertIn('data-evidence-partial="1"', report_html)
+        self.assertIn('data-evidence-missing="1"', report_html)
+        self.assertIn("本局证据完整度", report_html)
+        self.assertIn("1/3 类完整", report_html)
+        self.assertIn("可用/部分 2/3 · 缺失 1", report_html)
+        self.assertIn("比赛核心数据", report_html)
+        self.assertIn("死亡时间", report_html)
+        self.assertIn("视野事件", report_html)
+        self.assertLess(report_html.index('class="report-source-provenance"'), report_html.index('data-report-evidence-completeness'))
 
     def test_build_pages_site_injects_report_trend_context_after_decision_snapshot(self):
         metadata = {
