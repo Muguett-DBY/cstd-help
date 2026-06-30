@@ -13,7 +13,7 @@
 
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
-<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 5 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Beastmaster_8870116015_20260630_142544.html"><span class="neighbor-label">上一局（更新）</span><strong>Beastmaster #8870116015</strong><small>胜利 · 高优先级 · 死亡成本</small></a><a class="neighbor-card" href="Chaos_Knight_8869500868_20260630_142544.html"><span class="neighbor-label">下一局（更早）</span><strong>Chaos Knight #8869500868</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a></div></nav>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 5 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Beastmaster_8870116015_20260630_144813.html"><span class="neighbor-label">上一局（更新）</span><strong>Beastmaster #8870116015</strong><small>胜利 · 高优先级 · 死亡成本</small></a><a class="neighbor-card" href="Chaos_Knight_8869500868_20260630_144814.html"><span class="neighbor-label">下一局（更早）</span><strong>Chaos Knight #8869500868</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a></div></nav>
         <h1>Pangolier 复盘报告</h1>
         <div class="subtitle">比赛ID: 8869892215 | 结束于 2026-06-28 07:52 | 时长 69.2分钟</div>
         <div class="result-badge win">胜利</div>
@@ -53,7 +53,7 @@
 - 补刀总量427，LH/min 6.17
 
 下一局只盯这几件事
-1. 死亡后目标损失: 下一局预计要接塔、肉山或高地时，提前90秒停止单独深入；若刚死亡，复活后的第一决策优先处理兵线、目标入口或明确的对侧交换。 验收：死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0。
+1. 死亡后目标损失: 下一局每次准备处理高地防守或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。 验收：死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。
 2. 死亡成本: 下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。 验收：每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。
 3. 重复死亡坐标: 下一局每次进入这些重复坐标对应的回放场景前，先确认三个条件：队友能否接应、敌方关键控制是否露头、自己是否有明确撤退路线；任一条件缺失就先退回安全资源点。 验收：重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。
 4. 视野/控图: 下一局把视野动作绑定到两类时间点：关键目标前60秒、死亡复活后的第一波出门。 验收：观察+岗哨总数不低于15；25分钟后每次死亡后3分钟内至少补1个视野事件。</div>
@@ -69,8 +69,8 @@
 
                 <div class="goal-row">
                     <div class="goal-title">死亡后目标损失</div>
-                    <div class="goal-body"><strong>训练目标:</strong> 下一局把死亡后90秒内失去目标窗口从10个压到0。</div>
-                    <div class="goal-body muted"><strong>验收标准:</strong> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0。</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局执行「目标前90秒生存规则」，把围绕高地防守的死亡/目标损失窗口清零。</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</div>
                 </div>
 
                 <div class="goal-row">
@@ -103,10 +103,10 @@
                 <div class="finding-title">高优先级 · 死亡后目标损失</div>
                 <div class="finding-line"><strong>证据:</strong> 死亡后90秒内失去目标: 15.0分死亡 → 15.2分失去中路一塔（12秒）；15.0分死亡 → 16.1分失去下路一塔（63秒）；15.9分死亡 → 16.1分失去下路一塔（6秒）；36.2分死亡 → 36.3分失去上路二塔（9秒）；36.2分死亡 → 36.8分失去上路高地塔（35秒）。</div>
                 <div class="finding-line"><strong>影响:</strong> 这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。</div>
-                <div class="finding-line"><strong>行动:</strong> 下一局预计要接塔、肉山或高地时，提前90秒停止单独深入；若刚死亡，复活后的第一决策优先处理兵线、目标入口或明确的对侧交换。</div>
-                <div class="finding-line"><strong>训练目标:</strong> 下一局把死亡后90秒内失去目标窗口从10个压到0。</div>
-                <div class="finding-line"><strong>验收标准:</strong> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0。</div>
-                <div class="finding-line muted"><strong>系统检查:</strong> 系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。</div>
+                <div class="finding-line"><strong>行动:</strong> 下一局每次准备处理高地防守或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局执行「目标前90秒生存规则」，把围绕高地防守的死亡/目标损失窗口清零。</div>
+                <div class="finding-line"><strong>验收标准:</strong> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> 系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。 优先回看：60.3分死亡 → 61.1分失去上路近战兵营（51秒）；只确认死亡前90秒是否满足接应、控制露头、撤退路线三项条件。</div>
             </div>
 
             <div class="finding-card high">
@@ -908,6 +908,15 @@
                     </div>
 
                 </div>
+
+                <div class="objective-drill-card">
+                    <strong>目标前90秒生存规则</strong>
+                    <div><span>触发:</span> 下一局每次准备处理高地防守或同级关键目标前90秒</div>
+                    <div><span>执行:</span> 先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。</div>
+                    <div><span>验收:</span> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</div>
+                    <div class="muted"><span>优先回看:</span> 60.3分死亡 → 61.1分失去上路近战兵营（51秒）</div>
+                </div>
+
                 <div class="compact-row muted">该窗口只表示时间相邻：真实死亡发生后90秒内记录到目标损失，不代表死亡造成目标损失。</div>
 
             </div>
@@ -1244,7 +1253,7 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 14:25:44
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 14:48:14
     </div>
 
 </div>

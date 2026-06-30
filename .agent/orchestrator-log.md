@@ -1547,6 +1547,34 @@ Started: 2026-06-28
 - Remaining risk: the workbench improves scanning and filtering only; death/objective windows remain temporal evidence and intentionally do not assign causality.
 - Next stage: Stage 4 IMPROVE should add a deterministic post-objective coaching target that converts the new objective/death evidence into one explicit next-match drill.
 
+## 2026-06-30 - Long Cycle 5 Stage 4 IMPROVE - Start
+
+- Stage: 4 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Goal: convert verified death/objective windows into one deterministic next-match drill, so the report does more than list evidence.
+- Planned user-visible increment: add a `目标前90秒生存规则` card and wire the same drill into the `death_objective_window` finding action, training goal, and success metric.
+- Start state: `main` at `034427c`, clean worktree; Stage 3 feature CI `28420439204` and log-closeout CI `28420564258` passed.
+- Constraints: use only real OpenDota objective/death event windows; keep non-causality caveat; do not touch Docker or `AGENTS.md`.
+
+## 2026-06-30 - Long Cycle 5 Stage 4 IMPROVE - Local Complete
+
+- Completed: added deterministic `death_objective_drill` generation from verified death/objective windows and wired the same drill into `death_objective_window` finding action, training goal, success metric, and replay check.
+- Report UI: added `目标前90秒生存规则` drill card under `死亡后目标窗口`, with trigger, execution rule, success metric, and priority replay evidence.
+- Real-report acceptance: latest `Legion Commander #8870219537` report is `Legion_Commander_8870219537_20260630_144813.html`; it shows the drill, `处理基地防守`, `优先回看: 45.5分死亡 → 46.5分失去遗迹（54秒）`, and `死亡后90秒内失去目标窗口=0`, with no `接失去` wording.
+- Browser verification:
+  - Desktop latest report: hero-first title, drill card visible, drill width 1032px, no console errors.
+  - Mobile 390x844: `scrollWidth=390`, drill card width 314px, no console errors; screenshot saved under ignored `output/playwright/`.
+- Local verification:
+  - New drill tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 88 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 4 closeout log.
+
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 2.

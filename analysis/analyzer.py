@@ -211,6 +211,9 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
     result["events"]["death_objective_summary"] = _summarize_death_objective_windows(
         result["events"]["death_objective_windows"]
     )
+    result["events"]["death_objective_drill"] = _build_death_objective_drill(
+        result["events"]["death_objective_windows"]
+    )
     result["events"]["post_item_windows"] = _build_post_item_windows(result["events"], result["timeline"])
     result["timeline"]["death_overlap_windows"] = _build_death_overlap_windows(result["timeline"], result["events"])
     result["timeline"]["death_recovery_windows"] = _build_death_recovery_windows(result["timeline"], result["events"])
@@ -1163,6 +1166,60 @@ def _build_death_objective_windows(events, max_after_seconds=90):
     return sorted(windows, key=lambda item: (item["death_time"], item["objective_time"]))
 
 
+def _death_objective_focus_score(window):
+    kind_weights = {
+        "ancient": 6,
+        "barracks": 5,
+        "roshan": 4,
+        "aegis": 4,
+        "tower": 3,
+        "tormentor": 2,
+    }
+    return (
+        kind_weights.get(window.get("objective_kind"), 1),
+        -int(window.get("elapsed_seconds") or 999),
+    )
+
+
+def _objective_drill_focus_label(display_label):
+    label = str(display_label or "关键目标")
+    for prefix in ("失去", "获取"):
+        if label.startswith(prefix):
+            label = label[len(prefix):]
+            break
+    if "肉山" in label or "不朽盾" in label:
+        return "肉山争夺"
+    if "遗迹" in label or "基地塔" in label:
+        return "基地防守"
+    if "兵营" in label or "高地" in label:
+        return "高地防守"
+    if "塔" in label:
+        return f"{label}攻防"
+    return label
+
+
+def _build_death_objective_drill(windows):
+    if not windows:
+        return None
+    focus = max(windows, key=_death_objective_focus_score)
+    objective_label = _objective_drill_focus_label(focus.get("objective_display_label"))
+    evidence = focus.get("evidence_label") or ""
+    return {
+        "title": "目标前90秒生存规则",
+        "focus_objective": objective_label,
+        "evidence": evidence,
+        "trigger": f"下一局每次准备处理{objective_label}或同级关键目标前90秒",
+        "rule": (
+            "先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，"
+            "改为清近线、守入口或明确对侧交换。"
+        ),
+        "training_goal": f"下一局执行「目标前90秒生存规则」，把围绕{objective_label}的死亡/目标损失窗口清零。",
+        "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+        "replay_check": f"优先回看：{evidence}；只确认死亡前90秒是否满足接应、控制露头、撤退路线三项条件。",
+        "window_count": len(windows),
+    }
+
+
 def _summarize_death_objective_windows(windows):
     return {
         "window_count": len(windows),
@@ -1842,15 +1899,24 @@ def _build_review_findings(result):
             if window.get("evidence_label")
         )
         unique_deaths = (events.get("death_objective_summary") or {}).get("unique_death_count", 0)
+        drill = events.get("death_objective_drill") or {}
+        action = (
+            f"{drill.get('trigger')}：{drill.get('rule')}"
+            if drill else
+            "下一局预计要接塔、肉山或高地时，提前90秒停止单独深入；若刚死亡，复活后的第一决策优先处理兵线、目标入口或明确的对侧交换。"
+        )
+        replay_check = "系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。"
+        if drill.get("replay_check"):
+            replay_check += f" {drill['replay_check']}"
         findings.append(_finding(
             "high" if unique_deaths >= 2 else "medium",
             "death_objective_window",
             f"死亡后90秒内失去目标: {evidence}。",
             "这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。",
-            "下一局预计要接塔、肉山或高地时，提前90秒停止单独深入；若刚死亡，复活后的第一决策优先处理兵线、目标入口或明确的对侧交换。",
-            "系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。",
-            f"下一局把死亡后90秒内失去目标窗口从{len(death_objective_windows)}个压到0。",
-            "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0。",
+            action,
+            replay_check,
+            drill.get("training_goal") or f"下一局把死亡后90秒内失去目标窗口从{len(death_objective_windows)}个压到0。",
+            drill.get("success_metric") or "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0。",
         ))
 
     recovery_windows = timeline.get("death_recovery_windows") or []

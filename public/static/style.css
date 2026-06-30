@@ -1941,6 +1941,28 @@ body {
     font-size: 12px;
     white-space: nowrap;
 }
+.objective-drill-card {
+    display: grid;
+    gap: 7px;
+    padding: 12px;
+    border: 1px solid rgba(210,153,34,0.32);
+    border-left: 3px solid var(--accent-yellow);
+    border-radius: 6px;
+    background: rgba(210,153,34,0.08);
+    font-size: 13px;
+}
+.objective-drill-card strong {
+    color: var(--accent-yellow);
+    font-size: 14px;
+}
+.objective-drill-card div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.objective-drill-card span {
+    color: var(--text-secondary);
+    font-weight: 700;
+}
 .death-event-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));

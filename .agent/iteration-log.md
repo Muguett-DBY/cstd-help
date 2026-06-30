@@ -715,3 +715,19 @@
 - Risks:
   - The workbench improves navigation only; objective-loss interpretation remains temporal evidence and intentionally does not assign causality.
 - Recommended flagship next change: add a deterministic post-objective coaching target so the report turns this evidence into one explicit next-match drill.
+
+## 2026-06-30 - Long Cycle 5 Stage 4 IMPROVE
+
+- Goal: convert death/objective temporal evidence into one concrete next-match drill.
+- Completed: generated `death_objective_drill` from verified death/objective windows and reused it in the report event section plus the structured `death_objective_window` finding.
+- User-visible gain: latest Legion Commander report now tells the player to execute `目标前90秒生存规则`, with the cleaned trigger `处理基地防守`, execution rule, success metric, and exact priority replay check `45.5分死亡 → 46.5分失去遗迹（54秒）`.
+- Verification:
+  - New drill tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 88 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser QA passed on desktop and 390x844 mobile; no console errors or horizontal overflow.
+- Risks:
+  - The drill chooses a highest-impact observed objective window; it remains a prevention rule based on temporal evidence, not a claim that the death caused the objective loss.
+- Recommended flagship next change: audit the live generated site for any remaining awkward or unverifiable action wording, then tighten CI checks around report text quality.
