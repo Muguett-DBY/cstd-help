@@ -1936,4 +1936,11 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Browser QA passed desktop and 390x844 mobile with clean console, no banned phrases, and no horizontal overflow.
-- Pending: commit, push, GitHub Actions, live custom-domain acceptance, and Stage 5 closeout log.
+- Stage commit: `fix: gate manual replay language in reports` (`b49b647`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28440951874`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports and latest report `Legion_Commander_8870219537_20260630_212154.html`.
+  - Latest Legion Commander report returned 200 with `上分决策卡`, `近期同类问题`, `证据窗口`/`系统证据窗口`, `目标前90秒证据检查点`, and zero banned manual-review phrase hits.
+- Remaining risk: `STRATZ回放事件` and `Valve回放事件` remain as source labels; this is intentional source attribution, not an instruction to manually review.
+- Next stage: Stage 6 should add a final production-quality/coverage summary so report readers can immediately see current evidence coverage and quality gate status.

@@ -874,6 +874,7 @@
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- GitHub Actions / CI: pending commit and push for this stage.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28440951874`.
+- Production acceptance: live `dota.custard.top` serves 18 reports; latest `Legion_Commander_8870219537_20260630_212154.html` returns 200 with `上分决策卡`, `近期同类问题`, `证据窗口`/`系统证据窗口`, `目标前90秒证据检查点`, and zero banned manual-review phrase hits.
 - Risks: source labels such as `STRATZ回放事件` remain because they identify the data source, not a user instruction to manually review.
 - Recommended next direction: add a final deployment-quality manifest/check card so the site itself exposes current report coverage and quality-gate status.
