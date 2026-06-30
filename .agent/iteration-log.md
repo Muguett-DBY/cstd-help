@@ -895,6 +895,22 @@
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- GitHub Actions / CI: pending commit and push for this stage.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28453850059`.
+- Production acceptance: live `dota.custard.top` serves `quality_gate.status=pass`, 18/18 decision-card coverage, 18/18 trend-context coverage, 18/18 evidence-source coverage, 0 manual-review-language hits, and latest `Legion_Commander_8870219537_20260630_212154.html` returns 200 with decision/trend/evidence sections.
 - Risks: quality gate proves required rendered evidence surfaces and banned wording checks; it does not certify external STRATZ/OpenDota live fetch freshness.
 - Recommended next direction: add fetch-freshness/source-age telemetry so the site distinguishes cached event evidence from freshly fetched STRATZ/OpenDota data.
+
+## 2026-07-01 - Long Cycle 6 Final
+
+- Completed: all 6 requested stages are implemented, tested, pushed, CI-passed, and live on `dota.custard.top`.
+- Current live gain: reports now combine OpenDota same-hero percentiles, OpenDota lane/teamfight/dead-time context, a first-screen `上分决策卡`, per-report `近期同类问题`, banned manual-review-language gating, and a visible `复盘质量门禁` showing quality coverage.
+- Final verification set:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 101 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - `git diff --check`: passed.
+  - Browser QA: latest report/homepage passed desktop and 390x844 mobile checks with no console errors or horizontal overflow.
+- Production acceptance: custom domain serves 18 reports; latest Legion Commander report has decision/trend/evidence sections, and `site-manifest.json` quality gate reports pass with 18/18/18/0/18 counts.
+- Residual risk: report precision is still bounded by available OpenDota/STRATZ cached event fields; live STRATZ refresh can be Cloudflare-blocked from this environment.
+- Recommended next flagship change: add fetch-freshness/source-age telemetry to distinguish cached STRATZ/OpenDota evidence from freshly fetched data in the public quality panel.

@@ -1959,4 +1959,25 @@ Started: 2026-06-28
   - `python scripts/check_public_site.py`: passed, 18 reports.
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
-- Pending: commit, push, GitHub Actions, live custom-domain acceptance, final closeout log.
+- Stage commit: `feat: surface report quality gate` (`65b2c6a`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28453850059`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports and latest report `Legion_Commander_8870219537_20260630_212154.html`.
+  - Quality gate returned status `pass`, decision snapshot coverage `18/18`, trend context coverage `18/18`, evidence-source coverage `18/18`, manual-review-language hits `0`, and complete-quality reports `18`.
+  - Homepage returned 200 with `复盘质量门禁` and `质量门禁：通过`; latest report returned 200 with decision/trend/evidence sections.
+- Remaining risk: quality gate validates rendered report surfaces and banned wording, not external STRATZ/OpenDota live fetch freshness.
+- Next direction: add fetch-freshness/source-age telemetry so the quality panel distinguishes cached evidence from freshly fetched API data.
+
+## 2026-07-01 - Long Cycle 6 Final
+
+- Completed all 6 requested stages on `main`, with implementation, tests, browser QA, pushes, GitHub Actions checks, and live Cloudflare Pages acceptance.
+- Stage commits:
+  - Stage 1: `feat: add OpenDota benchmark percentiles` (`223f76d`) plus closeout `9882f26`.
+  - Stage 2: `feat: add OpenDota performance context` (`79ec340`) plus closeout `c35b4e3`.
+  - Stage 3: `feat: add first-screen decision card` (`51f3dfa`) plus closeout `23d8736`.
+  - Stage 4: `feat: add report trend context` (`0b58de0`) plus closeout `1cc0ca0`.
+  - Stage 5: `fix: gate manual replay language in reports` (`b49b647`) plus closeout `24685f9`.
+  - Stage 6: `feat: surface report quality gate` (`65b2c6a`).
+- Final production state: `dota.custard.top` serves 18 reports with hero-first titles, match history, decision cards, rolling trend context, evidence-source coverage, quality-gate pass status, and source-backed coaching guidance.
+- Final residual risk: richer advice still depends on reliable event data availability; live STRATZ requests from this environment remain Cloudflare-blocked and cached details are used when available.
