@@ -731,3 +731,19 @@
 - Risks:
   - The drill chooses a highest-impact observed objective window; it remains a prevention rule based on temporal evidence, not a claim that the death caused the objective loss.
 - Recommended flagship next change: audit the live generated site for any remaining awkward or unverifiable action wording, then tighten CI checks around report text quality.
+
+## 2026-06-30 - Long Cycle 5 Stage 5 CHECK
+
+- Goal: make generated report text quality enforceable instead of relying on manual reading.
+- Completed: added static public-site validation for awkward objective drill phrases (`接失去`, `接获取`), malformed/garbled report-title text, and death/objective windows missing `目标前90秒生存规则`.
+- User-visible gain: future deployments will fail before publishing if the report regresses to awkward objective-action wording or drops the drill while still showing death/objective evidence.
+- Verification:
+  - New checker test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 89 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser QA passed on latest Legion Commander report; drill present, `处理基地防守` present, `接失去` absent, no console errors.
+- Risks:
+  - Static text rules catch known bad phrases and required drill coverage, not every possible awkward sentence.
+- Recommended flagship next change: add one final deterministic improvement that reduces manual replay dependency without adding unverifiable claims.

@@ -1590,6 +1590,29 @@ Started: 2026-06-28
 - Remaining risk: the drill is still a prevention rule from temporal evidence; it does not claim the death caused the objective loss.
 - Next stage: Stage 5 CHECK should audit generated report text and static validation for remaining awkward or unverifiable coaching wording.
 
+## 2026-06-30 - Long Cycle 5 Stage 5 CHECK - Start
+
+- Stage: 5 / 6.
+- Type: CHECK.
+- Prompt: AGENT_CHECK_MAIN.txt.
+- Goal: audit generated report text quality and CI validation for remaining awkward or unverifiable coaching wording.
+- Start state: `main` at `5633cc0`, clean worktree; Stage 4 feature CI `28421148889` and log-closeout CI `28421331825` passed.
+- Constraints: do not touch Docker or `AGENTS.md`; use automated checks plus real-report/browser acceptance; fix issues found before declaring the stage complete.
+
+## 2026-06-30 - Long Cycle 5 Stage 5 CHECK - Local Complete
+
+- Completed: audited generated reports for awkward objective drill wording, missing hero-first Chinese report titles, missing objective drills when death/objective windows exist, and accidental forbidden tokens.
+- Fix: added `_find_report_text_quality_issues` to `scripts/check_public_site.py` and wired it into the public-site CI gate.
+- Regression test: added a failing fixture for `接失去`, missing `复盘报告` in title, and missing `目标前90秒生存规则`; test failed before implementation and passed after the checker was added.
+- Browser verification: latest Legion Commander report opened locally with hero-first title, `目标前90秒生存规则`, `处理基地防守`, no `接失去`, no console errors.
+- Local verification:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 89 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 5 closeout log.
+
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 2.
