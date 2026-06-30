@@ -854,6 +854,7 @@
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- GitHub Actions / CI: pending push for Stage 4.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28439780094`.
+- Production acceptance: live `dota.custard.top` serves 18 reports; latest `Legion_Commander_8870219537_20260630_204657.html` includes `近期同类问题`, `最近 18 场中 13 场出现`, sample report links, and a working `trend-custom-bac9d883f8.html` full-evidence page.
 - Risks: trend grouping is based on normalized finding focus labels, so it is reliable for repeated report topics but not a statistical model of match causality.
 - Recommended next direction: clean up remaining public-report language that still mentions replay/manual confirmation in source-backed sections.

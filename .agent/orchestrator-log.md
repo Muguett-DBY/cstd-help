@@ -1899,7 +1899,7 @@ Started: 2026-06-28
 - Remaining risk: first-screen prioritization is now stronger, but richer coaching specificity still depends on reliable public event data rather than unsupported inference.
 - Next stage: Stage 4 IMPROVE should add cross-match trend context so the latest decision card can be compared against repeated recent weaknesses.
 
-## 2026-06-30 - Long Cycle 6 Stage 4 IMPROVE - Local Complete
+## 2026-06-30 - Long Cycle 6 Stage 4 IMPROVE - Complete
 
 - Completed: added per-report `近期同类问题` context below the decision card, generated from existing focus-trend aggregation rather than new inference.
 - User-visible gain: latest Legion Commander now says the current top topic `死亡后目标损失` appears in 13 of the latest 18 reports and links to the full trend evidence page.
@@ -1914,4 +1914,11 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 4 closeout log.
+- Stage commit: `feat: add report trend context` (`0b58de0`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28439780094`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports and latest report `Legion_Commander_8870219537_20260630_204657.html`.
+  - Latest Legion Commander report returned 200 with `近期同类问题`, `最近 18 场中 13 场出现`, sample report links, and a working `trend-custom-bac9d883f8.html` full-evidence page.
+- Remaining risk: trend grouping is based on report focus labels and proves repetition, not causal explanation.
+- Next stage: Stage 5 CHECK should remove or gate remaining public-facing replay/manual-confirmation language where the system already has source-backed evidence.
