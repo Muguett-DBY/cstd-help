@@ -190,12 +190,21 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(windows[1]["evidence_label"], "19.5分死亡 → 20.0分失去肉山（30秒）")
         self.assertEqual(result["events"]["death_objective_summary"]["window_count"], 2)
         self.assertEqual(result["events"]["death_objective_summary"]["unique_death_count"], 2)
+        drill = result["events"]["death_objective_drill"]
+        self.assertEqual(drill["title"], "目标前90秒生存规则")
+        self.assertIn("19.5分死亡 → 20.0分失去肉山（30秒）", drill["evidence"])
+        self.assertIn("目标前90秒", drill["trigger"])
+        self.assertNotIn("接失去", drill["trigger"])
+        self.assertIn("肉山", drill["trigger"])
+        self.assertIn("死亡后90秒内失去目标窗口=0", drill["success_metric"])
         objective_findings = [
             item for item in result["review_findings"]
             if item["category"] == "death_objective_window"
         ]
         self.assertEqual(len(objective_findings), 1)
         self.assertIn("60秒", objective_findings[0]["evidence"])
+        self.assertIn("目标前90秒生存规则", objective_findings[0]["training_goal"])
+        self.assertIn("死亡后90秒内失去目标窗口=0", objective_findings[0]["success_metric"])
         self.assertIn("只标记事件先后", objective_findings[0]["replay_check"])
 
     def test_generated_report_shows_real_objective_timeline(self):
@@ -239,6 +248,8 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("死亡后目标窗口", html)
         self.assertIn("19.0分死亡 → 20.0分失去肉山（60秒）", html)
         self.assertIn("只表示时间相邻", html)
+        self.assertIn("目标前90秒生存规则", html)
+        self.assertIn("优先回看", html)
         self.assertIn("objective-review-workbench", html)
         self.assertIn('data-objective-filter="all"', html)
         self.assertIn('data-objective-filter="gained"', html)

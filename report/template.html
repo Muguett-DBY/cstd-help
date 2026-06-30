@@ -350,6 +350,15 @@
                     </div>
                     {% endfor %}
                 </div>
+                {% if events.death_objective_drill %}
+                <div class="objective-drill-card">
+                    <strong>{{ events.death_objective_drill.title }}</strong>
+                    <div><span>触发:</span> {{ events.death_objective_drill.trigger }}</div>
+                    <div><span>执行:</span> {{ events.death_objective_drill.rule }}</div>
+                    <div><span>验收:</span> {{ events.death_objective_drill.success_metric }}</div>
+                    <div class="muted"><span>优先回看:</span> {{ events.death_objective_drill.evidence }}</div>
+                </div>
+                {% endif %}
                 <div class="compact-row muted">该窗口只表示时间相邻：真实死亡发生后90秒内记录到目标损失，不代表死亡造成目标损失。</div>
                 {% endif %}
             </div>
