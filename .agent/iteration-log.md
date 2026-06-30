@@ -832,6 +832,7 @@
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- GitHub Actions / CI: pending push for Stage 3.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28439123263`.
+- Production acceptance: live `dota.custard.top` serves 18 reports and latest `Legion_Commander_8870219537_20260630_204657.html` with `上分决策卡` before the coach summary, working decision tab markup, hero-first title, and `分路与参战画像`.
 - Risks: the decision card improves first-screen prioritization, but further precision still depends on richer public event data rather than inferred causes.
 - Recommended next direction: add rolling trend context to connect the latest top finding with repeated historical weaknesses across recent matches.

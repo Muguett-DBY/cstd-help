@@ -1875,7 +1875,7 @@ Started: 2026-06-28
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 2 closeout log.
 
-## 2026-06-30 - Long Cycle 6 Stage 3 UIUX - Local Complete
+## 2026-06-30 - Long Cycle 6 Stage 3 UIUX - Complete
 
 - Completed: added a first-screen `上分决策卡` driven only by the highest-priority `review_findings` item, with action, evidence, validation, data coverage, and supporting-section jump links.
 - Interaction/UI: added tabbed action/evidence/validation panels, `aria-live` status, visible selected/focus states, desktop evidence rail, and mobile single-column layout with 44px controls.
@@ -1890,4 +1890,11 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 3 closeout log.
+- Stage commit: `feat: add first-screen decision card` (`51f3dfa`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28439123263`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports and latest report `Legion_Commander_8870219537_20260630_204657.html`.
+  - Latest Legion Commander report returned 200 with `上分决策卡`, `decision-snapshot`, decision tabs, `分路与参战画像`, and hero-first title.
+- Remaining risk: first-screen prioritization is now stronger, but richer coaching specificity still depends on reliable public event data rather than unsupported inference.
+- Next stage: Stage 4 IMPROVE should add cross-match trend context so the latest decision card can be compared against repeated recent weaknesses.
