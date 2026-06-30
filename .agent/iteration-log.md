@@ -794,3 +794,20 @@
 - Risks:
   - Percentiles are OpenDota public sample comparisons only; they should guide review focus, not replace replay/event evidence.
 - Recommended next direction: use the same source-backed approach to expose lane efficiency and teamfight participation as deterministic context.
+
+## 2026-06-30 - Long Cycle 6 Stage 2 IMPROVE
+
+- Goal: expose real OpenDota phase/participation context and use it to sharpen deterministic findings without inferring causes.
+- Completed: added `performance_context` for lane efficiency, teamfight participation, dead time/share, average dead time per death, and buybacks.
+- Coaching gain: lane, map-impact, and death findings now cite those values; low participation is described only as below the report's transparent 40% training threshold, and benchmark hints no longer outrank event-backed death/objective evidence.
+- User-visible gain: every data-complete report now includes `分路与参战画像` with source and non-causality caveats.
+- Latest real report evidence: Legion Commander shows 66% lane efficiency, 68% participation, 12m52s dead time (27.7%), and one buyback; its first action is the verified death/objective window rather than the 17th-percentile tower-damage hint.
+- Verification:
+  - New tests were observed failing before implementation and passing after it.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 95 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser QA passed at 1280x720 and 390x844 with working section navigation, no console errors, no overlap, and no horizontal overflow.
+- Risk: OpenDota aggregate fields prove the measured result but not why it happened; findings therefore retain only threshold facts and event-backed actions.
+- Recommended next direction: improve the report's first-screen decision flow so the highest-cost evidence and one next-match rule are visible before long detail sections.

@@ -312,6 +312,19 @@ def _find_hero_benchmark_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_performance_context_issues(public_dir=PUBLIC_DIR):
+    issues = []
+    for report in _report_pages(public_dir):
+        text = report.read_text(encoding="utf-8")
+        if "opendota_performance_context" not in text:
+            continue
+        if "分路与参战画像" not in text or "performance-context-grid" not in text:
+            issues.append(
+                f"{report.name} -> performance context evidence requires rendered 分路与参战画像 section"
+            )
+    return issues
+
+
 def _find_report_text_quality_issues(public_dir=PUBLIC_DIR):
     issues = []
     for report in _report_pages(public_dir):
@@ -381,6 +394,11 @@ def main():
     if hero_benchmark_issues:
         preview = "; ".join(hero_benchmark_issues[:10])
         raise SystemExit(f"public hero benchmark sections are incomplete: {preview}")
+
+    performance_context_issues = _find_performance_context_issues(PUBLIC_DIR)
+    if performance_context_issues:
+        preview = "; ".join(performance_context_issues[:10])
+        raise SystemExit(f"public performance context sections are incomplete: {preview}")
 
     text_quality_issues = _find_report_text_quality_issues(PUBLIC_DIR)
     if text_quality_issues:

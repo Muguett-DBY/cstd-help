@@ -1831,3 +1831,31 @@ Started: 2026-06-28
   - Latest Legion Commander report returned 200 with `英雄样本百分位`, `OpenDota英雄样本百分位`, `benchmark-grid`, `复盘报告`, and without `接失去`.
 - Remaining risk: OpenDota percentiles are public same-hero sample comparisons only; they indicate review priority but do not replace event/replay evidence.
 - Next stage: Stage 2 IMPROVE should continue by exposing another reliable OpenDota context field, with lane efficiency and teamfight participation as the best candidates.
+
+## 2026-06-30 - Long Cycle 6 Stage 2 IMPROVE - Start
+
+- Stage: 2 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Goal: turn OpenDota lane efficiency, teamfight participation, total dead time, and buyback count into source-backed coaching evidence instead of leaving them hidden in cached JSON.
+- Start state: `main` at `9882f26`, clean and synchronized with `origin/main`; Stage 1 closeout CI `28436830771` passed.
+- Constraints: do not touch Docker or `AGENTS.md`; aggregate fields may establish measured values and transparent training thresholds, but must not invent causal explanations.
+
+## 2026-06-30 - Long Cycle 6 Stage 2 IMPROVE - Local Complete
+
+- Completed: added `performance_context` from real OpenDota `lane_efficiency_pct`, `teamfight_participation`, `life_state_dead`, and `buyback_count` fields, including total dead-time share and average dead time per death.
+- Deterministic coaching: enriched lane, map-impact, and death findings with those measured values; removed an unsupported participation-cause claim; demoted same-hero percentile gaps behind event-backed death/objective findings.
+- Report UI: added responsive `分路与参战画像` cards, report navigation, source/caveat copy, and evidence-source coverage.
+- Static validation: reports advertising `opendota_performance_context` must render the profile section.
+- Public refresh: regenerated and rebuilt all 18 reports; latest report is `Legion_Commander_8870219537_20260630_202728.html`.
+- Real-report acceptance: latest report shows 66% lane efficiency, 68% participation, 12m52s dead time (27.7%), one buyback, and now ranks death/objective evidence ahead of the 17th-percentile tower-damage hint.
+- Browser verification: in-app Chromium passed 1280x720 and 390x844; navigation interaction worked, four cards rendered, no overlap or horizontal overflow, and no console warnings/errors.
+- Local verification:
+  - New profile, report, static-checker, no-inference wording, and priority-order tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 95 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 2 closeout log.

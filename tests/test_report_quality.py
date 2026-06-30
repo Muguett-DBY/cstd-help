@@ -244,6 +244,13 @@ class ReportQualityTests(unittest.TestCase):
             if item["category"] == "hero_benchmark_gap"
         ]
         self.assertEqual(len(benchmark_findings), 1)
+        self.assertEqual(benchmark_findings[0]["priority"], "medium")
+        benchmark_index = result["review_findings"].index(benchmark_findings[0])
+        death_index = next(
+            index for index, item in enumerate(result["review_findings"])
+            if item["category"] == "death_review"
+        )
+        self.assertLess(death_index, benchmark_index)
         self.assertIn("英雄伤害/分钟 第18百分位", benchmark_findings[0]["evidence"])
         self.assertIn("补刀/分钟 第22百分位", benchmark_findings[0]["evidence"])
         self.assertIn("OpenDota英雄样本百分位", benchmark_findings[0]["replay_check"])
@@ -284,6 +291,104 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("第18百分位", html)
         self.assertIn("补刀/分钟", html)
         self.assertIn("第22百分位", html)
+
+    def test_opendota_performance_context_uses_real_match_fields_in_findings(self):
+        match = self._base_match()
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+            }],
+        }
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "lane_efficiency": 0.3969,
+                "lane_efficiency_pct": 39,
+                "teamfight_participation": 0.36,
+                "life_state_dead": 420,
+                "buyback_count": 1,
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data, opendota_data=opendota_data)
+        profile = result["performance_context"]
+
+        self.assertTrue(profile["available"])
+        self.assertEqual(profile["source"], "OpenDota对局汇总字段")
+        self.assertEqual(profile["lane_efficiency_pct"], 39)
+        self.assertEqual(profile["teamfight_participation_pct"], 36)
+        self.assertEqual(profile["dead_time_seconds"], 420)
+        self.assertEqual(profile["dead_time_label"], "7分00秒")
+        self.assertEqual(profile["dead_time_share_pct"], 20.0)
+        self.assertEqual(profile["average_dead_time_per_death_seconds"], 70)
+        self.assertEqual(profile["buyback_count"], 1)
+        self.assertIn("opendota_performance_context", result["data_quality"]["available"])
+        source = next(
+            item for item in result["data_quality"]["evidence_sources"]
+            if item["id"] == "performance_context"
+        )
+        self.assertEqual(source["status"], "available")
+        self.assertIn("对线效率39%", source["coverage"])
+
+        lane_finding = next(item for item in result["review_findings"] if item["category"] == "lane_farm")
+        map_finding = next(item for item in result["review_findings"] if item["category"] == "map_impact")
+        death_finding = next(item for item in result["review_findings"] if item["category"] == "death_review")
+        self.assertIn("OpenDota对线效率 39%", lane_finding["evidence"])
+        self.assertIn("提升到44%", lane_finding["action"])
+        self.assertIn("OpenDota参战率 36%", map_finding["evidence"])
+        self.assertIn("低于报告40%训练阈值", map_finding["why_it_matters"])
+        self.assertNotIn("说明", map_finding["why_it_matters"])
+        self.assertNotIn("空走", lane_finding["action"])
+        self.assertIn("死亡占时 7分00秒（20.0%）", death_finding["evidence"])
+        prompt = _build_analysis_prompt(result, "Anti-Mage", True)
+        self.assertIn("OpenDota 对局画像", prompt)
+        self.assertIn('"teamfight_participation_pct": 36', prompt)
+
+    def test_generated_report_shows_opendota_performance_context(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "lane_efficiency_pct": 66,
+                "teamfight_participation": 0.68,
+                "life_state_dead": 420,
+                "buyback_count": 1,
+            }],
+        }
+        analysis = analyze_match(match, opendota_data=opendota_data)
+
+        old_report_dir = generator.REPORT_DIR
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                generator.REPORT_DIR = tmpdir
+                report_path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+                with open(report_path, encoding="utf-8") as report_file:
+                    html = report_file.read()
+        finally:
+            generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("分路与参战画像", html)
+        self.assertIn("performance-context-grid", html)
+        self.assertIn("对线效率", html)
+        self.assertIn("66%", html)
+        self.assertIn("参战率", html)
+        self.assertIn("68%", html)
+        self.assertIn("死亡占时", html)
+        self.assertIn("7分00秒", html)
+        self.assertIn("买活次数", html)
+        self.assertIn("OpenDota对局汇总字段", html)
+        self.assertIn("不是职业均值", html)
 
     def test_generated_report_shows_real_objective_timeline(self):
         from report.generator import generate_report

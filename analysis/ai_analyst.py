@@ -102,6 +102,7 @@ def _build_analysis_prompt(analysis, hero_name, is_win):
     events = analysis.get("events", {})
     review_findings = analysis.get("review_findings", [])
     role_profile = analysis.get("role_profile", {})
+    performance_context = analysis.get("performance_context", {})
     result_text = "胜利" if is_win else "失败"
 
     prompt = f"""请分析以下DOTA2比赛数据并给出改进建议：
@@ -157,6 +158,9 @@ def _build_analysis_prompt(analysis, hero_name, is_win):
 
 ## 死亡/装备事件
 {_format_events(events)}
+
+## OpenDota 对局画像
+{json.dumps(performance_context, ensure_ascii=False, indent=2)}
 
 ## review_findings
 {json.dumps(review_findings, ensure_ascii=False, indent=2)}
