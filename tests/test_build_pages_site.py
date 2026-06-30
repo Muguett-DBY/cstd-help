@@ -237,6 +237,25 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_missing_decision_snapshot(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Anti_Mage_123.html").write_text(
+                "<html><head><title>Anti-Mage 复盘报告</title></head>"
+                "<body>下一局行动清单 finding-card high</body></html>",
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_decision_snapshot_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "Anti_Mage_123.html -> report with findings requires rendered 上分决策卡 decision snapshot",
+            ],
+        )
+
     def test_static_site_checker_classifies_support_pages_and_exports(self):
         support_pages = {
             "index.html",
@@ -737,8 +756,18 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".report-section-nav", stylesheet)
         self.assertIn(".skip-link", stylesheet)
         self.assertIn(".report-top-link", stylesheet)
+        self.assertIn(".decision-snapshot", stylesheet)
+        self.assertIn(".decision-snapshot-grid", stylesheet)
+        self.assertIn(".decision-tab", stylesheet)
+        self.assertIn(".decision-panel", stylesheet)
+        self.assertIn("[data-decision-panel][hidden]", stylesheet)
+        self.assertIn(".decision-jump-row", stylesheet)
         self.assertRegex(stylesheet, r"\.report-top-link\s*\{[^}]*position:\s*sticky")
         self.assertIn("#timeline-diagnosis table", stylesheet)
+        self.assertRegex(
+            stylesheet,
+            r"@media \(max-width: 720px\)[\s\S]*\.decision-snapshot-grid\s*\{[^}]*grid-template-columns:\s*1fr",
+        )
 
     def test_generated_coaching_pages_have_no_trailing_whitespace(self):
         metadata = {

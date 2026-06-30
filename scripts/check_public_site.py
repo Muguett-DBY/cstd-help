@@ -325,6 +325,27 @@ def _find_performance_context_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_decision_snapshot_issues(public_dir=PUBLIC_DIR):
+    issues = []
+    required = (
+        "上分决策卡",
+        'id="decision-snapshot"',
+        "decision-snapshot-grid",
+        'data-decision-tab="action"',
+        'data-decision-panel="validation"',
+        "decision-jump-row",
+    )
+    for report in _report_pages(public_dir):
+        text = report.read_text(encoding="utf-8")
+        if "finding-card" not in text and "下一局行动清单" not in text:
+            continue
+        if any(item not in text for item in required):
+            issues.append(
+                f"{report.name} -> report with findings requires rendered 上分决策卡 decision snapshot"
+            )
+    return issues
+
+
 def _find_report_text_quality_issues(public_dir=PUBLIC_DIR):
     issues = []
     for report in _report_pages(public_dir):
@@ -399,6 +420,11 @@ def main():
     if performance_context_issues:
         preview = "; ".join(performance_context_issues[:10])
         raise SystemExit(f"public performance context sections are incomplete: {preview}")
+
+    decision_snapshot_issues = _find_decision_snapshot_issues(PUBLIC_DIR)
+    if decision_snapshot_issues:
+        preview = "; ".join(decision_snapshot_issues[:10])
+        raise SystemExit(f"public decision snapshot sections are incomplete: {preview}")
 
     text_quality_issues = _find_report_text_quality_issues(PUBLIC_DIR)
     if text_quality_issues:

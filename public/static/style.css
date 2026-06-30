@@ -302,6 +302,160 @@ body {
 }
 .section-body { padding: 20px; }
 
+.decision-snapshot {
+    border-color: rgba(248,81,73,0.42);
+    background: linear-gradient(180deg, rgba(248,81,73,0.07), var(--bg-secondary) 42%);
+}
+.decision-snapshot.medium {
+    border-color: rgba(210,153,34,0.42);
+    background: linear-gradient(180deg, rgba(210,153,34,0.07), var(--bg-secondary) 42%);
+}
+.decision-snapshot.low {
+    border-color: rgba(63,185,80,0.38);
+    background: linear-gradient(180deg, rgba(63,185,80,0.06), var(--bg-secondary) 42%);
+}
+.decision-snapshot-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.9fr) minmax(220px, 0.9fr);
+    gap: 16px;
+    align-items: stretch;
+}
+.decision-main {
+    display: grid;
+    gap: 13px;
+    min-width: 0;
+}
+.decision-kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+}
+.decision-main h2 {
+    color: var(--text-primary);
+    font-size: 22px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+.decision-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.decision-tab {
+    min-height: 40px;
+    padding: 7px 12px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+}
+.decision-tab:hover,
+.decision-tab:focus-visible {
+    border-color: rgba(88,166,255,0.6);
+    color: var(--text-primary);
+    outline: none;
+}
+.decision-tab.active {
+    border-color: rgba(88,166,255,0.62);
+    background: rgba(88,166,255,0.13);
+    color: var(--text-primary);
+}
+.decision-panel {
+    display: grid;
+    gap: 6px;
+    min-height: 132px;
+    padding: 14px;
+    border: 1px solid rgba(88,166,255,0.22);
+    border-left: 3px solid var(--accent-red);
+    border-radius: 6px;
+    background: rgba(13,17,23,0.72);
+}
+.decision-snapshot.medium .decision-panel { border-left-color: var(--accent-yellow); }
+.decision-snapshot.low .decision-panel { border-left-color: var(--accent-green); }
+[data-decision-panel][hidden] {
+    display: none;
+}
+.decision-panel strong {
+    color: var(--text-primary);
+    font-size: 13px;
+}
+.decision-panel p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 15px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+.decision-panel small {
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+.decision-tab-status {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+.decision-evidence-rail {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+}
+.decision-rail-item {
+    display: grid;
+    gap: 3px;
+    min-height: 64px;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-primary);
+}
+.decision-rail-item span {
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+}
+.decision-rail-item strong {
+    color: var(--text-primary);
+    font-size: 15px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+.decision-jump-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+.decision-jump-row a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 6px 11px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 6px;
+    background: rgba(88,166,255,0.08);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+.decision-jump-row a:hover,
+.decision-jump-row a:focus-visible {
+    border-color: rgba(88,166,255,0.62);
+    background: rgba(88,166,255,0.14);
+    outline: none;
+}
+
 .stat-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -2432,6 +2586,23 @@ tr:hover { background: rgba(88,166,255,0.05); }
         display: grid;
         gap: 8px;
         margin-top: 12px;
+    }
+    .decision-snapshot-grid {
+        grid-template-columns: 1fr;
+    }
+    .decision-main h2 {
+        font-size: 19px;
+    }
+    .decision-tab {
+        flex: 1 1 126px;
+        min-height: 44px;
+    }
+    .decision-panel {
+        min-height: 0;
+    }
+    .decision-jump-row a {
+        flex: 1 1 calc(50% - 8px);
+        min-height: 42px;
     }
     .quality-row,
     .goal-row {

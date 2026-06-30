@@ -13,7 +13,7 @@
 
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
-<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 2 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Legion_Commander_8870219537_20260630_202728.html"><span class="neighbor-label">上一局（更新）</span><strong>Legion Commander #8870219537</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a><a class="neighbor-card" href="Dragon_Knight_8870145903_20260630_202728.html"><span class="neighbor-label">下一局（更早）</span><strong>Dragon Knight #8870145903</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a></div></nav>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 2 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Legion_Commander_8870219537_20260630_204657.html"><span class="neighbor-label">上一局（更新）</span><strong>Legion Commander #8870219537</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a><a class="neighbor-card" href="Dragon_Knight_8870145903_20260630_204658.html"><span class="neighbor-label">下一局（更早）</span><strong>Dragon Knight #8870145903</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a></div></nav>
         <h1>Death Prophet 复盘报告</h1>
         <div class="subtitle">比赛ID: 8870188563 | 结束于 2026-06-28 12:32 | 时长 30.6分钟</div>
         <div class="result-badge lose">失败</div>
@@ -22,6 +22,7 @@
     <nav class="report-section-nav" aria-label="报告章节">
         <div class="report-section-nav-track">
             <span class="report-section-nav-label">本局复盘</span>
+            <a class="report-section-link" href="#decision-snapshot" data-report-section-link>决策卡</a>
             <a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a>
             <a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>
             <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
@@ -36,6 +37,81 @@
     </nav>
 
     <main id="report-main">
+
+
+
+    <section class="section priority-section decision-snapshot high" id="decision-snapshot" data-decision-snapshot>
+        <div class="section-header">&#127919; 上分决策卡</div>
+        <div class="section-body">
+            <div class="decision-snapshot-grid">
+                <div class="decision-main">
+                    <div class="decision-kicker">
+                        <span class="priority-chip high">高优先级</span>
+                        <span>本局最该修</span>
+                    </div>
+                    <h2>死亡后目标损失</h2>
+                    <div class="decision-tabs" role="tablist" aria-label="上分决策视图" data-decision-tabs>
+                        <button type="button" class="decision-tab active" role="tab" aria-selected="true" aria-controls="decision-panel-action" data-decision-tab="action">下一局规则</button>
+                        <button type="button" class="decision-tab" role="tab" aria-selected="false" aria-controls="decision-panel-evidence" data-decision-tab="evidence">证据</button>
+                        <button type="button" class="decision-tab" role="tab" aria-selected="false" aria-controls="decision-panel-validation" data-decision-tab="validation">验收</button>
+                    </div>
+                    <div class="decision-panel active" id="decision-panel-action" role="tabpanel" data-decision-panel="action">
+                        <strong>下一局只执行</strong>
+                        <p>下一局每次准备处理基地防守或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。</p>
+                        <small>下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。</small>
+                    </div>
+                    <div class="decision-panel" id="decision-panel-evidence" role="tabpanel" data-decision-panel="evidence" hidden>
+                        <strong>本局证据</strong>
+                        <p>死亡后90秒内失去目标: 22.2分死亡 → 22.6分失去中路二塔（23秒）；22.2分死亡 → 23.4分失去下路二塔（74秒）；25.3分死亡 → 25.7分失去下路高地塔（24秒）；25.3分死亡 → 25.8分失去下路远程兵营（30秒）；25.3分死亡 → 26.0分失去下路近战兵营（42秒）。</p>
+                        <small>这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。</small>
+                    </div>
+                    <div class="decision-panel" id="decision-panel-validation" role="tabpanel" data-decision-panel="validation" hidden>
+                        <strong>赛后验收</strong>
+                        <p>死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</p>
+                        <small>系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。 优先回看：30.3分死亡 → 30.6分失去遗迹（17秒）；只确认死亡前90秒是否满足接应、控制露头、撤退路线三项条件。</small>
+                    </div>
+                    <div class="decision-tab-status" aria-live="polite" data-decision-status>当前显示：下一局规则</div>
+                </div>
+                <div class="decision-evidence-rail" aria-label="决策证据摘要">
+                    <div class="decision-rail-item">
+                        <span>证据覆盖</span>
+                        <strong>100/100</strong>
+                    </div>
+
+                    <div class="decision-rail-item">
+                        <span>死亡定位</span>
+                        <strong>已定位 6/6 次死亡</strong>
+                    </div>
+
+
+                    <div class="decision-rail-item">
+                        <span>死亡占时</span>
+                        <strong>4分12秒</strong>
+                    </div>
+
+
+                    <div class="decision-rail-item">
+                        <span>10分钟补刀</span>
+                        <strong>41</strong>
+                    </div>
+
+
+                    <div class="decision-rail-item">
+                        <span>低百分位项</span>
+                        <strong>3</strong>
+                    </div>
+
+                </div>
+            </div>
+            <div class="decision-jump-row" aria-label="相关证据入口">
+                <a href="#next-actions">行动清单</a>
+                <a href="#match-events">事件证据</a>
+                <a href="#timeline-diagnosis">时间线</a>
+                <a href="#performance-context">表现画像</a>
+            </div>
+        </div>
+    </section>
+
 
 
     <div class="section priority-section" id="coach-summary">
@@ -1214,11 +1290,45 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 20:27:28
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 20:46:57
     </div>
 
 </div>
 <script id="report-metadata" type="application/json">{"schema_version":1,"match_id":8870188563,"hero":{"id":43,"name":"Death Prophet","slug":"death_prophet"},"is_win":false,"side":"Dire","started_at":"2026-06-28T02:01:42Z","ended_at":"2026-06-28T02:32:18Z","duration_seconds":1836,"kda":{"kills":4,"deaths":6,"assists":10},"score":{"team":24,"enemy":43},"allies":[{"id":100,"name":"Tusk","slug":"tusk"},{"id":43,"name":"Death Prophet","slug":"death_prophet"},{"id":30,"name":"Witch Doctor","slug":"witch_doctor"},{"id":6,"name":"Drow Ranger","slug":"drow_ranger"},{"id":101,"name":"Skywrath Mage","slug":"skywrath_mage"}],"enemies":[{"id":73,"name":"Alchemist","slug":"alchemist"},{"id":4,"name":"Bloodseeker","slug":"bloodseeker"},{"id":63,"name":"Weaver","slug":"weaver"},{"id":85,"name":"Undying","slug":"undying"},{"id":106,"name":"Ember Spirit","slug":"ember_spirit"}]}</script>
+<script data-decision-tabs>
+(() => {
+    const labels = {
+        action: '下一局规则',
+        evidence: '证据',
+        validation: '验收'
+    };
+    document.querySelectorAll('[data-decision-snapshot]').forEach((snapshot) => {
+        const tabs = Array.from(snapshot.querySelectorAll('[data-decision-tab]'));
+        const panels = Array.from(snapshot.querySelectorAll('[data-decision-panel]'));
+        const status = snapshot.querySelector('[data-decision-status]');
+        if (!tabs.length || !panels.length) return;
+
+        const activate = (target) => {
+            tabs.forEach((tab) => {
+                const isActive = tab.dataset.decisionTab === target;
+                tab.classList.toggle('active', isActive);
+                tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+            panels.forEach((panel) => {
+                const isActive = panel.dataset.decisionPanel === target;
+                panel.hidden = !isActive;
+                panel.classList.toggle('active', isActive);
+            });
+            if (status) status.textContent = `当前显示：${labels[target] || '决策'}`;
+        };
+
+        tabs.forEach((tab) => {
+            tab.addEventListener('click', () => activate(tab.dataset.decisionTab || 'action'));
+        });
+        activate('action');
+    });
+})();
+</script>
 <script data-report-section-navigation>
 (() => {
     const links = Array.from(document.querySelectorAll('[data-report-section-link]'));

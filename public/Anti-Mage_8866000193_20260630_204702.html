@@ -13,7 +13,7 @@
 
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
-<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 17 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Anti-Mage_8866174845_20260630_202732.html"><span class="neighbor-label">上一局（更新）</span><strong>Anti-Mage #8866174845</strong><small>失败 · 高优先级 · 终结比赛</small></a><a class="neighbor-card" href="Meepo_8865878802_20260630_202732.html"><span class="neighbor-label">下一局（更早）</span><strong>Meepo #8865878802</strong><small>失败 · 高优先级 · 终结比赛</small></a></div></nav>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 17 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Anti-Mage_8866174845_20260630_204701.html"><span class="neighbor-label">上一局（更新）</span><strong>Anti-Mage #8866174845</strong><small>失败 · 高优先级 · 终结比赛</small></a><a class="neighbor-card" href="Meepo_8865878802_20260630_204702.html"><span class="neighbor-label">下一局（更早）</span><strong>Meepo #8865878802</strong><small>失败 · 高优先级 · 终结比赛</small></a></div></nav>
         <h1>Anti-Mage 复盘报告</h1>
         <div class="subtitle">比赛ID: 8866000193 | 结束于 2026-06-26 02:00 | 时长 34.4分钟</div>
         <div class="result-badge win">胜利</div>
@@ -22,6 +22,7 @@
     <nav class="report-section-nav" aria-label="报告章节">
         <div class="report-section-nav-track">
             <span class="report-section-nav-label">本局复盘</span>
+            <a class="report-section-link" href="#decision-snapshot" data-report-section-link>决策卡</a>
             <a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a>
             <a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>
             <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
@@ -36,6 +37,81 @@
     </nav>
 
     <main id="report-main">
+
+
+
+    <section class="section priority-section decision-snapshot high" id="decision-snapshot" data-decision-snapshot>
+        <div class="section-header">&#127919; 上分决策卡</div>
+        <div class="section-body">
+            <div class="decision-snapshot-grid">
+                <div class="decision-main">
+                    <div class="decision-kicker">
+                        <span class="priority-chip high">高优先级</span>
+                        <span>本局最该修</span>
+                    </div>
+                    <h2>前10分钟资源</h2>
+                    <div class="decision-tabs" role="tablist" aria-label="上分决策视图" data-decision-tabs>
+                        <button type="button" class="decision-tab active" role="tab" aria-selected="true" aria-controls="decision-panel-action" data-decision-tab="action">下一局规则</button>
+                        <button type="button" class="decision-tab" role="tab" aria-selected="false" aria-controls="decision-panel-evidence" data-decision-tab="evidence">证据</button>
+                        <button type="button" class="decision-tab" role="tab" aria-selected="false" aria-controls="decision-panel-validation" data-decision-tab="validation">验收</button>
+                    </div>
+                    <div class="decision-panel active" id="decision-panel-action" role="tabpanel" data-decision-panel="action">
+                        <strong>下一局只执行</strong>
+                        <p>下一局前10分钟优先保证安全线和附近野区连续收取，除非队友明确形成高胜率击杀。</p>
+                        <small>下一局先把前10分钟低效率窗口清零，再冲10分钟60补。</small>
+                    </div>
+                    <div class="decision-panel" id="decision-panel-evidence" role="tabpanel" data-decision-panel="evidence" hidden>
+                        <strong>本局证据</strong>
+                        <p>10分钟补刀 55，前10分钟低效率窗口 1 个。</p>
+                        <small>核心位前10分钟资源会直接影响第一件关键装备和之后能否接管地图。</small>
+                    </div>
+                    <div class="decision-panel" id="decision-panel-validation" role="tabpanel" data-decision-panel="validation" hidden>
+                        <strong>赛后验收</strong>
+                        <p>10分钟补刀>=60；前10分钟低效率窗口=0。</p>
+                        <small>系统按低效率窗口标记异常分钟，并使用OpenDota对线效率汇总字段交叉验收；汇总值不判断效率下降原因。</small>
+                    </div>
+                    <div class="decision-tab-status" aria-live="polite" data-decision-status>当前显示：下一局规则</div>
+                </div>
+                <div class="decision-evidence-rail" aria-label="决策证据摘要">
+                    <div class="decision-rail-item">
+                        <span>证据覆盖</span>
+                        <strong>100/100</strong>
+                    </div>
+
+                    <div class="decision-rail-item">
+                        <span>死亡定位</span>
+                        <strong>已定位 1/1 次死亡</strong>
+                    </div>
+
+
+                    <div class="decision-rail-item">
+                        <span>死亡占时</span>
+                        <strong>0分32秒</strong>
+                    </div>
+
+
+                    <div class="decision-rail-item">
+                        <span>10分钟补刀</span>
+                        <strong>55</strong>
+                    </div>
+
+
+                    <div class="decision-rail-item">
+                        <span>低百分位项</span>
+                        <strong>0</strong>
+                    </div>
+
+                </div>
+            </div>
+            <div class="decision-jump-row" aria-label="相关证据入口">
+                <a href="#next-actions">行动清单</a>
+                <a href="#match-events">事件证据</a>
+                <a href="#timeline-diagnosis">时间线</a>
+                <a href="#performance-context">表现画像</a>
+            </div>
+        </div>
+    </section>
+
 
 
     <div class="section priority-section" id="coach-summary">
@@ -954,11 +1030,45 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 20:27:32
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 20:47:02
     </div>
 
 </div>
 <script id="report-metadata" type="application/json">{"schema_version":1,"match_id":8866000193,"hero":{"id":1,"name":"Anti-Mage","slug":"antimage"},"is_win":true,"side":"Radiant","started_at":"2026-06-25T15:26:16Z","ended_at":"2026-06-25T16:00:37Z","duration_seconds":2061,"kda":{"kills":14,"deaths":1,"assists":6},"score":{"team":41,"enemy":21},"allies":[{"id":51,"name":"Clockwerk","slug":"rattletrap"},{"id":1,"name":"Anti-Mage","slug":"antimage"},{"id":26,"name":"Lion","slug":"lion"},{"id":126,"name":"Void Spirit","slug":"void_spirit"},{"id":20,"name":"Vengeful Spirit","slug":"vengefulspirit"}],"enemies":[{"id":17,"name":"Storm Spirit","slug":"storm_spirit"},{"id":93,"name":"Slark","slug":"slark"},{"id":120,"name":"Pangolier","slug":"pangolier"},{"id":71,"name":"Spirit Breaker","slug":"spirit_breaker"},{"id":35,"name":"Sniper","slug":"sniper"}]}</script>
+<script data-decision-tabs>
+(() => {
+    const labels = {
+        action: '下一局规则',
+        evidence: '证据',
+        validation: '验收'
+    };
+    document.querySelectorAll('[data-decision-snapshot]').forEach((snapshot) => {
+        const tabs = Array.from(snapshot.querySelectorAll('[data-decision-tab]'));
+        const panels = Array.from(snapshot.querySelectorAll('[data-decision-panel]'));
+        const status = snapshot.querySelector('[data-decision-status]');
+        if (!tabs.length || !panels.length) return;
+
+        const activate = (target) => {
+            tabs.forEach((tab) => {
+                const isActive = tab.dataset.decisionTab === target;
+                tab.classList.toggle('active', isActive);
+                tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+            panels.forEach((panel) => {
+                const isActive = panel.dataset.decisionPanel === target;
+                panel.hidden = !isActive;
+                panel.classList.toggle('active', isActive);
+            });
+            if (status) status.textContent = `当前显示：${labels[target] || '决策'}`;
+        };
+
+        tabs.forEach((tab) => {
+            tab.addEventListener('click', () => activate(tab.dataset.decisionTab || 'action'));
+        });
+        activate('action');
+    });
+})();
+</script>
 <script data-report-section-navigation>
 (() => {
     const links = Array.from(document.querySelectorAll('[data-report-section-link]'));
