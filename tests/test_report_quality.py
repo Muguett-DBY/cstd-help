@@ -112,6 +112,89 @@ class ReportQualityTests(unittest.TestCase):
             "Silencer", "Sand King", "Axe", "Largo", "Drow Ranger",
         ])
 
+    def test_opendota_objectives_build_auditable_team_timeline(self):
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+            }],
+            "objectives": [
+                {
+                    "time": 600,
+                    "type": "building_kill",
+                    "key": "npc_dota_badguys_tower1_mid",
+                    "player_slot": 1,
+                },
+                {
+                    "time": 900,
+                    "type": "building_kill",
+                    "key": "npc_dota_goodguys_tower2_bot",
+                    "player_slot": 129,
+                },
+                {"time": 1200, "type": "CHAT_MESSAGE_ROSHAN_KILL", "team": 2},
+                {"time": 1201, "type": "CHAT_MESSAGE_AEGIS", "player_slot": 1},
+            ],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        objectives = result["events"]["objectives"]
+
+        self.assertEqual([item["label"] for item in objectives], [
+            "中路一塔", "下路二塔", "肉山", "不朽盾",
+        ])
+        self.assertEqual([item["outcome"] for item in objectives], [
+            "gained", "lost", "gained", "gained",
+        ])
+        self.assertTrue(objectives[0]["player_direct"])
+        self.assertTrue(objectives[3]["player_direct"])
+        self.assertEqual(result["events"]["objective_summary"], {
+            "gained": 3,
+            "lost": 1,
+            "player_direct": 2,
+            "total": 4,
+        })
+        self.assertEqual(result["events"]["objective_source"], "opendota_objectives")
+
+    def test_generated_report_shows_real_objective_timeline(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+            }],
+            "objectives": [
+                {
+                    "time": 600,
+                    "type": "building_kill",
+                    "key": "npc_dota_badguys_tower1_mid",
+                    "player_slot": 1,
+                },
+                {"time": 1200, "type": "CHAT_MESSAGE_ROSHAN_KILL", "team": 3},
+            ],
+        }
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            analysis = analyze_match(match, opendota_data=opendota_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+        generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("目标事件时间线", html)
+        self.assertIn("10.0分", html)
+        self.assertIn("中路一塔", html)
+        self.assertIn("本人直接参与", html)
+        self.assertIn("20.0分", html)
+        self.assertIn("失去肉山", html)
+
     def test_opendota_lane_is_labeled_without_guessing_numbered_position(self):
         match = self._base_match()
         match["hero_id"] = 9

@@ -618,6 +618,7 @@ def _timeline_source_label(source):
 def _event_source_label(source):
     labels = {
         "opendota_parsed_logs": "OpenDota解析日志",
+        "opendota_objectives": "OpenDota目标事件",
         "opendota_teamfights": "OpenDota团战事件",
         "opendota_vision": "OpenDota视野事件",
         "stratz_playback": "STRATZ回放事件",
@@ -1022,6 +1023,100 @@ def _extract_deaths_from_teamfights(opendota_data, opendota_player):
     return sorted(deaths, key=lambda item: item["time"])
 
 
+def _objective_building_label(key):
+    key = str(key or "")
+    lane = next((label for token, label in (
+        ("_top", "上路"),
+        ("_mid", "中路"),
+        ("_bot", "下路"),
+    ) if token in key), "")
+    if "tower1" in key:
+        return f"{lane}一塔", "tower"
+    if "tower2" in key:
+        return f"{lane}二塔", "tower"
+    if "tower3" in key:
+        return f"{lane}高地塔", "tower"
+    if "tower4" in key:
+        return "基地塔", "tower"
+    if "melee_rax" in key:
+        return f"{lane}近战兵营", "barracks"
+    if "range_rax" in key:
+        return f"{lane}远程兵营", "barracks"
+    if key.endswith("_fort"):
+        return "遗迹", "ancient"
+    return "建筑目标", "building"
+
+
+def _normalize_opendota_objectives(opendota_data, opendota_player):
+    player_slot = (opendota_player or {}).get("player_slot")
+    if not isinstance(player_slot, int):
+        return []
+    player_is_radiant = player_slot < 128
+    normalized = []
+    for event in (opendota_data or {}).get("objectives") or []:
+        if not isinstance(event, dict):
+            continue
+        event_time = event.get("time")
+        event_type = event.get("type")
+        if not isinstance(event_time, (int, float)) or event_time < 0:
+            continue
+
+        objective_team_is_radiant = None
+        kind = None
+        label = None
+        direct_label = None
+        if event_type == "building_kill":
+            key = str(event.get("key") or "")
+            if "badguys" in key:
+                objective_team_is_radiant = True
+            elif "goodguys" in key:
+                objective_team_is_radiant = False
+            else:
+                continue
+            label, kind = _objective_building_label(key)
+            direct_label = "本人最后一击"
+        elif event_type == "CHAT_MESSAGE_ROSHAN_KILL":
+            objective_team_is_radiant = event.get("team") == 2
+            kind = "roshan"
+            label = "肉山"
+        elif event_type == "CHAT_MESSAGE_AEGIS":
+            holder_slot = event.get("player_slot")
+            if not isinstance(holder_slot, int):
+                continue
+            objective_team_is_radiant = holder_slot < 128
+            kind = "aegis"
+            label = "不朽盾"
+            direct_label = "本人持盾"
+        elif event_type == "CHAT_MESSAGE_MINIBOSS_KILL":
+            if event.get("team") not in (2, 3):
+                continue
+            objective_team_is_radiant = event.get("team") == 2
+            kind = "tormentor"
+            label = "折磨者"
+        else:
+            continue
+
+        outcome = "gained" if objective_team_is_radiant == player_is_radiant else "lost"
+        event_player_slot = event.get("player_slot")
+        player_direct = isinstance(event_player_slot, int) and event_player_slot == player_slot
+        normalized.append({
+            "time": event_time,
+            "minute": round(event_time / 60, 1),
+            "kind": kind,
+            "label": label,
+            "outcome": outcome,
+            "outcome_label": "我方获取" if outcome == "gained" else "我方失去",
+            "display_label": f"{'获取' if outcome == 'gained' else '失去'}{label}",
+            "team": "Radiant" if objective_team_is_radiant else "Dire",
+            "player_direct": player_direct,
+            "direct_label": direct_label if player_direct else None,
+            "source": "opendota_objectives",
+            "raw_type": event_type,
+            "raw_key": event.get("key"),
+        })
+    return sorted(normalized, key=lambda item: item["time"])
+
+
 def _build_events(stratz_player, opendota_player=None, opendota_data=None, expected_deaths=0):
     playback = (stratz_player or {}).get("playbackData") or {}
     stratz_purchases = _normalize_timed_events(playback.get("purchaseEvents"), item_events=True, source="stratz")
@@ -1053,6 +1148,9 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         opendota_sentry_wards = _normalize_opendota_vision_events(opendota_player.get("sen_log"), "sentry")
 
     source_parts = set()
+    objectives = _normalize_opendota_objectives(opendota_data, opendota_player)
+    if objectives:
+        source_parts.add("opendota_objectives")
 
     purchases = opendota_purchases or stratz_purchases
     purchase_source = None
@@ -1119,6 +1217,12 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     fight_source = "+".join(fight_sources) if fight_sources else None
 
     source = "+".join(sorted(source_parts)) if source_parts else None
+    objective_summary = {
+        "gained": sum(item["outcome"] == "gained" for item in objectives),
+        "lost": sum(item["outcome"] == "lost" for item in objectives),
+        "player_direct": sum(bool(item.get("player_direct")) for item in objectives),
+        "total": len(objectives),
+    }
     expected_deaths = int(expected_deaths or 0)
     observed_deaths = len(deaths)
     missing_deaths = max(expected_deaths - observed_deaths, 0)
@@ -1158,6 +1262,10 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         "observer_wards": opendota_observer_wards,
         "sentry_wards": opendota_sentry_wards,
         "vision_events": sorted(vision_events, key=lambda item: item["time"]),
+        "objective_source": "opendota_objectives" if objectives else None,
+        "objectives": objectives,
+        "objective_summary": objective_summary,
+        "has_objective_log": bool(objectives),
         "has_purchase_timeline": bool(purchases),
         "has_fight_log": bool(deaths or kills or assists),
         "has_vision_log": bool(vision_events),
@@ -1997,6 +2105,7 @@ def _build_evidence_sources(result):
     )
     fight_count = len(events.get("kills") or []) + len(events.get("assists") or [])
     vision_count = len(events.get("vision_events") or [])
+    objective_count = len(events.get("objectives") or [])
 
     return [
         {
@@ -2046,6 +2155,13 @@ def _build_evidence_sources(result):
             "status": "available" if fight_count else "missing",
         },
         {
+            "id": "objectives",
+            "label": "地图目标事件",
+            "source": _event_source_label(events.get("objective_source")),
+            "coverage": f"{objective_count}条塔、兵营、肉山、盾或折磨者事件" if objective_count else "未获取地图目标事件",
+            "status": "available" if objective_count else "missing",
+        },
+        {
             "id": "vision_events",
             "label": "视野事件",
             "source": _event_source_label(events.get("vision_source")),
@@ -2087,6 +2203,7 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
     has_purchase_log = bool(match_data.get("purchase_log") or events.get("has_purchase_timeline"))
     has_fight_log = bool(match_data.get("kills_log") or events.get("has_fight_log"))
     has_vision_log = bool(events.get("has_vision_log"))
+    has_objective_log = bool(events.get("has_objective_log"))
 
     if has_lh_timeline and has_gold_timeline:
         available.append("lane_timeline")
@@ -2128,6 +2245,12 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
     if has_vision_log:
         available.append("vision_events")
         score += 7
+
+    if has_objective_log:
+        available.append("opendota_objectives")
+        score += 8
+    else:
+        limitations.append("缺少地图目标事件，不能还原推塔、兵营、肉山和不朽盾时间线")
 
     expected_deaths = (result.get("kda") or {}).get("deaths", 0) or 0
     observed_deaths = (result.get("events") or {}).get("death_count_observed")

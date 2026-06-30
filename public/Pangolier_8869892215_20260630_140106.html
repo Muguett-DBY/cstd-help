@@ -13,7 +13,7 @@
 
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
-<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 5 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Beastmaster_8870116015_20260630_132753.html"><span class="neighbor-label">上一局（更新）</span><strong>Beastmaster #8870116015</strong><small>胜利 · 高优先级 · 死亡成本</small></a><a class="neighbor-card" href="Chaos_Knight_8869500868_20260630_132754.html"><span class="neighbor-label">下一局（更早）</span><strong>Chaos Knight #8869500868</strong><small>失败 · 高优先级 · 死亡成本</small></a></div></nav>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 5 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Beastmaster_8870116015_20260630_140106.html"><span class="neighbor-label">上一局（更新）</span><strong>Beastmaster #8870116015</strong><small>胜利 · 高优先级 · 死亡成本</small></a><a class="neighbor-card" href="Chaos_Knight_8869500868_20260630_140106.html"><span class="neighbor-label">下一局（更早）</span><strong>Chaos Knight #8869500868</strong><small>失败 · 高优先级 · 死亡成本</small></a></div></nav>
         <h1>Pangolier 复盘报告</h1>
         <div class="subtitle">比赛ID: 8869892215 | 结束于 2026-06-28 07:52 | 时长 69.2分钟</div>
         <div class="result-badge win">胜利</div>
@@ -133,7 +133,7 @@
             <div class="quality-row">
                 <div class="quality-score">100/100</div>
                 <div>
-                    <div class="quality-label">可用数据：opendota_core_stats, final_item_slots, ability_build, stratz_player_detail, draft_context, lane_timeline, purchase_timeline, opendota_event_logs, stratz_playback, fight_log, stratz_position_samples, vision_events</div>
+                    <div class="quality-label">可用数据：opendota_core_stats, final_item_slots, ability_build, stratz_player_detail, draft_context, lane_timeline, purchase_timeline, opendota_event_logs, stratz_playback, fight_log, stratz_position_samples, vision_events, opendota_objectives</div>
                     <div class="quality-label">数据缺口</div>
 
                     <ul class="limitation-list">
@@ -193,6 +193,14 @@
                     <div class="evidence-source-detail">
                         <span class="evidence-source-origin">OpenDota解析日志 + STRATZ回放事件</span>
                         <span class="evidence-source-coverage">32条个人击杀/助攻事件</span>
+                    </div>
+                </div>
+
+                <div class="evidence-source-row available">
+                    <div class="evidence-source-name">地图目标事件</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">OpenDota目标事件</span>
+                        <span class="evidence-source-coverage">38条塔、兵营、肉山、盾或折磨者事件</span>
                     </div>
                 </div>
 
@@ -524,6 +532,247 @@
     <div class="section" id="match-events">
         <div class="section-header">&#9201; 死亡/装备事件</div>
         <div class="section-body">
+            <div class="subsection-title" id="objective-event-timeline">目标事件时间线</div>
+
+            <div class="death-review-summary objective-summary" aria-label="目标事件摘要">
+                <div class="death-review-metric"><strong>24</strong><span>我方获取</span></div>
+                <div class="death-review-metric"><strong>14</strong><span>我方失去</span></div>
+                <div class="death-review-metric"><strong>0</strong><span>本人直接参与</span></div>
+                <div class="death-review-metric"><strong>38</strong><span>目标事件</span></div>
+            </div>
+            <div class="objective-event-list">
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="tower">
+                    <span class="event-pill danger">9.3分</span>
+                    <strong>失去上路一塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="tower">
+                    <span class="event-pill danger">15.2分</span>
+                    <strong>失去中路一塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="tower">
+                    <span class="event-pill danger">16.1分</span>
+                    <strong>失去下路一塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
+                    <span class="event-pill">24.2分</span>
+                    <strong>获取中路一塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
+                    <span class="event-pill">27.3分</span>
+                    <strong>获取下路一塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="roshan">
+                    <span class="event-pill">29.1分</span>
+                    <strong>获取肉山</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="aegis">
+                    <span class="event-pill">29.1分</span>
+                    <strong>获取不朽盾</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
+                    <span class="event-pill">35.0分</span>
+                    <strong>获取上路一塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="tower">
+                    <span class="event-pill danger">36.3分</span>
+                    <strong>失去上路二塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="tower">
+                    <span class="event-pill danger">36.8分</span>
+                    <strong>失去上路高地塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="tower">
+                    <span class="event-pill danger">39.5分</span>
+                    <strong>失去下路二塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="roshan">
+                    <span class="event-pill danger">40.9分</span>
+                    <strong>失去肉山</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="aegis">
+                    <span class="event-pill danger">41.1分</span>
+                    <strong>失去不朽盾</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
+                    <span class="event-pill">42.9分</span>
+                    <strong>获取中路二塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
+                    <span class="event-pill">42.9分</span>
+                    <strong>获取下路二塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
+                    <span class="event-pill">43.6分</span>
+                    <strong>获取中路高地塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
+                    <span class="event-pill">43.7分</span>
+                    <strong>获取中路远程兵营</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
+                    <span class="event-pill">43.8分</span>
+                    <strong>获取中路近战兵营</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
+                    <span class="event-pill">44.1分</span>
+                    <strong>获取下路高地塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
+                    <span class="event-pill">44.2分</span>
+                    <strong>获取下路近战兵营</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
+                    <span class="event-pill">44.3分</span>
+                    <strong>获取下路远程兵营</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="tower">
+                    <span class="event-pill danger">49.6分</span>
+                    <strong>失去中路二塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
+                    <span class="event-pill">52.0分</span>
+                    <strong>获取上路二塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="tower">
+                    <span class="event-pill danger">53.8分</span>
+                    <strong>失去中路高地塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="barracks">
+                    <span class="event-pill danger">54.0分</span>
+                    <strong>失去中路近战兵营</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="barracks">
+                    <span class="event-pill danger">54.0分</span>
+                    <strong>失去中路远程兵营</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="roshan">
+                    <span class="event-pill">55.7分</span>
+                    <strong>获取肉山</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="aegis">
+                    <span class="event-pill">55.8分</span>
+                    <strong>获取不朽盾</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="barracks">
+                    <span class="event-pill danger">61.1分</span>
+                    <strong>失去上路近战兵营</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row lost" data-objective-kind="barracks">
+                    <span class="event-pill danger">61.2分</span>
+                    <strong>失去上路远程兵营</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
+                    <span class="event-pill">61.8分</span>
+                    <strong>获取上路高地塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
+                    <span class="event-pill">65.3分</span>
+                    <strong>获取上路近战兵营</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
+                    <span class="event-pill">66.0分</span>
+                    <strong>获取上路远程兵营</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
+                    <span class="event-pill">66.5分</span>
+                    <strong>获取基地塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="roshan">
+                    <span class="event-pill">66.8分</span>
+                    <strong>获取肉山</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="aegis">
+                    <span class="event-pill">66.9分</span>
+                    <strong>获取不朽盾</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
+                    <span class="event-pill">68.4分</span>
+                    <strong>获取基地塔</strong>
+
+                </div>
+
+                <div class="compact-row objective-event-row gained" data-objective-kind="ancient">
+                    <span class="event-pill">69.2分</span>
+                    <strong>获取遗迹</strong>
+
+                </div>
+
+            </div>
+            <div class="compact-row muted">来源：OpenDota 目标事件；“本人直接参与”仅表示事件记录中的本人最后一击或持盾，不代表整段目标决策归因。</div>
+
             <div class="subsection-title">关键购买</div>
 
             <div class="event-list">
@@ -852,7 +1101,7 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 13:27:54
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 14:01:06
     </div>
 
 </div>
