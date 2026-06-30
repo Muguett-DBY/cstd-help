@@ -239,6 +239,17 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("死亡后目标窗口", html)
         self.assertIn("19.0分死亡 → 20.0分失去肉山（60秒）", html)
         self.assertIn("只表示时间相邻", html)
+        self.assertIn("objective-review-workbench", html)
+        self.assertIn('data-objective-filter="all"', html)
+        self.assertIn('data-objective-filter="gained"', html)
+        self.assertIn('data-objective-filter="lost"', html)
+        self.assertIn('data-objective-filter="direct"', html)
+        self.assertIn('id="objective-event-list"', html)
+        self.assertIn('data-objective-outcome="gained"', html)
+        self.assertIn('data-objective-direct="true"', html)
+        self.assertIn('aria-live="polite"', html)
+        self.assertIn('data-objective-filtering', html)
+        self.assertIn('href="#death-objective-windows"', html)
 
     def test_opendota_lane_is_labeled_without_guessing_numbered_position(self):
         match = self._base_match()

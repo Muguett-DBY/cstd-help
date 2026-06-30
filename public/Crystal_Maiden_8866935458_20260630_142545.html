@@ -13,7 +13,7 @@
 
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
-<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 11 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Mirana_8867002237_20260630_141039.html"><span class="neighbor-label">上一局（更新）</span><strong>Mirana #8867002237</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a><a class="neighbor-card" href="Gyrocopter_8866888706_20260630_141039.html"><span class="neighbor-label">下一局（更早）</span><strong>Gyrocopter #8866888706</strong><small>失败 · 高优先级 · 前10分钟资源</small></a></div></nav>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 11 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Mirana_8867002237_20260630_142545.html"><span class="neighbor-label">上一局（更新）</span><strong>Mirana #8867002237</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a><a class="neighbor-card" href="Gyrocopter_8866888706_20260630_142546.html"><span class="neighbor-label">下一局（更早）</span><strong>Gyrocopter #8866888706</strong><small>失败 · 高优先级 · 前10分钟资源</small></a></div></nav>
         <h1>Crystal Maiden 复盘报告</h1>
         <div class="subtitle">比赛ID: 8866935458 | 结束于 2026-06-26 19:13 | 时长 40.5分钟</div>
         <div class="result-badge win">胜利</div>
@@ -553,177 +553,218 @@
 
 
     <div class="section" id="match-events">
-        <div class="section-header">&#9201; 死亡/装备事件</div>
+        <div class="section-header">&#9201; 目标/死亡/装备事件</div>
         <div class="section-body">
             <div class="subsection-title" id="objective-event-timeline">目标事件时间线</div>
 
-            <div class="death-review-summary objective-summary" aria-label="目标事件摘要">
-                <div class="death-review-metric"><strong>20</strong><span>我方获取</span></div>
-                <div class="death-review-metric"><strong>4</strong><span>我方失去</span></div>
-                <div class="death-review-metric"><strong>0</strong><span>本人直接参与</span></div>
-                <div class="death-review-metric"><strong>24</strong><span>目标事件</span></div>
+            <div class="objective-review-workbench" data-objective-review-workbench>
+                <div class="event-evidence-toolbar" aria-label="目标与死亡证据快捷入口">
+                    <a href="#objective-event-timeline">目标列表</a>
+                    <a href="#death-objective-windows">死亡后目标</a>
+                    <a href="#death-event-list">死亡列表</a>
+                    <a href="#death-coordinate-map">坐标图</a>
+                </div>
+                <div class="death-review-summary objective-summary" aria-label="目标事件摘要">
+                    <div class="death-review-metric"><strong>20</strong><span>我方获取</span></div>
+                    <div class="death-review-metric"><strong>4</strong><span>我方失去</span></div>
+                    <div class="death-review-metric"><strong>0</strong><span>本人直接参与</span></div>
+                    <div class="death-review-metric"><strong>24</strong><span>目标事件</span></div>
+                </div>
+                <div class="objective-filter-panel" aria-label="目标事件筛选">
+                    <div class="objective-filter-row" role="group" aria-label="目标事件筛选">
+                        <button type="button" class="objective-filter-button active" data-objective-filter="all" aria-pressed="true" aria-controls="objective-event-list">全部</button>
+                        <button type="button" class="objective-filter-button" data-objective-filter="gained" aria-pressed="false" aria-controls="objective-event-list">我方获取</button>
+                        <button type="button" class="objective-filter-button" data-objective-filter="lost" aria-pressed="false" aria-controls="objective-event-list">我方失去</button>
+                        <button type="button" class="objective-filter-button" data-objective-filter="direct" aria-pressed="false" aria-controls="objective-event-list">本人参与</button>
+                    </div>
+                    <div class="objective-filter-status" aria-live="polite" data-objective-filter-status>正在显示 24 条目标事件</div>
+                </div>
+                <div class="objective-event-list" id="objective-event-list">
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">12.2分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路一塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">14.3分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去下路一塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">15.4分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去中路一塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">16.6分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去上路一塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">17.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取下路一塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">19.6分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取上路一塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tormentor" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">24.4分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去折磨者</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">33.4分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取下路二塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">33.8分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路二塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="roshan" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">34.8分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取肉山</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="aegis" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">34.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取不朽盾</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">35.0分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取上路二塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">36.0分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取上路高地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">36.8分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路高地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">36.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取上路近战兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">36.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路远程兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">37.0分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取上路远程兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">37.0分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路近战兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">39.8分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取下路高地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">39.8分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取下路近战兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">39.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取下路远程兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">40.2分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取基地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">40.3分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取基地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="ancient" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">40.5分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取遗迹</strong>
+
+                    </div>
+
+                </div>
+                <div class="compact-row muted">来源：OpenDota 目标事件；“本人直接参与”仅表示事件记录中的本人最后一击或持盾，不代表整段目标决策归因。</div>
+
+                <div class="subsection-title" id="death-objective-windows">死亡后目标窗口</div>
+                <div class="objective-window-list">
+
+                    <div class="compact-row objective-window-row">
+                        <span class="event-pill danger">14.5分死亡</span>
+                        <strong>失去中路一塔</strong>
+                        <span>15.4分 · 相隔54秒</span>
+                    </div>
+
+                </div>
+                <div class="compact-row muted">该窗口只表示时间相邻：真实死亡发生后90秒内记录到目标损失，不代表死亡造成目标损失。</div>
+
             </div>
-            <div class="objective-event-list">
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
-                    <span class="event-pill">12.2分</span>
-                    <strong>获取中路一塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row lost" data-objective-kind="tower">
-                    <span class="event-pill danger">14.3分</span>
-                    <strong>失去下路一塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row lost" data-objective-kind="tower">
-                    <span class="event-pill danger">15.4分</span>
-                    <strong>失去中路一塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row lost" data-objective-kind="tower">
-                    <span class="event-pill danger">16.6分</span>
-                    <strong>失去上路一塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
-                    <span class="event-pill">17.9分</span>
-                    <strong>获取下路一塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
-                    <span class="event-pill">19.6分</span>
-                    <strong>获取上路一塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row lost" data-objective-kind="tormentor">
-                    <span class="event-pill danger">24.4分</span>
-                    <strong>失去折磨者</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
-                    <span class="event-pill">33.4分</span>
-                    <strong>获取下路二塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
-                    <span class="event-pill">33.8分</span>
-                    <strong>获取中路二塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="roshan">
-                    <span class="event-pill">34.8分</span>
-                    <strong>获取肉山</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="aegis">
-                    <span class="event-pill">34.9分</span>
-                    <strong>获取不朽盾</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
-                    <span class="event-pill">35.0分</span>
-                    <strong>获取上路二塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
-                    <span class="event-pill">36.0分</span>
-                    <strong>获取上路高地塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
-                    <span class="event-pill">36.8分</span>
-                    <strong>获取中路高地塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
-                    <span class="event-pill">36.9分</span>
-                    <strong>获取上路近战兵营</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
-                    <span class="event-pill">36.9分</span>
-                    <strong>获取中路远程兵营</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
-                    <span class="event-pill">37.0分</span>
-                    <strong>获取上路远程兵营</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
-                    <span class="event-pill">37.0分</span>
-                    <strong>获取中路近战兵营</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
-                    <span class="event-pill">39.8分</span>
-                    <strong>获取下路高地塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
-                    <span class="event-pill">39.8分</span>
-                    <strong>获取下路近战兵营</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="barracks">
-                    <span class="event-pill">39.9分</span>
-                    <strong>获取下路远程兵营</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
-                    <span class="event-pill">40.2分</span>
-                    <strong>获取基地塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="tower">
-                    <span class="event-pill">40.3分</span>
-                    <strong>获取基地塔</strong>
-
-                </div>
-
-                <div class="compact-row objective-event-row gained" data-objective-kind="ancient">
-                    <span class="event-pill">40.5分</span>
-                    <strong>获取遗迹</strong>
-
-                </div>
-
-            </div>
-            <div class="compact-row muted">来源：OpenDota 目标事件；“本人直接参与”仅表示事件记录中的本人最后一击或持盾，不代表整段目标决策归因。</div>
-
-            <div class="subsection-title" id="death-objective-windows">死亡后目标窗口</div>
-            <div class="objective-window-list">
-
-                <div class="compact-row objective-window-row">
-                    <span class="event-pill danger">14.5分死亡</span>
-                    <strong>失去中路一塔</strong>
-                    <span>15.4分 · 相隔54秒</span>
-                </div>
-
-            </div>
-            <div class="compact-row muted">该窗口只表示时间相邻：真实死亡发生后90秒内记录到目标损失，不代表死亡造成目标损失。</div>
-
 
             <div class="subsection-title">关键购买</div>
 
@@ -1032,7 +1073,7 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 14:10:39
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 14:25:45
     </div>
 
 </div>
@@ -1082,6 +1123,50 @@
 
     const initialId = window.location.hash.slice(1) || sections[0].id;
     activate(initialId);
+})();
+</script>
+<script data-objective-filtering>
+(() => {
+    const workbenches = Array.from(document.querySelectorAll('[data-objective-review-workbench]'));
+    const labels = {
+        all: '全部',
+        gained: '我方获取',
+        lost: '我方失去',
+        direct: '本人直接参与'
+    };
+
+    workbenches.forEach((workbench) => {
+        const buttons = Array.from(workbench.querySelectorAll('[data-objective-filter]'));
+        const rows = Array.from(workbench.querySelectorAll('[data-objective-row]'));
+        const status = workbench.querySelector('[data-objective-filter-status]');
+        if (!buttons.length || !rows.length) return;
+
+        const applyFilter = (filter) => {
+            let visible = 0;
+            rows.forEach((row) => {
+                const matches = filter === 'all'
+                    || row.dataset.objectiveOutcome === filter
+                    || (filter === 'direct' && row.dataset.objectiveDirect === 'true');
+                row.hidden = !matches;
+                if (matches) visible += 1;
+            });
+
+            buttons.forEach((button) => {
+                const active = button.dataset.objectiveFilter === filter;
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+
+            if (status) {
+                status.textContent = `${labels[filter] || '目标'}：${visible}/${rows.length} 条目标事件`;
+            }
+        };
+
+        buttons.forEach((button) => {
+            button.addEventListener('click', () => applyFilter(button.dataset.objectiveFilter || 'all'));
+        });
+        applyFilter('all');
+    });
 })();
 </script>
 </body>

@@ -1815,6 +1815,132 @@ body {
     background: rgba(88,166,255,0.14);
     outline: none;
 }
+.objective-review-workbench {
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid rgba(88,166,255,0.22);
+    border-radius: 6px;
+    background: rgba(88,166,255,0.04);
+}
+.event-evidence-toolbar {
+    position: sticky;
+    top: 58px;
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 6px;
+    background: rgba(13,17,23,0.92);
+}
+.event-evidence-toolbar a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 5px;
+    background: rgba(88,166,255,0.08);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.event-evidence-toolbar a:hover,
+.event-evidence-toolbar a:focus-visible {
+    border-color: rgba(88,166,255,0.62);
+    background: rgba(88,166,255,0.14);
+    outline: none;
+}
+.objective-filter-panel {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid rgba(88,166,255,0.22);
+    border-radius: 6px;
+    background: rgba(13,17,23,0.7);
+}
+.objective-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.objective-filter-button {
+    min-height: 36px;
+    padding: 6px 12px;
+    border: 1px solid rgba(88,166,255,0.28);
+    border-radius: 5px;
+    background: rgba(88,166,255,0.08);
+    color: var(--text-primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+}
+.objective-filter-button:hover,
+.objective-filter-button:focus-visible {
+    border-color: rgba(88,166,255,0.62);
+    background: rgba(88,166,255,0.14);
+    outline: none;
+}
+.objective-filter-button.active {
+    border-color: rgba(63,185,80,0.6);
+    background: rgba(63,185,80,0.14);
+    color: var(--text-primary);
+}
+.objective-filter-status {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.objective-event-list,
+.objective-window-list {
+    display: grid;
+    gap: 8px;
+}
+.objective-event-row {
+    display: grid;
+    grid-template-columns: 72px 84px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+    border-left: 3px solid var(--border);
+}
+.objective-event-row.gained {
+    border-left-color: var(--accent-green);
+}
+.objective-event-row.lost {
+    border-left-color: var(--accent-red);
+}
+.objective-event-row strong,
+.objective-window-row strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.objective-event-row[hidden] {
+    display: none !important;
+}
+.objective-outcome-label {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+}
+.objective-window-row {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+    border-left: 3px solid var(--accent-red);
+}
+.objective-window-row span:last-child {
+    color: var(--text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+}
 .death-event-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -2170,16 +2296,33 @@ tr:hover { background: rgba(88,166,255,0.05); }
     .practice-filter-row .filter-button {
         flex: 1 1 128px;
     }
-    .death-evidence-toolbar {
+    .death-evidence-toolbar,
+    .event-evidence-toolbar {
         position: static;
         margin-bottom: 10px;
         padding: 0;
         border-color: transparent;
         background: transparent;
     }
-    .death-evidence-toolbar a {
+    .death-evidence-toolbar a,
+    .event-evidence-toolbar a {
         flex: 1 1 calc(50% - 8px);
         min-height: 42px;
+    }
+    .objective-review-workbench {
+        padding: 10px;
+    }
+    .objective-filter-button {
+        flex: 1 1 calc(50% - 8px);
+        min-height: 42px;
+    }
+    .objective-event-row,
+    .objective-window-row {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+    .objective-window-row span:last-child {
+        white-space: normal;
     }
     .death-event-card {
         min-height: 58px;
