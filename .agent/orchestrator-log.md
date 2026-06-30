@@ -1465,6 +1465,26 @@ Started: 2026-06-28
 - Completed the source-freshness telemetry stage on `main` with tests, browser QA, CI, and live Cloudflare acceptance.
 - Final state: all 18 public reports have report-generation, STRATZ-fetch, and OpenDota-fetch timestamps represented in the production manifest; the shared public quality surface truthfully states that deployment uses cached evidence.
 
+## 2026-07-01 - Long Cycle 7 Stage 2 IMPROVE - Local Complete
+
+- Stage: 2 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Goal: move source freshness from a site-level summary into every individual match report.
+- Completed: injected a `证据时间` provenance strip into all 18 reports with exact report-generation, STRATZ-fetch, and OpenDota-fetch timestamps bound to the report match id.
+- Manifest/API gain: added `report_sources` to `site-manifest.json`, preserving the exact per-file and per-match timestamp mapping for validation and downstream use.
+- Deployment gate: added `_find_report_source_provenance_issues`, which rejects missing provenance, malformed attributes, filename/match-id mismatches, and report/manifest timestamp mismatches.
+- Local verification:
+  - New provenance tests failed before implementation and pass now.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 103 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 reports.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Browser QA passed latest Legion Commander at 1280x720 and 390x844; exact times rendered, no console warnings/errors, and no horizontal overflow.
+- Forbidden-file check: Docker and `AGENTS.md` remain untouched.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 2 closeout.
+
 ## 2026-06-30 - Long Cycle 5 Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 6.

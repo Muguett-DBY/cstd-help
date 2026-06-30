@@ -269,6 +269,57 @@ body {
     font-size: 12px;
 }
 
+.report-source-provenance {
+    display: grid;
+    gap: 10px;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border: 1px solid rgba(63,185,80,0.28);
+    border-radius: 6px;
+    background: rgba(63,185,80,0.06);
+}
+.source-provenance-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.source-provenance-heading span {
+    color: var(--accent-green);
+    font-size: 12px;
+    font-weight: 700;
+}
+.source-provenance-heading strong {
+    color: var(--text-primary);
+    font-size: 12px;
+}
+.source-provenance-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.source-provenance-grid > div {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--bg-primary);
+}
+.source-provenance-grid span,
+.report-source-provenance > small {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+.source-provenance-grid time,
+.source-provenance-grid .missing-value {
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
 .result-badge {
     display: inline-block;
     padding: 4px 16px;
@@ -2785,6 +2836,14 @@ tr:hover { background: rgba(88,166,255,0.05); }
         gap: 3px;
     }
     .neighbor-grid {
+        grid-template-columns: 1fr;
+    }
+    .source-provenance-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
+    }
+    .source-provenance-grid {
         grid-template-columns: 1fr;
     }
     .practice-card {

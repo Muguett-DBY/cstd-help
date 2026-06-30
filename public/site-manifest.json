@@ -34,6 +34,170 @@
     "oldest_external_fetch_at": "2026-06-26T12:31:07Z",
     "limitation": "公开页展示的是已缓存证据的抓取时间；Cloudflare Pages 发布不会重新访问 STRATZ/OpenDota。"
   },
+  "report_sources": [
+    {
+      "file": "Legion_Commander_8870219537_20260630_212154.html",
+      "match_id": "8870219537",
+      "report_generated_at": "2026-06-30T21:21:54",
+      "stratz_fetched_at": "2026-06-30T10:26:10Z",
+      "opendota_fetched_at": "2026-06-28T05:56:30Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:10Z",
+      "oldest_external_fetch_at": "2026-06-28T05:56:30Z"
+    },
+    {
+      "file": "Death_Prophet_8870188563_20260630_212155.html",
+      "match_id": "8870188563",
+      "report_generated_at": "2026-06-30T21:21:55",
+      "stratz_fetched_at": "2026-06-30T10:26:13Z",
+      "opendota_fetched_at": "2026-06-28T05:56:33Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:13Z",
+      "oldest_external_fetch_at": "2026-06-28T05:56:33Z"
+    },
+    {
+      "file": "Dragon_Knight_8870145903_20260630_212155.html",
+      "match_id": "8870145903",
+      "report_generated_at": "2026-06-30T21:21:55",
+      "stratz_fetched_at": "2026-06-30T10:26:16Z",
+      "opendota_fetched_at": "2026-06-28T05:56:36Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:16Z",
+      "oldest_external_fetch_at": "2026-06-28T05:56:36Z"
+    },
+    {
+      "file": "Beastmaster_8870116015_20260630_212155.html",
+      "match_id": "8870116015",
+      "report_generated_at": "2026-06-30T21:21:55",
+      "stratz_fetched_at": "2026-06-30T10:26:18Z",
+      "opendota_fetched_at": "2026-06-28T05:56:38Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:18Z",
+      "oldest_external_fetch_at": "2026-06-28T05:56:38Z"
+    },
+    {
+      "file": "Pangolier_8869892215_20260630_212155.html",
+      "match_id": "8869892215",
+      "report_generated_at": "2026-06-30T21:21:55",
+      "stratz_fetched_at": "2026-06-30T10:26:22Z",
+      "opendota_fetched_at": "2026-06-28T05:56:41Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:22Z",
+      "oldest_external_fetch_at": "2026-06-28T05:56:41Z"
+    },
+    {
+      "file": "Chaos_Knight_8869500868_20260630_212156.html",
+      "match_id": "8869500868",
+      "report_generated_at": "2026-06-30T21:21:56",
+      "stratz_fetched_at": "2026-06-30T10:26:25Z",
+      "opendota_fetched_at": "2026-06-28T05:56:44Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:25Z",
+      "oldest_external_fetch_at": "2026-06-28T05:56:44Z"
+    },
+    {
+      "file": "Rubick_8867351572_20260630_212156.html",
+      "match_id": "8867351572",
+      "report_generated_at": "2026-06-30T21:21:56",
+      "stratz_fetched_at": "2026-06-30T10:26:27Z",
+      "opendota_fetched_at": "2026-06-28T05:56:07Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:27Z",
+      "oldest_external_fetch_at": "2026-06-28T05:56:07Z"
+    },
+    {
+      "file": "Earth_Spirit_8867246517_20260630_212156.html",
+      "match_id": "8867246517",
+      "report_generated_at": "2026-06-30T21:21:56",
+      "stratz_fetched_at": "2026-06-30T10:26:30Z",
+      "opendota_fetched_at": "2026-06-28T05:56:49Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:30Z",
+      "oldest_external_fetch_at": "2026-06-28T05:56:49Z"
+    },
+    {
+      "file": "Dragon_Knight_8867124876_20260630_212156.html",
+      "match_id": "8867124876",
+      "report_generated_at": "2026-06-30T21:21:56",
+      "stratz_fetched_at": "2026-06-30T10:26:33Z",
+      "opendota_fetched_at": "2026-06-28T05:42:46Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:33Z",
+      "oldest_external_fetch_at": "2026-06-28T05:42:46Z"
+    },
+    {
+      "file": "Mirana_8867002237_20260630_212156.html",
+      "match_id": "8867002237",
+      "report_generated_at": "2026-06-30T21:21:56",
+      "stratz_fetched_at": "2026-06-30T10:26:36Z",
+      "opendota_fetched_at": "2026-06-28T05:42:48Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:36Z",
+      "oldest_external_fetch_at": "2026-06-28T05:42:48Z"
+    },
+    {
+      "file": "Crystal_Maiden_8866935458_20260630_212157.html",
+      "match_id": "8866935458",
+      "report_generated_at": "2026-06-30T21:21:57",
+      "stratz_fetched_at": "2026-06-30T10:26:41Z",
+      "opendota_fetched_at": "2026-06-26T12:34:28Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:41Z",
+      "oldest_external_fetch_at": "2026-06-26T12:34:28Z"
+    },
+    {
+      "file": "Gyrocopter_8866888706_20260630_212157.html",
+      "match_id": "8866888706",
+      "report_generated_at": "2026-06-30T21:21:57",
+      "stratz_fetched_at": "2026-06-30T10:26:44Z",
+      "opendota_fetched_at": "2026-06-26T12:34:28Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:44Z",
+      "oldest_external_fetch_at": "2026-06-26T12:34:28Z"
+    },
+    {
+      "file": "Dawnbreaker_8866682981_20260630_212157.html",
+      "match_id": "8866682981",
+      "report_generated_at": "2026-06-30T21:21:57",
+      "stratz_fetched_at": "2026-06-30T10:26:47Z",
+      "opendota_fetched_at": "2026-06-26T12:34:29Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:47Z",
+      "oldest_external_fetch_at": "2026-06-26T12:34:29Z"
+    },
+    {
+      "file": "Dark_Seer_8866655915_20260630_212157.html",
+      "match_id": "8866655915",
+      "report_generated_at": "2026-06-30T21:21:57",
+      "stratz_fetched_at": "2026-06-30T10:26:50Z",
+      "opendota_fetched_at": "2026-06-26T12:34:30Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:50Z",
+      "oldest_external_fetch_at": "2026-06-26T12:34:30Z"
+    },
+    {
+      "file": "Doom_8866610277_20260630_212158.html",
+      "match_id": "8866610277",
+      "report_generated_at": "2026-06-30T21:21:58",
+      "stratz_fetched_at": "2026-06-30T10:26:53Z",
+      "opendota_fetched_at": "2026-06-26T12:34:54Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:53Z",
+      "oldest_external_fetch_at": "2026-06-26T12:34:54Z"
+    },
+    {
+      "file": "Anti-Mage_8866174845_20260630_212158.html",
+      "match_id": "8866174845",
+      "report_generated_at": "2026-06-30T21:21:58",
+      "stratz_fetched_at": "2026-06-30T10:26:56Z",
+      "opendota_fetched_at": "2026-06-26T12:31:07Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:56Z",
+      "oldest_external_fetch_at": "2026-06-26T12:31:07Z"
+    },
+    {
+      "file": "Anti-Mage_8866000193_20260630_212158.html",
+      "match_id": "8866000193",
+      "report_generated_at": "2026-06-30T21:21:58",
+      "stratz_fetched_at": "2026-06-30T10:26:59Z",
+      "opendota_fetched_at": "2026-06-26T12:31:09Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:59Z",
+      "oldest_external_fetch_at": "2026-06-26T12:31:09Z"
+    },
+    {
+      "file": "Meepo_8865878802_20260630_212158.html",
+      "match_id": "8865878802",
+      "report_generated_at": "2026-06-30T21:21:58",
+      "stratz_fetched_at": "2026-06-30T10:27:03Z",
+      "opendota_fetched_at": "2026-06-26T12:35:16Z",
+      "latest_external_fetch_at": "2026-06-30T10:27:03Z",
+      "oldest_external_fetch_at": "2026-06-26T12:35:16Z"
+    }
+  ],
   "latest_match": {
     "hero": "Legion Commander",
     "match_id": "8870219537",

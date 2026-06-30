@@ -233,6 +233,52 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_missing_or_mismatched_report_source_provenance(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Mirana_8867002237_20260626_224839.html").write_text(
+                '<html><body><section class="report-source-provenance" '
+                'data-report-source-provenance data-match-id="8867009999" '
+                'data-report-generated-at="2026-06-26T22:48:39" '
+                'data-stratz-fetched-at="2026-06-26T22:20:00Z" '
+                'data-opendota-fetched-at="2026-06-26T22:10:00Z">'
+                '证据时间 STRATZ 抓取 OpenDota 抓取 报告生成 已缓存证据'
+                '</section></body></html>',
+                encoding="utf-8",
+            )
+            (public_path / "Doom_8867002240_20260627_090000.html").write_text(
+                "<html><body>下一局行动清单</body></html>",
+                encoding="utf-8",
+            )
+            (public_path / "site-manifest.json").write_text(
+                json.dumps(
+                    {
+                        "report_sources": [
+                            {
+                                "file": "Mirana_8867002237_20260626_224839.html",
+                                "match_id": "8867002237",
+                                "report_generated_at": "2026-06-26T22:48:39",
+                                "stratz_fetched_at": "2026-06-26T22:20:00Z",
+                                "opendota_fetched_at": "2026-06-26T22:10:00Z",
+                            }
+                        ]
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_report_source_provenance_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "Doom_8867002240_20260627_090000.html -> missing report source provenance",
+                "Mirana_8867002237_20260626_224839.html -> source provenance match id 8867009999 does not match filename 8867002237",
+            ],
+        )
+
     def test_static_site_checker_detects_report_text_quality_issues(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
@@ -682,6 +728,8 @@ class BuildPagesSiteTests(unittest.TestCase):
             manifest = json.loads((Path(public) / "site-manifest.json").read_text(encoding="utf-8"))
             index_html = (Path(public) / "index.html").read_text(encoding="utf-8")
             plan_html = (Path(public) / "practice-plan.html").read_text(encoding="utf-8")
+            mirana_html = (Path(public) / "Mirana_8867002237_20260626_224839.html").read_text(encoding="utf-8")
+            doom_html = (Path(public) / "Doom_8867002240_20260627_090000.html").read_text(encoding="utf-8")
 
         self.assertEqual(manifest["schema_version"], 1)
         self.assertEqual(manifest["report_count"], 2)
@@ -710,6 +758,9 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(manifest["source_freshness"]["complete_source_timestamp_report_count"], 2)
         self.assertEqual(manifest["source_freshness"]["latest_report_generated_at"], "2026-06-27T09:00:00")
         self.assertEqual(manifest["source_freshness"]["latest_external_fetch_at"], "2026-06-27T08:55:00Z")
+        self.assertEqual(len(manifest["report_sources"]), 2)
+        self.assertEqual(manifest["report_sources"][0]["match_id"], "8867002240")
+        self.assertEqual(manifest["report_sources"][1]["stratz_fetched_at"], "2026-06-26T22:20:00Z")
         self.assertIn("复盘数据覆盖", index_html)
         self.assertIn("死亡复盘覆盖", index_html)
         self.assertIn("复盘质量门禁", index_html)
@@ -737,6 +788,20 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("复盘数据覆盖", plan_html)
         self.assertIn("复盘质量门禁", plan_html)
         self.assertIn("数据新鲜度", plan_html)
+        self.assertIn('data-report-source-provenance', mirana_html)
+        self.assertIn('data-match-id="8867002237"', mirana_html)
+        self.assertIn("证据时间", mirana_html)
+        self.assertIn("报告生成", mirana_html)
+        self.assertIn("2026-06-26T22:48:39", mirana_html)
+        self.assertIn("STRATZ 抓取", mirana_html)
+        self.assertIn("2026-06-26T22:20:00Z", mirana_html)
+        self.assertIn("OpenDota 抓取", mirana_html)
+        self.assertIn("2026-06-26T22:10:00Z", mirana_html)
+        self.assertIn("已缓存证据", mirana_html)
+        self.assertNotIn("2026-06-27T08:55:00Z", mirana_html)
+        self.assertIn('data-match-id="8867002240"', doom_html)
+        self.assertIn("2026-06-27T08:55:00Z", doom_html)
+        self.assertNotIn("2026-06-26T22:20:00Z", doom_html)
 
     def test_build_pages_site_writes_practice_plan_page(self):
         metadata = {
@@ -904,6 +969,8 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".quality-gate-pass", stylesheet)
         self.assertIn(".source-freshness-panel", stylesheet)
         self.assertIn(".source-freshness-status", stylesheet)
+        self.assertIn(".report-source-provenance", stylesheet)
+        self.assertIn(".source-provenance-grid", stylesheet)
         self.assertIn(".practice-workbench", stylesheet)
         self.assertIn(".practice-evidence-links", stylesheet)
         self.assertIn(".practice-checklist", stylesheet)
