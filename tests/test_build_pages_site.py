@@ -320,6 +320,40 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_unstable_report_header_context(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Mirana_8867002237.html").write_text(
+                '<html><head><title>Mirana 复盘报告</title></head><body>'
+                '<div class="report-context-deck" data-report-context-deck>'
+                '<section class="report-evidence-completeness" data-report-evidence-completeness '
+                'data-evidence-total="1" data-evidence-complete="1" data-evidence-usable="1" '
+                'data-evidence-partial="0" data-evidence-missing="0">'
+                '<div class="evidence-completeness-summary">本局证据完整度</div>'
+                '<span class="evidence-completeness-chip available">比赛核心数据</span>'
+                '<details class="evidence-completeness-details" open><summary>查看证据类明细</summary></details>'
+                '</section>'
+                '<nav class="report-neighbors" aria-label="相邻比赛"></nav>'
+                '<details class="report-source-provenance" open><summary class="source-provenance-summary">证据时间</summary></details>'
+                '</div>'
+                '<h1>Mirana 复盘报告</h1>'
+                '<section id="decision-snapshot" class="decision-snapshot">上分决策卡</section>'
+                '</body></html>',
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_report_header_context_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "Mirana_8867002237.html -> report context deck order must be neighbors, source provenance, evidence completeness",
+                "Mirana_8867002237.html -> source provenance must be collapsed by default",
+                "Mirana_8867002237.html -> evidence completeness details must be collapsed by default",
+            ],
+        )
+
     def test_static_site_checker_detects_report_text_quality_issues(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
