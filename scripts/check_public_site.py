@@ -346,6 +346,25 @@ def _find_decision_snapshot_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_report_trend_context_issues(public_dir=PUBLIC_DIR):
+    issues = []
+    required = (
+        "近期同类问题",
+        'class="report-trend-context"',
+        "trend-context-examples",
+        "完整趋势证据",
+    )
+    for report in _report_pages(public_dir):
+        text = report.read_text(encoding="utf-8")
+        if "finding-card" not in text and "下一局行动清单" not in text:
+            continue
+        if any(item not in text for item in required):
+            issues.append(
+                f"{report.name} -> report with findings requires rendered 近期同类问题 trend context"
+            )
+    return issues
+
+
 def _find_report_text_quality_issues(public_dir=PUBLIC_DIR):
     issues = []
     for report in _report_pages(public_dir):
@@ -425,6 +444,11 @@ def main():
     if decision_snapshot_issues:
         preview = "; ".join(decision_snapshot_issues[:10])
         raise SystemExit(f"public decision snapshot sections are incomplete: {preview}")
+
+    trend_context_issues = _find_report_trend_context_issues(PUBLIC_DIR)
+    if trend_context_issues:
+        preview = "; ".join(trend_context_issues[:10])
+        raise SystemExit(f"public report trend contexts are incomplete: {preview}")
 
     text_quality_issues = _find_report_text_quality_issues(PUBLIC_DIR)
     if text_quality_issues:

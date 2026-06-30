@@ -455,6 +455,79 @@ body {
     background: rgba(88,166,255,0.14);
     outline: none;
 }
+.report-trend-context {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(180px, 0.9fr) auto;
+    gap: 12px;
+    align-items: center;
+    margin: -8px 0 20px;
+    padding: 12px 14px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 8px;
+    background: rgba(88,166,255,0.06);
+}
+.trend-context-copy {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+.trend-context-copy span {
+    color: var(--accent-blue);
+    font-size: 12px;
+    font-weight: 700;
+}
+.trend-context-copy strong {
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+.trend-context-copy small {
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.45;
+}
+.trend-context-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+}
+.trend-context-examples a {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    padding: 4px 8px;
+    border: 1px solid rgba(88,166,255,0.22);
+    border-radius: 5px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+.trend-context-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 6px 11px;
+    border: 1px solid rgba(88,166,255,0.36);
+    border-radius: 6px;
+    color: var(--accent-blue);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.trend-context-examples a:hover,
+.trend-context-examples a:focus-visible,
+.trend-context-link:hover,
+.trend-context-link:focus-visible {
+    border-color: rgba(88,166,255,0.66);
+    outline: none;
+}
 
 .stat-grid {
     display: grid;
@@ -2603,6 +2676,13 @@ tr:hover { background: rgba(88,166,255,0.05); }
     .decision-jump-row a {
         flex: 1 1 calc(50% - 8px);
         min-height: 42px;
+    }
+    .report-trend-context {
+        grid-template-columns: 1fr;
+        margin-top: -4px;
+    }
+    .trend-context-link {
+        width: 100%;
     }
     .quality-row,
     .goal-row {
