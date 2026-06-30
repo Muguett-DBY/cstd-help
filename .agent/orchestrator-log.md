@@ -1202,6 +1202,21 @@ Started: 2026-06-28
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 4 closeout log.
 
+## 2026-07-01 - Long Cycle 7 Stage 4 IMPROVE - Complete
+
+- Completed stage: 4 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: add report evidence completeness summary` (`a6f7368`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28459148795`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports and latest report `Legion_Commander_8870219537_20260630_212154.html`.
+  - Latest Legion Commander report returned 200 on both `dota.custard.top` and the Pages deployment alias with `本局证据完整度`, `10/10 类完整`, `缺失 0`, 10 evidence chips, and hero-first title.
+  - Production Chrome mobile QA passed on `dota.custard.top`: deck height 358px, decision card top 775px inside the 390x844 viewport, chip row scrolls internally, no horizontal overflow, and no console messages.
+- Remaining risk: the evidence completeness summary proves rendered evidence-class availability only; external API freshness remains represented by the separate source-time panel.
+- Next stage: Stage 5 CHECK should harden validation around report header ordering, first-screen constraints, and generated evidence-summary consistency across all reports.
+
 ## 2026-06-30 - Long Cycle 3 Stage 4 IMPROVE - Complete
 
 - Completed stage: 4 / 6.

@@ -948,6 +948,6 @@
 - Completed: reports now show `本局证据完整度` with complete/partial/missing counts, evidence-class chips, and expandable source details derived from existing deterministic `evidence-source-row` data.
 - User-visible gain: latest Legion Commander shows `10/10 类完整` and all 10 supporting classes before the decision card, so the player can judge advice strength without scrolling to 数据完整性.
 - Stability gain: static validation now recomputes evidence-source counts and fails missing or inconsistent report evidence completeness summaries.
-- Verification: 105 tests, compileall, static validation, gitleaks, diff check, and system-Chrome desktop/mobile report QA passed locally; commit/push/CI are pending.
+- Verification: 105 tests, compileall, static validation, gitleaks, diff check, system-Chrome desktop/mobile report QA, GitHub Actions run `28459148795`, and live custom-domain checks passed.
 - Risk: the summary proves evidence-class availability only; it still does not certify external API freshness beyond the source-time panel.
 - Recommended next direction: Stage 5 CHECK should harden generated/public report validation around header order, first-screen height, and evidence summary consistency across all reports.
