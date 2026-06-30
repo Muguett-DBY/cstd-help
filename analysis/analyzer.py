@@ -905,6 +905,28 @@ def _build_death_position_clusters(points, radius=14):
     return sorted(clusters, key=lambda item: (-item["death_count"], item["minutes"][0] if item["minutes"] else 999))
 
 
+def _annotate_death_position_cluster_members(deaths, clusters):
+    if not deaths or not clusters:
+        return deaths or []
+    annotated = [dict(item) for item in deaths]
+    minute_to_indexes = {}
+    for index, death in enumerate(annotated):
+        minute = death.get("minute")
+        if minute is None and isinstance(death.get("time"), (int, float)):
+            minute = round(death["time"] / 60, 1)
+        if minute is None:
+            continue
+        minute_to_indexes.setdefault(minute, []).append(index)
+
+    for cluster_index, cluster in enumerate(clusters, start=1):
+        label = f"重复簇 #{cluster_index} 中心x={cluster['center_x']},y={cluster['center_y']}"
+        for minute in cluster.get("minutes") or []:
+            for death_index in minute_to_indexes.get(minute, []):
+                annotated[death_index]["position_cluster_id"] = cluster_index
+                annotated[death_index]["position_cluster_label"] = label
+    return annotated
+
+
 def _normalize_opendota_vision_events(events, ward_type):
     normalized = []
     for event in events or []:
@@ -1065,6 +1087,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     death_position_count = len([item for item in deaths if item.get("position")])
     death_map_points = _build_death_map_points(deaths)
     death_position_clusters = _build_death_position_clusters(death_map_points)
+    deaths = _annotate_death_position_cluster_members(deaths, death_position_clusters)
     if death_position_count:
         source_parts.add("stratz_position_samples")
 

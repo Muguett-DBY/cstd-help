@@ -1177,6 +1177,8 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn(".timeline-phase-card", stylesheet)
         self.assertIn(".death-review-workbench", stylesheet)
         self.assertIn(".death-review-summary", stylesheet)
+        self.assertIn(".death-evidence-toolbar", stylesheet)
+        self.assertIn(".death-event-card.repeat-position", stylesheet)
         self.assertIn("@media (max-width: 720px)", stylesheet)
         self.assertIn("#timeline-diagnosis .timeline-phase-table", stylesheet)
         self.assertIn(".timeline-phase-cards {", stylesheet)
@@ -1385,6 +1387,34 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("7.0、9.0分", finding["evidence"])
         self.assertIn("不转换成地图区域名", finding["replay_check"])
 
+    def test_repeated_coordinate_cluster_members_are_marked_for_report_scanning(self):
+        match = self._base_match()
+        match["deaths"] = 3
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "playbackData": {
+                    "deathEvents": [{"time": 420}, {"time": 540}, {"time": 930}],
+                    "playerUpdatePositionEvents": [
+                        {"time": 420, "x": 120, "y": 140},
+                        {"time": 540, "x": 126, "y": 144},
+                        {"time": 930, "x": 88, "y": 164},
+                    ],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        deaths = result["events"]["deaths"]
+
+        self.assertEqual(deaths[0]["position_cluster_label"], "重复簇 #1 中心x=123.0,y=142.0")
+        self.assertEqual(deaths[1]["position_cluster_label"], "重复簇 #1 中心x=123.0,y=142.0")
+        self.assertNotIn("position_cluster_label", deaths[2])
+
     def test_generated_report_shows_raw_death_coordinate_map(self):
         from report.generator import generate_report
         import report.generator as generator
@@ -1458,6 +1488,47 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("中心x=123.0,y=142.0", html)
         self.assertIn("7.0、9.0分", html)
         self.assertIn("不生成地图区域名", html)
+
+    def test_generated_report_highlights_repeated_coordinate_death_cards(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match["deaths"] = 3
+            stratz_data = {
+                "players": [{
+                    "steamAccount": {"id": 173776719},
+                    "isRadiant": True,
+                    "hero": {"id": 1, "displayName": "Anti-Mage"},
+                    "position": "POSITION_1",
+                    "role": "CORE",
+                    "playbackData": {
+                        "deathEvents": [{"time": 420}, {"time": 540}, {"time": 930}],
+                        "playerUpdatePositionEvents": [
+                            {"time": 420, "x": 120, "y": 140},
+                            {"time": 540, "x": 126, "y": 144},
+                            {"time": 930, "x": 88, "y": 164},
+                        ],
+                    },
+                }],
+            }
+            analysis = analyze_match(match, stratz_data=stratz_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+        generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("death-evidence-toolbar", html)
+        self.assertIn('href="#death-event-list"', html)
+        self.assertIn('href="#death-coordinate-map"', html)
+        self.assertIn('href="#death-coordinate-clusters"', html)
+        self.assertIn('death-event-card repeat-position', html)
+        self.assertIn("重复坐标", html)
+        self.assertIn("重复簇 #1 中心x=123.0,y=142.0", html)
 
     def test_generated_report_avoids_raw_less_than_signs_in_metric_text(self):
         from report.generator import generate_report

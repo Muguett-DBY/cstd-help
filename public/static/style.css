@@ -1742,6 +1742,11 @@ body {
     background: rgba(248,81,73,0.12);
     border-color: rgba(248,81,73,0.28);
 }
+.event-pill.warning {
+    background: rgba(210,153,34,0.14);
+    border-color: rgba(210,153,34,0.34);
+    color: var(--accent-yellow);
+}
 .death-review-workbench {
     display: grid;
     gap: 12px;
@@ -1776,6 +1781,40 @@ body {
 .death-review-body {
     min-width: 0;
 }
+.death-evidence-toolbar {
+    position: sticky;
+    top: 58px;
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 8px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 6px;
+    background: rgba(13,17,23,0.92);
+}
+.death-evidence-toolbar a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 5px;
+    background: rgba(88,166,255,0.08);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.death-evidence-toolbar a:hover,
+.death-evidence-toolbar a:focus-visible {
+    border-color: rgba(88,166,255,0.62);
+    background: rgba(88,166,255,0.14);
+    outline: none;
+}
 .death-event-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -1783,6 +1822,7 @@ body {
 }
 .death-event-card {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     gap: 8px;
     min-height: 42px;
@@ -1791,10 +1831,15 @@ body {
     border-radius: 6px;
     background: rgba(248,81,73,0.07);
 }
+.death-event-card.repeat-position {
+    border-color: rgba(210,153,34,0.52);
+    background: linear-gradient(135deg, rgba(210,153,34,0.12), rgba(248,81,73,0.08));
+}
 .death-event-card .event-pill {
     flex: 0 0 auto;
 }
 .death-position-label {
+    flex: 1 1 145px;
     min-width: 0;
     color: var(--text-primary);
     font-size: 12px;
@@ -1803,6 +1848,11 @@ body {
 }
 .death-position-label.muted {
     color: var(--text-secondary);
+}
+.death-position-label.repeat {
+    flex-basis: 100%;
+    color: var(--accent-yellow);
+    font-weight: 700;
 }
 .death-coordinate-map {
     margin-top: 12px;
@@ -2119,6 +2169,20 @@ tr:hover { background: rgba(88,166,255,0.05); }
     }
     .practice-filter-row .filter-button {
         flex: 1 1 128px;
+    }
+    .death-evidence-toolbar {
+        position: static;
+        margin-bottom: 10px;
+        padding: 0;
+        border-color: transparent;
+        background: transparent;
+    }
+    .death-evidence-toolbar a {
+        flex: 1 1 calc(50% - 8px);
+        min-height: 42px;
+    }
+    .death-event-card {
+        min-height: 58px;
     }
     .death-coordinate-map {
         grid-template-columns: 1fr;
