@@ -237,13 +237,15 @@ class BuildPagesSiteTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
             (public_path / "Mirana_8867002237_20260626_224839.html").write_text(
-                '<html><body><section class="report-source-provenance" '
+                '<html><body><div class="report-context-deck" data-report-context-deck>'
+                '<details class="report-source-provenance" '
                 'data-report-source-provenance data-match-id="8867009999" '
                 'data-report-generated-at="2026-06-26T22:48:39" '
                 'data-stratz-fetched-at="2026-06-26T22:20:00Z" '
                 'data-opendota-fetched-at="2026-06-26T22:10:00Z">'
-                '证据时间 STRATZ 抓取 OpenDota 抓取 报告生成 已缓存证据'
-                '</section></body></html>',
+                '<summary class="source-provenance-summary">证据时间 来源完整</summary>'
+                'STRATZ 抓取 OpenDota 抓取 报告生成 已缓存证据'
+                '</details></div></body></html>',
                 encoding="utf-8",
             )
             (public_path / "Doom_8867002240_20260627_090000.html").write_text(
@@ -789,6 +791,9 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("复盘质量门禁", plan_html)
         self.assertIn("数据新鲜度", plan_html)
         self.assertIn('data-report-source-provenance', mirana_html)
+        self.assertIn('data-report-context-deck', mirana_html)
+        self.assertIn('<details class="report-source-provenance"', mirana_html)
+        self.assertIn('<summary class="source-provenance-summary">', mirana_html)
         self.assertIn('data-match-id="8867002237"', mirana_html)
         self.assertIn("证据时间", mirana_html)
         self.assertIn("报告生成", mirana_html)
@@ -971,6 +976,9 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".source-freshness-status", stylesheet)
         self.assertIn(".report-source-provenance", stylesheet)
         self.assertIn(".source-provenance-grid", stylesheet)
+        self.assertIn(".report-context-deck", stylesheet)
+        self.assertIn(".source-provenance-summary", stylesheet)
+        self.assertIn(".report-source-provenance[open]", stylesheet)
         self.assertIn(".practice-workbench", stylesheet)
         self.assertIn(".practice-evidence-links", stylesheet)
         self.assertIn(".practice-checklist", stylesheet)
@@ -994,6 +1002,10 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertRegex(
             stylesheet,
             r"@media \(max-width: 720px\)[\s\S]*\.decision-snapshot-grid\s*\{[^}]*grid-template-columns:\s*1fr",
+        )
+        self.assertRegex(
+            stylesheet,
+            r"@media \(max-width: 720px\)[\s\S]*\.report-context-deck\s*\{[^}]*grid-template-columns:\s*1fr",
         )
 
     def test_generated_coaching_pages_have_no_trailing_whitespace(self):
@@ -1080,6 +1092,7 @@ class BuildPagesSiteTests(unittest.TestCase):
             latest_html = latest.read_text(encoding="utf-8")
 
         self.assertIn("相邻比赛", latest_html)
+        self.assertIn('class="report-context-deck"', latest_html)
         self.assertIn("下一局（更早）", latest_html)
         self.assertIn("Anti-Mage", latest_html)
         self.assertIn("Anti-Mage_8866000193_20260625_160037.html", latest_html)

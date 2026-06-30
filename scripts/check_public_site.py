@@ -62,8 +62,11 @@ REQUIRED_SOURCE_FRESHNESS_FIELDS = [
 ]
 REQUIRED_REPORT_SOURCE_PROVENANCE_TEXT = [
     "证据时间",
+    "report-context-deck",
+    "data-report-context-deck",
     "report-source-provenance",
     "data-report-source-provenance",
+    "source-provenance-summary",
     "data-report-generated-at",
     "data-stratz-fetched-at",
     "data-opendota-fetched-at",
