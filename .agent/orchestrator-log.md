@@ -1237,6 +1237,18 @@ Started: 2026-06-28
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 5 closeout log.
 
+## 2026-07-01 - Long Cycle 7 Stage 5 CHECK - Complete
+
+- Completed stage: 5 / 6.
+- Type: CHECK.
+- Prompt: AGENT_CHECK_MAIN.txt.
+- Stage commit: `test: enforce report header stability` (`5ce5b36`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28459840182`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance: `dota.custard.top` returned 18 reports; latest Legion Commander report returned 200 with `data-report-context-deck`, `data-report-evidence-completeness`, `10/10 类完整`, and hero-first title.
+- Remaining risk: static checks enforce DOM structure and collapsed state; exact pixel first-screen height remains a browser-QA responsibility for future UI changes.
+- Next stage: Stage 6 IMPROVE should add a small user-facing final increment that turns evidence completeness into a clearer next-match trust/limitation signal without adding unsupported inference.
+
 ## 2026-06-30 - Long Cycle 3 Stage 4 IMPROVE - Complete
 
 - Completed stage: 4 / 6.

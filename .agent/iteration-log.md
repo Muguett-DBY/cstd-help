@@ -957,6 +957,6 @@
 - Goal: harden report-header validation after adding the evidence completeness card.
 - Completed: static validation now requires header direct-child order, collapsed source/evidence details, context deck before the report title, and evidence completeness before the decision snapshot.
 - Real risk fixed: future builds can no longer pass CI while moving `本局证据完整度` out of the top context area or default-expanding long evidence details on mobile.
-- Verification: 106 tests, compileall, static validation, gitleaks, diff check, and forbidden-file check passed locally; commit/push/CI are pending.
+- Verification: 106 tests, compileall, static validation, gitleaks, diff check, forbidden-file check, GitHub Actions run `28459840182`, and live custom-domain checks passed.
 - Risk: static checks enforce DOM structure, while exact pixel first-screen height still depends on browser QA for major UI changes.
 - Recommended next direction: Stage 6 IMPROVE should add a small user-facing final increment that turns this evidence completeness into a clearer next-match trust/limitation signal without adding new inference.
