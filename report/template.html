@@ -304,6 +304,27 @@
     <div class="section" id="match-events">
         <div class="section-header">&#9201; 死亡/装备事件</div>
         <div class="section-body">
+            <div class="subsection-title" id="objective-event-timeline">目标事件时间线</div>
+            {% if events.objectives %}
+            <div class="death-review-summary objective-summary" aria-label="目标事件摘要">
+                <div class="death-review-metric"><strong>{{ events.objective_summary.gained }}</strong><span>我方获取</span></div>
+                <div class="death-review-metric"><strong>{{ events.objective_summary.lost }}</strong><span>我方失去</span></div>
+                <div class="death-review-metric"><strong>{{ events.objective_summary.player_direct }}</strong><span>本人直接参与</span></div>
+                <div class="death-review-metric"><strong>{{ events.objective_summary.total }}</strong><span>目标事件</span></div>
+            </div>
+            <div class="objective-event-list">
+                {% for objective in events.objectives %}
+                <div class="compact-row objective-event-row {{ objective.outcome }}" data-objective-kind="{{ objective.kind }}">
+                    <span class="event-pill{% if objective.outcome == 'lost' %} danger{% endif %}">{{ objective.minute }}分</span>
+                    <strong>{{ objective.display_label }}</strong>
+                    {% if objective.player_direct %}<span class="event-pill warning">本人直接参与 · {{ objective.direct_label }}</span>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="compact-row muted">来源：OpenDota 目标事件；“本人直接参与”仅表示事件记录中的本人最后一击或持盾，不代表整段目标决策归因。</div>
+            {% else %}
+            <div class="compact-row">当前公共数据源未提供地图目标事件，无法还原塔、兵营、肉山和不朽盾时间线。</div>
+            {% endif %}
             <div class="subsection-title">关键购买</div>
             {% if events.key_purchases %}
             <div class="event-list">

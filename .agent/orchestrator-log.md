@@ -1527,3 +1527,31 @@ Started: 2026-06-28
   - Live STRATZ refresh was blocked by Cloudflare in this environment; reports regenerated from cached real STRATZ details.
   - Public reports are static until the next fetch/build/deploy cycle.
 - Recommended next flagship change: add verified objective-event overlays or a verified Dota coordinate transform before producing named-map-region death advice.
+
+## 2026-06-30 - Long Cycle 5 Stage 1 IMPROVE - Start
+
+- Stage: 1 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Goal: turn the real OpenDota `objectives` feed into an auditable objective timeline that distinguishes objectives gained, objectives lost, and direct player last hits.
+- Carry-over: the previous cycle recommended verified objective-event overlays or a verified coordinate transform; the cache contains complete OpenDota objective feeds for all 18 current reports, so objective evidence is the higher-confidence path.
+- User-visible increment: reports will show exact tower, barracks, Roshan, and Aegis times with team outcome and direct-participation labels.
+- Start state: `main` at `da328bc`, clean and synchronized with `origin/main`; latest `Deploy Cloudflare Pages` run `28418555643` passed.
+- Constraints: do not touch Docker or `AGENTS.md`; use only observed OpenDota event fields; do not infer objective causes or named map regions.
+
+## 2026-06-30 - Long Cycle 5 Stage 1 IMPROVE - Local Complete
+
+- Completed: normalized real OpenDota tower, barracks, Ancient, Roshan, Aegis, and Tormentor events into `events.objectives`, with exact minutes, team outcome, and direct player event markers.
+- Report UI: added `目标事件时间线`, a four-metric objective summary, exact gained/lost rows, and an explicit source/attribution caveat.
+- Data quality: reports now expose `地图目标事件` as a separately auditable OpenDota evidence source and name the gap when objective data is absent.
+- Real-report acceptance: latest `Legion Commander #8870219537` contains 19 objective events: 4 gained, 15 lost, and 0 direct player event markers; exact evidence includes 10.7-minute bottom tier-one loss, 19.4/44.1-minute Roshan and Aegis losses, and 38.5-minute middle melee barracks loss.
+- Browser verification: desktop 1440x1000 and mobile 390x844 rendered all 19 rows without horizontal overflow; console had 0 errors and 0 warnings.
+- Local verification:
+  - New objective analyzer and report tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 87 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 1 closeout log.
