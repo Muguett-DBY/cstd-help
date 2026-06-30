@@ -484,7 +484,9 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("19.0分死亡 → 20.0分失去肉山（60秒）", html)
         self.assertIn("只表示时间相邻", html)
         self.assertIn("目标前90秒生存规则", html)
-        self.assertIn("优先回看", html)
+        self.assertIn("证据窗口", html)
+        self.assertIn("目标前90秒证据检查点", html)
+        self.assertNotIn("优先回看", html)
         self.assertIn("队友接应", html)
         self.assertIn("敌方控制", html)
         self.assertIn("撤退路线", html)
@@ -1774,6 +1776,15 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("重复死亡坐标簇", finding["evidence"])
         self.assertIn("7.0、9.0分", finding["evidence"])
         self.assertIn("不转换成地图区域名", finding["replay_check"])
+        joined = " ".join([
+            finding["why_it_matters"],
+            finding["action"],
+            finding["replay_check"],
+            finding["training_goal"],
+            finding["success_metric"],
+        ])
+        for banned in ["逐一回放", "回放场景", "需要回放确认", "可回放复查", "回放确认后的"]:
+            self.assertNotIn(banned, joined)
 
     def test_repeated_coordinate_cluster_members_are_marked_for_report_scanning(self):
         match = self._base_match()
@@ -1876,6 +1887,8 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("中心x=123.0,y=142.0", html)
         self.assertIn("7.0、9.0分", html)
         self.assertIn("不生成地图区域名", html)
+        for banned in ["优先回看", "需要回放确认", "可回放复查", "回放确认后的", "回放场景"]:
+            self.assertNotIn(banned, html)
 
     def test_generated_report_highlights_repeated_coordinate_death_cards(self):
         from report.generator import generate_report

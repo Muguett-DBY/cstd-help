@@ -858,3 +858,22 @@
 - Production acceptance: live `dota.custard.top` serves 18 reports; latest `Legion_Commander_8870219537_20260630_204657.html` includes `近期同类问题`, `最近 18 场中 13 场出现`, sample report links, and a working `trend-custom-bac9d883f8.html` full-evidence page.
 - Risks: trend grouping is based on normalized finding focus labels, so it is reliable for repeated report topics but not a statistical model of match causality.
 - Recommended next direction: clean up remaining public-report language that still mentions replay/manual confirmation in source-backed sections.
+
+## 2026-06-30 - Long Cycle 6 Stage 5 CHECK
+
+- Goal: remove remaining public-facing manual replay/confirmation language from source-backed coaching reports and make CI catch regressions.
+- Completed: replaced `优先回看`, `需要回放确认`, `可回放复查`, `回放场景`, and `回放确认后的撤退规则` with system-evidence wording: `系统证据窗口`, raw-coordinate limits, and `赛前撤退规则`.
+- Quality gate: `scripts/check_public_site.py` now scans reports, trend pages, support pages, text exports, and `review-trends.json` for banned manual-review language before deploy.
+- Public refresh: regenerated and rebuilt all 18 reports; latest report is `Legion_Commander_8870219537_20260630_212154.html`.
+- Browser verification: in-app Browser passed desktop 1280x720 and mobile 390x844; decision card and trend context render, `目标前90秒证据检查点` is present, banned manual-review phrases are absent, console logs are clean, and no document-level horizontal overflow appears.
+- Local verification:
+  - New manual-language checker and generated-report wording tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 100 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- GitHub Actions / CI: pending commit and push for this stage.
+- Risks: source labels such as `STRATZ回放事件` remain because they identify the data source, not a user instruction to manually review.
+- Recommended next direction: add a final deployment-quality manifest/check card so the site itself exposes current report coverage and quality-gate status.

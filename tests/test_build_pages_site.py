@@ -278,6 +278,33 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_manual_review_language(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Legion_Commander_123.html").write_text(
+                "<html><head><title>Legion Commander 复盘报告</title></head>"
+                "<body>"
+                '<section id="decision-snapshot" class="decision-snapshot">上分决策卡</section>'
+                '<section class="report-trend-context">近期同类问题'
+                '<div class="trend-context-examples">完整趋势证据</div></section>'
+                '<div class="finding-card high">下一局行动清单</div>'
+                "<p>系统检查: 需要回放确认这些点对应的入口。</p>"
+                "<p>行动: 下一局每次进入这些重复坐标对应的回放场景前先确认条件。</p>"
+                "</body></html>",
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_manual_review_language_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "Legion_Commander_123.html -> manual review language is not allowed: 需要回放确认",
+                "Legion_Commander_123.html -> manual review language is not allowed: 回放场景",
+            ],
+        )
+
     def test_static_site_checker_classifies_support_pages_and_exports(self):
         support_pages = {
             "index.html",

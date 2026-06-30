@@ -1922,3 +1922,18 @@ Started: 2026-06-28
   - Latest Legion Commander report returned 200 with `近期同类问题`, `最近 18 场中 13 场出现`, sample report links, and a working `trend-custom-bac9d883f8.html` full-evidence page.
 - Remaining risk: trend grouping is based on report focus labels and proves repetition, not causal explanation.
 - Next stage: Stage 5 CHECK should remove or gate remaining public-facing replay/manual-confirmation language where the system already has source-backed evidence.
+
+## 2026-06-30 - Long Cycle 6 Stage 5 CHECK - Complete
+
+- Completed: removed public-facing manual replay/confirmation wording from deterministic findings, objective drill labels, repeated-coordinate notes, support pages, trend pages, and regenerated public reports.
+- Quality gate: added `_find_manual_review_language_issues` to `scripts/check_public_site.py`, scanning reports, topic pages, support pages, text exports, and `review-trends.json` for banned phrases before deploy.
+- Latest public artifact: `Legion_Commander_8870219537_20260630_212154.html`.
+- Local verification:
+  - New manual-language tests failed before implementation and pass now.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 100 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 reports.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Browser QA passed desktop and 390x844 mobile with clean console, no banned phrases, and no horizontal overflow.
+- Pending: commit, push, GitHub Actions, live custom-domain acceptance, and Stage 5 closeout log.
