@@ -218,6 +218,25 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_missing_performance_context_section(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Anti_Mage_123.html").write_text(
+                "<html><head><title>Anti-Mage 复盘报告</title></head>"
+                "<body>证据来源与覆盖 opendota_performance_context</body></html>",
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_performance_context_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "Anti_Mage_123.html -> performance context evidence requires rendered 分路与参战画像 section",
+            ],
+        )
+
     def test_static_site_checker_classifies_support_pages_and_exports(self):
         support_pages = {
             "index.html",

@@ -24,6 +24,7 @@
             {% if ai_analysis %}<a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a>{% endif %}
             {% if review_findings %}<a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>{% endif %}
             <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
+            {% if performance_context and performance_context.available %}<a class="report-section-link" href="#performance-context" data-report-section-link>表现画像</a>{% endif %}
             {% if opendota_benchmarks and opendota_benchmarks.available %}<a class="report-section-link" href="#hero-benchmarks" data-report-section-link>英雄百分位</a>{% endif %}
             {% if timeline %}<a class="report-section-link" href="#timeline-diagnosis" data-report-section-link>时间线</a>{% endif %}
             {% if events %}<a class="report-section-link" href="#match-events" data-report-section-link>事件</a>{% endif %}
@@ -196,6 +197,24 @@
             </div>
         </div>
     </div>
+
+    {% if performance_context and performance_context.available %}
+    <div class="section" id="performance-context">
+        <div class="section-header">&#128202; 分路与参战画像</div>
+        <div class="section-body">
+            <div class="compact-row muted">来源：{{ performance_context.source }}；均为本局实际汇总值，状态色只按报告内训练阈值提示，不是职业均值或因果结论。</div>
+            <div class="performance-context-grid" aria-label="本局分路与参战画像">
+                {% for metric in performance_context.metrics %}
+                <div class="performance-context-card {{ metric.status }}">
+                    <div class="performance-context-label">{{ metric.label }}</div>
+                    <div class="performance-context-value">{{ metric.value_label }}</div>
+                    <div class="performance-context-detail">{{ metric.detail }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     {% if opendota_benchmarks and opendota_benchmarks.available %}
     <div class="section" id="hero-benchmarks">

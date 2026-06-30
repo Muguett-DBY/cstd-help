@@ -150,6 +150,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         "review_findings": [],
         "role_profile": {},
         "opendota_benchmarks": {},
+        "performance_context": {},
         "kda": {},
         "farm": {},
         "items": {},
@@ -220,6 +221,12 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
     result["timeline"]["death_recovery_windows"] = _build_death_recovery_windows(result["timeline"], result["events"])
     result["timeline"]["death_resource_deltas"] = _build_death_resource_deltas(result["timeline"], result["events"])
     result["opendota_benchmarks"] = _build_opendota_benchmark_profile(opendota_player)
+    result["performance_context"] = _build_opendota_performance_context(
+        opendota_player,
+        duration_seconds=duration,
+        death_count=deaths,
+        role_profile=result["role_profile"],
+    )
 
     benchmarks = _load_json("benchmarks.json")
     role = _benchmark_role(context)
@@ -671,6 +678,106 @@ def _build_opendota_benchmark_profile(opendota_player):
             "weak_count": len(weak_metrics),
             "strong_count": len(strong_metrics),
         },
+    }
+
+
+def _format_duration_seconds(value):
+    total_seconds = max(0, int(round(value)))
+    minutes, seconds = divmod(total_seconds, 60)
+    return f"{minutes}分{seconds:02d}秒"
+
+
+def _valid_number(value, minimum, maximum):
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and minimum <= float(value) <= maximum
+    )
+
+
+def _build_opendota_performance_context(opendota_player, duration_seconds=0, death_count=0, role_profile=None):
+    player = opendota_player or {}
+    role_profile = role_profile or {}
+    metrics = []
+
+    lane_efficiency = player.get("lane_efficiency_pct")
+    if not _valid_number(lane_efficiency, 0, 100):
+        lane_ratio = player.get("lane_efficiency")
+        lane_efficiency = float(lane_ratio) * 100 if _valid_number(lane_ratio, 0, 1) else None
+    lane_efficiency_pct = int(round(lane_efficiency)) if lane_efficiency is not None else None
+    if lane_efficiency_pct is not None:
+        lane_attention = role_profile.get("lane_farm_sensitive") and lane_efficiency_pct < 50
+        metrics.append({
+            "id": "lane_efficiency",
+            "label": "对线效率",
+            "value_label": f"{lane_efficiency_pct}%",
+            "detail": "OpenDota返回的本局对线阶段资源效率",
+            "status": "attention" if lane_attention else "strong" if lane_efficiency_pct >= 70 else "normal",
+        })
+
+    participation = player.get("teamfight_participation")
+    teamfight_participation_pct = (
+        int(round(float(participation) * 100))
+        if _valid_number(participation, 0, 1)
+        else None
+    )
+    if teamfight_participation_pct is not None:
+        metrics.append({
+            "id": "teamfight_participation",
+            "label": "参战率",
+            "value_label": f"{teamfight_participation_pct}%",
+            "detail": "OpenDota返回的本局击杀参与汇总",
+            "status": "attention" if teamfight_participation_pct < 40 else "strong" if teamfight_participation_pct >= 65 else "normal",
+        })
+
+    dead_time = player.get("life_state_dead")
+    dead_time_seconds = int(round(dead_time)) if _valid_number(dead_time, 0, 86400) else None
+    dead_time_share_pct = None
+    average_dead_time = None
+    if dead_time_seconds is not None:
+        if _valid_number(duration_seconds, 1, 86400):
+            dead_time_share_pct = round((dead_time_seconds / float(duration_seconds)) * 100, 1)
+        if death_count:
+            average_dead_time = int(round(dead_time_seconds / death_count))
+        detail_parts = []
+        if dead_time_share_pct is not None:
+            detail_parts.append(f"占全局{dead_time_share_pct}%")
+        if average_dead_time is not None:
+            detail_parts.append(f"每次死亡平均{average_dead_time}秒")
+        metrics.append({
+            "id": "dead_time",
+            "label": "死亡占时",
+            "value_label": _format_duration_seconds(dead_time_seconds),
+            "detail": " · ".join(detail_parts) or "OpenDota记录的本局死亡总时长",
+            "status": (
+                "attention" if dead_time_share_pct is not None and dead_time_share_pct >= 18
+                else "strong" if dead_time_share_pct is not None and dead_time_share_pct <= 8
+                else "normal"
+            ),
+        })
+
+    buybacks = player.get("buyback_count")
+    buyback_count = int(buybacks) if _valid_number(buybacks, 0, 100) else None
+    if buyback_count is not None:
+        metrics.append({
+            "id": "buybacks",
+            "label": "买活次数",
+            "value_label": f"{buyback_count}次",
+            "detail": "OpenDota记录的本局买活次数",
+            "status": "normal",
+        })
+
+    return {
+        "available": bool(metrics),
+        "source": "OpenDota对局汇总字段",
+        "lane_efficiency_pct": lane_efficiency_pct,
+        "teamfight_participation_pct": teamfight_participation_pct,
+        "dead_time_seconds": dead_time_seconds,
+        "dead_time_label": _format_duration_seconds(dead_time_seconds) if dead_time_seconds is not None else None,
+        "dead_time_share_pct": dead_time_share_pct,
+        "average_dead_time_per_death_seconds": average_dead_time,
+        "buyback_count": buyback_count,
+        "metrics": metrics,
     }
 
 
@@ -1884,6 +1991,7 @@ def _item_window_goal_details(post_windows):
 
 def _build_review_findings(result):
     findings = []
+    benchmark_finding = None
     timeline = result.get("timeline", {})
     events = result.get("events", {})
     derived = result.get("derived", {})
@@ -1892,6 +2000,11 @@ def _build_review_findings(result):
     role_id = role_profile.get("id")
     benchmark_profile = result.get("opendota_benchmarks") or {}
     benchmark_weak = benchmark_profile.get("weak_metrics") or []
+    performance_context = result.get("performance_context") or {}
+    lane_efficiency_pct = performance_context.get("lane_efficiency_pct")
+    teamfight_participation_pct = performance_context.get("teamfight_participation_pct")
+    dead_time_label = performance_context.get("dead_time_label")
+    dead_time_share_pct = performance_context.get("dead_time_share_pct")
 
     if benchmark_weak:
         weak_metrics = sorted(benchmark_weak, key=lambda item: item.get("pct", 1))[:3]
@@ -1901,8 +2014,8 @@ def _build_review_findings(result):
             if item.get("label") and item.get("percentile_label")
         )
         lowest = weak_metrics[0]
-        findings.append(_finding(
-            "high" if lowest.get("pct", 1) <= 0.2 else "medium",
+        benchmark_finding = _finding(
+            "medium",
             "hero_benchmark_gap",
             f"OpenDota同英雄样本低位指标: {evidence}。",
             "同英雄样本百分位能区分这局是总量正常但某个维度掉队，还是所有面板都处在正常区间。",
@@ -1910,36 +2023,61 @@ def _build_review_findings(result):
             "OpenDota英雄样本百分位只描述公开样本相对位置，不是职业均值；回放时只核对低位指标对应的真实分钟和事件证据。",
             f"下一局优先把 {lowest.get('label')} 从本局{lowest.get('percentile_label')}往上抬。",
             "下一份报告该主短板百分位高于本局；低于第30百分位的指标数量减少。",
-        ))
+        )
 
+    lane_efficiency_low = (
+        role_profile.get("lane_farm_sensitive")
+        and isinstance(lane_efficiency_pct, (int, float))
+        and lane_efficiency_pct < 50
+    )
     if timeline.get("available") and role_profile.get("lane_farm_sensitive"):
         ten_lh = timeline.get("ten_min_last_hits")
         low_windows = timeline.get("low_efficiency_windows", [])
         early_low_windows = [w for w in low_windows if w.get("start_minute", 999) < 10]
-        if ten_lh is not None and (ten_lh < 45 or early_low_windows):
+        if ten_lh is not None and (ten_lh < 45 or early_low_windows or lane_efficiency_low):
             target_lh = ten_lh
             if ten_lh < 60:
                 target_lh = min(60, ten_lh + 5)
+            evidence = f"10分钟补刀 {ten_lh}，前10分钟低效率窗口 {len(early_low_windows)} 个"
+            action = "下一局前10分钟优先保证安全线和附近野区连续收取，除非队友明确形成高胜率击杀。"
+            training_goal = f"下一局先把前10分钟低效率窗口清零，再冲10分钟{target_lh}补。"
+            success_metric = f"10分钟补刀>={target_lh}；前10分钟低效率窗口=0。"
+            if lane_efficiency_low:
+                target_lane_efficiency = min(100, lane_efficiency_pct + 5)
+                evidence += f"，OpenDota对线效率 {lane_efficiency_pct}%"
+                action += f" 以本局{lane_efficiency_pct}%为基线，下一局先提升到{target_lane_efficiency}%。"
+                training_goal = f"下一局把OpenDota对线效率从{lane_efficiency_pct}%提升到{target_lane_efficiency}%，并清零前10分钟低效率窗口。"
+                success_metric += f" OpenDota对线效率>={target_lane_efficiency}%。"
             findings.append(_finding(
                 "high",
                 "lane_farm",
-                f"10分钟补刀 {ten_lh}，前10分钟低效率窗口 {len(early_low_windows)} 个。",
+                evidence + "。",
                 "核心位前10分钟资源会直接影响第一件关键装备和之后能否接管地图。",
-                "下一局前10分钟优先保证安全线和附近野区连续收取，除非队友明确形成高胜率击杀。",
-                "系统按低效率窗口标记异常分钟；结合购买/击杀事件判断是被压线、转线、参战还是刷野路线断档。",
-                f"下一局先把前10分钟低效率窗口清零，再冲10分钟{target_lh}补。",
-                f"10分钟补刀>={target_lh}；前10分钟低效率窗口=0。",
+                action,
+                "系统按低效率窗口标记异常分钟，并使用OpenDota对线效率汇总字段交叉验收；汇总值不判断效率下降原因。",
+                training_goal,
+                success_metric,
             ))
     elif role_id in ("pos1", "pos2", "unknown"):
+        evidence = f"总补刀 {farm.get('last_hits', 0)}，LH/min {derived.get('lh_per_min', 0)}；缺少分钟级补刀时间线"
+        action = "当前报告只按总量指标给低置信度判断；后续抓取会继续请求分钟数组，拿到后自动重跑对线期诊断。"
+        training_goal = "下一局先保证数据抓取拿到分钟级补刀线；有时间线后才对对线期下结论。"
+        success_metric = "数据验收：下一份报告包含10分钟补刀和前10分钟低效率窗口。"
+        if lane_efficiency_low:
+            target_lane_efficiency = min(100, lane_efficiency_pct + 5)
+            evidence += f"；OpenDota对线效率 {lane_efficiency_pct}%"
+            action = f"以本局{lane_efficiency_pct}%为真实基线，下一局前10分钟每次离线前先确定下一波兵线或近区野资源，把OpenDota对线效率提升到{target_lane_efficiency}%。"
+            training_goal = f"下一局把OpenDota对线效率从{lane_efficiency_pct}%提升到{target_lane_efficiency}%。"
+            success_metric = f"OpenDota对线效率>={target_lane_efficiency}%；下一份报告补齐分钟级补刀线。"
         findings.append(_finding(
             "medium",
             "lane_farm",
-            f"总补刀 {farm.get('last_hits', 0)}，LH/min {derived.get('lh_per_min', 0)}；缺少分钟级补刀时间线。",
+            evidence + "。",
             "没有时间线就无法定位对线期还是中期刷钱路线出了问题。",
-            "当前报告只按总量指标给低置信度判断；后续抓取会继续请求分钟数组，拿到后自动重跑对线期诊断。",
-            "系统缺少前10分钟每分钟补刀数组，暂时不能定位具体异常分钟。",
-            "下一局先保证数据抓取拿到分钟级补刀线；有时间线后才对对线期下结论。",
-            "数据验收：下一份报告包含10分钟补刀和前10分钟低效率窗口。",
+            action,
+            "系统使用OpenDota对线效率汇总字段确认本局结果；缺少分钟数组时不编造具体失误分钟。",
+            training_goal,
+            success_metric,
         ))
 
     late_low_windows = [
@@ -2051,6 +2189,8 @@ def _build_review_findings(result):
         evidence = (
             f"{coverage}，时间: {death_minutes}分钟；每10分钟死亡 {derived.get('deaths_per_10_min', 0)}。"
         )
+        if dead_time_label and dead_time_share_pct is not None:
+            evidence += f" 死亡占时 {dead_time_label}（{dead_time_share_pct}%）。"
         death_position_labels = [
             f"{item.get('minute')}分 {item.get('position_label')}"
             for item in death_events
@@ -2090,10 +2230,13 @@ def _build_review_findings(result):
             if parsed_logs else
             "当前缺少 death_log，系统不能计算每次死亡前30秒的地图状态和技能资源。"
         )
+        evidence = f"本局死亡 {result.get('kda', {}).get('deaths', 0)} 次，但缺少死亡事件时间线。"
+        if dead_time_label and dead_time_share_pct is not None:
+            evidence += f" OpenDota死亡占时 {dead_time_label}（{dead_time_share_pct}%）。"
         findings.append(_finding(
             "medium",
             "death_review",
-            f"本局死亡 {result.get('kda', {}).get('deaths', 0)} 次，但缺少死亡事件时间线。",
+            evidence,
             "只看死亡总数无法判断是对线被抓、中期带线送节奏，还是后期团战选择错误。",
             action,
             replay_check,
@@ -2225,15 +2368,18 @@ def _build_review_findings(result):
             "数据验收：下一份报告包含关键购买时间和装备后转化窗口。",
         ))
 
-    kill_participation = derived.get("kill_participation_pct")
+    kill_participation = teamfight_participation_pct
+    participation_source = "OpenDota参战率" if kill_participation is not None else "参战率"
+    if kill_participation is None:
+        kill_participation = derived.get("kill_participation_pct")
     if kill_participation is not None and kill_participation < 40 and result.get("duration_min", 0) >= 20:
         findings.append(_finding(
             "medium",
             "map_impact",
-            f"参战率 {kill_participation}%。",
-            "过低参战率说明刷钱路线和队伍目标脱节，尤其会延迟关键装备后的推进节奏。",
+            f"{participation_source} {kill_participation}%。",
+            "该实际值低于报告40%训练阈值，因此本局把可参战路线列为下一局的量化训练项；汇总字段本身不证明未参战原因。",
             "下一局把刷钱路线设计成能顺路压塔、控盾或支援队友，而不是远离目标单刷。",
-            "系统检查每次队友开战时你是否能通过提前推线/TP/Blink 进入战场。",
+            "系统使用OpenDota参战率汇总字段，并与击杀/助攻及关键装备后窗口交叉；汇总值不判断未参战原因。",
             "下一局每条刷钱路线都要顺路覆盖一座塔、一条高价值兵线或一次支援入口。",
             "参战率>=40%；关键装备后2分钟至少完成一次参战或推塔动作。",
         ))
@@ -2264,6 +2410,9 @@ def _build_review_findings(result):
             "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
             f"{MAP_CONVERSION_SUCCESS_METRIC}；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
         ))
+
+    if benchmark_finding:
+        findings.append(benchmark_finding)
 
     if not findings:
         findings.append(_finding(
@@ -2339,6 +2488,16 @@ def _build_evidence_sources(result):
     objective_count = len(events.get("objectives") or [])
     benchmark_profile = result.get("opendota_benchmarks") or {}
     benchmark_count = (benchmark_profile.get("summary") or {}).get("metric_count", 0)
+    performance_context = result.get("performance_context") or {}
+    context_coverage = []
+    if performance_context.get("lane_efficiency_pct") is not None:
+        context_coverage.append(f"对线效率{performance_context['lane_efficiency_pct']}%")
+    if performance_context.get("teamfight_participation_pct") is not None:
+        context_coverage.append(f"参战率{performance_context['teamfight_participation_pct']}%")
+    if performance_context.get("dead_time_label"):
+        context_coverage.append(f"死亡占时{performance_context['dead_time_label']}")
+    if performance_context.get("buyback_count") is not None:
+        context_coverage.append(f"买活{performance_context['buyback_count']}次")
 
     return [
         {
@@ -2407,6 +2566,13 @@ def _build_evidence_sources(result):
             "source": benchmark_profile.get("source") or "未获取",
             "coverage": f"{benchmark_count}项同英雄样本百分位" if benchmark_count else "未获取英雄样本百分位",
             "status": "available" if benchmark_count else "missing",
+        },
+        {
+            "id": "performance_context",
+            "label": "分路与参战汇总",
+            "source": performance_context.get("source") or "未获取",
+            "coverage": "、".join(context_coverage) if context_coverage else "未获取对线、参战与死亡占时汇总",
+            "status": "available" if context_coverage else "missing",
         },
     ]
 
@@ -2495,6 +2661,10 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
     if (result.get("opendota_benchmarks") or {}).get("available"):
         available.append("hero_benchmarks")
         score += 7
+
+    if (result.get("performance_context") or {}).get("available"):
+        available.append("opendota_performance_context")
+        score += 5
 
     expected_deaths = (result.get("kda") or {}).get("deaths", 0) or 0
     observed_deaths = (result.get("events") or {}).get("death_count_observed")

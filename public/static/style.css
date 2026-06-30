@@ -1787,6 +1787,50 @@ body {
     gap: 10px;
     margin: 12px 0;
 }
+
+.performance-context-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.performance-context-card {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--border-color);
+    border-left: 3px solid #6b7280;
+    border-radius: 6px;
+    background: var(--bg-secondary);
+}
+
+.performance-context-card.attention {
+    border-left-color: var(--danger-color);
+}
+
+.performance-context-card.strong {
+    border-left-color: var(--success-color);
+}
+
+.performance-context-label {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.performance-context-value {
+    margin-top: 6px;
+    color: var(--text-primary);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.performance-context-detail {
+    margin-top: 8px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.45;
+}
 .benchmark-summary div {
     min-height: 64px;
     padding: 10px;
@@ -2419,6 +2463,10 @@ tr:hover { background: rgba(88,166,255,0.05); }
         grid-template-columns: 1fr;
     }
     .benchmark-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .performance-context-grid {
         grid-template-columns: 1fr;
     }
     .benchmark-head {
