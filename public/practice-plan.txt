@@ -24,7 +24,7 @@ Dota 2 下一局训练清单
 第 3 优先级：重复死亡坐标
 - 出现：13 局 / 13 条证据
 - 下一局动作：下一局把重复死亡坐标簇从2个压到最多1个；每个重复点赛前写一条撤退规则。
-- 验收标准：重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。
+- 验收标准：重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。
 - 失败证据：trend-custom-97ad93fe24.html?result=lose
 - 胜利样本：trend-custom-97ad93fe24.html?result=win
 - 英雄专项：trend-custom-97ad93fe24.html?hero=Dragon+Knight

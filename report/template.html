@@ -480,9 +480,9 @@
                     <div><span>触发:</span> {{ events.death_objective_drill.trigger }}</div>
                     <div><span>执行:</span> {{ events.death_objective_drill.rule }}</div>
                     <div><span>验收:</span> {{ events.death_objective_drill.success_metric }}</div>
-                    <div class="muted"><span>优先回看:</span> {{ events.death_objective_drill.evidence }}</div>
+                    <div class="muted"><span>证据窗口:</span> {{ events.death_objective_drill.evidence }}</div>
                     {% if events.death_objective_drill.checklist %}
-                    <div class="objective-drill-checklist" aria-label="目标前90秒回放检查点">
+                    <div class="objective-drill-checklist" aria-label="目标前90秒证据检查点">
                         {% for item in events.death_objective_drill.checklist %}
                         <div class="objective-drill-check">
                             <span>{{ item.label }}</span>
@@ -605,7 +605,7 @@
                 {% if events.death_position_clusters %}
                 <div class="death-coordinate-clusters" id="death-coordinate-clusters">
                     <div class="death-coordinate-cluster-title">重复死亡坐标簇</div>
-                    <div class="death-coordinate-note">只按 STRATZ 原始x/y距离聚类；不生成地图区域名，具体入口/线口/目标区需要回放确认。</div>
+                    <div class="death-coordinate-note">只按 STRATZ 原始x/y距离聚类；不生成地图区域名；报告只展示原始样本，不把入口/线口/目标区作为结论。</div>
                     {% for cluster in events.death_position_clusters[:6] %}
                     <div class="death-coordinate-cluster-row">
                         <strong>{{ cluster.evidence_label }}</strong>

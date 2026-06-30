@@ -47,6 +47,19 @@ FORBIDDEN_REPORT_TEXT = [
     "릿턍",
     "괩멩",
 ]
+FORBIDDEN_MANUAL_REVIEW_LANGUAGE = [
+    "需要回放确认",
+    "优先回看",
+    "可回放复查",
+    "回放确认后的",
+    "回放场景",
+    "逐一回放",
+    "回放时只核对",
+    "回放检查点",
+    "人工回看",
+    "人工查看",
+    "手动复盘",
+]
 SUPPORT_HTML_PAGES = frozenset({
     "index.html",
     "practice-plan.html",
@@ -365,6 +378,32 @@ def _find_report_trend_context_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _public_review_language_paths(public_dir):
+    paths = []
+    for path in sorted(public_dir.glob("*")):
+        if path.suffix not in {".html", ".txt", ".json"}:
+            continue
+        if (
+            _is_report_page(path)
+            or _is_topic_page(path)
+            or path.name in SUPPORT_HTML_PAGES
+            or path.name in SUPPORT_TEXT_EXPORTS
+            or path.name == "review-trends.json"
+        ):
+            paths.append(path)
+    return paths
+
+
+def _find_manual_review_language_issues(public_dir=PUBLIC_DIR):
+    issues = []
+    for path in _public_review_language_paths(public_dir):
+        text = path.read_text(encoding="utf-8")
+        for phrase in FORBIDDEN_MANUAL_REVIEW_LANGUAGE:
+            if phrase in text:
+                issues.append(f"{path.name} -> manual review language is not allowed: {phrase}")
+    return issues
+
+
 def _find_report_text_quality_issues(public_dir=PUBLIC_DIR):
     issues = []
     for report in _report_pages(public_dir):
@@ -449,6 +488,11 @@ def main():
     if trend_context_issues:
         preview = "; ".join(trend_context_issues[:10])
         raise SystemExit(f"public report trend contexts are incomplete: {preview}")
+
+    manual_language_issues = _find_manual_review_language_issues(PUBLIC_DIR)
+    if manual_language_issues:
+        preview = "; ".join(manual_language_issues[:10])
+        raise SystemExit(f"public manual review language issues: {preview}")
 
     text_quality_issues = _find_report_text_quality_issues(PUBLIC_DIR)
     if text_quality_issues:

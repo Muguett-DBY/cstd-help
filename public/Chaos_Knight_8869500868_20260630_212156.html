@@ -13,7 +13,7 @@
 
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
-<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 6 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Pangolier_8869892215_20260630_204658.html"><span class="neighbor-label">上一局（更新）</span><strong>Pangolier #8869892215</strong><small>胜利 · 高优先级 · 死亡后目标损失</small></a><a class="neighbor-card" href="Rubick_8867351572_20260630_204659.html"><span class="neighbor-label">下一局（更早）</span><strong>Rubick #8867351572</strong><small>胜利 · 高优先级 · 死亡后目标损失</small></a></div></nav>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 6 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Pangolier_8869892215_20260630_212155.html"><span class="neighbor-label">上一局（更新）</span><strong>Pangolier #8869892215</strong><small>胜利 · 高优先级 · 死亡后目标损失</small></a><a class="neighbor-card" href="Rubick_8867351572_20260630_212156.html"><span class="neighbor-label">下一局（更早）</span><strong>Rubick #8867351572</strong><small>胜利 · 高优先级 · 死亡后目标损失</small></a></div></nav>
         <h1>Chaos Knight 复盘报告</h1>
         <div class="subtitle">比赛ID: 8869500868 | 结束于 2026-06-28 03:05 | 时长 33.7分钟</div>
         <div class="result-badge lose">失败</div>
@@ -68,7 +68,7 @@
                     <div class="decision-panel" id="decision-panel-validation" role="tabpanel" data-decision-panel="validation" hidden>
                         <strong>赛后验收</strong>
                         <p>死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</p>
-                        <small>系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。 优先回看：33.7分死亡 → 33.7分失去遗迹（1秒）；只确认死亡前90秒是否满足接应、控制露头、撤退路线三项条件。</small>
+                        <small>系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。 系统证据窗口：33.7分死亡 → 33.7分失去遗迹（1秒）；只校验死亡前90秒是否满足接应、控制露头、撤退路线三项条件。</small>
                     </div>
                     <div class="decision-tab-status" aria-live="polite" data-decision-status>当前显示：下一局规则</div>
                 </div>
@@ -111,7 +111,7 @@
             </div>
         </div>
     </section>
-<section class="report-trend-context" aria-label="近期同类问题"><div class="trend-context-copy"><span>近期同类问题</span><strong>死亡后目标损失</strong><small>最近 18 场中 13 场出现；共 13 条证据。</small></div><div class="trend-context-examples" aria-label="同类问题样本"><a href="Legion_Commander_8870219537_20260630_204657.html">Legion Commander #8870219537</a><a href="Dragon_Knight_8867124876_20260630_204659.html">Dragon Knight #8867124876</a><a href="Dragon_Knight_8870145903_20260630_204658.html">Dragon Knight #8870145903</a></div><a class="trend-context-link" href="trend-custom-bac9d883f8.html">完整趋势证据</a></section>
+<section class="report-trend-context" aria-label="近期同类问题"><div class="trend-context-copy"><span>近期同类问题</span><strong>死亡后目标损失</strong><small>最近 18 场中 13 场出现；共 13 条证据。</small></div><div class="trend-context-examples" aria-label="同类问题样本"><a href="Legion_Commander_8870219537_20260630_212154.html">Legion Commander #8870219537</a><a href="Dragon_Knight_8867124876_20260630_212156.html">Dragon Knight #8867124876</a><a href="Dragon_Knight_8870145903_20260630_212155.html">Dragon Knight #8870145903</a></div><a class="trend-context-link" href="trend-custom-bac9d883f8.html">完整趋势证据</a></section>
 
 
 
@@ -133,7 +133,7 @@
 下一局只盯这几件事
 1. 死亡后目标损失: 下一局每次准备处理基地防守或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。 验收：死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。
 2. 死亡成本: 下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。 验收：每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。
-3. 重复死亡坐标: 下一局每次进入这些重复坐标对应的回放场景前，先确认三个条件：队友能否接应、敌方关键控制是否露头、自己是否有明确撤退路线；任一条件缺失就先退回安全资源点。 验收：重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。
+3. 重复死亡坐标: 下一局每次接近这些重复坐标对应的高风险区域前，先满足三个条件：队友能接应、敌方关键控制已露头、自己有明确撤退路线；任一条件缺失就先退回安全资源点。 验收：重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。
 4. 死亡前后资源变化: 下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。 验收：死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。</div>
         </div>
     </div>
@@ -160,7 +160,7 @@
                 <div class="goal-row">
                     <div class="goal-title">重复死亡坐标</div>
                     <div class="goal-body"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从3个压到最多1个；每个重复点赛前写一条撤退规则。</div>
-                    <div class="goal-body muted"><strong>验收标准:</strong> 重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> 重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。</div>
                 </div>
 
                 <div class="goal-row">
@@ -190,7 +190,7 @@
                 <div class="finding-line"><strong>行动:</strong> 下一局每次准备处理基地防守或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。</div>
                 <div class="finding-line"><strong>训练目标:</strong> 下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。</div>
                 <div class="finding-line"><strong>验收标准:</strong> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</div>
-                <div class="finding-line muted"><strong>系统检查:</strong> 系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。 优先回看：33.7分死亡 → 33.7分失去遗迹（1秒）；只确认死亡前90秒是否满足接应、控制露头、撤退路线三项条件。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> 系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。 系统证据窗口：33.7分死亡 → 33.7分失去遗迹（1秒）；只校验死亡前90秒是否满足接应、控制露头、撤退路线三项条件。</div>
             </div>
 
             <div class="finding-card high">
@@ -206,11 +206,11 @@
             <div class="finding-card high">
                 <div class="finding-title">高优先级 · 重复死亡坐标</div>
                 <div class="finding-line"><strong>证据:</strong> 重复死亡坐标簇: 2.2、5.4、8.2分重复死亡坐标簇，中心x=77.3,y=148.0，样本3次；20.4、33.7分重复死亡坐标簇，中心x=85.0,y=83.0，样本2次；24.0、29.8分重复死亡坐标簇，中心x=73.0,y=96.0，样本2次。</div>
-                <div class="finding-line"><strong>影响:</strong> 同一 raw 坐标附近重复死亡，说明至少有一个可回放复查的高风险场景在反复出现。</div>
-                <div class="finding-line"><strong>行动:</strong> 下一局每次进入这些重复坐标对应的回放场景前，先确认三个条件：队友能否接应、敌方关键控制是否露头、自己是否有明确撤退路线；任一条件缺失就先退回安全资源点。</div>
+                <div class="finding-line"><strong>影响:</strong> 同一 raw 坐标附近重复死亡，说明至少有一个高风险坐标场景在反复出现。</div>
+                <div class="finding-line"><strong>行动:</strong> 下一局每次接近这些重复坐标对应的高风险区域前，先满足三个条件：队友能接应、敌方关键控制已露头、自己有明确撤退路线；任一条件缺失就先退回安全资源点。</div>
                 <div class="finding-line"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从3个压到最多1个；每个重复点赛前写一条撤退规则。</div>
-                <div class="finding-line"><strong>验收标准:</strong> 重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。</div>
-                <div class="finding-line muted"><strong>系统检查:</strong> 系统只按 STRATZ raw x/y 距离聚类，不转换成地图区域名；需要回放确认这些点对应的入口、线口、目标区或高低坡。</div>
+                <div class="finding-line"><strong>验收标准:</strong> 重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> 系统只按 STRATZ raw x/y 距离聚类，不转换成地图区域名；报告保留原始坐标和分钟，不把入口、线口、目标区或高低坡作为结论。</div>
             </div>
 
             <div class="finding-card high">
@@ -220,7 +220,7 @@
                 <div class="finding-line"><strong>行动:</strong> 下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。</div>
                 <div class="finding-line"><strong>训练目标:</strong> 下一局把死亡前后资源明显下降窗口从2个压到最多1个。</div>
                 <div class="finding-line"><strong>验收标准:</strong> 死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。</div>
-                <div class="finding-line muted"><strong>系统检查:</strong> 系统只比较死亡前后真实分钟数组，不判断死亡原因；逐一回看这些窗口的复活路径、TP落点、是否空走等人、是否重复进入无视野区域。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> 系统只比较死亡前后真实分钟数组，不判断死亡原因；报告只把这些窗口列为资源恢复验收点，不把复活路径、TP落点或无视野进入作为结论。</div>
             </div>
 
             <div class="finding-card medium">
@@ -1038,9 +1038,9 @@
                     <div><span>触发:</span> 下一局每次准备处理基地防守或同级关键目标前90秒</div>
                     <div><span>执行:</span> 先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。</div>
                     <div><span>验收:</span> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</div>
-                    <div class="muted"><span>优先回看:</span> 33.7分死亡 → 33.7分失去遗迹（1秒）</div>
+                    <div class="muted"><span>证据窗口:</span> 33.7分死亡 → 33.7分失去遗迹（1秒）</div>
 
-                    <div class="objective-drill-checklist" aria-label="目标前90秒回放检查点">
+                    <div class="objective-drill-checklist" aria-label="目标前90秒证据检查点">
 
                         <div class="objective-drill-check">
                             <span>队友接应</span>
@@ -1326,7 +1326,7 @@
 
                 <div class="death-coordinate-clusters" id="death-coordinate-clusters">
                     <div class="death-coordinate-cluster-title">重复死亡坐标簇</div>
-                    <div class="death-coordinate-note">只按 STRATZ 原始x/y距离聚类；不生成地图区域名，具体入口/线口/目标区需要回放确认。</div>
+                    <div class="death-coordinate-note">只按 STRATZ 原始x/y距离聚类；不生成地图区域名；报告只展示原始样本，不把入口/线口/目标区作为结论。</div>
 
                     <div class="death-coordinate-cluster-row">
                         <strong>2.2、5.4、8.2分重复死亡坐标簇，中心x=77.3,y=148.0，样本3次</strong>
@@ -1370,7 +1370,7 @@
             </div>
 
             <div class="compact-row">
-                <strong>重复死亡坐标</strong>：重复死亡坐标簇: 2.2、5.4、8.2分重复死亡坐标簇，中心x=77.3,y=148.0，样本3次；20.4、33.7分重复死亡坐标簇，中心x=85.0,y=83.0，样本2次；24.0、29.8分重复死亡坐标簇，中心x=73.0,y=96.0，样本2次。 同一 raw 坐标附近重复死亡，说明至少有一个可回放复查的高风险场景在反复出现。
+                <strong>重复死亡坐标</strong>：重复死亡坐标簇: 2.2、5.4、8.2分重复死亡坐标簇，中心x=77.3,y=148.0，样本3次；20.4、33.7分重复死亡坐标簇，中心x=85.0,y=83.0，样本2次；24.0、29.8分重复死亡坐标簇，中心x=73.0,y=96.0，样本2次。 同一 raw 坐标附近重复死亡，说明至少有一个高风险坐标场景在反复出现。
             </div>
 
             <div class="compact-row">
@@ -1434,7 +1434,7 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 20:46:59
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 21:21:56
     </div>
 
 </div>
