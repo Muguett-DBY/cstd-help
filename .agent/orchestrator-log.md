@@ -1452,6 +1452,18 @@ Started: 2026-06-28
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 1 closeout log.
 
+## 2026-06-30 - Long Cycle 5 Stage 1 IMPROVE - Complete
+
+- Completed stage: 1 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: add verified objective event timeline` (`fa0fe6a`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28419477448`; unit tests, compile, static Pages validation, credential validation, and deployment all succeeded.
+- Production acceptance: `https://dota.custard.top/` and the 18-report manifest returned 200; latest Legion Commander report returned 200 with a hero-first title, 19 objective rows, exact 44.1-minute Roshan loss, and `OpenDota目标事件` source coverage.
+- Remaining risk: the timeline proves event order and ownership but does not yet connect deaths or item timings to nearby objectives.
+- Next stage: Stage 2 IMPROVE will add exact death-to-objective temporal windows without claiming causality.
+
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 2.

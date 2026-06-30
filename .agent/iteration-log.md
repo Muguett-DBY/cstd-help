@@ -7,7 +7,7 @@
 - User-visible gain: the latest Legion Commander report now shows 19 exact objective events, including 4 gained and 15 lost, instead of leaving objective flow implicit in kills and tower-damage totals.
 - Real issue fixed: reports no longer describe map conversion without showing the actual objective events that happened; absent objective feeds are now an explicit data-quality limitation.
 - Verification: 87 tests, compileall, 18-page static validation, gitleaks, diff check, and desktop/mobile browser QA passed; new tests completed a RED-to-GREEN cycle.
-- Deployment: pending Stage 1 commit, push, CI, and custom-domain acceptance.
+- Deployment: committed as `feat: add verified objective event timeline` (`fa0fe6a`), pushed to `main`; `Deploy Cloudflare Pages` run `28419477448` passed and the custom domain served all 19 latest-report objective rows.
 - Remaining risk: objective rows show verified event order and ownership only; they intentionally do not infer why an objective was gained or lost.
 - Next flagship direction: connect exact deaths to objective events that occurred shortly afterward, while labeling the relationship as temporal evidence rather than cause.
 
