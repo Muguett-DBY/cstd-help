@@ -199,6 +199,25 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_missing_hero_benchmark_section(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Legion_Commander_8870219537.html").write_text(
+                "<html><head><title>Legion Commander 复盘报告</title></head>"
+                "<body>证据来源与覆盖 hero_benchmarks OpenDota英雄样本百分位</body></html>",
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_hero_benchmark_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "Legion_Commander_8870219537.html -> hero benchmark evidence requires rendered 英雄样本百分位 section",
+            ],
+        )
+
     def test_static_site_checker_classifies_support_pages_and_exports(self):
         support_pages = {
             "index.html",

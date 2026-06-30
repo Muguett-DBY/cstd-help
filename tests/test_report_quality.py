@@ -212,6 +212,79 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("死亡后90秒内失去目标窗口=0", objective_findings[0]["success_metric"])
         self.assertIn("只标记事件先后", objective_findings[0]["replay_check"])
 
+    def test_opendota_benchmarks_create_percentile_profile_and_findings(self):
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "benchmarks": {
+                    "gold_per_min": {"raw": 540, "pct": 0.52},
+                    "xp_per_min": {"raw": 620, "pct": 0.61},
+                    "last_hits_per_min": {"raw": 5.1, "pct": 0.22},
+                    "hero_damage_per_min": {"raw": 360.5, "pct": 0.18},
+                    "tower_damage": {"raw": 2200, "pct": 0.72},
+                },
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        profile = result["opendota_benchmarks"]
+
+        self.assertTrue(profile["available"])
+        self.assertEqual(profile["source"], "OpenDota英雄样本百分位")
+        self.assertEqual(profile["summary"]["weak_count"], 2)
+        self.assertEqual(profile["summary"]["strong_count"], 1)
+        self.assertEqual(profile["metrics"][0]["label"], "推塔伤害")
+        self.assertEqual(profile["metrics"][0]["percentile_label"], "第72百分位")
+        self.assertIn("hero_benchmarks", result["data_quality"]["available"])
+        benchmark_findings = [
+            item for item in result["review_findings"]
+            if item["category"] == "hero_benchmark_gap"
+        ]
+        self.assertEqual(len(benchmark_findings), 1)
+        self.assertIn("英雄伤害/分钟 第18百分位", benchmark_findings[0]["evidence"])
+        self.assertIn("补刀/分钟 第22百分位", benchmark_findings[0]["evidence"])
+        self.assertIn("OpenDota英雄样本百分位", benchmark_findings[0]["replay_check"])
+
+    def test_generated_report_shows_opendota_benchmark_percentiles(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "benchmarks": {
+                    "gold_per_min": {"raw": 540, "pct": 0.52},
+                    "last_hits_per_min": {"raw": 5.1, "pct": 0.22},
+                    "hero_damage_per_min": {"raw": 360.5, "pct": 0.18},
+                    "tower_damage": {"raw": 2200, "pct": 0.72},
+                },
+            }],
+        }
+
+        analysis = analyze_match(match, opendota_data=opendota_data)
+        old_report_dir = generator.REPORT_DIR
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                generator.REPORT_DIR = tmpdir
+                report_path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+                with open(report_path, encoding="utf-8") as report_file:
+                    html = report_file.read()
+        finally:
+            generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("英雄样本百分位", html)
+        self.assertIn("OpenDota英雄样本百分位", html)
+        self.assertIn("英雄伤害/分钟", html)
+        self.assertIn("第18百分位", html)
+        self.assertIn("补刀/分钟", html)
+        self.assertIn("第22百分位", html)
+
     def test_generated_report_shows_real_objective_timeline(self):
         from report.generator import generate_report
         import report.generator as generator

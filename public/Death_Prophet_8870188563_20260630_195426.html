@@ -13,7 +13,7 @@
 
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
-<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 2 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Legion_Commander_8870219537_20260630_151304.html"><span class="neighbor-label">上一局（更新）</span><strong>Legion Commander #8870219537</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a><a class="neighbor-card" href="Dragon_Knight_8870145903_20260630_151305.html"><span class="neighbor-label">下一局（更早）</span><strong>Dragon Knight #8870145903</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a></div></nav>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 2 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Legion_Commander_8870219537_20260630_195426.html"><span class="neighbor-label">上一局（更新）</span><strong>Legion Commander #8870219537</strong><small>失败 · 高优先级 · 英雄样本短板</small></a><a class="neighbor-card" href="Dragon_Knight_8870145903_20260630_195427.html"><span class="neighbor-label">下一局（更早）</span><strong>Dragon Knight #8870145903</strong><small>失败 · 高优先级 · 英雄样本短板</small></a></div></nav>
         <h1>Death Prophet 复盘报告</h1>
         <div class="subtitle">比赛ID: 8870188563 | 结束于 2026-06-28 12:32 | 时长 30.6分钟</div>
         <div class="result-badge lose">失败</div>
@@ -25,6 +25,7 @@
             <a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a>
             <a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>
             <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
+            <a class="report-section-link" href="#hero-benchmarks" data-report-section-link>英雄百分位</a>
             <a class="report-section-link" href="#timeline-diagnosis" data-report-section-link>时间线</a>
             <a class="report-section-link" href="#match-events" data-report-section-link>事件</a>
             <a class="report-section-link" href="#review-findings" data-report-section-link>问题证据</a>
@@ -52,10 +53,10 @@
 - 补刀总量182，LH/min 5.95
 
 下一局只盯这几件事
-1. 死亡后目标损失: 下一局每次准备处理基地防守或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。 验收：死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。
-2. 死亡成本: 下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。 验收：每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。
-3. 重复死亡坐标: 下一局每次进入这些重复坐标对应的回放场景前，先确认三个条件：队友能否接应、敌方关键控制是否露头、自己是否有明确撤退路线；任一条件缺失就先退回安全资源点。 验收：重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。
-4. 死亡前后资源变化: 下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。 验收：死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。</div>
+1. 英雄样本短板: 下一局先只追 XPM：把路线和团战选择改到能直接抬升这个指标，不同时追多个目标。 验收：下一份报告该主短板百分位高于本局；低于第30百分位的指标数量减少。
+2. 死亡后目标损失: 下一局每次准备处理基地防守或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。 验收：死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。
+3. 死亡成本: 下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。 验收：每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。
+4. 重复死亡坐标: 下一局每次进入这些重复坐标对应的回放场景前，先确认三个条件：队友能否接应、敌方关键控制是否露头、自己是否有明确撤退路线；任一条件缺失就先退回安全资源点。 验收：重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。</div>
         </div>
     </div>
 
@@ -65,6 +66,12 @@
         <div class="section-header">&#127919; 下一局量化目标</div>
         <div class="section-body">
             <div class="goal-list">
+
+                <div class="goal-row">
+                    <div class="goal-title">英雄样本短板</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局优先把 XPM 从本局第13百分位往上抬。</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> 下一份报告该主短板百分位高于本局；低于第30百分位的指标数量减少。</div>
+                </div>
 
                 <div class="goal-row">
                     <div class="goal-title">死亡后目标损失</div>
@@ -97,6 +104,16 @@
     <div class="section priority-section" id="next-actions">
         <div class="section-header">&#127919; 下一局行动清单</div>
         <div class="section-body">
+
+            <div class="finding-card high">
+                <div class="finding-title">高优先级 · 英雄样本短板</div>
+                <div class="finding-line"><strong>证据:</strong> OpenDota同英雄样本低位指标: XPM 第13百分位；击杀/分钟 第22百分位；推塔伤害 第27百分位。</div>
+                <div class="finding-line"><strong>影响:</strong> 同英雄样本百分位能区分这局是总量正常但某个维度掉队，还是所有面板都处在正常区间。</div>
+                <div class="finding-line"><strong>行动:</strong> 下一局先只追 XPM：把路线和团战选择改到能直接抬升这个指标，不同时追多个目标。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局优先把 XPM 从本局第13百分位往上抬。</div>
+                <div class="finding-line"><strong>验收标准:</strong> 下一份报告该主短板百分位高于本局；低于第30百分位的指标数量减少。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> OpenDota英雄样本百分位只描述公开样本相对位置，不是职业均值；回放时只核对低位指标对应的真实分钟和事件证据。</div>
+            </div>
 
             <div class="finding-card high">
                 <div class="finding-title">高优先级 · 死亡后目标损失</div>
@@ -149,7 +166,7 @@
             <div class="quality-row">
                 <div class="quality-score">100/100</div>
                 <div>
-                    <div class="quality-label">可用数据：opendota_core_stats, final_item_slots, ability_build, stratz_player_detail, draft_context, lane_timeline, purchase_timeline, opendota_event_logs, stratz_playback, fight_log, stratz_position_samples, vision_events, opendota_objectives</div>
+                    <div class="quality-label">可用数据：opendota_core_stats, final_item_slots, ability_build, stratz_player_detail, draft_context, lane_timeline, purchase_timeline, opendota_event_logs, stratz_playback, fight_log, stratz_position_samples, vision_events, opendota_objectives, hero_benchmarks</div>
                     <div class="quality-label">数据缺口</div>
 
                     <div class="compact-row">无关键数据缺口。</div>
@@ -221,6 +238,14 @@
                     <div class="evidence-source-detail">
                         <span class="evidence-source-origin">OpenDota视野事件</span>
                         <span class="evidence-source-coverage">3条插眼事件</span>
+                    </div>
+                </div>
+
+                <div class="evidence-source-row available">
+                    <div class="evidence-source-name">英雄样本百分位</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">OpenDota英雄样本百分位</span>
+                        <span class="evidence-source-coverage">7项同英雄样本百分位</span>
                     </div>
                 </div>
 
@@ -310,6 +335,100 @@
             </div>
         </div>
     </div>
+
+
+    <div class="section" id="hero-benchmarks">
+        <div class="section-header">&#128200; 英雄样本百分位</div>
+        <div class="section-body">
+            <div class="compact-row muted">来源：OpenDota英雄样本百分位；只表示同英雄公开样本相对位置，不是职业均值。</div>
+            <div class="benchmark-summary" aria-label="英雄样本百分位摘要">
+                <div><strong>7</strong><span>可比较指标</span></div>
+                <div><strong>2</strong><span>高于第70百分位</span></div>
+                <div><strong>3</strong><span>低于第30百分位</span></div>
+            </div>
+            <div class="benchmark-grid">
+
+                <div class="benchmark-card strong">
+                    <div class="benchmark-head">
+                        <strong>英雄伤害/分钟</strong>
+                        <span>第88百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="英雄伤害/分钟 第88百分位">
+                        <span style="width: 88%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：1068.01</div>
+                </div>
+
+                <div class="benchmark-card strong">
+                    <div class="benchmark-head">
+                        <strong>治疗/分钟</strong>
+                        <span>第81百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="治疗/分钟 第81百分位">
+                        <span style="width: 81%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：0</div>
+                </div>
+
+                <div class="benchmark-card normal">
+                    <div class="benchmark-head">
+                        <strong>补刀/分钟</strong>
+                        <span>第66百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="补刀/分钟 第66百分位">
+                        <span style="width: 66%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：5.95</div>
+                </div>
+
+                <div class="benchmark-card normal">
+                    <div class="benchmark-head">
+                        <strong>GPM</strong>
+                        <span>第62百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="GPM 第62百分位">
+                        <span style="width: 62%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：541</div>
+                </div>
+
+                <div class="benchmark-card weak">
+                    <div class="benchmark-head">
+                        <strong>推塔伤害</strong>
+                        <span>第27百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="推塔伤害 第27百分位">
+                        <span style="width: 27%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：1476</div>
+                </div>
+
+                <div class="benchmark-card weak">
+                    <div class="benchmark-head">
+                        <strong>击杀/分钟</strong>
+                        <span>第22百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="击杀/分钟 第22百分位">
+                        <span style="width: 22%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：0.13</div>
+                </div>
+
+                <div class="benchmark-card weak">
+                    <div class="benchmark-head">
+                        <strong>XPM</strong>
+                        <span>第13百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="XPM 第13百分位">
+                        <span style="width: 13%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：494</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 
 
     <div class="section" id="timeline-diagnosis">
@@ -978,6 +1097,10 @@
         <div class="section-body">
 
             <div class="compact-row">
+                <strong>英雄样本短板</strong>：OpenDota同英雄样本低位指标: XPM 第13百分位；击杀/分钟 第22百分位；推塔伤害 第27百分位。 同英雄样本百分位能区分这局是总量正常但某个维度掉队，还是所有面板都处在正常区间。
+            </div>
+
+            <div class="compact-row">
                 <strong>死亡后目标损失</strong>：死亡后90秒内失去目标: 22.2分死亡 → 22.6分失去中路二塔（23秒）；22.2分死亡 → 23.4分失去下路二塔（74秒）；25.3分死亡 → 25.7分失去下路高地塔（24秒）；25.3分死亡 → 25.8分失去下路远程兵营（30秒）；25.3分死亡 → 26.0分失去下路近战兵营（42秒）。 这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。
             </div>
 
@@ -1046,7 +1169,7 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 15:13:05
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 19:54:26
     </div>
 
 </div>

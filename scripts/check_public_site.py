@@ -299,6 +299,19 @@ def _find_death_review_coverage_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_hero_benchmark_issues(public_dir=PUBLIC_DIR):
+    issues = []
+    for report in _report_pages(public_dir):
+        text = report.read_text(encoding="utf-8")
+        if "hero_benchmarks" not in text and "OpenDota英雄样本百分位" not in text:
+            continue
+        if "英雄样本百分位" not in text or "benchmark-grid" not in text:
+            issues.append(
+                f"{report.name} -> hero benchmark evidence requires rendered 英雄样本百分位 section"
+            )
+    return issues
+
+
 def _find_report_text_quality_issues(public_dir=PUBLIC_DIR):
     issues = []
     for report in _report_pages(public_dir):
@@ -363,6 +376,11 @@ def main():
     if death_review_issues:
         preview = "; ".join(death_review_issues[:10])
         raise SystemExit(f"public death review coverage is incomplete: {preview}")
+
+    hero_benchmark_issues = _find_hero_benchmark_issues(PUBLIC_DIR)
+    if hero_benchmark_issues:
+        preview = "; ".join(hero_benchmark_issues[:10])
+        raise SystemExit(f"public hero benchmark sections are incomplete: {preview}")
 
     text_quality_issues = _find_report_text_quality_issues(PUBLIC_DIR)
     if text_quality_issues:

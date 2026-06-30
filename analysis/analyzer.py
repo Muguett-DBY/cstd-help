@@ -149,6 +149,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         "events": {},
         "review_findings": [],
         "role_profile": {},
+        "opendota_benchmarks": {},
         "kda": {},
         "farm": {},
         "items": {},
@@ -218,6 +219,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
     result["timeline"]["death_overlap_windows"] = _build_death_overlap_windows(result["timeline"], result["events"])
     result["timeline"]["death_recovery_windows"] = _build_death_recovery_windows(result["timeline"], result["events"])
     result["timeline"]["death_resource_deltas"] = _build_death_resource_deltas(result["timeline"], result["events"])
+    result["opendota_benchmarks"] = _build_opendota_benchmark_profile(opendota_player)
 
     benchmarks = _load_json("benchmarks.json")
     role = _benchmark_role(context)
@@ -622,6 +624,56 @@ def _timeline_source_label(source):
     return " + ".join(labels.get(part, part) for part in source.split("+"))
 
 
+OPENDOTA_BENCHMARK_METRICS = [
+    ("gold_per_min", "GPM"),
+    ("xp_per_min", "XPM"),
+    ("last_hits_per_min", "补刀/分钟"),
+    ("hero_damage_per_min", "英雄伤害/分钟"),
+    ("tower_damage", "推塔伤害"),
+    ("kills_per_min", "击杀/分钟"),
+    ("hero_healing_per_min", "治疗/分钟"),
+]
+
+
+def _build_opendota_benchmark_profile(opendota_player):
+    raw_benchmarks = (opendota_player or {}).get("benchmarks") or {}
+    metrics = []
+    for key, label in OPENDOTA_BENCHMARK_METRICS:
+        item = raw_benchmarks.get(key)
+        if not isinstance(item, dict):
+            continue
+        pct = item.get("pct")
+        if not isinstance(pct, (int, float)):
+            continue
+        pct = max(0.0, min(1.0, float(pct)))
+        raw = item.get("raw")
+        percentile = int(round(pct * 100))
+        metrics.append({
+            "id": key,
+            "label": label,
+            "raw": round(raw, 2) if isinstance(raw, float) else raw,
+            "pct": round(pct, 4),
+            "percentile": percentile,
+            "percentile_label": f"第{percentile}百分位",
+            "status": "strong" if pct >= 0.7 else "weak" if pct <= 0.3 else "normal",
+        })
+    metrics.sort(key=lambda item: item["pct"], reverse=True)
+    weak_metrics = [item for item in metrics if item["status"] == "weak"]
+    strong_metrics = [item for item in metrics if item["status"] == "strong"]
+    return {
+        "available": bool(metrics),
+        "source": "OpenDota英雄样本百分位",
+        "metrics": metrics,
+        "weak_metrics": weak_metrics,
+        "strong_metrics": strong_metrics,
+        "summary": {
+            "metric_count": len(metrics),
+            "weak_count": len(weak_metrics),
+            "strong_count": len(strong_metrics),
+        },
+    }
+
+
 def _event_source_label(source):
     labels = {
         "opendota_parsed_logs": "OpenDota解析日志",
@@ -985,6 +1037,7 @@ CATEGORY_LABELS = {
     "item_timing": "装备后转化",
     "map_impact": "地图影响力",
     "support_vision": "视野/控图",
+    "hero_benchmark_gap": "英雄样本短板",
     "review_focus": "复盘重点",
 }
 
@@ -1739,6 +1792,7 @@ def _default_training_goal(category):
         "death_review": "下一局把死亡压到每10分钟最多1次，避免连续短时间重复阵亡。",
         "item_timing": "下一局每件关键装备成型后立刻绑定一个可记录的地图动作。",
         "map_impact": "下一局把刷钱路线接到推塔、参战或控图目标上。",
+        "hero_benchmark_gap": "下一局优先修正本局低于同英雄第30百分位的指标，只追一个主短板。",
         "closing": "下一局关键装备成型后30秒内给出盾、塔、双线压力三选一的明确动作。",
         "review_focus": "下一局只追踪前10分钟资源、关键装备后转化、死亡成本三项。",
     }
@@ -1756,6 +1810,7 @@ def _default_success_metric(category):
         "death_review": "每10分钟死亡不高于1.0；连续5分钟内死亡簇=0。",
         "item_timing": f"{FARM_ACCELERATION_SUCCESS_METRIC}；{MAP_CONVERSION_SUCCESS_METRIC}。",
         "map_impact": "参战率>=40%；关键装备后2分钟至少完成一次地图动作。",
+        "hero_benchmark_gap": "下一份报告该主短板高于本局百分位；低于第30百分位的指标数量减少。",
         "closing": f"{MAP_CONVERSION_SUCCESS_METRIC}；25分钟后死亡不超过2次。",
         "review_focus": "下一份报告三项都有事件证据，且没有新增高优先级问题。",
     }
@@ -1835,6 +1890,27 @@ def _build_review_findings(result):
     farm = result.get("farm", {})
     role_profile = result.get("role_profile", {})
     role_id = role_profile.get("id")
+    benchmark_profile = result.get("opendota_benchmarks") or {}
+    benchmark_weak = benchmark_profile.get("weak_metrics") or []
+
+    if benchmark_weak:
+        weak_metrics = sorted(benchmark_weak, key=lambda item: item.get("pct", 1))[:3]
+        evidence = "；".join(
+            f"{item.get('label')} {item.get('percentile_label')}"
+            for item in weak_metrics
+            if item.get("label") and item.get("percentile_label")
+        )
+        lowest = weak_metrics[0]
+        findings.append(_finding(
+            "high" if lowest.get("pct", 1) <= 0.2 else "medium",
+            "hero_benchmark_gap",
+            f"OpenDota同英雄样本低位指标: {evidence}。",
+            "同英雄样本百分位能区分这局是总量正常但某个维度掉队，还是所有面板都处在正常区间。",
+            f"下一局先只追 {lowest.get('label')}：把路线和团战选择改到能直接抬升这个指标，不同时追多个目标。",
+            "OpenDota英雄样本百分位只描述公开样本相对位置，不是职业均值；回放时只核对低位指标对应的真实分钟和事件证据。",
+            f"下一局优先把 {lowest.get('label')} 从本局{lowest.get('percentile_label')}往上抬。",
+            "下一份报告该主短板百分位高于本局；低于第30百分位的指标数量减少。",
+        ))
 
     if timeline.get("available") and role_profile.get("lane_farm_sensitive"):
         ten_lh = timeline.get("ten_min_last_hits")
@@ -2261,6 +2337,8 @@ def _build_evidence_sources(result):
     fight_count = len(events.get("kills") or []) + len(events.get("assists") or [])
     vision_count = len(events.get("vision_events") or [])
     objective_count = len(events.get("objectives") or [])
+    benchmark_profile = result.get("opendota_benchmarks") or {}
+    benchmark_count = (benchmark_profile.get("summary") or {}).get("metric_count", 0)
 
     return [
         {
@@ -2322,6 +2400,13 @@ def _build_evidence_sources(result):
             "source": _event_source_label(events.get("vision_source")),
             "coverage": f"{vision_count}条插眼事件" if vision_count else "未获取插眼事件",
             "status": "available" if vision_count else "missing",
+        },
+        {
+            "id": "hero_benchmarks",
+            "label": "英雄样本百分位",
+            "source": benchmark_profile.get("source") or "未获取",
+            "coverage": f"{benchmark_count}项同英雄样本百分位" if benchmark_count else "未获取英雄样本百分位",
+            "status": "available" if benchmark_count else "missing",
         },
     ]
 
@@ -2406,6 +2491,10 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
         score += 8
     else:
         limitations.append("缺少地图目标事件，不能还原推塔、兵营、肉山和不朽盾时间线")
+
+    if (result.get("opendota_benchmarks") or {}).get("available"):
+        available.append("hero_benchmarks")
+        score += 7
 
     expected_deaths = (result.get("kda") or {}).get("deaths", 0) or 0
     observed_deaths = (result.get("events") or {}).get("death_count_observed")

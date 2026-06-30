@@ -13,7 +13,7 @@
 
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
-<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 4 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Dragon_Knight_8870145903_20260630_151305.html"><span class="neighbor-label">上一局（更新）</span><strong>Dragon Knight #8870145903</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a><a class="neighbor-card" href="Pangolier_8869892215_20260630_151305.html"><span class="neighbor-label">下一局（更早）</span><strong>Pangolier #8869892215</strong><small>胜利 · 高优先级 · 死亡后目标损失</small></a></div></nav>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 4 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Dragon_Knight_8870145903_20260630_195427.html"><span class="neighbor-label">上一局（更新）</span><strong>Dragon Knight #8870145903</strong><small>失败 · 高优先级 · 英雄样本短板</small></a><a class="neighbor-card" href="Pangolier_8869892215_20260630_195428.html"><span class="neighbor-label">下一局（更早）</span><strong>Pangolier #8869892215</strong><small>胜利 · 高优先级 · 英雄样本短板</small></a></div></nav>
         <h1>Beastmaster 复盘报告</h1>
         <div class="subtitle">比赛ID: 8870116015 | 结束于 2026-06-28 10:47 | 时长 27.2分钟</div>
         <div class="result-badge win">胜利</div>
@@ -25,6 +25,7 @@
             <a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a>
             <a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>
             <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
+            <a class="report-section-link" href="#hero-benchmarks" data-report-section-link>英雄百分位</a>
             <a class="report-section-link" href="#timeline-diagnosis" data-report-section-link>时间线</a>
             <a class="report-section-link" href="#match-events" data-report-section-link>事件</a>
             <a class="report-section-link" href="#review-findings" data-report-section-link>问题证据</a>
@@ -99,7 +100,7 @@
             <div class="quality-row">
                 <div class="quality-score">100/100</div>
                 <div>
-                    <div class="quality-label">可用数据：opendota_core_stats, final_item_slots, ability_build, stratz_player_detail, draft_context, lane_timeline, purchase_timeline, opendota_event_logs, stratz_playback, fight_log, stratz_position_samples, vision_events, opendota_objectives</div>
+                    <div class="quality-label">可用数据：opendota_core_stats, final_item_slots, ability_build, stratz_player_detail, draft_context, lane_timeline, purchase_timeline, opendota_event_logs, stratz_playback, fight_log, stratz_position_samples, vision_events, opendota_objectives, hero_benchmarks</div>
                     <div class="quality-label">数据缺口</div>
 
                     <div class="compact-row">无关键数据缺口。</div>
@@ -171,6 +172,14 @@
                     <div class="evidence-source-detail">
                         <span class="evidence-source-origin">OpenDota视野事件</span>
                         <span class="evidence-source-coverage">1条插眼事件</span>
+                    </div>
+                </div>
+
+                <div class="evidence-source-row available">
+                    <div class="evidence-source-name">英雄样本百分位</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">OpenDota英雄样本百分位</span>
+                        <span class="evidence-source-coverage">7项同英雄样本百分位</span>
                     </div>
                 </div>
 
@@ -260,6 +269,100 @@
             </div>
         </div>
     </div>
+
+
+    <div class="section" id="hero-benchmarks">
+        <div class="section-header">&#128200; 英雄样本百分位</div>
+        <div class="section-body">
+            <div class="compact-row muted">来源：OpenDota英雄样本百分位；只表示同英雄公开样本相对位置，不是职业均值。</div>
+            <div class="benchmark-summary" aria-label="英雄样本百分位摘要">
+                <div><strong>7</strong><span>可比较指标</span></div>
+                <div><strong>5</strong><span>高于第70百分位</span></div>
+                <div><strong>0</strong><span>低于第30百分位</span></div>
+            </div>
+            <div class="benchmark-grid">
+
+                <div class="benchmark-card strong">
+                    <div class="benchmark-head">
+                        <strong>GPM</strong>
+                        <span>第98百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="GPM 第98百分位">
+                        <span style="width: 98%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：780</div>
+                </div>
+
+                <div class="benchmark-card strong">
+                    <div class="benchmark-head">
+                        <strong>推塔伤害</strong>
+                        <span>第96百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="推塔伤害 第96百分位">
+                        <span style="width: 96%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：12814</div>
+                </div>
+
+                <div class="benchmark-card strong">
+                    <div class="benchmark-head">
+                        <strong>击杀/分钟</strong>
+                        <span>第96百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="击杀/分钟 第96百分位">
+                        <span style="width: 96%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：0.44</div>
+                </div>
+
+                <div class="benchmark-card strong">
+                    <div class="benchmark-head">
+                        <strong>补刀/分钟</strong>
+                        <span>第94百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="补刀/分钟 第94百分位">
+                        <span style="width: 94%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：9.06</div>
+                </div>
+
+                <div class="benchmark-card strong">
+                    <div class="benchmark-head">
+                        <strong>治疗/分钟</strong>
+                        <span>第85百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="治疗/分钟 第85百分位">
+                        <span style="width: 85%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：0</div>
+                </div>
+
+                <div class="benchmark-card normal">
+                    <div class="benchmark-head">
+                        <strong>XPM</strong>
+                        <span>第64百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="XPM 第64百分位">
+                        <span style="width: 64%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：770</div>
+                </div>
+
+                <div class="benchmark-card normal">
+                    <div class="benchmark-head">
+                        <strong>英雄伤害/分钟</strong>
+                        <span>第63百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="英雄伤害/分钟 第63百分位">
+                        <span style="width: 63%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：684.99</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 
 
     <div class="section" id="timeline-diagnosis">
@@ -764,7 +867,7 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 15:13:05
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 19:54:28
     </div>
 
 </div>

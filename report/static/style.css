@@ -1781,6 +1781,81 @@ body {
 .death-review-body {
     min-width: 0;
 }
+.benchmark-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+}
+.benchmark-summary div {
+    min-height: 64px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: rgba(22,27,34,0.72);
+}
+.benchmark-summary strong {
+    display: block;
+    color: var(--accent-blue);
+    font-size: 22px;
+    line-height: 1.1;
+}
+.benchmark-summary span {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.benchmark-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px;
+}
+.benchmark-card {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: rgba(13,17,23,0.72);
+}
+.benchmark-card.weak {
+    border-color: rgba(248,81,73,0.42);
+}
+.benchmark-card.strong {
+    border-color: rgba(63,185,80,0.42);
+}
+.benchmark-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: baseline;
+}
+.benchmark-head strong {
+    color: var(--text-primary);
+}
+.benchmark-head span {
+    color: var(--text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+}
+.benchmark-bar {
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(48,54,61,0.75);
+}
+.benchmark-bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+}
+.benchmark-card.weak .benchmark-bar span {
+    background: linear-gradient(90deg, var(--accent-red), var(--accent-yellow));
+}
+.benchmark-foot {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
 .death-evidence-toolbar {
     position: sticky;
     top: 58px;
@@ -2339,6 +2414,17 @@ tr:hover { background: rgba(88,166,255,0.05); }
     }
     .practice-filter-row .filter-button {
         flex: 1 1 128px;
+    }
+    .benchmark-summary {
+        grid-template-columns: 1fr;
+    }
+    .benchmark-grid {
+        grid-template-columns: 1fr;
+    }
+    .benchmark-head {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
     }
     .death-evidence-toolbar,
     .event-evidence-toolbar {
