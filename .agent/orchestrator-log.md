@@ -1497,3 +1497,33 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and final 2-stage closeout log.
+
+## 2026-06-30 - Short Cycle Stage 2 UIUX - Complete
+
+- Completed stage: 2 / 2.
+- Type: UIUX.
+- Prompt: AGENT_UIUX_MAIN.txt.
+- Stage commit: `feat: improve death evidence scanning` (`ab35526`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28418442790`; unit tests, compile, static Pages validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports, 60 findings, 9 topics, and latest report `Legion_Commander_8870219537_20260630_132753.html`.
+  - Latest Legion Commander report returned 200 with hero-first title, `death-evidence-toolbar`, `death-event-card repeat-position`, `重复坐标`, and exact cluster labels for centers `x=137.0,y=129.0` and `x=125.0,y=72.0`.
+  - `trend-custom-97ad93fe24.html` returned 200 with `重复死亡坐标`.
+- Remaining risk: repeated coordinate cards still use raw STRATZ x/y clusters only; they intentionally do not infer map-region names or death causes.
+- Final state: both requested short-cycle stages are complete, pushed to `main`, CI-passed, and custom-domain checked.
+
+## 2026-06-30 - Short Cycle - Final Status
+
+- Completed stages: 2 / 2.
+- Stage commits:
+  - Stage 1: `feat: surface repeated death coordinate clusters` (`130228e`) plus log deploy `5c1de61`.
+  - Stage 2: `feat: improve death evidence scanning` (`ab35526`).
+- Final local gates: 85 tests, compileall, static Pages validation, gitleaks, diff check, forbidden-file check, and desktop/mobile browser QA passed.
+- Final CI state: Stage 2 deployment run `28418442790` passed; final log closeout deployment pending at the time of this entry.
+- Final production state: custom domain serves the 18-report history with repeated death-coordinate clusters, repeated-coordinate death-card highlighting, death-section jump controls, trend pages, and practice-plan topic coverage.
+- Remaining risks:
+  - Death coordinates remain raw STRATZ x/y samples until a verified Dota map transform exists.
+  - Live STRATZ refresh was blocked by Cloudflare in this environment; reports regenerated from cached real STRATZ details.
+  - Public reports are static until the next fetch/build/deploy cycle.
+- Recommended next flagship change: add verified objective-event overlays or a verified Dota coordinate transform before producing named-map-region death advice.

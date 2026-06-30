@@ -15,6 +15,8 @@
   - `gitleaks dir . --redact`: no leaks found.
   - Browser desktop/mobile QA passed: latest report has `death-evidence-toolbar`, 3 `.death-event-card.repeat-position` cards, no horizontal overflow, and no console errors.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Deployment: committed as `feat: improve death evidence scanning` (`ab35526`), pushed to `main`, and `Deploy Cloudflare Pages` run `28418442790` passed.
+- Production acceptance: custom-domain manifest reports 18 reports, 60 findings, and 9 topics; latest `Legion Commander #8870219537` report returns 200 with `death-evidence-toolbar`, `death-event-card repeat-position`, `重复坐标`, `重复簇 #1 中心x=137.0,y=129.0`, `重复簇 #2 中心x=125.0,y=72.0`, and the raw-coordinate caveat.
 - Remaining risk: coordinate clusters are still raw STRATZ x/y evidence only; map-region naming and cause attribution still require replay confirmation or a verified coordinate transform.
 
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE
