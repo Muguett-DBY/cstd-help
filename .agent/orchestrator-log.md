@@ -1217,6 +1217,26 @@ Started: 2026-06-28
 - Remaining risk: the evidence completeness summary proves rendered evidence-class availability only; external API freshness remains represented by the separate source-time panel.
 - Next stage: Stage 5 CHECK should harden validation around report header ordering, first-screen constraints, and generated evidence-summary consistency across all reports.
 
+## 2026-07-01 - Long Cycle 7 Stage 5 CHECK - Local Complete
+
+- Stage: 5 / 6.
+- Type: CHECK.
+- Prompt: AGENT_CHECK_MAIN.txt.
+- Goal: harden the new report header evidence surface so future builds cannot silently move it out of the header, default-expand it, or place it after the decision card.
+- Start state: `main` clean and synchronized with `origin/main` at `5fdb6cc`; Stage 4 closeout CI `28459419166` passed.
+- Finding fixed: static validation verified evidence-summary content but not its direct placement/order in `.report-context-deck` or its collapsed-by-default state, leaving a mobile first-screen regression risk.
+- Completed: added `_find_report_header_context_issues()` to parse report DOM and require direct-child order `report-neighbors` -> `report-source-provenance` -> `report-evidence-completeness`, collapsed source/evidence details, header before `<h1>`, and evidence summary before `#decision-snapshot`.
+- Stability gain: CI now catches header ordering and default-expanded evidence panels before deployment, not only missing text or mismatched counts.
+- Local verification:
+  - New CHECK regression test failed before implementation and passes now.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 106 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 reports.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 5 closeout log.
+
 ## 2026-06-30 - Long Cycle 3 Stage 4 IMPROVE - Complete
 
 - Completed stage: 4 / 6.

@@ -4,6 +4,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
+from bs4 import BeautifulSoup
+
 try:
     from build_pages_site import _parse_report, _read_evidence_sources_from_text
 except ModuleNotFoundError:
@@ -621,6 +623,70 @@ def _find_report_evidence_completeness_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _class_set(element):
+    return set(element.get("class") or [])
+
+
+def _find_report_header_context_issues(public_dir=PUBLIC_DIR):
+    issues = []
+    for report in _report_pages(public_dir):
+        text = report.read_text(encoding="utf-8")
+        soup = BeautifulSoup(text, "html.parser")
+        deck = soup.select_one(".report-context-deck")
+        if deck is None:
+            issues.append(f"{report.name} -> missing report context deck")
+            continue
+        direct_children = [child for child in deck.children if getattr(child, "name", None)]
+        neighbors = next(
+            (
+                child for child in direct_children
+                if child.name == "nav" and "report-neighbors" in _class_set(child)
+            ),
+            None,
+        )
+        provenance = next(
+            (
+                child for child in direct_children
+                if child.name == "details" and "report-source-provenance" in _class_set(child)
+            ),
+            None,
+        )
+        evidence = next(
+            (
+                child for child in direct_children
+                if child.has_attr("data-report-evidence-completeness")
+            ),
+            None,
+        )
+        if not neighbors or not provenance or not evidence:
+            issues.append(
+                f"{report.name} -> report context deck must contain neighbors, source provenance, and evidence completeness"
+            )
+            continue
+        positions = {
+            "neighbors": direct_children.index(neighbors),
+            "provenance": direct_children.index(provenance),
+            "evidence": direct_children.index(evidence),
+        }
+        if not (positions["neighbors"] < positions["provenance"] < positions["evidence"]):
+            issues.append(
+                f"{report.name} -> report context deck order must be neighbors, source provenance, evidence completeness"
+            )
+        if provenance.has_attr("open"):
+            issues.append(f"{report.name} -> source provenance must be collapsed by default")
+        evidence_details = evidence.find("details", class_="evidence-completeness-details")
+        if evidence_details is not None and evidence_details.has_attr("open"):
+            issues.append(f"{report.name} -> evidence completeness details must be collapsed by default")
+        all_tags = list(soup.find_all(True))
+        h1 = soup.find("h1")
+        decision = soup.select_one("#decision-snapshot")
+        if h1 is not None and all_tags.index(deck) > all_tags.index(h1):
+            issues.append(f"{report.name} -> report context deck must appear before the report title")
+        if decision is not None and all_tags.index(evidence) > all_tags.index(decision):
+            issues.append(f"{report.name} -> evidence completeness must appear before the decision snapshot")
+    return issues
+
+
 def _find_hero_benchmark_issues(public_dir=PUBLIC_DIR):
     issues = []
     for report in _report_pages(public_dir):
@@ -797,6 +863,11 @@ def main():
     if report_evidence_completeness_issues:
         preview = "; ".join(report_evidence_completeness_issues[:10])
         raise SystemExit(f"public report evidence completeness summaries are incomplete: {preview}")
+
+    report_header_context_issues = _find_report_header_context_issues(PUBLIC_DIR)
+    if report_header_context_issues:
+        preview = "; ".join(report_header_context_issues[:10])
+        raise SystemExit(f"public report header contexts are unstable: {preview}")
 
     hero_benchmark_issues = _find_hero_benchmark_issues(PUBLIC_DIR)
     if hero_benchmark_issues:

@@ -951,3 +951,12 @@
 - Verification: 105 tests, compileall, static validation, gitleaks, diff check, system-Chrome desktop/mobile report QA, GitHub Actions run `28459148795`, and live custom-domain checks passed.
 - Risk: the summary proves evidence-class availability only; it still does not certify external API freshness beyond the source-time panel.
 - Recommended next direction: Stage 5 CHECK should harden generated/public report validation around header order, first-screen height, and evidence summary consistency across all reports.
+
+## 2026-07-01 - Long Cycle 7 Stage 5 CHECK
+
+- Goal: harden report-header validation after adding the evidence completeness card.
+- Completed: static validation now requires header direct-child order, collapsed source/evidence details, context deck before the report title, and evidence completeness before the decision snapshot.
+- Real risk fixed: future builds can no longer pass CI while moving `本局证据完整度` out of the top context area or default-expanding long evidence details on mobile.
+- Verification: 106 tests, compileall, static validation, gitleaks, diff check, and forbidden-file check passed locally; commit/push/CI are pending.
+- Risk: static checks enforce DOM structure, while exact pixel first-screen height still depends on browser QA for major UI changes.
+- Recommended next direction: Stage 6 IMPROVE should add a small user-facing final increment that turns this evidence completeness into a clearer next-match trust/limitation signal without adding new inference.
