@@ -1450,7 +1450,20 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 1 closeout log.
+- Stage commit: `feat: expose source freshness telemetry` (`e7ded5f`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28455344889`; tests, compile, static validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports with `source_freshness.status=tracked`, 18 report timestamps, 18/18 STRATZ timestamps, 18/18 OpenDota timestamps, and latest external fetch `2026-06-30T10:27:03Z`.
+  - Homepage and practice plan returned 200 and rendered `data-source-freshness-panel`.
+  - Latest Legion Commander source timestamps are STRATZ `2026-06-30T10:26:10Z` and OpenDota `2026-06-28T05:56:30Z`.
+- Remaining risk: source freshness is currently summarized at site level; a report reader must still leave the report to see the exact source timestamps for that match.
+- Next direction: inject exact match-specific source timestamps into every public report and make the deployment gate reject missing provenance.
+
+## 2026-07-01 - Long Cycle 7 Stage 1 IMPROVE - Complete
+
+- Completed the source-freshness telemetry stage on `main` with tests, browser QA, CI, and live Cloudflare acceptance.
+- Final state: all 18 public reports have report-generation, STRATZ-fetch, and OpenDota-fetch timestamps represented in the production manifest; the shared public quality surface truthfully states that deployment uses cached evidence.
 
 ## 2026-06-30 - Long Cycle 5 Stage 1 IMPROVE - Complete
 

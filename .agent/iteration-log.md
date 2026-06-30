@@ -914,3 +914,12 @@
 - Production acceptance: custom domain serves 18 reports; latest Legion Commander report has decision/trend/evidence sections, and `site-manifest.json` quality gate reports pass with 18/18/18/0/18 counts.
 - Residual risk: report precision is still bounded by available OpenDota/STRATZ cached event fields; live STRATZ refresh can be Cloudflare-blocked from this environment.
 - Recommended next flagship change: add fetch-freshness/source-age telemetry to distinguish cached STRATZ/OpenDota evidence from freshly fetched data in the public quality panel.
+
+## 2026-07-01 - Long Cycle 7 Stage 1 IMPROVE
+
+- Goal: expose the actual generation and external-source fetch times behind the public reports.
+- Completed: added report timestamp parsing, SQLite STRATZ/OpenDota `fetched_at` loading, a `source_freshness` manifest summary, and a visible `数据新鲜度` panel on the history and practice pages.
+- Verification: 102 unit tests, compileall, public-site validator, gitleaks, diff check, desktop/mobile browser QA, GitHub Actions run `28455344889`, and live custom-domain checks all passed.
+- Production evidence: 18/18 reports have STRATZ timestamps, 18/18 have OpenDota timestamps, and the latest external fetch is `2026-06-30T10:27:03Z`.
+- Risk: the exact source timestamps are not yet visible inside each individual report.
+- Recommended next direction: add match-specific source provenance to every report and enforce it in CI.
