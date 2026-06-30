@@ -41,6 +41,12 @@ REQUIRED_DEATH_REVIEW_MANIFEST_FIELDS = [
     "death_coordinate_map_report_count",
     "complete_death_review_report_count",
 ]
+FORBIDDEN_REPORT_TEXT = [
+    "接失去",
+    "接获取",
+    "릿턍",
+    "괩멩",
+]
 SUPPORT_HTML_PAGES = frozenset({
     "index.html",
     "practice-plan.html",
@@ -293,6 +299,22 @@ def _find_death_review_coverage_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_report_text_quality_issues(public_dir=PUBLIC_DIR):
+    issues = []
+    for report in _report_pages(public_dir):
+        text = report.read_text(encoding="utf-8")
+        parser = TitleParser()
+        parser.feed(text)
+        if "复盘报告" not in parser.title:
+            issues.append(f"{report.name} -> title must include 复盘报告")
+        for phrase in FORBIDDEN_REPORT_TEXT:
+            if phrase in text:
+                issues.append(f"{report.name} -> awkward coaching phrase: {phrase}")
+        if "死亡后目标窗口" in text and "目标前90秒生存规则" not in text:
+            issues.append(f"{report.name} -> death/objective windows require 目标前90秒生存规则")
+    return issues
+
+
 def main():
     required_paths = {name: PUBLIC_DIR / name for name in REQUIRED_SUPPORT_FILES}
     for name, path in sorted(required_paths.items()):
@@ -341,6 +363,11 @@ def main():
     if death_review_issues:
         preview = "; ".join(death_review_issues[:10])
         raise SystemExit(f"public death review coverage is incomplete: {preview}")
+
+    text_quality_issues = _find_report_text_quality_issues(PUBLIC_DIR)
+    if text_quality_issues:
+        preview = "; ".join(text_quality_issues[:10])
+        raise SystemExit(f"public report text quality issues: {preview}")
 
     index_html = index_path.read_text(encoding="utf-8")
     if "Dota 2 天梯复盘报告" not in index_html:

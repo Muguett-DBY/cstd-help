@@ -178,6 +178,27 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_report_text_quality_issues(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Legion_Commander_8870219537.html").write_text(
+                "<html><head><title>Legion Commander Report</title></head>"
+                "<body>死亡后目标窗口 下一局每次准备接失去肉山前90秒</body></html>",
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_report_text_quality_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "Legion_Commander_8870219537.html -> title must include 复盘报告",
+                "Legion_Commander_8870219537.html -> awkward coaching phrase: 接失去",
+                "Legion_Commander_8870219537.html -> death/objective windows require 目标前90秒生存规则",
+            ],
+        )
+
     def test_static_site_checker_classifies_support_pages_and_exports(self):
         support_pages = {
             "index.html",
