@@ -353,25 +353,39 @@
                 </div>
                 <div class="death-review-body">
             {% endif %}
+            {% if events.deaths %}
+            <div class="death-evidence-toolbar" aria-label="死亡证据快捷入口">
+                <a href="#death-event-list">死亡列表</a>
+                {% if events.death_map_points %}<a href="#death-coordinate-map">坐标图</a>{% endif %}
+                {% if events.death_position_clusters %}<a href="#death-coordinate-clusters">重复坐标</a>{% endif %}
+                {% if timeline and timeline.death_recovery_windows %}<a href="#timeline-diagnosis">恢复窗口</a>{% endif %}
+            </div>
+            {% endif %}
             {% if events.death_coverage_label %}
             <div class="compact-row">{{ events.death_coverage_label }}{% if events.death_gap_note %}；{{ events.death_gap_note }}{% endif %}</div>
             {% endif %}
             {% if events.deaths %}
-            <div class="death-event-grid">
+            <div class="death-event-grid" id="death-event-list">
                 {% for item in events.deaths[:10] %}
-                <div class="death-event-card">
+                <div class="death-event-card{% if item.position_cluster_label %} repeat-position{% endif %}">
                     <span class="event-pill danger">{{ item.minute }}分</span>
+                    {% if item.position_cluster_label %}
+                    <span class="event-pill warning">重复坐标</span>
+                    {% endif %}
                     {% if item.position_label %}
                     <span class="death-position-label">死亡位置：{{ item.position_label }}</span>
                     {% else %}
                     <span class="death-position-label muted">死亡位置：无位置采样</span>
+                    {% endif %}
+                    {% if item.position_cluster_label %}
+                    <span class="death-position-label repeat">{{ item.position_cluster_label }}</span>
                     {% endif %}
                 </div>
                 {% endfor %}
             </div>
             {% if events.death_map_points %}
             <div class="subsection-title">死亡坐标图</div>
-            <div class="death-coordinate-map">
+            <div class="death-coordinate-map" id="death-coordinate-map">
                 <div class="death-coordinate-note">原始x/y坐标，按 STRATZ 位置采样绘制；只展示坐标，不生成地图区域名。</div>
                 <svg class="death-coordinate-plot" viewBox="0 0 255 255" role="img" aria-label="死亡原始坐标图">
                     <rect class="death-coordinate-bg" x="0" y="0" width="255" height="255" rx="8"></rect>
@@ -394,7 +408,7 @@
                     {% endfor %}
                 </div>
                 {% if events.death_position_clusters %}
-                <div class="death-coordinate-clusters">
+                <div class="death-coordinate-clusters" id="death-coordinate-clusters">
                     <div class="death-coordinate-cluster-title">重复死亡坐标簇</div>
                     <div class="death-coordinate-note">只按 STRATZ 原始x/y距离聚类；不生成地图区域名，具体入口/线口/目标区需要回放确认。</div>
                     {% for cluster in events.death_position_clusters[:6] %}

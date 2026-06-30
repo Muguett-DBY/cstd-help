@@ -1,5 +1,22 @@
 # Iteration Log
 
+## 2026-06-30 - Short Cycle Stage 2 UIUX
+
+- Goal: make repeated death-coordinate evidence faster to scan inside long match reports.
+- Completed: repeated-coordinate death cards now show a `重复坐标` badge and their exact cluster label, and the death-review workbench has direct jump links to the death list, coordinate map, repeated-coordinate evidence, and recovery windows.
+- User-visible gain: latest `Legion Commander #8870219537` now marks 3 individual death cards as repeated-coordinate deaths, including `22.7分` and `33.8分` linked to `重复簇 #1 中心x=137.0,y=129.0`.
+- Real issue fixed: the player no longer has to manually compare raw x/y chips against the cluster summary to know which deaths belong to repeated danger coordinates.
+- Verification:
+  - New UIUX target tests failed before implementation, then passed.
+  - `python main.py --skip-fetch --recent 18 --force`: regenerated 18 reports from cached real STRATZ details after live STRATZ fetch was blocked by Cloudflare.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 85 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser desktop/mobile QA passed: latest report has `death-evidence-toolbar`, 3 `.death-event-card.repeat-position` cards, no horizontal overflow, and no console errors.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Remaining risk: coordinate clusters are still raw STRATZ x/y evidence only; map-region naming and cause attribution still require replay confirmation or a verified coordinate transform.
+
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE
 
 - Goal: advance the map-position evidence direction without inventing named map regions by detecting repeated death coordinate clusters from real STRATZ raw x/y samples.

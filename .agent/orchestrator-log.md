@@ -1466,3 +1466,34 @@ Started: 2026-06-28
   - `trend-custom-97ad93fe24.html` returned 200 with `重复死亡坐标` evidence; `practice-plan.html` includes the new topic.
 - Remaining risk: repeated coordinate clusters still require replay confirmation and do not name map regions or infer death causes.
 - Next stage: Stage 2 UIUX should make the long match report evidence area faster to scan, especially the death/event evidence workbench on mobile.
+
+## 2026-06-30 - Short Cycle Stage 2 UIUX - Start
+
+- Stage: 2 / 2.
+- Type: UIUX.
+- Prompt: AGENT_UIUX_MAIN.txt.
+- Goal: upgrade the long report death/event evidence area into a faster-scanning death review workspace, with repeated-coordinate deaths visibly highlighted and mobile-friendly in-section navigation.
+- Carry-over: Stage 1 surfaced repeated coordinate evidence, but the death list still makes users manually connect individual death cards with cluster evidence.
+- User-visible increment: death cards that belong to repeated coordinate clusters should be visibly marked, and the death section should provide direct jump controls to the list, coordinate map, and cluster evidence.
+- Start state: main at `chore: record stage 1 coordinate cluster deployment` (`5c1de61`), clean worktree, Stage 1 CI passed in run `28410536047`.
+- Constraints: UI/UX only; do not touch Docker; do not edit `AGENTS.md`; do not invent map-region names or causal labels.
+
+## 2026-06-30 - Short Cycle Stage 2 UIUX - Local Complete
+
+- Completed: added stable repeated-coordinate cluster labels to death events and rendered those labels directly on matching death cards.
+- Report UI: added a `death-evidence-toolbar` with direct links to `death-event-list`, `death-coordinate-map`, `death-coordinate-clusters`, and recovery windows when present.
+- Mobile UX: repeated-coordinate death cards wrap cleanly, show the `重复坐标` badge, and the toolbar becomes static/touch-friendly on 390px mobile.
+- Public refresh: regenerated 18 reports from cached real STRATZ details and rebuilt `public/`; the latest report is `Legion_Commander_8870219537_20260630_132753.html`.
+- Real-report acceptance: latest `Legion Commander #8870219537` report shows 3 repeated-coordinate death cards, including `重复簇 #1 中心x=137.0,y=129.0` and `重复簇 #2 中心x=125.0,y=72.0`.
+- Browser verification:
+  - Desktop latest report: toolbar anchors present, 3 repeated-position cards, repeated-coordinate cluster section present, no horizontal overflow, no console errors.
+  - Mobile 390x900: repeated death cards and labels readable, toolbar is static, no horizontal overflow, no console errors.
+- Local verification:
+  - New target UIUX tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 85 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and final 2-stage closeout log.
