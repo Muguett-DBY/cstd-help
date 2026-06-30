@@ -1575,6 +1575,21 @@ Started: 2026-06-28
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 4 closeout log.
 
+## 2026-06-30 - Long Cycle 5 Stage 4 IMPROVE - Complete
+
+- Completed stage: 4 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: add objective survival drill` (`345b089`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28421148889`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports, 70 findings, 10 topics, and latest report `Legion_Commander_8870219537_20260630_144813.html`.
+  - Latest Legion Commander report returned 200 with `目标前90秒生存规则`, `处理基地防守`, `死亡后90秒内失去目标窗口=0`, and exact replay evidence `45.5分死亡 → 46.5分失去遗迹（54秒）`.
+  - Live report no longer contains the awkward `接失去` wording.
+- Remaining risk: the drill is still a prevention rule from temporal evidence; it does not claim the death caused the objective loss.
+- Next stage: Stage 5 CHECK should audit generated report text and static validation for remaining awkward or unverifiable coaching wording.
+
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 2.
