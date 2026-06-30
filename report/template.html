@@ -24,6 +24,7 @@
             {% if ai_analysis %}<a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a>{% endif %}
             {% if review_findings %}<a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>{% endif %}
             <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
+            {% if opendota_benchmarks and opendota_benchmarks.available %}<a class="report-section-link" href="#hero-benchmarks" data-report-section-link>英雄百分位</a>{% endif %}
             {% if timeline %}<a class="report-section-link" href="#timeline-diagnosis" data-report-section-link>时间线</a>{% endif %}
             {% if events %}<a class="report-section-link" href="#match-events" data-report-section-link>事件</a>{% endif %}
             {% if review_findings %}<a class="report-section-link" href="#review-findings" data-report-section-link>问题证据</a>{% endif %}
@@ -195,6 +196,34 @@
             </div>
         </div>
     </div>
+
+    {% if opendota_benchmarks and opendota_benchmarks.available %}
+    <div class="section" id="hero-benchmarks">
+        <div class="section-header">&#128200; 英雄样本百分位</div>
+        <div class="section-body">
+            <div class="compact-row muted">来源：{{ opendota_benchmarks.source }}；只表示同英雄公开样本相对位置，不是职业均值。</div>
+            <div class="benchmark-summary" aria-label="英雄样本百分位摘要">
+                <div><strong>{{ opendota_benchmarks.summary.metric_count }}</strong><span>可比较指标</span></div>
+                <div><strong>{{ opendota_benchmarks.summary.strong_count }}</strong><span>高于第70百分位</span></div>
+                <div><strong>{{ opendota_benchmarks.summary.weak_count }}</strong><span>低于第30百分位</span></div>
+            </div>
+            <div class="benchmark-grid">
+                {% for metric in opendota_benchmarks.metrics %}
+                <div class="benchmark-card {{ metric.status }}">
+                    <div class="benchmark-head">
+                        <strong>{{ metric.label }}</strong>
+                        <span>{{ metric.percentile_label }}</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="{{ metric.label }} {{ metric.percentile_label }}">
+                        <span style="width: {{ metric.percentile }}%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：{{ metric.raw }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     {% if timeline %}
     <div class="section" id="timeline-diagnosis">

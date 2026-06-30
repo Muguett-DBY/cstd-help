@@ -1789,3 +1789,31 @@ Started: 2026-06-28
   - Report coordinate evidence remains raw STRATZ x/y samples until a verified Dota map transform exists.
   - Future richer combat/vision advice depends on STRATZ/OpenDota exposing reliable event fields for those dimensions.
 - Recommended next flagship change: add richer verified combat or vision event ingestion if playback fields become consistently available, then wire those fields into the same deterministic finding pipeline.
+
+## 2026-06-30 - Long Cycle 6 Stage 1 IMPROVE - Start
+
+- Stage: 1 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Goal: continue the previous recommendation for richer verified source data by ingesting OpenDota hero benchmark percentiles into the deterministic report pipeline.
+- Planned user-visible increment: reports will show `英雄样本百分位` from OpenDota, including low/high percentile indicators and a structured finding when a metric is below the same-hero 30th percentile.
+- Start state: `main` at `d87e335`, clean and synchronized with `origin/main`; latest closeout CI `28422302494` passed.
+- Constraints: do not touch Docker or `AGENTS.md`; percentile data is OpenDota same-hero sample evidence, not a professional target or causal claim.
+
+## 2026-06-30 - Long Cycle 6 Stage 1 IMPROVE - Local Complete
+
+- Completed: normalized OpenDota `benchmarks` into `opendota_benchmarks`, sorted same-hero percentile metrics, counted strong/weak metrics, and generated `hero_benchmark_gap` findings for metrics below the 30th percentile.
+- Report UI: added `英雄样本百分位` section, report navigation entry, responsive percentile cards, and explicit caveat that this is OpenDota same-hero public sample evidence rather than a professional target.
+- Static validation: `scripts/check_public_site.py` now fails if a report advertises hero benchmark evidence but does not render the percentile section.
+- Public refresh: regenerated 18 real reports and rebuilt `public/`; latest report is `Legion_Commander_8870219537_20260630_195426.html`.
+- Real-report acceptance: latest Legion Commander report contains `英雄样本百分位`, `OpenDota英雄样本百分位`, percentiles including `第76百分位` and `第17百分位`, and no `接失去`.
+- Browser verification: Chromium desktop 1440x1000 and mobile 390x844 loaded the latest report with the benchmark section, no horizontal overflow, and 0 console messages.
+- Local verification:
+  - New target tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 92 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 1 closeout log.

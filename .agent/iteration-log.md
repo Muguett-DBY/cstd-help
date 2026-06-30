@@ -775,5 +775,21 @@
   - `gitleaks dir . --redact`: no leaks found.
   - `git diff --check`: passed.
   - Browser QA: latest Legion Commander report passed desktop and 390x844 mobile checks with no console errors or horizontal overflow.
-  - Production acceptance: latest live report `Legion_Commander_8870219537_20260630_151304.html` contains `队友接应`, `敌方控制`, `撤退路线`, and no `接失去`.
+- Production acceptance: latest live report `Legion_Commander_8870219537_20260630_151304.html` contains `队友接应`, `敌方控制`, `撤退路线`, and no `接失去`.
 - Residual risk: further advice precision now depends on reliable richer event fields from STRATZ/OpenDota or replay/video-derived evidence.
+
+## 2026-06-30 - Long Cycle 6 Stage 1 IMPROVE
+
+- Goal: continue the prior richer-evidence direction by turning OpenDota hero benchmark fields into report evidence.
+- Completed: added `opendota_benchmarks`, same-hero percentile cards, and `hero_benchmark_gap` findings for metrics below the 30th percentile.
+- User-visible gain: reports now show `英雄样本百分位`, making it clear which metrics are low or strong relative to OpenDota same-hero public samples without inventing professional averages.
+- Verification:
+  - New benchmark profile/report/checker tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 92 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser QA passed on desktop and 390x844 mobile; benchmark section rendered, no console errors, and no horizontal overflow.
+- Risks:
+  - Percentiles are OpenDota public sample comparisons only; they should guide review focus, not replace replay/event evidence.
+- Recommended next direction: use the same source-backed approach to expose lane efficiency and teamfight participation as deterministic context.
