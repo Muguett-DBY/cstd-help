@@ -941,3 +941,13 @@
 - Verification: 103 tests, compileall, static validation, gitleaks, diff check, GitHub Actions run `28457101078`, and live mobile interaction acceptance passed.
 - Risk: source time is clear, but users still need a direct match-specific statement about which evidence classes support the advice.
 - Recommended next direction: expose a compact per-match evidence completeness summary tied to the existing deterministic source coverage.
+
+## 2026-07-01 - Long Cycle 7 Stage 4 IMPROVE
+
+- Goal: complete the prior direction by surfacing per-match evidence completeness in each report header.
+- Completed: reports now show `本局证据完整度` with complete/partial/missing counts, evidence-class chips, and expandable source details derived from existing deterministic `evidence-source-row` data.
+- User-visible gain: latest Legion Commander shows `10/10 类完整` and all 10 supporting classes before the decision card, so the player can judge advice strength without scrolling to 数据完整性.
+- Stability gain: static validation now recomputes evidence-source counts and fails missing or inconsistent report evidence completeness summaries.
+- Verification: 105 tests, compileall, static validation, gitleaks, diff check, and system-Chrome desktop/mobile report QA passed locally; commit/push/CI are pending.
+- Risk: the summary proves evidence-class availability only; it still does not certify external API freshness beyond the source-time panel.
+- Recommended next direction: Stage 5 CHECK should harden generated/public report validation around header order, first-screen height, and evidence summary consistency across all reports.

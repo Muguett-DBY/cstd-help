@@ -1831,6 +1831,28 @@ Started: 2026-06-28
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 1 closeout log.
 
+## 2026-07-01 - Long Cycle 7 Stage 4 IMPROVE - Local Complete
+
+- Stage: 4 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Goal: carry forward the Stage 3 risk by exposing which match-specific evidence classes support each report's advice directly in the report header.
+- Start state: `main` clean and synchronized with `origin/main` at `c744eca`; Stage 3 deployment had passed and left the next direction as a compact per-match evidence completeness summary.
+- Completed: added structured parsing of report `evidence-source-row` entries, injected `本局证据完整度` into each report context deck, and rendered complete/partial/missing counts plus evidence-class chips and expandable source details.
+- User-visible gain: latest Legion Commander report now shows `10/10 类完整`, `可用/部分 10/10 · 缺失 0`, and the actual supporting classes before the decision card: core stats, minute timeline, purchases, deaths, death positions, fight events, objectives, vision, hero percentiles, and lane/teamfight summary.
+- Stability gain: `scripts/check_public_site.py` now rejects reports missing the evidence completeness summary or whose summary counts disagree with the underlying evidence-source rows.
+- Public refresh: rebuilt all 18 reports into `public/`; latest report remains `Legion_Commander_8870219537_20260630_212154.html`.
+- Browser verification: system Chrome passed desktop 1280x720 and mobile 390x844 checks; the decision card remains in the first mobile viewport at 775px, chip overflow scrolls inside the card, expanded details have 10 rows, console logs are clean, and no horizontal overflow appears.
+- Local verification:
+  - New static-checker, build injection, and CSS tests failed before implementation and pass now.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 105 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 reports.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 4 closeout log.
+
 ## 2026-06-30 - Long Cycle 5 Stage 6 IMPROVE - Local Complete
 
 - Completed: added a deterministic `目标前90秒` replay checklist to `death_objective_drill` so the report now gives three concrete checks before a major objective window: teammate support, enemy control visibility, and retreat route.

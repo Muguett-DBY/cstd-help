@@ -175,6 +175,73 @@ class CoachFindingParser(HTMLParser):
             self.finding.setdefault("success_metric", text.removeprefix("验收标准:").strip())
 
 
+class EvidenceSourceParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.in_row = False
+        self.row_depth = 0
+        self.current_field = None
+        self.current_parts = []
+        self.current_row = None
+        self.rows = []
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        classes = set((attributes.get("class") or "").split())
+        if tag.lower() == "div" and "evidence-source-row" in classes and not self.in_row:
+            self.in_row = True
+            self.row_depth = 1
+            self.current_row = {"status": _evidence_source_status(classes)}
+            return
+        if not self.in_row:
+            return
+        if tag.lower() == "div":
+            self.row_depth += 1
+        if "evidence-source-name" in classes:
+            self.current_field = "label"
+            self.current_parts = []
+        elif "evidence-source-origin" in classes:
+            self.current_field = "source"
+            self.current_parts = []
+        elif "evidence-source-coverage" in classes:
+            self.current_field = "coverage"
+            self.current_parts = []
+
+    def handle_endtag(self, tag):
+        if not self.in_row:
+            return
+        if self.current_field and tag.lower() in {"div", "span"}:
+            text = _normalize_text("".join(self.current_parts))
+            if text and self.current_row is not None:
+                self.current_row[self.current_field] = text
+            self.current_field = None
+            self.current_parts = []
+        if tag.lower() == "div":
+            self.row_depth -= 1
+            if self.row_depth <= 0:
+                if self.current_row and self.current_row.get("label"):
+                    self.rows.append(self.current_row)
+                self.in_row = False
+                self.current_row = None
+
+    def handle_data(self, data):
+        if self.in_row and self.current_field:
+            self.current_parts.append(data)
+
+
+def _evidence_source_status(classes):
+    for status in ("available", "partial", "missing"):
+        if status in classes:
+            return status
+    return "unknown"
+
+
+def _read_evidence_sources_from_text(text):
+    parser = EvidenceSourceParser()
+    parser.feed(text or "")
+    return parser.rows
+
+
 def _priority_from_classes(classes):
     for priority in ("high", "medium", "low"):
         if priority in classes:
@@ -350,6 +417,7 @@ def _parse_report(path):
     fallback_hero = _display_hero(match.group("hero")) if match else path.stem
     fallback_match_id = match.group("match_id") if match else ""
     report_text = path.read_text(encoding="utf-8")
+    evidence_sources = _read_evidence_sources_from_text(report_text)
     metadata = _read_embedded_metadata(path)
     coach_findings = _read_coach_findings(path)
     coach_finding = coach_findings[0] if coach_findings else _read_coach_finding(path)
@@ -393,6 +461,7 @@ def _parse_report(path):
         "enemies": _normalize_lineup(metadata.get("enemies")),
         "size": path.stat().st_size,
         "review_findings": coach_findings,
+        "evidence_sources": evidence_sources,
         "death_evidence": death_evidence,
         "quality_evidence": quality_evidence,
         **coach_finding,
@@ -1911,6 +1980,79 @@ def _render_report_source_provenance(report, source_fetch_times):
     )
 
 
+def _evidence_source_counts(evidence_sources):
+    total = len(evidence_sources)
+    complete = sum(1 for item in evidence_sources if item.get("status") == "available")
+    partial = sum(1 for item in evidence_sources if item.get("status") == "partial")
+    missing = sum(1 for item in evidence_sources if item.get("status") == "missing")
+    usable = complete + partial
+    return {
+        "total": total,
+        "complete": complete,
+        "usable": usable,
+        "partial": partial,
+        "missing": missing,
+    }
+
+
+def _evidence_status_label(status):
+    return {
+        "available": "完整",
+        "partial": "部分",
+        "missing": "缺失",
+    }.get(status, "待确认")
+
+
+def _render_report_evidence_completeness(evidence_sources):
+    counts = _evidence_source_counts(evidence_sources)
+    if counts["total"] <= 0:
+        return ""
+    status_class = "complete" if counts["missing"] == 0 and counts["partial"] == 0 else "attention"
+    status_label = "证据完整" if status_class == "complete" else "证据有缺口"
+    attrs = " ".join(
+        f'data-evidence-{key}="{html.escape(str(value), quote=True)}"'
+        for key, value in counts.items()
+    )
+    chips = []
+    detail_rows = []
+    for item in evidence_sources:
+        status = item.get("status") or "unknown"
+        label = item.get("label") or "未命名证据"
+        source = item.get("source") or "来源未记录"
+        coverage = item.get("coverage") or "覆盖未记录"
+        chips.append(
+            f'<span class="evidence-completeness-chip {html.escape(status, quote=True)}">'
+            f'{html.escape(label)}<small>{html.escape(_evidence_status_label(status))}</small>'
+            '</span>'
+        )
+        detail_rows.append(
+            '<li>'
+            f'<strong>{html.escape(label)}</strong>'
+            f'<span>{html.escape(source)} · {html.escape(coverage)}</span>'
+            '</li>'
+        )
+    return (
+        f'<section class="report-evidence-completeness {status_class}" data-report-evidence-completeness {attrs} '
+        'aria-label="本局证据完整度">'
+        '<div class="evidence-completeness-summary">'
+        '<span>本局证据完整度</span>'
+        f'<strong>{counts["complete"]}/{counts["total"]} 类完整</strong>'
+        f'<small>可用/部分 {counts["usable"]}/{counts["total"]} · 缺失 {counts["missing"]}</small>'
+        '</div>'
+        '<div class="evidence-completeness-status">'
+        f'<span>{html.escape(status_label)}</span>'
+        '</div>'
+        '<div class="evidence-completeness-chips" aria-label="证据类覆盖">'
+        f'{"".join(chips)}'
+        '</div>'
+        '<details class="evidence-completeness-details">'
+        '<summary>查看证据类明细</summary>'
+        f'<ul>{"".join(detail_rows)}</ul>'
+        '</details>'
+        '</section>'
+    )
+
+
 def _inject_report_source_provenance(public_dir, reports, source_fetch_times):
     for report in reports:
         path = public_dir / report["file"]
@@ -1935,6 +2077,37 @@ def _inject_report_source_provenance(public_dir, reports, source_fetch_times):
                 text = text[:insert_at] + "\n" + provenance + text[insert_at:]
             else:
                 text = text.replace("<body>", f"<body>\n{provenance}", 1)
+        _write_utf8(path, text)
+
+
+def _inject_report_evidence_completeness(public_dir, reports):
+    for report in reports:
+        path = public_dir / report["file"]
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(
+            r'\s*<section class="[^"]*report-evidence-completeness[^"]*"[\s\S]*?</section>',
+            "",
+            text,
+            count=1,
+        )
+        evidence_sources = _read_evidence_sources_from_text(text)
+        summary = _render_report_evidence_completeness(evidence_sources)
+        if not summary:
+            _write_utf8(path, text)
+            continue
+        provenance_match = re.search(r'(<details class="report-source-provenance"[\s\S]*?</details>)', text)
+        if provenance_match:
+            insert_at = provenance_match.end()
+            text = text[:insert_at] + "\n" + summary + text[insert_at:]
+        else:
+            context_match = re.search(r'(<div class="report-context-deck"[^>]*>)', text)
+            if context_match:
+                insert_at = context_match.end()
+                text = text[:insert_at] + "\n" + summary + text[insert_at:]
+            else:
+                text = text.replace("<body>", f"<body>\n{summary}", 1)
         _write_utf8(path, text)
 
 
@@ -2326,6 +2499,7 @@ def build_pages_site(source, public_dir=PUBLIC_DIR, source_fetch_times=None, sou
         )
     source_fetch_times = _normalize_source_fetch_times(source_fetch_times or {})
     _inject_report_source_provenance(public_dir, reports, source_fetch_times)
+    _inject_report_evidence_completeness(public_dir, reports)
     focus_trends = _build_focus_trends(reports)
     _inject_report_trend_context(public_dir, reports, focus_trends)
     reports = [_parse_report(public_dir / report["file"]) for report in reports]

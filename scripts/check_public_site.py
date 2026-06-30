@@ -5,9 +5,9 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 try:
-    from build_pages_site import _parse_report
+    from build_pages_site import _parse_report, _read_evidence_sources_from_text
 except ModuleNotFoundError:
-    from scripts.build_pages_site import _parse_report
+    from scripts.build_pages_site import _parse_report, _read_evidence_sources_from_text
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -74,6 +74,17 @@ REQUIRED_REPORT_SOURCE_PROVENANCE_TEXT = [
     "STRATZ 抓取",
     "OpenDota 抓取",
     "已缓存证据",
+]
+REQUIRED_REPORT_EVIDENCE_COMPLETENESS_TEXT = [
+    "本局证据完整度",
+    "data-report-evidence-completeness",
+    "data-evidence-total",
+    "data-evidence-complete",
+    "data-evidence-usable",
+    "data-evidence-partial",
+    "data-evidence-missing",
+    "evidence-completeness-summary",
+    "evidence-completeness-chip",
 ]
 FORBIDDEN_REPORT_TEXT = [
     "接失去",
@@ -557,6 +568,59 @@ def _find_report_source_provenance_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _evidence_source_counts(evidence_sources):
+    total = len(evidence_sources)
+    complete = sum(1 for item in evidence_sources if item.get("status") == "available")
+    partial = sum(1 for item in evidence_sources if item.get("status") == "partial")
+    missing = sum(1 for item in evidence_sources if item.get("status") == "missing")
+    return {
+        "total": total,
+        "complete": complete,
+        "usable": complete + partial,
+        "partial": partial,
+        "missing": missing,
+    }
+
+
+def _report_evidence_completeness_attrs(text):
+    tag_match = re.search(
+        r'<section[^>]*class="[^"]*report-evidence-completeness[^"]*"[^>]*data-report-evidence-completeness[^>]*>',
+        text,
+    )
+    if not tag_match:
+        return None
+    attrs = {}
+    for key in ("total", "complete", "usable", "partial", "missing"):
+        attr_match = re.search(rf'data-evidence-{key}="(\d+)"', tag_match.group(0))
+        if attr_match:
+            attrs[key] = int(attr_match.group(1))
+    return attrs
+
+
+def _find_report_evidence_completeness_issues(public_dir=PUBLIC_DIR):
+    issues = []
+    for report in _report_pages(public_dir):
+        text = report.read_text(encoding="utf-8")
+        if "evidence-source-list" not in text:
+            continue
+        if any(required not in text for required in REQUIRED_REPORT_EVIDENCE_COMPLETENESS_TEXT):
+            issues.append(f"{report.name} -> missing report evidence completeness summary")
+            continue
+        attrs = _report_evidence_completeness_attrs(text)
+        if attrs is None:
+            issues.append(f"{report.name} -> malformed report evidence completeness summary")
+            continue
+        expected = _evidence_source_counts(_read_evidence_sources_from_text(text))
+        mismatches = [
+            f"{key} expected {expected[key]} got {attrs.get(key)}"
+            for key in ("total", "complete", "usable", "partial", "missing")
+            if attrs.get(key) != expected[key]
+        ]
+        if mismatches:
+            issues.append(f"{report.name} -> evidence completeness mismatch: " + "; ".join(mismatches))
+    return issues
+
+
 def _find_hero_benchmark_issues(public_dir=PUBLIC_DIR):
     issues = []
     for report in _report_pages(public_dir):
@@ -728,6 +792,11 @@ def main():
     if report_source_issues:
         preview = "; ".join(report_source_issues[:10])
         raise SystemExit(f"public report source provenance is incomplete: {preview}")
+
+    report_evidence_completeness_issues = _find_report_evidence_completeness_issues(PUBLIC_DIR)
+    if report_evidence_completeness_issues:
+        preview = "; ".join(report_evidence_completeness_issues[:10])
+        raise SystemExit(f"public report evidence completeness summaries are incomplete: {preview}")
 
     hero_benchmark_issues = _find_hero_benchmark_issues(PUBLIC_DIR)
     if hero_benchmark_issues:
