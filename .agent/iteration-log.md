@@ -763,3 +763,17 @@
 - Risks:
   - The checklist is a replay review rubric tied to verified timing evidence; it still cannot claim the death caused the objective loss without replay/video context.
 - Recommended next direction: improve objective/death evidence with richer verified source data if STRATZ playback exposes additional combat or vision fields reliably.
+
+## 2026-06-30 - Long Cycle 5 Final
+
+- Completed: all 6 requested stages are implemented, tested, pushed, CI-passed, and custom-domain checked through the Stage 6 feature deployment.
+- Current live gain: `https://dota.custard.top` serves 18 reports with hero-first report titles, match history, objective timelines, death/objective windows, objective filtering, survival drill, and the new three-point objective replay checklist.
+- Final verification set:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 89 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - `git diff --check`: passed.
+  - Browser QA: latest Legion Commander report passed desktop and 390x844 mobile checks with no console errors or horizontal overflow.
+  - Production acceptance: latest live report `Legion_Commander_8870219537_20260630_151304.html` contains `队友接应`, `敌方控制`, `撤退路线`, and no `接失去`.
+- Residual risk: further advice precision now depends on reliable richer event fields from STRATZ/OpenDota or replay/video-derived evidence.

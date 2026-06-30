@@ -1757,3 +1757,35 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and full 6-stage closeout log.
+
+## 2026-06-30 - Long Cycle 5 Stage 6 IMPROVE - Complete
+
+- Completed stage: 6 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: add objective replay checklist` (`6903742`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28422200529`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports and latest report `Legion_Commander_8870219537_20260630_151304.html`.
+  - Latest Legion Commander report returned 200 with `目标前90秒生存规则`, `队友接应`, `敌方控制`, `撤退路线`, `复盘报告`, and without `接失去`.
+- Remaining risk: the checklist is a replay rubric tied to temporal objective evidence; it does not claim the death caused the objective loss.
+
+## 2026-06-30 - Long Cycle 5 - Final Status
+
+- Completed stages: 6 / 6.
+- Stage commits:
+  - Stage 1: `feat: add verified objective event timeline` (`fa0fe6a`) plus log deploy `8e0525`.
+  - Stage 2: `feat: connect deaths to objective losses` (`be4a85c`) plus log deploy `bfe8cc4`.
+  - Stage 3: `feat: add objective event workbench` (`ebfeb95`) plus log deploy `034427c`.
+  - Stage 4: `feat: add objective survival drill` (`345b089`) plus log deploy `5633cc0`.
+  - Stage 5: `test: enforce report text quality` (`6ea8025`) plus log deploy `6a9255d`.
+  - Stage 6: `feat: add objective replay checklist` (`6903742`).
+- Final local gates: 89 tests, compileall, static Pages validation, gitleaks, diff check, forbidden-file check, and desktop/mobile browser QA passed.
+- Final CI state: Stage 6 deployment run `28422200529` passed; final log closeout deployment pending at the time of this entry.
+- Final production state: custom domain serves the 18-report history with verified objective timelines, death/objective windows, filterable objective workbench, objective survival drill, three-point replay checklist, trend pages, and static text quality gates.
+- Remaining risks:
+  - Death/objective relationships remain temporal evidence unless replay/video confirms causality.
+  - Report coordinate evidence remains raw STRATZ x/y samples until a verified Dota map transform exists.
+  - Future richer combat/vision advice depends on STRATZ/OpenDota exposing reliable event fields for those dimensions.
+- Recommended next flagship change: add richer verified combat or vision event ingestion if playback fields become consistently available, then wire those fields into the same deterministic finding pipeline.
