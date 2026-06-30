@@ -60,6 +60,18 @@ REQUIRED_SOURCE_FRESHNESS_FIELDS = [
     "latest_external_fetch_at",
     "limitation",
 ]
+REQUIRED_REPORT_SOURCE_PROVENANCE_TEXT = [
+    "证据时间",
+    "report-source-provenance",
+    "data-report-source-provenance",
+    "data-report-generated-at",
+    "data-stratz-fetched-at",
+    "data-opendota-fetched-at",
+    "报告生成",
+    "STRATZ 抓取",
+    "OpenDota 抓取",
+    "已缓存证据",
+]
 FORBIDDEN_REPORT_TEXT = [
     "接失去",
     "接获取",
@@ -485,6 +497,63 @@ def _find_source_freshness_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_report_source_provenance_issues(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    issues = []
+    manifest_sources = {}
+    manifest_path = public_dir / "site-manifest.json"
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            manifest = {}
+        for source in manifest.get("report_sources") or []:
+            if isinstance(source, dict) and source.get("file"):
+                manifest_sources[str(source["file"])] = source
+
+    for report in _report_pages(public_dir):
+        text = report.read_text(encoding="utf-8")
+        if any(required not in text for required in REQUIRED_REPORT_SOURCE_PROVENANCE_TEXT):
+            issues.append(f"{report.name} -> missing report source provenance")
+            continue
+        filename_match = re.search(r"_(\d{8,})_(\d{8}_\d{6})\.html$", report.name)
+        markup_match = re.search(
+            r'data-match-id="([^"]*)"[\s\S]*?'
+            r'data-report-generated-at="([^"]*)"[\s\S]*?'
+            r'data-stratz-fetched-at="([^"]*)"[\s\S]*?'
+            r'data-opendota-fetched-at="([^"]*)"',
+            text,
+        )
+        if not filename_match or not markup_match:
+            issues.append(f"{report.name} -> malformed report source provenance")
+            continue
+        filename_match_id = filename_match.group(1)
+        markup_match_id = markup_match.group(1)
+        if markup_match_id != filename_match_id:
+            issues.append(
+                f"{report.name} -> source provenance match id {markup_match_id} "
+                f"does not match filename {filename_match_id}"
+            )
+            continue
+        expected = manifest_sources.get(report.name)
+        if not expected:
+            continue
+        actual_values = {
+            "match_id": markup_match.group(1),
+            "report_generated_at": markup_match.group(2),
+            "stratz_fetched_at": markup_match.group(3),
+            "opendota_fetched_at": markup_match.group(4),
+        }
+        mismatches = [
+            f"{field} expected {expected.get(field) or ''} got {actual_values[field]}"
+            for field in actual_values
+            if str(expected.get(field) or "") != actual_values[field]
+        ]
+        if mismatches:
+            issues.append(f"{report.name} -> inconsistent report source provenance: " + ", ".join(mismatches))
+    return issues
+
+
 def _find_hero_benchmark_issues(public_dir=PUBLIC_DIR):
     issues = []
     for report in _report_pages(public_dir):
@@ -651,6 +720,11 @@ def main():
     if source_freshness_issues:
         preview = "; ".join(source_freshness_issues[:10])
         raise SystemExit(f"public source freshness summary is incomplete: {preview}")
+
+    report_source_issues = _find_report_source_provenance_issues(PUBLIC_DIR)
+    if report_source_issues:
+        preview = "; ".join(report_source_issues[:10])
+        raise SystemExit(f"public report source provenance is incomplete: {preview}")
 
     hero_benchmark_issues = _find_hero_benchmark_issues(PUBLIC_DIR)
     if hero_benchmark_issues:

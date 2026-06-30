@@ -1044,6 +1044,15 @@ def _build_site_manifest(reports, trends, source_fetch_times=None):
             "complete_quality_report_count": complete_quality_count,
         },
         "source_freshness": _build_source_freshness(sorted_reports, source_fetch_times),
+        "report_sources": [
+            {
+                "file": report.get("file") or "",
+                "match_id": str(report.get("match_id") or ""),
+                "report_generated_at": report.get("report_generated_at"),
+                **_source_fetches_for_report(report, source_fetch_times),
+            }
+            for report in sorted_reports
+        ],
         "latest_match": latest_match,
         "topics": [
             {
@@ -1858,6 +1867,69 @@ def _inject_report_navigation(public_dir, reports):
         _write_utf8(path, text)
 
 
+def _render_report_source_provenance(report, source_fetch_times):
+    match_id = str(report.get("match_id") or "")
+    report_generated_at = report.get("report_generated_at")
+    fetches = _source_fetches_for_report(report, source_fetch_times)
+    stratz_fetched_at = fetches.get("stratz_fetched_at")
+    opendota_fetched_at = fetches.get("opendota_fetched_at")
+    source_count = sum(bool(value) for value in (stratz_fetched_at, opendota_fetched_at))
+    status_label = "来源完整" if source_count == 2 else ("来源部分可用" if source_count else "来源时间未记录")
+
+    def attribute(name, value):
+        return f' {name}="{html.escape(str(value or ""), quote=True)}"'
+
+    return (
+        '<section class="report-source-provenance" aria-label="证据时间"'
+        ' data-report-source-provenance'
+        f'{attribute("data-match-id", match_id)}'
+        f'{attribute("data-report-generated-at", report_generated_at)}'
+        f'{attribute("data-stratz-fetched-at", stratz_fetched_at)}'
+        f'{attribute("data-opendota-fetched-at", opendota_fetched_at)}>'
+        '<div class="source-provenance-heading">'
+        '<span>证据时间</span>'
+        f'<strong>{html.escape(status_label)}</strong>'
+        '</div>'
+        '<div class="source-provenance-grid">'
+        '<div><span>报告生成</span>'
+        f'{_render_public_time(report_generated_at, "未记录")}</div>'
+        '<div><span>STRATZ 抓取</span>'
+        f'{_render_public_time(stratz_fetched_at, "未记录")}</div>'
+        '<div><span>OpenDota 抓取</span>'
+        f'{_render_public_time(opendota_fetched_at, "未记录")}</div>'
+        '</div>'
+        '<small>本报告只使用以上时间点已缓存证据；Cloudflare 发布不会实时重抓比赛数据。</small>'
+        '</section>'
+    )
+
+
+def _inject_report_source_provenance(public_dir, reports, source_fetch_times):
+    for report in reports:
+        path = public_dir / report["file"]
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(
+            r'\s*<section class="report-source-provenance"[\s\S]*?</section>',
+            "",
+            text,
+            count=1,
+        )
+        provenance = _render_report_source_provenance(report, source_fetch_times)
+        neighbors_match = re.search(r'(<nav class="report-neighbors"[\s\S]*?</nav>)', text)
+        if neighbors_match:
+            insert_at = neighbors_match.end()
+            text = text[:insert_at] + "\n" + provenance + text[insert_at:]
+        else:
+            back_link_match = re.search(r'(<a class="back-link"[\s\S]*?</a>)', text)
+            if back_link_match:
+                insert_at = back_link_match.end()
+                text = text[:insert_at] + "\n" + provenance + text[insert_at:]
+            else:
+                text = text.replace("<body>", f"<body>\n{provenance}", 1)
+        _write_utf8(path, text)
+
+
 def _trend_for_report(report, trends):
     topic_id, _, _ = _classify_focus(report.get("review_focus"))
     for trend in trends:
@@ -2244,6 +2316,8 @@ def build_pages_site(source, public_dir=PUBLIC_DIR, source_fetch_times=None, sou
             [report.get("match_id") for report in reports],
             source_db_path,
         )
+    source_fetch_times = _normalize_source_fetch_times(source_fetch_times or {})
+    _inject_report_source_provenance(public_dir, reports, source_fetch_times)
     focus_trends = _build_focus_trends(reports)
     _inject_report_trend_context(public_dir, reports, focus_trends)
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
