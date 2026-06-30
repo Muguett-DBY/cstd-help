@@ -1483,7 +1483,19 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Browser QA passed latest Legion Commander at 1280x720 and 390x844; exact times rendered, no console warnings/errors, and no horizontal overflow.
 - Forbidden-file check: Docker and `AGENTS.md` remain untouched.
-- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 2 closeout.
+- Stage commit: `feat: add per-report source provenance` (`2d378fc`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28456361936`; tests, compile, static validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` exposes 18 `report_sources` entries.
+  - Latest Legion Commander returned 200 with `data-match-id=8870219537`, report generation `2026-06-30T21:21:54`, STRATZ fetch `2026-06-30T10:26:10Z`, and OpenDota fetch `2026-06-28T05:56:30Z`.
+  - The report visibly states that these are cached evidence timestamps and Cloudflare does not live-refetch them.
+- Remaining risk: the report top now has adjacent navigation, source provenance, and section navigation before the decision card; the information is correct but vertically dense on mobile.
+- Next direction: Stage 3 UIUX should consolidate the top-of-report controls and evidence status without hiding the exact source data.
+
+## 2026-07-01 - Long Cycle 7 Stage 2 IMPROVE - Complete
+
+- Completed per-report source provenance on `main` with unit/static checks, responsive browser QA, GitHub Actions, and live custom-domain acceptance.
 
 ## 2026-06-30 - Long Cycle 5 Stage 1 IMPROVE - Complete
 

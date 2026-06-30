@@ -923,3 +923,12 @@
 - Production evidence: 18/18 reports have STRATZ timestamps, 18/18 have OpenDota timestamps, and the latest external fetch is `2026-06-30T10:27:03Z`.
 - Risk: the exact source timestamps are not yet visible inside each individual report.
 - Recommended next direction: add match-specific source provenance to every report and enforce it in CI.
+
+## 2026-07-01 - Long Cycle 7 Stage 2 IMPROVE
+
+- Goal: make every match report self-contained about when its evidence was generated and fetched.
+- Completed: all 18 reports now render exact report-generation, STRATZ-fetch, and OpenDota-fetch times; `site-manifest.json` includes 18 per-report source mappings.
+- Reliability gain: static validation catches missing provenance, wrong match ids, malformed attributes, and report/manifest timestamp mismatches.
+- Verification: 103 tests, compileall, static public-site validation, gitleaks, diff check, desktop/mobile browser QA, GitHub Actions run `28456361936`, and live custom-domain checks passed.
+- Risk: correct provenance adds another full-width block before the decision card, especially noticeable on mobile.
+- Recommended next direction: consolidate report-top navigation and source status into a compact responsive evidence header while keeping exact timestamps directly accessible.
