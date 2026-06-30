@@ -1981,3 +1981,24 @@ Started: 2026-06-28
   - Stage 6: `feat: surface report quality gate` (`65b2c6a`).
 - Final production state: `dota.custard.top` serves 18 reports with hero-first titles, match history, decision cards, rolling trend context, evidence-source coverage, quality-gate pass status, and source-backed coaching guidance.
 - Final residual risk: richer advice still depends on reliable event data availability; live STRATZ requests from this environment remain Cloudflare-blocked and cached details are used when available.
+
+## 2026-07-01 - Long Cycle 7 Stage 1 IMPROVE - Local Complete
+
+- Stage: 1 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Goal: carry forward the previous flagship recommendation by exposing report generation time and STRATZ/OpenDota source fetch timestamps in the public quality surface.
+- Start state: `main` clean and synchronized with `origin/main`; previous recommendation was fetch-freshness/source-age telemetry.
+- Completed: added `source_freshness` to `site-manifest.json`, parsed report generation timestamps from hero-first report filenames, loaded optional SQLite `fetched_at` timestamps for STRATZ/OpenDota, and rendered `数据新鲜度` in the shared coverage panel.
+- User-visible gain: history and practice-plan pages now show latest report generation time, STRATZ fetch coverage, OpenDota fetch coverage, latest external fetch time, and a cache/deploy limitation note.
+- Static validation: `scripts/check_public_site.py` now rejects missing source-freshness panels, missing manifest summaries, invalid status values, out-of-range source counts, and mismatched report timestamp counts.
+- Public refresh: rebuilt all 18 reports into `public/`; current manifest reports `tracked`, 18/18 STRATZ timestamps, 18/18 OpenDota timestamps, and latest external fetch `2026-06-30T10:27:03Z`.
+- Local verification:
+  - New target tests failed before implementation and pass now.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 102 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 reports.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Browser QA passed index and practice-plan at 1280x720 and 390x844 with source-freshness panel visible, no console messages, and no horizontal overflow.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 1 closeout log.

@@ -208,6 +208,31 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_missing_source_freshness_summary(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Legion_Commander_8870219537_20260630_212154.html").write_text(
+                "<html><head><title>Legion Commander 复盘报告</title></head>"
+                "<body>下一局行动清单</body></html>",
+                encoding="utf-8",
+            )
+            (public_path / "index.html").write_text("<html><body>复盘数据覆盖</body></html>", encoding="utf-8")
+            (public_path / "site-manifest.json").write_text(
+                json.dumps({"schema_version": 1, "report_count": 1}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_source_freshness_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "index.html -> missing source freshness panel",
+                "site-manifest.json -> missing source freshness summary",
+            ],
+        )
+
     def test_static_site_checker_detects_report_text_quality_issues(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
@@ -367,6 +392,7 @@ class BuildPagesSiteTests(unittest.TestCase):
             parsed = pages_site._parse_report(report)
 
         self.assertEqual(parsed["hero"], "Mirana")
+        self.assertEqual(parsed["report_generated_at"], "2026-06-26T22:48:39")
         self.assertEqual(parsed["ended_at"], "2026-06-26T10:23:19Z")
         self.assertEqual(parsed["duration_seconds"], 2894)
         self.assertEqual(parsed["kda"]["assists"], 21)
@@ -639,8 +665,20 @@ class BuildPagesSiteTests(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
+            source_fetch_times = {
+                "8867002237": {
+                    "stratz_fetched_at": "2026-06-26T22:20:00Z",
+                    "opendota_fetched_at": "2026-06-26T22:10:00Z",
+                    "latest_external_fetch_at": "2026-06-26T22:20:00Z",
+                },
+                "8867002240": {
+                    "stratz_fetched_at": "2026-06-27T08:55:00Z",
+                    "opendota_fetched_at": "2026-06-27T08:40:00Z",
+                    "latest_external_fetch_at": "2026-06-27T08:55:00Z",
+                },
+            }
 
-            pages_site.build_pages_site(source, public_dir=public)
+            pages_site.build_pages_site(source, public_dir=public, source_fetch_times=source_fetch_times)
             manifest = json.loads((Path(public) / "site-manifest.json").read_text(encoding="utf-8"))
             index_html = (Path(public) / "index.html").read_text(encoding="utf-8")
             plan_html = (Path(public) / "practice-plan.html").read_text(encoding="utf-8")
@@ -662,9 +700,25 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(manifest["quality_gate"]["complete_quality_report_count"], 2)
         self.assertEqual(manifest["latest_match"]["hero"], "Doom")
         self.assertEqual(manifest["latest_match"]["match_id"], "8867002240")
+        self.assertEqual(manifest["latest_match"]["report_generated_at"], "2026-06-27T09:00:00")
+        self.assertEqual(manifest["latest_match"]["source_fetches"]["stratz_fetched_at"], "2026-06-27T08:55:00Z")
+        self.assertEqual(manifest["source_freshness"]["status"], "tracked")
+        self.assertEqual(manifest["source_freshness"]["basis"], "report_filename_timestamp+sqlite_fetched_at")
+        self.assertEqual(manifest["source_freshness"]["report_timestamp_count"], 2)
+        self.assertEqual(manifest["source_freshness"]["stratz_fetch_timestamp_report_count"], 2)
+        self.assertEqual(manifest["source_freshness"]["opendota_fetch_timestamp_report_count"], 2)
+        self.assertEqual(manifest["source_freshness"]["complete_source_timestamp_report_count"], 2)
+        self.assertEqual(manifest["source_freshness"]["latest_report_generated_at"], "2026-06-27T09:00:00")
+        self.assertEqual(manifest["source_freshness"]["latest_external_fetch_at"], "2026-06-27T08:55:00Z")
         self.assertIn("复盘数据覆盖", index_html)
         self.assertIn("死亡复盘覆盖", index_html)
         self.assertIn("复盘质量门禁", index_html)
+        self.assertIn("数据新鲜度", index_html)
+        self.assertIn("data-source-freshness-panel", index_html)
+        self.assertIn("最新报告生成", index_html)
+        self.assertIn("STRATZ 抓取", index_html)
+        self.assertIn("OpenDota 抓取", index_html)
+        self.assertIn("公开页展示的是已缓存证据", index_html)
         self.assertIn("质量门禁：通过", index_html)
         self.assertIn("决策卡覆盖", index_html)
         self.assertIn("趋势上下文覆盖", index_html)
@@ -682,6 +736,7 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("data-quality-gate-panel", index_html)
         self.assertIn("复盘数据覆盖", plan_html)
         self.assertIn("复盘质量门禁", plan_html)
+        self.assertIn("数据新鲜度", plan_html)
 
     def test_build_pages_site_writes_practice_plan_page(self):
         metadata = {
@@ -847,6 +902,8 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".quality-gate-panel", stylesheet)
         self.assertIn(".quality-gate-status", stylesheet)
         self.assertIn(".quality-gate-pass", stylesheet)
+        self.assertIn(".source-freshness-panel", stylesheet)
+        self.assertIn(".source-freshness-status", stylesheet)
         self.assertIn(".practice-workbench", stylesheet)
         self.assertIn(".practice-evidence-links", stylesheet)
         self.assertIn(".practice-checklist", stylesheet)

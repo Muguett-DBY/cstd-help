@@ -5,6 +5,7 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 import sys
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -22,6 +23,7 @@ from analysis.analyzer import _item_detail
 DEFAULT_SOURCE = Path(r"C:\Users\12031\Desktop\REVIEW_REPORT")
 PUBLIC_DIR = ROOT / "public"
 STATIC_SOURCE = ROOT / "report" / "static"
+SOURCE_DB_PATH = ROOT / "data" / "dota2.db"
 REPORT_NAME_RE = re.compile(r"^(?P<hero>.+)_(?P<match_id>\d{8,})_(?P<stamp>\d{8}_\d{6})\.html$")
 LEGACY_ITEM_SLOT_RE = re.compile(
     r'(<div class="item-slot item-name" title=")(?:Item #|ID )(?P<item_id>\d+)(">\s*)(?:Item #)?\d+(\s*</div>)',
@@ -188,6 +190,123 @@ def _display_hero(raw_name):
     return raw_name.replace("_", " ")
 
 
+def _coerce_iso_timestamp(value, *, assume_utc=False):
+    if value in (None, ""):
+        return None
+    if isinstance(value, (int, float)):
+        return datetime.fromtimestamp(value, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    text = str(value).strip()
+    if not text:
+        return None
+    if text.isdigit():
+        return datetime.fromtimestamp(int(text), timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return text
+    if parsed.tzinfo is None:
+        if assume_utc:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        else:
+            return parsed.strftime("%Y-%m-%dT%H:%M:%S")
+    return parsed.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _timestamp_sort_key(value):
+    if not value:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _latest_timestamp(values):
+    clean_values = [value for value in values if value]
+    if not clean_values:
+        return None
+    return max(clean_values, key=_timestamp_sort_key)
+
+
+def _oldest_timestamp(values):
+    clean_values = [value for value in values if value]
+    if not clean_values:
+        return None
+    return min(clean_values, key=_timestamp_sort_key)
+
+
+def _report_generated_at_from_name(filename):
+    match = REPORT_NAME_RE.match(str(filename))
+    if not match:
+        return None
+    try:
+        generated = datetime.strptime(match.group("stamp"), "%Y%m%d_%H%M%S")
+    except ValueError:
+        return None
+    return generated.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def _normalize_source_fetch_times(source_fetch_times):
+    normalized = {}
+    for match_id, raw in (source_fetch_times or {}).items():
+        if not isinstance(raw, dict):
+            continue
+        entry = {
+            "stratz_fetched_at": _coerce_iso_timestamp(raw.get("stratz_fetched_at"), assume_utc=True),
+            "opendota_fetched_at": _coerce_iso_timestamp(raw.get("opendota_fetched_at"), assume_utc=True),
+        }
+        entry["latest_external_fetch_at"] = _latest_timestamp(
+            [
+                raw.get("latest_external_fetch_at"),
+                entry["stratz_fetched_at"],
+                entry["opendota_fetched_at"],
+            ]
+        )
+        entry["oldest_external_fetch_at"] = _oldest_timestamp(
+            [
+                entry["stratz_fetched_at"],
+                entry["opendota_fetched_at"],
+            ]
+        )
+        normalized[str(match_id)] = {key: value for key, value in entry.items() if value}
+    return normalized
+
+
+def _load_source_fetch_times(match_ids, db_path=None):
+    db_path = Path(db_path) if db_path else None
+    if not db_path or not db_path.exists():
+        return {}
+    clean_ids = sorted({str(match_id) for match_id in match_ids if match_id})
+    if not clean_ids:
+        return {}
+    placeholders = ",".join("?" for _ in clean_ids)
+    sources = {
+        "stratz_fetched_at": "stratz_details",
+        "opendota_fetched_at": "opendota_details",
+    }
+    fetched = {}
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            for field, table in sources.items():
+                rows = conn.execute(
+                    f"SELECT match_id, fetched_at FROM {table} WHERE CAST(match_id AS TEXT) IN ({placeholders})",
+                    clean_ids,
+                ).fetchall()
+                for row in rows:
+                    entry = fetched.setdefault(str(row["match_id"]), {})
+                    entry[field] = _coerce_iso_timestamp(row["fetched_at"], assume_utc=True)
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        return _normalize_source_fetch_times(fetched)
+    return _normalize_source_fetch_times(fetched)
+
+
 def _read_embedded_metadata(path):
     parser = ReportMetadataParser()
     parser.feed(path.read_text(encoding="utf-8"))
@@ -264,6 +383,7 @@ def _parse_report(path):
         "hero": hero.get("name") or fallback_hero,
         "hero_slug": hero.get("slug") or "",
         "match_id": str(metadata.get("match_id") or fallback_match_id),
+        "report_generated_at": _report_generated_at_from_name(path.name),
         "is_win": metadata.get("is_win") if isinstance(metadata.get("is_win"), bool) else None,
         "ended_at": metadata.get("ended_at"),
         "duration_seconds": metadata.get("duration_seconds"),
@@ -794,8 +914,55 @@ def _count_report_findings(reports):
     return total
 
 
-def _build_site_manifest(reports, trends):
+def _source_fetches_for_report(report, source_fetch_times):
+    match_id = str(report.get("match_id") or "")
+    return dict((source_fetch_times or {}).get(match_id) or {})
+
+
+def _build_source_freshness(sorted_reports, source_fetch_times):
+    report_generated_values = [report.get("report_generated_at") for report in sorted_reports]
+    source_fetches = [
+        _source_fetches_for_report(report, source_fetch_times)
+        for report in sorted_reports
+    ]
+    stratz_count = sum(1 for fetches in source_fetches if fetches.get("stratz_fetched_at"))
+    opendota_count = sum(1 for fetches in source_fetches if fetches.get("opendota_fetched_at"))
+    complete_count = sum(
+        1 for fetches in source_fetches
+        if fetches.get("stratz_fetched_at") and fetches.get("opendota_fetched_at")
+    )
+    external_values = []
+    for fetches in source_fetches:
+        external_values.extend([
+            fetches.get("stratz_fetched_at"),
+            fetches.get("opendota_fetched_at"),
+            fetches.get("latest_external_fetch_at"),
+        ])
+    report_count = len(sorted_reports)
+    if report_count and complete_count == report_count:
+        status = "tracked"
+    elif stratz_count or opendota_count:
+        status = "partial"
+    else:
+        status = "source_timestamps_missing"
+    return {
+        "status": status,
+        "basis": "report_filename_timestamp+sqlite_fetched_at" if (stratz_count or opendota_count) else "report_filename_timestamp",
+        "report_timestamp_count": sum(1 for value in report_generated_values if value),
+        "stratz_fetch_timestamp_report_count": stratz_count,
+        "opendota_fetch_timestamp_report_count": opendota_count,
+        "complete_source_timestamp_report_count": complete_count,
+        "latest_report_generated_at": _latest_timestamp(report_generated_values),
+        "oldest_report_generated_at": _oldest_timestamp(report_generated_values),
+        "latest_external_fetch_at": _latest_timestamp(external_values),
+        "oldest_external_fetch_at": _oldest_timestamp(external_values),
+        "limitation": "公开页展示的是已缓存证据的抓取时间；Cloudflare Pages 发布不会重新访问 STRATZ/OpenDota。",
+    }
+
+
+def _build_site_manifest(reports, trends, source_fetch_times=None):
     sorted_reports = sorted(reports, key=_report_sort_key, reverse=True)
+    source_fetch_times = _normalize_source_fetch_times(source_fetch_times or {})
     newest = sorted_reports[0] if sorted_reports else {}
     known_results = [report for report in sorted_reports if report.get("is_win") is not None]
     wins = sum(1 for report in known_results if report["is_win"])
@@ -847,6 +1014,8 @@ def _build_site_manifest(reports, trends):
         "hero": newest.get("hero") or "未知英雄",
         "match_id": str(newest.get("match_id") or ""),
         "file": newest.get("file") or "index.html",
+        "report_generated_at": newest.get("report_generated_at"),
+        "source_fetches": _source_fetches_for_report(newest, source_fetch_times),
         "ended_at": newest.get("ended_at"),
         "result": _result_key(newest) if newest else "unknown",
         "review_focus": newest.get("review_focus") or "需要查看报告",
@@ -874,6 +1043,7 @@ def _build_site_manifest(reports, trends):
             "manual_review_language_hit_count": manual_hit_count,
             "complete_quality_report_count": complete_quality_count,
         },
+        "source_freshness": _build_source_freshness(sorted_reports, source_fetch_times),
         "latest_match": latest_match,
         "topics": [
             {
@@ -886,6 +1056,13 @@ def _build_site_manifest(reports, trends):
             for trend in trends
         ],
     }
+
+
+def _render_public_time(value, missing_label="时间缺失"):
+    if not value:
+        return f'<span class="missing-value">{html.escape(missing_label)}</span>'
+    label = html.escape(str(value).replace("T", " ").replace("Z", " UTC"))
+    return f'<time datetime="{html.escape(str(value), quote=True)}">{label}</time>'
 
 
 def _render_coverage_panel(manifest):
@@ -909,6 +1086,23 @@ def _render_coverage_panel(manifest):
     quality_status_label = "质量门禁：通过" if quality_status == "pass" else "质量门禁：需检查"
     quality_status_class = "quality-gate-pass" if quality_status == "pass" else "quality-gate-warning"
     manual_hits = int(quality.get("manual_review_language_hit_count") or 0)
+    freshness = manifest.get("source_freshness") or {}
+    freshness_status = freshness.get("status") or "source_timestamps_missing"
+    freshness_status_label = {
+        "tracked": "数据源时间：已追踪",
+        "partial": "数据源时间：部分追踪",
+        "source_timestamps_missing": "数据源时间：未发布",
+    }.get(freshness_status, "数据源时间：需检查")
+    freshness_status_class = "source-freshness-ok" if freshness_status == "tracked" else "source-freshness-warning"
+    latest_report_time = _render_public_time(
+        freshness.get("latest_report_generated_at") or latest.get("report_generated_at"),
+        "报告时间缺失",
+    )
+    latest_fetch_time = _render_public_time(freshness.get("latest_external_fetch_at"), "抓取时间缺失")
+    freshness_note = html.escape(
+        freshness.get("limitation")
+        or "公开页展示的是已缓存证据的抓取时间；Cloudflare Pages 发布不会重新访问 STRATZ/OpenDota。"
+    )
     return f"""
     <section class="data-coverage" data-coverage-panel aria-label="复盘数据覆盖">
         <div class="history-title-row">
@@ -939,6 +1133,19 @@ def _render_coverage_panel(manifest):
                 <div class="coverage-stat"><strong>{html.escape(str(quality.get('trend_context_report_count') or 0))}/{report_count}</strong><span>趋势上下文覆盖</span></div>
                 <div class="coverage-stat"><strong>{html.escape(str(quality.get('evidence_source_report_count') or 0))}/{report_count}</strong><span>证据来源覆盖</span></div>
                 <div class="coverage-stat"><strong>{manual_hits}</strong><span>手工复盘旧词</span></div>
+            </div>
+        </div>
+        <div class="source-freshness-panel" data-source-freshness-panel aria-label="数据新鲜度">
+            <div class="source-freshness-head">
+                <span class="source-freshness-status {freshness_status_class}">{freshness_status_label}</span>
+                <strong>数据新鲜度</strong>
+                <small>{freshness_note}</small>
+            </div>
+            <div class="coverage-grid source-freshness-grid">
+                <div class="coverage-stat"><strong>{latest_report_time}</strong><span>最新报告生成</span></div>
+                <div class="coverage-stat"><strong>{html.escape(str(freshness.get('stratz_fetch_timestamp_report_count') or 0))}/{report_count}</strong><span>STRATZ 抓取</span></div>
+                <div class="coverage-stat"><strong>{html.escape(str(freshness.get('opendota_fetch_timestamp_report_count') or 0))}/{report_count}</strong><span>OpenDota 抓取</span></div>
+                <div class="coverage-stat"><strong>{latest_fetch_time}</strong><span>最新外部抓取</span></div>
             </div>
         </div>
         <a class="coverage-latest" href="{latest_file}">
@@ -2018,7 +2225,7 @@ applyMatchFilters();
     _write_utf8(output_path, index_html)
 
 
-def build_pages_site(source, public_dir=PUBLIC_DIR):
+def build_pages_site(source, public_dir=PUBLIC_DIR, source_fetch_times=None, source_db_path=None):
     source = Path(source)
     public_dir = Path(public_dir)
     if not source.exists():
@@ -2032,10 +2239,15 @@ def build_pages_site(source, public_dir=PUBLIC_DIR):
     reports = _copy_reports(source, public_dir)
     _inject_report_navigation(public_dir, reports)
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
+    if source_fetch_times is None:
+        source_fetch_times = _load_source_fetch_times(
+            [report.get("match_id") for report in reports],
+            source_db_path,
+        )
     focus_trends = _build_focus_trends(reports)
     _inject_report_trend_context(public_dir, reports, focus_trends)
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
-    site_manifest = _build_site_manifest(reports, focus_trends)
+    site_manifest = _build_site_manifest(reports, focus_trends, source_fetch_times=source_fetch_times)
     _write_focus_trends_json(focus_trends, public_dir / "review-trends.json")
     _write_site_manifest_json(site_manifest, public_dir / "site-manifest.json")
     _render_topic_pages(focus_trends, public_dir)
@@ -2060,8 +2272,9 @@ def build_pages_site(source, public_dir=PUBLIC_DIR):
 def main():
     parser = argparse.ArgumentParser(description="Build static Cloudflare Pages output from local Dota reports.")
     parser.add_argument("--source", default=os.environ.get("DOTA_REVIEW_REPORT_DIR", str(DEFAULT_SOURCE)))
+    parser.add_argument("--source-db", default=os.environ.get("DOTA_REVIEW_DB_PATH", str(SOURCE_DB_PATH)))
     args = parser.parse_args()
-    build_pages_site(args.source)
+    build_pages_site(args.source, source_db_path=args.source_db)
 
 
 if __name__ == "__main__":

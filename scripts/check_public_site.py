@@ -49,6 +49,17 @@ REQUIRED_QUALITY_GATE_FIELDS = [
     "manual_review_language_hit_count",
     "complete_quality_report_count",
 ]
+REQUIRED_SOURCE_FRESHNESS_FIELDS = [
+    "status",
+    "basis",
+    "report_timestamp_count",
+    "stratz_fetch_timestamp_report_count",
+    "opendota_fetch_timestamp_report_count",
+    "complete_source_timestamp_report_count",
+    "latest_report_generated_at",
+    "latest_external_fetch_at",
+    "limitation",
+]
 FORBIDDEN_REPORT_TEXT = [
     "接失去",
     "接获取",
@@ -406,6 +417,74 @@ def _find_quality_gate_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_source_freshness_issues(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    issues = []
+    for page_name in ("index.html", "practice-plan.html"):
+        page_path = public_dir / page_name
+        if not page_path.exists():
+            continue
+        page_text = page_path.read_text(encoding="utf-8")
+        if "数据新鲜度" not in page_text or "data-source-freshness-panel" not in page_text:
+            issues.append(f"{page_name} -> missing source freshness panel")
+
+    manifest_path = public_dir / "site-manifest.json"
+    if not manifest_path.exists():
+        return issues
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        manifest = {}
+    source_freshness = manifest.get("source_freshness") if isinstance(manifest, dict) else None
+    if not isinstance(source_freshness, dict):
+        issues.append("site-manifest.json -> missing source freshness summary")
+        return issues
+
+    missing_fields = [
+        field for field in REQUIRED_SOURCE_FRESHNESS_FIELDS
+        if field not in source_freshness
+    ]
+    if missing_fields:
+        issues.append("site-manifest.json -> missing source freshness fields: " + ", ".join(missing_fields))
+        return issues
+
+    reports = _report_pages(public_dir)
+    report_count = len(reports)
+    expected_report_timestamp_count = sum(
+        1 for report in reports
+        if _parse_report(report).get("report_generated_at")
+    )
+    mismatches = []
+    if source_freshness.get("status") not in {"tracked", "partial", "source_timestamps_missing"}:
+        mismatches.append(f"status invalid {source_freshness.get('status')}")
+    if source_freshness.get("report_timestamp_count") != expected_report_timestamp_count:
+        mismatches.append(
+            "report_timestamp_count expected "
+            f"{expected_report_timestamp_count} got {source_freshness.get('report_timestamp_count')}"
+        )
+    for field in (
+        "stratz_fetch_timestamp_report_count",
+        "opendota_fetch_timestamp_report_count",
+        "complete_source_timestamp_report_count",
+    ):
+        value = source_freshness.get(field)
+        if not isinstance(value, int) or value < 0 or value > report_count:
+            mismatches.append(f"{field} out of range: {value}")
+    if (
+        isinstance(source_freshness.get("complete_source_timestamp_report_count"), int)
+        and isinstance(source_freshness.get("stratz_fetch_timestamp_report_count"), int)
+        and isinstance(source_freshness.get("opendota_fetch_timestamp_report_count"), int)
+        and source_freshness["complete_source_timestamp_report_count"] > min(
+            source_freshness["stratz_fetch_timestamp_report_count"],
+            source_freshness["opendota_fetch_timestamp_report_count"],
+        )
+    ):
+        mismatches.append("complete_source_timestamp_report_count exceeds source-specific coverage")
+    if mismatches:
+        issues.append("site-manifest.json -> inconsistent source freshness summary: " + ", ".join(mismatches))
+    return issues
+
+
 def _find_hero_benchmark_issues(public_dir=PUBLIC_DIR):
     issues = []
     for report in _report_pages(public_dir):
@@ -567,6 +646,11 @@ def main():
     if quality_gate_issues:
         preview = "; ".join(quality_gate_issues[:10])
         raise SystemExit(f"public quality gate summary is incomplete: {preview}")
+
+    source_freshness_issues = _find_source_freshness_issues(PUBLIC_DIR)
+    if source_freshness_issues:
+        preview = "; ".join(source_freshness_issues[:10])
+        raise SystemExit(f"public source freshness summary is incomplete: {preview}")
 
     hero_benchmark_issues = _find_hero_benchmark_issues(PUBLIC_DIR)
     if hero_benchmark_issues:

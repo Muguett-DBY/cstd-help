@@ -21,10 +21,30 @@
     "manual_review_language_hit_count": 0,
     "complete_quality_report_count": 18
   },
+  "source_freshness": {
+    "status": "tracked",
+    "basis": "report_filename_timestamp+sqlite_fetched_at",
+    "report_timestamp_count": 18,
+    "stratz_fetch_timestamp_report_count": 18,
+    "opendota_fetch_timestamp_report_count": 18,
+    "complete_source_timestamp_report_count": 18,
+    "latest_report_generated_at": "2026-06-30T21:21:58",
+    "oldest_report_generated_at": "2026-06-30T21:21:54",
+    "latest_external_fetch_at": "2026-06-30T10:27:03Z",
+    "oldest_external_fetch_at": "2026-06-26T12:31:07Z",
+    "limitation": "公开页展示的是已缓存证据的抓取时间；Cloudflare Pages 发布不会重新访问 STRATZ/OpenDota。"
+  },
   "latest_match": {
     "hero": "Legion Commander",
     "match_id": "8870219537",
     "file": "Legion_Commander_8870219537_20260630_212154.html",
+    "report_generated_at": "2026-06-30T21:21:54",
+    "source_fetches": {
+      "stratz_fetched_at": "2026-06-30T10:26:10Z",
+      "opendota_fetched_at": "2026-06-28T05:56:30Z",
+      "latest_external_fetch_at": "2026-06-30T10:26:10Z",
+      "oldest_external_fetch_at": "2026-06-28T05:56:30Z"
+    },
     "ended_at": "2026-06-28T03:26:38Z",
     "result": "lose",
     "review_focus": "高优先级 · 死亡后目标损失"
