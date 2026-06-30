@@ -157,6 +157,47 @@ class ReportQualityTests(unittest.TestCase):
         })
         self.assertEqual(result["events"]["objective_source"], "opendota_objectives")
 
+    def test_deaths_are_cross_referenced_with_verified_objective_losses(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "death_log": [{"time": 540}, {"time": 1170}],
+            }],
+            "objectives": [
+                {
+                    "time": 600,
+                    "type": "building_kill",
+                    "key": "npc_dota_goodguys_tower1_mid",
+                },
+                {
+                    "time": 610,
+                    "type": "building_kill",
+                    "key": "npc_dota_badguys_tower1_top",
+                },
+                {"time": 1200, "type": "CHAT_MESSAGE_ROSHAN_KILL", "team": 3},
+            ],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        windows = result["events"]["death_objective_windows"]
+
+        self.assertEqual(len(windows), 2)
+        self.assertEqual(windows[0]["evidence_label"], "9.0分死亡 → 10.0分失去中路一塔（60秒）")
+        self.assertEqual(windows[1]["evidence_label"], "19.5分死亡 → 20.0分失去肉山（30秒）")
+        self.assertEqual(result["events"]["death_objective_summary"]["window_count"], 2)
+        self.assertEqual(result["events"]["death_objective_summary"]["unique_death_count"], 2)
+        objective_findings = [
+            item for item in result["review_findings"]
+            if item["category"] == "death_objective_window"
+        ]
+        self.assertEqual(len(objective_findings), 1)
+        self.assertIn("60秒", objective_findings[0]["evidence"])
+        self.assertIn("只标记事件先后", objective_findings[0]["replay_check"])
+
     def test_generated_report_shows_real_objective_timeline(self):
         from report.generator import generate_report
         import report.generator as generator
@@ -167,6 +208,7 @@ class ReportQualityTests(unittest.TestCase):
                 "account_id": 173776719,
                 "hero_id": 1,
                 "player_slot": 1,
+                "death_log": [{"time": 1140}],
             }],
             "objectives": [
                 {
@@ -194,6 +236,9 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("本人直接参与", html)
         self.assertIn("20.0分", html)
         self.assertIn("失去肉山", html)
+        self.assertIn("死亡后目标窗口", html)
+        self.assertIn("19.0分死亡 → 20.0分失去肉山（60秒）", html)
+        self.assertIn("只表示时间相邻", html)
 
     def test_opendota_lane_is_labeled_without_guessing_numbered_position(self):
         match = self._base_match()

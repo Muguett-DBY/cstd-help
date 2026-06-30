@@ -1464,6 +1464,34 @@ Started: 2026-06-28
 - Remaining risk: the timeline proves event order and ownership but does not yet connect deaths or item timings to nearby objectives.
 - Next stage: Stage 2 IMPROVE will add exact death-to-objective temporal windows without claiming causality.
 
+## 2026-06-30 - Long Cycle 5 Stage 2 IMPROVE - Start
+
+- Stage: 2 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Goal: cross-reference each observed death with verified objective losses in the following 90 seconds and turn those exact windows into measurable coaching evidence.
+- Carry-over: Stage 1 now proves objective event order and ownership, but the player still has to manually compare the objective timeline with twelve death timestamps.
+- User-visible increment: reports will show `死亡后目标窗口` rows with death minute, objective minute, exact elapsed seconds, and the objective lost.
+- Start state: `main` at `8e0525a`, clean worktree; Stage 1 feature CI `28419477448` and log-closeout CI `28419524740` passed.
+- Constraints: use observed death/objective timestamps only; do not claim the death caused the objective loss; do not touch Docker or `AGENTS.md`.
+
+## 2026-06-30 - Long Cycle 5 Stage 2 IMPROVE - Local Complete
+
+- Completed: added deterministic `events.death_objective_windows` and summary counters by joining observed deaths to verified objective losses in the following 90 seconds.
+- Coaching: added `死亡后目标损失` findings with exact death minute, objective minute, elapsed seconds, a zero-window training target, and a strict non-causality statement.
+- Report UI: added `死亡后目标窗口` rows beneath the objective timeline and retained every exact event while limiting the coach finding to the first five examples.
+- Real-report acceptance: latest Legion Commander report has 9 windows, including `33.8分死亡 -> 34.6分失去中路二塔（45秒）`, `38.0分死亡 -> 38.2分失去中路高地塔（15秒）`, and `43.5分死亡 -> 44.1分失去肉山（36秒）`.
+- Browser verification: desktop 1440x1000 and mobile 390x844 rendered all 9 windows without horizontal overflow; the non-causality caveat was visible and console had 0 errors/warnings.
+- Local verification:
+  - New death/objective analyzer and report tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 88 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 2 closeout log.
+
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 2.

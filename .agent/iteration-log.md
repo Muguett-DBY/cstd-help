@@ -1,5 +1,16 @@
 # Iteration Log
 
+## 2026-06-30 - Long Cycle 5 Stage 2 IMPROVE
+
+- Goal: connect the verified death and objective feeds so objective discipline becomes exact and measurable.
+- Completed: added death-to-objective 90-second windows, exact elapsed-second evidence, a `死亡后目标损失` finding, and a next-game target of zero such windows.
+- User-visible gain: latest Legion Commander report now identifies 9 concrete windows, including a high-ground tower 15 seconds after the 38.0-minute death and Roshan 36 seconds after the 43.5-minute death.
+- Real issue fixed: the player no longer has to manually compare two long timestamp lists to find deaths that overlap objective-loss windows.
+- Verification: 88 tests, compileall, 18-page static validation, gitleaks, diff check, and desktop/mobile browser QA passed; target tests completed RED-to-GREEN.
+- Deployment: pending Stage 2 commit, push, CI, and custom-domain acceptance.
+- Remaining risk: the join intentionally proves temporal proximity only and does not assign causality.
+- Next flagship direction: redesign the now-long objective/death evidence area into a filterable, mobile-friendly review workbench.
+
 ## 2026-06-30 - Long Cycle 5 Stage 1 IMPROVE
 
 - Goal: carry the verified objective-overlay direction into every match report using real OpenDota objective events.

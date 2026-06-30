@@ -207,6 +207,10 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         opendota_data=opendota_data,
         expected_deaths=deaths,
     )
+    result["events"]["death_objective_windows"] = _build_death_objective_windows(result["events"])
+    result["events"]["death_objective_summary"] = _summarize_death_objective_windows(
+        result["events"]["death_objective_windows"]
+    )
     result["events"]["post_item_windows"] = _build_post_item_windows(result["events"], result["timeline"])
     result["timeline"]["death_overlap_windows"] = _build_death_overlap_windows(result["timeline"], result["events"])
     result["timeline"]["death_recovery_windows"] = _build_death_recovery_windows(result["timeline"], result["events"])
@@ -973,6 +977,7 @@ CATEGORY_LABELS = {
     "death_recovery": "死亡后恢复",
     "death_resource_delta": "死亡前后资源变化",
     "death_position_pattern": "重复死亡坐标",
+    "death_objective_window": "死亡后目标损失",
     "death_review": "死亡成本",
     "item_timing": "装备后转化",
     "map_impact": "地图影响力",
@@ -1115,6 +1120,57 @@ def _normalize_opendota_objectives(opendota_data, opendota_player):
             "raw_key": event.get("key"),
         })
     return sorted(normalized, key=lambda item: item["time"])
+
+
+def _build_death_objective_windows(events, max_after_seconds=90):
+    deaths = events.get("deaths") or []
+    lost_objectives = [
+        item for item in events.get("objectives") or []
+        if item.get("outcome") == "lost"
+    ]
+    windows = []
+    for death in deaths:
+        death_time = death.get("time")
+        if not isinstance(death_time, (int, float)):
+            continue
+        for objective in lost_objectives:
+            objective_time = objective.get("time")
+            if not isinstance(objective_time, (int, float)):
+                continue
+            elapsed = objective_time - death_time
+            if elapsed < 0 or elapsed > max_after_seconds:
+                continue
+            death_minute = death.get("minute")
+            if death_minute is None:
+                death_minute = round(death_time / 60, 1)
+            elapsed_seconds = int(round(elapsed))
+            evidence_label = (
+                f"{death_minute}分死亡 → {objective.get('minute')}分"
+                f"{objective.get('display_label')}（{elapsed_seconds}秒）"
+            )
+            windows.append({
+                "death_time": death_time,
+                "death_minute": death_minute,
+                "objective_time": objective_time,
+                "objective_minute": objective.get("minute"),
+                "objective_kind": objective.get("kind"),
+                "objective_label": objective.get("label"),
+                "objective_display_label": objective.get("display_label"),
+                "elapsed_seconds": elapsed_seconds,
+                "evidence_label": evidence_label,
+                "source": "opendota_objectives+death_events",
+            })
+    return sorted(windows, key=lambda item: (item["death_time"], item["objective_time"]))
+
+
+def _summarize_death_objective_windows(windows):
+    return {
+        "window_count": len(windows),
+        "unique_death_count": len({item.get("death_time") for item in windows}),
+        "unique_objective_count": len({
+            (item.get("objective_time"), item.get("objective_kind")) for item in windows
+        }),
+    }
 
 
 def _build_events(stratz_player, opendota_player=None, opendota_data=None, expected_deaths=0):
@@ -1776,6 +1832,25 @@ def _build_review_findings(result):
             "系统只按死亡分钟和低效率补刀窗口做时间重叠；优先复核这些分钟前后的兵线位置、TP状态和队友是否能接应。",
             f"下一局把死亡重叠低效率窗口从{total_overlaps}次压到0；死亡后3分钟先恢复一波安全资源。",
             "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+        ))
+
+    death_objective_windows = events.get("death_objective_windows") or []
+    if death_objective_windows:
+        evidence = "；".join(
+            window.get("evidence_label")
+            for window in death_objective_windows[:5]
+            if window.get("evidence_label")
+        )
+        unique_deaths = (events.get("death_objective_summary") or {}).get("unique_death_count", 0)
+        findings.append(_finding(
+            "high" if unique_deaths >= 2 else "medium",
+            "death_objective_window",
+            f"死亡后90秒内失去目标: {evidence}。",
+            "这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。",
+            "下一局预计要接塔、肉山或高地时，提前90秒停止单独深入；若刚死亡，复活后的第一决策优先处理兵线、目标入口或明确的对侧交换。",
+            "系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。",
+            f"下一局把死亡后90秒内失去目标窗口从{len(death_objective_windows)}个压到0。",
+            "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0。",
         ))
 
     recovery_windows = timeline.get("death_recovery_windows") or []
