@@ -699,3 +699,19 @@
   - Add validation that unsupported map-region claims cannot appear without real evidence.
   - Cross-reference deaths with low-efficiency windows using deterministic timing.
 - Recommended flagship next change: add a visible source-provenance summary so every precise claim can be traced to OpenDota or STRATZ evidence.
+
+## 2026-06-30 - Long Cycle 5 Stage 3 UIUX
+
+- Goal: make the now-dense objective/death event area scannable without losing evidence fidelity.
+- Completed: added a filterable objective review workbench with direct evidence anchors, objective outcome filters, live filter status, and responsive gained/lost row layout.
+- User-visible gain: the latest Legion Commander report can isolate 15 objective losses from 19 total objective events and keep the 9 death-after-objective windows immediately below the same evidence area.
+- Verification:
+  - New UIUX target test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 88 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser QA passed on desktop and 390x844 mobile; no console errors or horizontal overflow.
+- Risks:
+  - The workbench improves navigation only; objective-loss interpretation remains temporal evidence and intentionally does not assign causality.
+- Recommended flagship next change: add a deterministic post-objective coaching target so the report turns this evidence into one explicit next-match drill.

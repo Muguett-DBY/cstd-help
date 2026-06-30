@@ -1504,6 +1504,34 @@ Started: 2026-06-28
 - Remaining risk: long reports now contain up to dozens of objective and death rows without in-section filtering.
 - Next stage: Stage 3 UIUX will turn the objective/death area into a responsive evidence workbench with meaningful filters and direct navigation.
 
+## 2026-06-30 - Long Cycle 5 Stage 3 UIUX - Start
+
+- Stage: 3 / 6.
+- Type: UIUX.
+- Prompt: AGENT_UIUX_MAIN.txt.
+- Flagship goal: redesign the long objective/death evidence area as a filterable, responsive objective review workbench.
+- P1 issue: latest report stacks 19 objective rows, 9 death/objective windows, and 12 death cards, so the player cannot quickly isolate gained, lost, or direct-participation events.
+- Planned companion improvements: unified in-section jump navigation, live filter counts/status, stronger gained/lost row hierarchy, visible keyboard focus, and a touch-friendly 390px layout.
+- Start state: `main` at `bfe8cc4`, clean worktree; Stage 2 feature CI `28419797426` and log-closeout CI `28419847100` passed.
+- Constraints: UI/UX scope only except test support; preserve all evidence and non-causality text; do not touch Docker or `AGENTS.md`.
+
+## 2026-06-30 - Long Cycle 5 Stage 3 UIUX - Local Complete
+
+- Completed: converted the objective/death event area into an `objective-review-workbench` with in-section anchors, objective filters for all/gained/lost/direct, live status text, and gained/lost row hierarchy.
+- Real-report acceptance: latest `Legion Commander #8870219537` report is `Legion_Commander_8870219537_20260630_142543.html`; it renders 19 objective events, 9 death/objective windows, exact 15-second high-ground evidence, and an OpenDota source caveat.
+- Browser verification:
+  - Desktop latest report: hero-first title, objective workbench visible, filter clicked from all to lost, status changed to `我方失去：15/19 条目标事件`, gained rows hidden, no console errors.
+  - Mobile 390x844: `scrollWidth=390`, objective rows fit within 314px, toolbar/filter controls wrap into stable two-column touch targets, no console errors; screenshot saved under ignored `output/playwright/`.
+- Local verification:
+  - New UIUX target test failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 88 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 3 closeout log.
+
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 2.
