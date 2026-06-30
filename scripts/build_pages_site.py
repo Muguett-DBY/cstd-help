@@ -1568,6 +1568,81 @@ def _inject_report_navigation(public_dir, reports):
         _write_utf8(path, text)
 
 
+def _trend_for_report(report, trends):
+    topic_id, _, _ = _classify_focus(report.get("review_focus"))
+    for trend in trends:
+        if trend.get("topic_id") == topic_id:
+            return trend
+    return None
+
+
+def _render_report_trend_context(report, trend, report_count):
+    focus = html.escape(trend.get("focus") or report.get("review_focus") or "需要查看报告")
+    topic_page = html.escape(trend.get("page") or "review-trends.json", quote=True)
+    match_count = int(trend.get("count") or 0)
+    finding_count = int(trend.get("finding_count") or 0)
+    examples = []
+    seen = set()
+    for finding in trend.get("findings") or []:
+        match_id = str(finding.get("match_id") or "")
+        if not match_id or match_id in seen:
+            continue
+        seen.add(match_id)
+        hero = html.escape(finding.get("hero") or "未知英雄")
+        file_name = html.escape(finding.get("file") or "#", quote=True)
+        examples.append(
+            f'<a href="{file_name}">{hero} #{html.escape(match_id)}</a>'
+        )
+        if len(examples) >= 3:
+            break
+    examples_html = (
+        '<div class="trend-context-examples" aria-label="同类问题样本">'
+        + "".join(examples)
+        + "</div>"
+        if examples else ""
+    )
+    return (
+        '<section class="report-trend-context" aria-label="近期同类问题">'
+        '<div class="trend-context-copy">'
+        '<span>近期同类问题</span>'
+        f'<strong>{focus}</strong>'
+        f'<small>最近 {report_count} 场中 {match_count} 场出现；共 {finding_count} 条证据。</small>'
+        '</div>'
+        f'{examples_html}'
+        f'<a class="trend-context-link" href="{topic_page}">完整趋势证据</a>'
+        '</section>'
+    )
+
+
+def _inject_report_trend_context(public_dir, reports, trends):
+    trend_by_file = {
+        report.get("file"): _trend_for_report(report, trends)
+        for report in reports
+    }
+    report_count = len(reports)
+    for report in reports:
+        trend = trend_by_file.get(report.get("file"))
+        if not trend:
+            continue
+        path = public_dir / report["file"]
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(
+            r'\s*<section class="[^"]*report-trend-context[^"]*"[\s\S]*?</section>',
+            "",
+            text,
+            count=1,
+        )
+        decision_match = re.search(r'(<section[^>]*id="decision-snapshot"[\s\S]*?</section>)', text)
+        if not decision_match:
+            continue
+        insert_at = decision_match.end()
+        trend_context = _render_report_trend_context(report, trend, report_count)
+        text = text[:insert_at] + "\n" + trend_context + text[insert_at:]
+        _write_utf8(path, text)
+
+
 def _report_sort_key(report):
     ended_at = report.get("ended_at")
     if not ended_at:
@@ -1876,6 +1951,7 @@ def build_pages_site(source, public_dir=PUBLIC_DIR):
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
     focus_trends = _build_focus_trends(reports)
     site_manifest = _build_site_manifest(reports, focus_trends)
+    _inject_report_trend_context(public_dir, reports, focus_trends)
     _write_focus_trends_json(focus_trends, public_dir / "review-trends.json")
     _write_site_manifest_json(site_manifest, public_dir / "site-manifest.json")
     _render_topic_pages(focus_trends, public_dir)

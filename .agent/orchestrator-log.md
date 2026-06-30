@@ -1898,3 +1898,20 @@ Started: 2026-06-28
   - Latest Legion Commander report returned 200 with `上分决策卡`, `decision-snapshot`, decision tabs, `分路与参战画像`, and hero-first title.
 - Remaining risk: first-screen prioritization is now stronger, but richer coaching specificity still depends on reliable public event data rather than unsupported inference.
 - Next stage: Stage 4 IMPROVE should add cross-match trend context so the latest decision card can be compared against repeated recent weaknesses.
+
+## 2026-06-30 - Long Cycle 6 Stage 4 IMPROVE - Local Complete
+
+- Completed: added per-report `近期同类问题` context below the decision card, generated from existing focus-trend aggregation rather than new inference.
+- User-visible gain: latest Legion Commander now says the current top topic `死亡后目标损失` appears in 13 of the latest 18 reports and links to the full trend evidence page.
+- Build pipeline: added `_inject_report_trend_context` after trend aggregation in `scripts/build_pages_site.py`, preserving generated report source while enhancing the public Pages output.
+- Static validation: `scripts/check_public_site.py` rejects any finding-bearing report missing the trend context.
+- Browser verification: in-app Browser confirmed desktop trend-link navigation to the topic workbench and mobile 390x844 single-column layout with no console warnings/errors.
+- Local verification:
+  - New trend-context tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 99 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 4 closeout log.

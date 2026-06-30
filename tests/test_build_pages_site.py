@@ -256,6 +256,28 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_missing_report_trend_context(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Anti_Mage_123.html").write_text(
+                "<html><head><title>Anti-Mage 复盘报告</title></head>"
+                "<body>"
+                '<section id="decision-snapshot" class="decision-snapshot">上分决策卡</section>'
+                '<div class="finding-card high">下一局行动清单</div>'
+                "</body></html>",
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_report_trend_context_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "Anti_Mage_123.html -> report with findings requires rendered 近期同类问题 trend context",
+            ],
+        )
+
     def test_static_site_checker_classifies_support_pages_and_exports(self):
         support_pages = {
             "index.html",
@@ -762,6 +784,8 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".decision-panel", stylesheet)
         self.assertIn("[data-decision-panel][hidden]", stylesheet)
         self.assertIn(".decision-jump-row", stylesheet)
+        self.assertIn(".report-trend-context", stylesheet)
+        self.assertIn(".trend-context-examples", stylesheet)
         self.assertRegex(stylesheet, r"\.report-top-link\s*\{[^}]*position:\s*sticky")
         self.assertIn("#timeline-diagnosis table", stylesheet)
         self.assertRegex(
@@ -857,6 +881,48 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("Anti-Mage", latest_html)
         self.assertIn("Anti-Mage_8866000193_20260625_160037.html", latest_html)
         self.assertIn("终结比赛", latest_html)
+
+    def test_build_pages_site_injects_report_trend_context_after_decision_snapshot(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            first = self._write_report(source, metadata, filename="Mirana_8867002237_20260626_224839.html")
+            older = dict(metadata)
+            older["match_id"] = 8866000193
+            older["hero"] = {"id": 1, "name": "Anti-Mage", "slug": "antimage"}
+            older["ended_at"] = "2026-06-25T16:00:37Z"
+            second = self._write_report(source, older, filename="Anti-Mage_8866000193_20260625_160037.html")
+            for path in (first, second):
+                text = path.read_text(encoding="utf-8")
+                path.write_text(
+                    text.replace(
+                        '<div class="finding-card high">',
+                        '<section class="section priority-section decision-snapshot" id="decision-snapshot">'
+                        '<div>上分决策卡</div></section>'
+                        '<div class="finding-card high">',
+                    ),
+                    encoding="utf-8",
+                )
+
+            pages_site.build_pages_site(source, public_dir=public)
+            report_html = (Path(public) / first.name).read_text(encoding="utf-8")
+
+        self.assertIn("近期同类问题", report_html)
+        self.assertIn("最近 2 场中 2 场出现", report_html)
+        self.assertIn("2 条证据", report_html)
+        self.assertIn('href="trend-early-resource.html"', report_html)
+        self.assertIn("完整趋势证据", report_html)
+        self.assertLess(report_html.index('id="decision-snapshot"'), report_html.index('class="report-trend-context"'))
+        self.assertIn("Anti-Mage #8866000193", report_html)
 
     def test_build_pages_site_upgrades_legacy_reports_with_section_navigation(self):
         metadata = {

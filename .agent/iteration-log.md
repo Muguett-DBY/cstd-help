@@ -836,3 +836,24 @@
 - Production acceptance: live `dota.custard.top` serves 18 reports and latest `Legion_Commander_8870219537_20260630_204657.html` with `上分决策卡` before the coach summary, working decision tab markup, hero-first title, and `分路与参战画像`.
 - Risks: the decision card improves first-screen prioritization, but further precision still depends on richer public event data rather than inferred causes.
 - Recommended next direction: add rolling trend context to connect the latest top finding with repeated historical weaknesses across recent matches.
+
+## 2026-06-30 - Long Cycle 6 Stage 4 IMPROVE
+
+- Goal: connect the latest per-match decision card with repeated recent weaknesses across the match history.
+- Completed: added `report-trend-context` injection in `scripts/build_pages_site.py`, using the existing focus-trend aggregation to show the current report's trend topic, recent match count, evidence count, sample reports, and link to the full trend evidence page.
+- User-visible gain: each public report now shows `近期同类问题` directly under the `上分决策卡`; latest Legion Commander shows `死亡后目标损失` occurred in 13 of 18 recent reports.
+- Stability gain: `scripts/check_public_site.py` now fails reports with findings that do not render the trend context, so the public build cannot silently drop the cross-match coaching context.
+- Responsive/interaction work: added desktop horizontal trend summary, mobile single-column layout, full-width mobile trend link, and verified the trend link opens the topic evidence workbench.
+- Public refresh: rebuilt all 18 reports from the current generated report source; latest report remains `Legion_Commander_8870219537_20260630_204657.html`.
+- Browser verification: in-app Browser confirmed the latest report trend link opens `trend-custom-bac9d883f8.html`; mobile 390x844 shows the trend context as one column, document width stays inside viewport, and console logs are clean.
+- Local verification:
+  - New trend-context injection, static-checker, and CSS tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 99 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- GitHub Actions / CI: pending push for Stage 4.
+- Risks: trend grouping is based on normalized finding focus labels, so it is reliable for repeated report topics but not a statistical model of match causality.
+- Recommended next direction: clean up remaining public-report language that still mentions replay/manual confirmation in source-backed sections.
