@@ -196,6 +196,11 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("目标前90秒", drill["trigger"])
         self.assertNotIn("接失去", drill["trigger"])
         self.assertIn("肉山", drill["trigger"])
+        self.assertEqual(
+            [item["label"] for item in drill["checklist"]],
+            ["队友接应", "敌方控制", "撤退路线"],
+        )
+        self.assertTrue(all("check" in item and item["check"] for item in drill["checklist"]))
         self.assertIn("死亡后90秒内失去目标窗口=0", drill["success_metric"])
         objective_findings = [
             item for item in result["review_findings"]
@@ -250,6 +255,9 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("只表示时间相邻", html)
         self.assertIn("目标前90秒生存规则", html)
         self.assertIn("优先回看", html)
+        self.assertIn("队友接应", html)
+        self.assertIn("敌方控制", html)
+        self.assertIn("撤退路线", html)
         self.assertIn("objective-review-workbench", html)
         self.assertIn('data-objective-filter="all"', html)
         self.assertIn('data-objective-filter="gained"', html)

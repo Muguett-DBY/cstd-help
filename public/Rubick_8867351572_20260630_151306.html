@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubick 复盘报告 - 2026-06-27 00:30</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+<a class="skip-link" href="#report-main">跳到复盘正文</a>
+<div class="container">
+
+    <div class="header" id="report-top">
+        <a class="back-link" href="index.html">&larr; 比赛历史</a>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 7 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Chaos_Knight_8869500868_20260630_151305.html"><span class="neighbor-label">上一局（更新）</span><strong>Chaos Knight #8869500868</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a><a class="neighbor-card" href="Earth_Spirit_8867246517_20260630_151306.html"><span class="neighbor-label">下一局（更早）</span><strong>Earth Spirit #8867246517</strong><small>胜利 · 高优先级 · 死亡成本</small></a></div></nav>
+        <h1>Rubick 复盘报告</h1>
+        <div class="subtitle">比赛ID: 8867351572 | 结束于 2026-06-27 00:30 | 时长 51.2分钟</div>
+        <div class="result-badge win">胜利</div>
+    </div>
+
+    <nav class="report-section-nav" aria-label="报告章节">
+        <div class="report-section-nav-track">
+            <span class="report-section-nav-label">本局复盘</span>
+            <a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a>
+            <a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>
+            <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
+            <a class="report-section-link" href="#timeline-diagnosis" data-report-section-link>时间线</a>
+            <a class="report-section-link" href="#match-events" data-report-section-link>事件</a>
+            <a class="report-section-link" href="#review-findings" data-report-section-link>问题证据</a>
+            <a class="report-section-link" href="#item-analysis" data-report-section-link>出装</a>
+            <a class="report-top-link" href="#report-top" aria-label="返回报告顶部" title="返回报告顶部">&uarr;</a>
+        </div>
+    </nav>
+
+    <main id="report-main">
+
+
+    <div class="section priority-section" id="coach-summary">
+        <div class="section-header">&#129504; 教练总结</div>
+        <div class="section-body">
+            <div class="coach-analysis">Rubick 复盘分析（胜利）
+
+本局最重要结论
+当前最影响胜负的是死亡成本，优先使用已定位死亡分钟检查死亡前30秒的地图状态。
+
+核心证据：KDA 5/7/18，GPM 486，LH/min 4.02，推塔伤害/分钟 16.25，每10分钟死亡 1.37。
+数据完整度：100/100。
+公共数据源缺口：购买时间线可用，但没有识别到关键装备完成点；装备后转化不作为本局主要问题。
+
+可以保留的习惯
+- 补刀总量206，LH/min 4.02
+
+下一局只盯这几件事
+1. 死亡后目标损失: 下一局每次准备处理中路二塔攻防或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。 验收：死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。
+2. 死亡成本: 下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。 验收：每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。
+3. 视野/控图: 下一局把视野动作绑定到两类时间点：关键目标前60秒、死亡复活后的第一波出门。 验收：观察+岗哨总数不低于10；25分钟后每次死亡后3分钟内至少补1个视野事件。</div>
+        </div>
+    </div>
+
+
+
+    <div class="section priority-section" id="next-goals">
+        <div class="section-header">&#127919; 下一局量化目标</div>
+        <div class="section-body">
+            <div class="goal-list">
+
+                <div class="goal-row">
+                    <div class="goal-title">死亡后目标损失</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局执行「目标前90秒生存规则」，把围绕中路二塔攻防的死亡/目标损失窗口清零。</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</div>
+                </div>
+
+                <div class="goal-row">
+                    <div class="goal-title">死亡成本</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> 每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。</div>
+                </div>
+
+                <div class="goal-row">
+                    <div class="goal-title">视野/控图</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局每次控盾、推塔或守高前先补一组观察/岗哨；死亡后第一波出门优先补入口视野。</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> 观察+岗哨总数不低于10；25分钟后每次死亡后3分钟内至少补1个视野事件。</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="section priority-section" id="next-actions">
+        <div class="section-header">&#127919; 下一局行动清单</div>
+        <div class="section-body">
+
+            <div class="finding-card high">
+                <div class="finding-title">高优先级 · 死亡后目标损失</div>
+                <div class="finding-line"><strong>证据:</strong> 死亡后90秒内失去目标: 36.0分死亡 → 37.5分失去中路一塔（89秒）；40.4分死亡 → 41.3分失去中路二塔（54秒）。</div>
+                <div class="finding-line"><strong>影响:</strong> 这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。</div>
+                <div class="finding-line"><strong>行动:</strong> 下一局每次准备处理中路二塔攻防或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局执行「目标前90秒生存规则」，把围绕中路二塔攻防的死亡/目标损失窗口清零。</div>
+                <div class="finding-line"><strong>验收标准:</strong> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> 系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。 优先回看：40.4分死亡 → 41.3分失去中路二塔（54秒）；只确认死亡前90秒是否满足接应、控制露头、撤退路线三项条件。</div>
+            </div>
+
+            <div class="finding-card high">
+                <div class="finding-title">高优先级 · 死亡成本</div>
+                <div class="finding-line"><strong>证据:</strong> 已定位 7/7 次死亡，时间: 8.0, 12.8, 16.9, 31.5, 36.0, 40.4, 45.2分钟；每10分钟死亡 1.37。</div>
+                <div class="finding-line"><strong>影响:</strong> 核心或节奏位的连续死亡会直接交出地图区域和关键目标时间。</div>
+                <div class="finding-line"><strong>行动:</strong> 下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。</div>
+                <div class="finding-line"><strong>验收标准:</strong> 每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> 系统已定位的死亡分钟优先检查装备冷却、队友距离、敌方控制威胁和撤退路线。 连续死亡簇: 8.0-16.9分钟、31.5-45.2分钟。</div>
+            </div>
+
+            <div class="finding-card medium">
+                <div class="finding-title">中优先级 · 视野/控图</div>
+                <div class="finding-line"><strong>证据:</strong> 视野事件: 观察守卫 4，岗哨 6。</div>
+                <div class="finding-line"><strong>影响:</strong> 辅助位的视野动作直接决定队伍能否安全带线、控盾、先手或反开。</div>
+                <div class="finding-line"><strong>行动:</strong> 下一局把视野动作绑定到两类时间点：关键目标前60秒、死亡复活后的第一波出门。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局每次控盾、推塔或守高前先补一组观察/岗哨；死亡后第一波出门优先补入口视野。</div>
+                <div class="finding-line"><strong>验收标准:</strong> 观察+岗哨总数不低于10；25分钟后每次死亡后3分钟内至少补1个视野事件。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> 系统已记录视野分钟: 0、17.7、18.1、23.3、0、19.4、22.1、23.3。</div>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <div class="section" id="data-quality">
+        <div class="section-header">&#128269; 数据完整性</div>
+        <div class="section-body">
+            <div class="quality-row">
+                <div class="quality-score">100/100</div>
+                <div>
+                    <div class="quality-label">可用数据：opendota_core_stats, final_item_slots, ability_build, stratz_player_detail, draft_context, lane_timeline, opendota_parsed_logs, purchase_timeline, opendota_event_logs, valve_replay_death_events, fight_log, vision_events, opendota_objectives</div>
+                    <div class="quality-label">数据缺口</div>
+
+                    <ul class="limitation-list">
+
+                        <li>购买时间线可用，但没有识别到关键装备完成点；装备后转化不作为本局主要问题</li>
+
+                    </ul>
+
+                </div>
+            </div>
+
+            <div class="subsection-title evidence-source-heading">证据来源与覆盖</div>
+            <div class="evidence-source-list">
+
+                <div class="evidence-source-row available">
+                    <div class="evidence-source-name">比赛核心数据</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">OpenDota比赛核心数据</span>
+                        <span class="evidence-source-coverage">KDA、GPM、XPM、补刀、伤害与最终装备</span>
+                    </div>
+                </div>
+
+                <div class="evidence-source-row available">
+                    <div class="evidence-source-name">分钟时间线</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">OpenDota解析日志</span>
+                        <span class="evidence-source-coverage">覆盖 51 分钟：补刀、经济</span>
+                    </div>
+                </div>
+
+                <div class="evidence-source-row available">
+                    <div class="evidence-source-name">购买时间</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">OpenDota解析日志</span>
+                        <span class="evidence-source-coverage">44条购买；0个关键装备完成点</span>
+                    </div>
+                </div>
+
+                <div class="evidence-source-row available">
+                    <div class="evidence-source-name">死亡时间</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">Valve回放事件</span>
+                        <span class="evidence-source-coverage">已定位 7/7 次死亡</span>
+                    </div>
+                </div>
+
+                <div class="evidence-source-row missing">
+                    <div class="evidence-source-name">死亡位置</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">未获取</span>
+                        <span class="evidence-source-coverage">覆盖 0/7 次已定位死亡</span>
+                    </div>
+                </div>
+
+                <div class="evidence-source-row available">
+                    <div class="evidence-source-name">击杀/助攻事件</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">OpenDota解析日志</span>
+                        <span class="evidence-source-coverage">5条个人击杀/助攻事件</span>
+                    </div>
+                </div>
+
+                <div class="evidence-source-row available">
+                    <div class="evidence-source-name">地图目标事件</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">OpenDota目标事件</span>
+                        <span class="evidence-source-coverage">25条塔、兵营、肉山、盾或折磨者事件</span>
+                    </div>
+                </div>
+
+                <div class="evidence-source-row available">
+                    <div class="evidence-source-name">视野事件</div>
+                    <div class="evidence-source-detail">
+                        <span class="evidence-source-origin">OpenDota视野事件</span>
+                        <span class="evidence-source-coverage">10条插眼事件</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <div class="section" id="match-context">
+        <div class="section-header">&#127919; 比赛上下文</div>
+        <div class="section-body">
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value small-text">辅助位</div>
+                    <div class="stat-label">位置</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value small-text">未知</div>
+                    <div class="stat-label">分路</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value small-text">Dire</div>
+                    <div class="stat-label">阵营</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">44/41</div>
+                    <div class="stat-label">己方/敌方击杀</div>
+                </div>
+            </div>
+
+            <div class="hero-line">敌方英雄：Witch Doctor / Lina / Night Stalker / Tiny / Warlock</div>
+
+        </div>
+    </div>
+
+
+    <div class="section" id="match-overview">
+        <div class="section-header">&#128202; 比赛概览</div>
+        <div class="section-body">
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value">5/7/18</div>
+                    <div class="stat-label">K/D/A</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3.29</div>
+                    <div class="stat-label">KDA比率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">486</div>
+                    <div class="stat-label">GPM</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">786</div>
+                    <div class="stat-label">XPM</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">206/2</div>
+                    <div class="stat-label">正补/反补</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">22626</div>
+                    <div class="stat-label">净财产</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">4.02</div>
+                    <div class="stat-label">LH/min</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">708.11</div>
+                    <div class="stat-label">伤害/分钟</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">1.37</div>
+                    <div class="stat-label">每10分钟死亡</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">36255</div>
+                    <div class="stat-label">英雄伤害</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">832</div>
+                    <div class="stat-label">推塔伤害</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="section" id="timeline-diagnosis">
+        <div class="section-header">&#128200; 时间线诊断</div>
+        <div class="section-body">
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">10分钟补刀</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">44</div>
+                    <div class="stat-label">20分钟补刀</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">267.1</div>
+                    <div class="stat-label">20分钟平均GPM</div>
+                </div>
+            </div>
+
+            <div class="compact-row">时间线来源：OpenDota解析日志</div>
+
+
+            <table class="timeline-phase-table">
+                <thead>
+                    <tr>
+                        <th>阶段</th>
+                        <th>LH/min</th>
+                        <th>正补</th>
+                        <th>平均GPM</th>
+                        <th>英雄伤害</th>
+                        <th>推塔伤害</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <td>0-10分钟</td>
+                        <td>0.5</td>
+                        <td>5</td>
+                        <td>131.7</td>
+                        <td>0</td>
+                        <td>0</td>
+                    </tr>
+
+                    <tr>
+                        <td>10-20分钟</td>
+                        <td>3.9</td>
+                        <td>39</td>
+                        <td>402.4</td>
+                        <td>0</td>
+                        <td>0</td>
+                    </tr>
+
+                    <tr>
+                        <td>20-30分钟</td>
+                        <td>4.7</td>
+                        <td>47</td>
+                        <td>459.8</td>
+                        <td>0</td>
+                        <td>0</td>
+                    </tr>
+
+                    <tr>
+                        <td>30-51分钟</td>
+                        <td>5.5</td>
+                        <td>115</td>
+                        <td>708.2</td>
+                        <td>0</td>
+                        <td>0</td>
+                    </tr>
+
+                </tbody>
+            </table>
+            <div class="timeline-phase-cards" aria-label="阶段摘要">
+
+                <div class="timeline-phase-card">
+                    <div class="timeline-phase-head">
+                        <strong>0-10分钟</strong>
+                        <span>LH/min 0.5</span>
+                    </div>
+                    <div class="timeline-phase-metrics">
+                        <span><strong>5</strong><small>正补</small></span>
+                        <span><strong>131.7</strong><small>平均GPM</small></span>
+                        <span><strong>0</strong><small>英雄伤害</small></span>
+                        <span><strong>0</strong><small>推塔伤害</small></span>
+                    </div>
+                </div>
+
+                <div class="timeline-phase-card">
+                    <div class="timeline-phase-head">
+                        <strong>10-20分钟</strong>
+                        <span>LH/min 3.9</span>
+                    </div>
+                    <div class="timeline-phase-metrics">
+                        <span><strong>39</strong><small>正补</small></span>
+                        <span><strong>402.4</strong><small>平均GPM</small></span>
+                        <span><strong>0</strong><small>英雄伤害</small></span>
+                        <span><strong>0</strong><small>推塔伤害</small></span>
+                    </div>
+                </div>
+
+                <div class="timeline-phase-card">
+                    <div class="timeline-phase-head">
+                        <strong>20-30分钟</strong>
+                        <span>LH/min 4.7</span>
+                    </div>
+                    <div class="timeline-phase-metrics">
+                        <span><strong>47</strong><small>正补</small></span>
+                        <span><strong>459.8</strong><small>平均GPM</small></span>
+                        <span><strong>0</strong><small>英雄伤害</small></span>
+                        <span><strong>0</strong><small>推塔伤害</small></span>
+                    </div>
+                </div>
+
+                <div class="timeline-phase-card">
+                    <div class="timeline-phase-head">
+                        <strong>30-51分钟</strong>
+                        <span>LH/min 5.5</span>
+                    </div>
+                    <div class="timeline-phase-metrics">
+                        <span><strong>115</strong><small>正补</small></span>
+                        <span><strong>708.2</strong><small>平均GPM</small></span>
+                        <span><strong>0</strong><small>英雄伤害</small></span>
+                        <span><strong>0</strong><small>推塔伤害</small></span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="subsection-title">低效率窗口</div>
+
+            <div class="compact-row">未发现连续低效率窗口。</div>
+
+
+
+            <div class="subsection-title">死亡后恢复窗口</div>
+
+            <div class="compact-row">
+                8.0分死亡后7-10分钟：
+                4补，平均GPM 152.0，恢复不足。
+            </div>
+
+            <div class="compact-row">
+                12.8分死亡后12-15分钟：
+                9补，平均GPM 474.3，已恢复资源。
+            </div>
+
+            <div class="compact-row">
+                16.9分死亡后16-19分钟：
+                22补，平均GPM 508.7，已恢复资源。
+            </div>
+
+            <div class="compact-row">
+                31.5分死亡后31-34分钟：
+                14补，平均GPM 797.7，已恢复资源。
+            </div>
+
+            <div class="compact-row">
+                36.0分死亡后35-38分钟：
+                17补，平均GPM 538.3，已恢复资源。
+            </div>
+
+            <div class="compact-row">
+                40.4分死亡后40-43分钟：
+                21补，平均GPM 537.0，已恢复资源。
+            </div>
+
+            <div class="compact-row">
+                45.2分死亡后45-48分钟：
+                1补，平均GPM 257.3，恢复不足。
+            </div>
+
+
+
+            <div class="subsection-title">死亡前后资源变化</div>
+            <div class="compact-row muted">同一玩家死亡前后各取最多3分钟真实样本；窗口不足时按实际分钟数换算，非整分钟死亡会跳过含事件的混合分钟。变化只描述时间相邻数据，不代表死亡原因。</div>
+
+            <div class="compact-row">
+                8.0分死亡（4-7分钟 → 8-11分钟）：
+                补刀/分钟 0.0→1.3（+1.3），平均GPM 121.7→147.3（+25.6）；补刀与经济未下降。
+            </div>
+
+            <div class="compact-row">
+                12.8分死亡（9-12分钟 → 13-16分钟）：
+                补刀/分钟 1.0→2.0（+1.0），平均GPM 160.0→393.0（+233.0）；补刀与经济未下降。
+            </div>
+
+            <div class="compact-row">
+                16.9分死亡（13-16分钟 → 17-20分钟）：
+                补刀/分钟 2.0→7.7（+5.7），平均GPM 393.0→528.0（+135.0）；补刀与经济未下降。
+            </div>
+
+            <div class="compact-row">
+                31.5分死亡（28-31分钟 → 32-35分钟）：
+                补刀/分钟 3.0→6.7（+3.7），平均GPM 509.3→897.7（+388.4）；补刀与经济未下降。
+            </div>
+
+            <div class="compact-row">
+                36.0分死亡（32-35分钟 → 36-39分钟）：
+                补刀/分钟 6.7→2.3（-4.4），平均GPM 897.7→512.0（-385.7）；补刀与经济均下降。
+            </div>
+
+            <div class="compact-row">
+                40.4分死亡（37-40分钟 → 41-44分钟）：
+                补刀/分钟 3.3→7.7（+4.4），平均GPM 516.7→579.3（+62.6）；补刀与经济未下降。
+            </div>
+
+            <div class="compact-row">
+                45.2分死亡（42-45分钟 → 46-49分钟）：
+                补刀/分钟 8.3→5.7（-2.6），平均GPM 609.0→897.7（+288.7）；补刀与经济变化不一致。
+            </div>
+
+
+
+        </div>
+    </div>
+
+
+
+    <div class="section" id="match-events">
+        <div class="section-header">&#9201; 目标/死亡/装备事件</div>
+        <div class="section-body">
+            <div class="subsection-title" id="objective-event-timeline">目标事件时间线</div>
+
+            <div class="objective-review-workbench" data-objective-review-workbench>
+                <div class="event-evidence-toolbar" aria-label="目标与死亡证据快捷入口">
+                    <a href="#objective-event-timeline">目标列表</a>
+                    <a href="#death-objective-windows">死亡后目标</a>
+                    <a href="#death-event-list">死亡列表</a>
+
+                </div>
+                <div class="death-review-summary objective-summary" aria-label="目标事件摘要">
+                    <div class="death-review-metric"><strong>20</strong><span>我方获取</span></div>
+                    <div class="death-review-metric"><strong>5</strong><span>我方失去</span></div>
+                    <div class="death-review-metric"><strong>0</strong><span>本人直接参与</span></div>
+                    <div class="death-review-metric"><strong>25</strong><span>目标事件</span></div>
+                </div>
+                <div class="objective-filter-panel" aria-label="目标事件筛选">
+                    <div class="objective-filter-row" role="group" aria-label="目标事件筛选">
+                        <button type="button" class="objective-filter-button active" data-objective-filter="all" aria-pressed="true" aria-controls="objective-event-list">全部</button>
+                        <button type="button" class="objective-filter-button" data-objective-filter="gained" aria-pressed="false" aria-controls="objective-event-list">我方获取</button>
+                        <button type="button" class="objective-filter-button" data-objective-filter="lost" aria-pressed="false" aria-controls="objective-event-list">我方失去</button>
+                        <button type="button" class="objective-filter-button" data-objective-filter="direct" aria-pressed="false" aria-controls="objective-event-list">本人参与</button>
+                    </div>
+                    <div class="objective-filter-status" aria-live="polite" data-objective-filter-status>正在显示 25 条目标事件</div>
+                </div>
+                <div class="objective-event-list" id="objective-event-list">
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">12.0分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路一塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">17.6分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取下路一塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">20.0分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取上路一塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">24.8分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去上路一塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="roshan" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">28.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取肉山</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="aegis" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">28.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取不朽盾</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">31.3分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取下路二塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">33.1分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路二塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">34.0分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取上路二塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">37.5分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去中路一塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">38.3分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取下路高地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">38.5分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取下路近战兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">38.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取下路远程兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">41.3分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去中路二塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="roshan" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">42.1分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去肉山</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="aegis" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">42.1分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去不朽盾</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">48.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路高地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">49.0分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路远程兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">49.3分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路近战兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">49.6分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取上路高地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">49.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取上路近战兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="barracks" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">49.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取上路远程兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">50.4分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取基地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">50.9分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取基地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="ancient" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">51.2分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取遗迹</strong>
+
+                    </div>
+
+                </div>
+                <div class="compact-row muted">来源：OpenDota 目标事件；“本人直接参与”仅表示事件记录中的本人最后一击或持盾，不代表整段目标决策归因。</div>
+
+                <div class="subsection-title" id="death-objective-windows">死亡后目标窗口</div>
+                <div class="objective-window-list">
+
+                    <div class="compact-row objective-window-row">
+                        <span class="event-pill danger">36.0分死亡</span>
+                        <strong>失去中路一塔</strong>
+                        <span>37.5分 · 相隔89秒</span>
+                    </div>
+
+                    <div class="compact-row objective-window-row">
+                        <span class="event-pill danger">40.4分死亡</span>
+                        <strong>失去中路二塔</strong>
+                        <span>41.3分 · 相隔54秒</span>
+                    </div>
+
+                </div>
+
+                <div class="objective-drill-card">
+                    <strong>目标前90秒生存规则</strong>
+                    <div><span>触发:</span> 下一局每次准备处理中路二塔攻防或同级关键目标前90秒</div>
+                    <div><span>执行:</span> 先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。</div>
+                    <div><span>验收:</span> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</div>
+                    <div class="muted"><span>优先回看:</span> 40.4分死亡 → 41.3分失去中路二塔（54秒）</div>
+
+                    <div class="objective-drill-checklist" aria-label="目标前90秒回放检查点">
+
+                        <div class="objective-drill-check">
+                            <span>队友接应</span>
+                            <p>死亡前90秒内，最近队友是否能在5秒内接到你或形成反打。</p>
+                        </div>
+
+                        <div class="objective-drill-check">
+                            <span>敌方控制</span>
+                            <p>死亡前90秒内，敌方关键控制或爆发英雄是否已经露头。</p>
+                        </div>
+
+                        <div class="objective-drill-check">
+                            <span>撤退路线</span>
+                            <p>死亡前90秒内，你是否有明确退路、TP路径或安全视野入口。</p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="compact-row muted">该窗口只表示时间相邻：真实死亡发生后90秒内记录到目标损失，不代表死亡造成目标损失。</div>
+
+            </div>
+
+            <div class="subsection-title">关键购买</div>
+
+            <div class="event-list">
+
+                <span class="event-pill">-1.5分 Circlet</span>
+
+                <span class="event-pill">-1.5分 Tango</span>
+
+                <span class="event-pill">-1.5分 Magic Stick</span>
+
+                <span class="event-pill">-1.5分 Blood Grenade</span>
+
+                <span class="event-pill">-1.5分 Branches</span>
+
+                <span class="event-pill">3.3分 Sobi Mask</span>
+
+            </div>
+
+
+            <div class="subsection-title">死亡时间</div>
+
+            <div class="death-review-workbench">
+                <div class="death-review-summary" aria-label="死亡复盘摘要">
+                    <div class="death-review-metric">
+                        <strong>7</strong>
+                        <span>已定位死亡</span>
+                    </div>
+                    <div class="death-review-metric">
+                        <strong>7</strong>
+                        <span>恢复窗口</span>
+                    </div>
+                    <div class="death-review-metric">
+                        <strong>0</strong>
+                        <span>坐标点</span>
+                    </div>
+                    <div class="death-review-metric">
+                        <strong>0</strong>
+                        <span>重复簇</span>
+                    </div>
+                </div>
+                <div class="death-review-body">
+
+
+            <div class="death-evidence-toolbar" aria-label="死亡证据快捷入口">
+                <a href="#death-event-list">死亡列表</a>
+
+
+                <a href="#timeline-diagnosis">恢复窗口</a>
+            </div>
+
+
+            <div class="compact-row">已定位 7/7 次死亡</div>
+
+
+            <div class="death-event-grid" id="death-event-list">
+
+                <div class="death-event-card">
+                    <span class="event-pill danger">8.0分</span>
+
+
+                    <span class="death-position-label muted">死亡位置：无位置采样</span>
+
+
+                </div>
+
+                <div class="death-event-card">
+                    <span class="event-pill danger">12.8分</span>
+
+
+                    <span class="death-position-label muted">死亡位置：无位置采样</span>
+
+
+                </div>
+
+                <div class="death-event-card">
+                    <span class="event-pill danger">16.9分</span>
+
+
+                    <span class="death-position-label muted">死亡位置：无位置采样</span>
+
+
+                </div>
+
+                <div class="death-event-card">
+                    <span class="event-pill danger">31.5分</span>
+
+
+                    <span class="death-position-label muted">死亡位置：无位置采样</span>
+
+
+                </div>
+
+                <div class="death-event-card">
+                    <span class="event-pill danger">36.0分</span>
+
+
+                    <span class="death-position-label muted">死亡位置：无位置采样</span>
+
+
+                </div>
+
+                <div class="death-event-card">
+                    <span class="event-pill danger">40.4分</span>
+
+
+                    <span class="death-position-label muted">死亡位置：无位置采样</span>
+
+
+                </div>
+
+                <div class="death-event-card">
+                    <span class="event-pill danger">45.2分</span>
+
+
+                    <span class="death-position-label muted">死亡位置：无位置采样</span>
+
+
+                </div>
+
+            </div>
+
+
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <div class="section" id="review-findings">
+        <div class="section-header">&#128204; 本局主要问题证据</div>
+        <div class="section-body">
+
+            <div class="compact-row">
+                <strong>死亡后目标损失</strong>：死亡后90秒内失去目标: 36.0分死亡 → 37.5分失去中路一塔（89秒）；40.4分死亡 → 41.3分失去中路二塔（54秒）。 这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。
+            </div>
+
+            <div class="compact-row">
+                <strong>死亡成本</strong>：已定位 7/7 次死亡，时间: 8.0, 12.8, 16.9, 31.5, 36.0, 40.4, 45.2分钟；每10分钟死亡 1.37。 核心或节奏位的连续死亡会直接交出地图区域和关键目标时间。
+            </div>
+
+            <div class="compact-row">
+                <strong>视野/控图</strong>：视野事件: 观察守卫 4，岗哨 6。 辅助位的视野动作直接决定队伍能否安全带线、控盾、先手或反开。
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="section" id="item-analysis">
+        <div class="section-header">&#128091; 出装分析</div>
+        <div class="section-body">
+            <div style="margin-bottom:12px; color:var(--text-secondary); font-size:13px;">最终装备:</div>
+            <div class="item-grid">
+
+
+                <div class="item-slot item-name" title="ID 1852">
+                    Essence Distiller
+                </div>
+
+                <div class="item-slot item-name" title="ID 180">
+                    Arcane Boots
+                </div>
+
+                <div class="item-slot item-name" title="ID 1">
+                    Blink Dagger
+                </div>
+
+                <div class="item-slot item-name" title="ID 37">
+                    Ghost Scepter
+                </div>
+
+                <div class="item-slot item-name" title="ID 108">
+                    Aghanim's Scepter
+                </div>
+
+                <div class="item-slot item-name" title="ID 232">
+                    Aether Lens
+                </div>
+
+
+            </div>
+
+
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+    </main>
+
+    <div class="footer">
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 15:13:06
+    </div>
+
+</div>
+<script id="report-metadata" type="application/json">{"schema_version":1,"match_id":8867351572,"hero":{"id":86,"name":"Rubick","slug":"rubick"},"is_win":true,"side":"Dire","started_at":"2026-06-26T13:39:38Z","ended_at":"2026-06-26T14:30:49Z","duration_seconds":3071,"kda":{"kills":5,"deaths":7,"assists":18},"score":{"team":44,"enemy":41},"allies":[{"id":36,"name":"Necrophos","slug":"necrolyte"},{"id":86,"name":"Rubick","slug":"rubick"},{"id":108,"name":"Underlord","slug":"abyssal_underlord"},{"id":40,"name":"Venomancer","slug":"venomancer"},{"id":43,"name":"Death Prophet","slug":"death_prophet"}],"enemies":[{"id":30,"name":"Witch Doctor","slug":"witch_doctor"},{"id":25,"name":"Lina","slug":"lina"},{"id":60,"name":"Night Stalker","slug":"night_stalker"},{"id":19,"name":"Tiny","slug":"tiny"},{"id":37,"name":"Warlock","slug":"warlock"}]}</script>
+<script data-report-section-navigation>
+(() => {
+    const links = Array.from(document.querySelectorAll('[data-report-section-link]'));
+    const sections = links
+        .map((link) => document.querySelector(link.getAttribute('href')))
+        .filter(Boolean);
+    if (!links.length || !sections.length) return;
+
+    const activate = (sectionId) => {
+        let activeLink = null;
+        links.forEach((link) => {
+            const isActive = link.getAttribute('href') === `#${sectionId}`;
+            link.classList.toggle('active', isActive);
+            if (isActive) {
+                link.setAttribute('aria-current', 'location');
+                activeLink = link;
+            }
+            else link.removeAttribute('aria-current');
+        });
+        if (activeLink && activeLink.parentElement) {
+            const track = activeLink.parentElement;
+            const left = activeLink.offsetLeft - ((track.clientWidth - activeLink.offsetWidth) / 2);
+            track.scrollTo({ left: Math.max(0, left), behavior: 'auto' });
+        }
+    };
+
+    links.forEach((link) => {
+        link.addEventListener('click', () => activate(link.getAttribute('href').slice(1)));
+    });
+    window.addEventListener('hashchange', () => {
+        if (window.location.hash) activate(window.location.hash.slice(1));
+    });
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            const visible = entries
+                .filter((entry) => entry.isIntersecting)
+                .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
+            if (visible) activate(visible.target.id);
+        }, { rootMargin: '-18% 0px -68% 0px', threshold: [0.01, 0.35] });
+        sections.forEach((section) => observer.observe(section));
+    }
+
+    const initialId = window.location.hash.slice(1) || sections[0].id;
+    activate(initialId);
+})();
+</script>
+<script data-objective-filtering>
+(() => {
+    const workbenches = Array.from(document.querySelectorAll('[data-objective-review-workbench]'));
+    const labels = {
+        all: '全部',
+        gained: '我方获取',
+        lost: '我方失去',
+        direct: '本人直接参与'
+    };
+
+    workbenches.forEach((workbench) => {
+        const buttons = Array.from(workbench.querySelectorAll('[data-objective-filter]'));
+        const rows = Array.from(workbench.querySelectorAll('[data-objective-row]'));
+        const status = workbench.querySelector('[data-objective-filter-status]');
+        if (!buttons.length || !rows.length) return;
+
+        const applyFilter = (filter) => {
+            let visible = 0;
+            rows.forEach((row) => {
+                const matches = filter === 'all'
+                    || row.dataset.objectiveOutcome === filter
+                    || (filter === 'direct' && row.dataset.objectiveDirect === 'true');
+                row.hidden = !matches;
+                if (matches) visible += 1;
+            });
+
+            buttons.forEach((button) => {
+                const active = button.dataset.objectiveFilter === filter;
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+
+            if (status) {
+                status.textContent = `${labels[filter] || '目标'}：${visible}/${rows.length} 条目标事件`;
+            }
+        };
+
+        buttons.forEach((button) => {
+            button.addEventListener('click', () => applyFilter(button.dataset.objectiveFilter || 'all'));
+        });
+        applyFilter('all');
+    });
+})();
+</script>
+</body>
+</html>

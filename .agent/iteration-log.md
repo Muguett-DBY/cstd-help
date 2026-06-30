@@ -747,3 +747,19 @@
 - Risks:
   - Static text rules catch known bad phrases and required drill coverage, not every possible awkward sentence.
 - Recommended flagship next change: add one final deterministic improvement that reduces manual replay dependency without adding unverifiable claims.
+
+## 2026-06-30 - Long Cycle 5 Stage 6 IMPROVE
+
+- Goal: reduce manual replay dependency in the objective survival drill without inventing causes.
+- Completed: added a three-point `目标前90秒` replay checklist generated from the existing death/objective drill: `队友接应`, `敌方控制`, and `撤退路线`.
+- User-visible gain: the latest Legion Commander report no longer just says to replay-check the window; it names exactly what to verify in the 90 seconds before the high-cost death/objective sequence.
+- Verification:
+  - New checklist tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 89 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - Browser QA passed on desktop and 390x844 mobile; checklist labels rendered, no console errors, and no horizontal overflow.
+- Risks:
+  - The checklist is a replay review rubric tied to verified timing evidence; it still cannot claim the death caused the objective loss without replay/video context.
+- Recommended next direction: improve objective/death evidence with richer verified source data if STRATZ playback exposes additional combat or vision fields reliably.

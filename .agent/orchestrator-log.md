@@ -1627,6 +1627,16 @@ Started: 2026-06-28
 - Remaining risk: the new static text checker catches known bad patterns and required drill coverage, not every possible awkward sentence.
 - Next stage: Stage 6 IMPROVE should make one final evidence-backed product improvement and complete the full 6-stage cycle.
 
+## 2026-06-30 - Long Cycle 5 Stage 6 IMPROVE - Start
+
+- Stage: 6 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Goal: make the objective survival drill more actionable by turning the replay prompt into concrete replay checkpoints.
+- Planned user-visible increment: show three deterministic `目标前90秒` replay checklist items: teammate support, enemy control visibility, and retreat route.
+- Start state: `main` at `6a9255d`, clean worktree; Stage 5 feature CI `28421523540` and log-closeout CI `28421571374` passed.
+- Constraints: do not touch Docker or `AGENTS.md`; keep all checkpoint text tied to the existing death/objective evidence and avoid cause claims.
+
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 2.
@@ -1730,3 +1740,20 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 1 closeout log.
+
+## 2026-06-30 - Long Cycle 5 Stage 6 IMPROVE - Local Complete
+
+- Completed: added a deterministic `目标前90秒` replay checklist to `death_objective_drill` so the report now gives three concrete checks before a major objective window: teammate support, enemy control visibility, and retreat route.
+- Report UI: rendered the checklist inside the objective drill card with responsive desktop/mobile layout.
+- Public refresh: regenerated 18 real reports and rebuilt `public/`; latest report is `Legion_Commander_8870219537_20260630_151304.html`.
+- Real-report acceptance: latest Legion Commander report contains `目标前90秒生存规则`, `队友接应`, `敌方控制`, `撤退路线`, and no `接失去`.
+- Browser verification: Chromium desktop 1440x1000 and mobile 390x844 loaded the latest report with the three checklist labels, no horizontal overflow, and 0 console messages.
+- Local verification:
+  - New target tests failed first with missing `checklist`, then passed after implementation.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 89 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and full 6-stage closeout log.
