@@ -1857,12 +1857,17 @@ def _inject_report_navigation(public_dir, reports):
         text = path.read_text(encoding="utf-8")
         text = re.sub(r'\s*<nav class="report-neighbors"[\s\S]*?</nav>', "", text, count=1)
         neighbors = _render_report_neighbors(index, reports)
+        context_deck = (
+            '<div class="report-context-deck" data-report-context-deck>'
+            f'{neighbors}'
+            '</div>'
+        )
         back_link_match = re.search(r'(<a class="back-link"[\s\S]*?</a>)', text)
         if back_link_match:
             insert_at = back_link_match.end()
-            text = text[:insert_at] + "\n" + neighbors + text[insert_at:]
+            text = text[:insert_at] + "\n" + context_deck + text[insert_at:]
         else:
-            text = text.replace("<body>", f"<body>\n{neighbors}", 1)
+            text = text.replace("<body>", f"<body>\n{context_deck}", 1)
         text = _ensure_report_section_navigation(text)
         _write_utf8(path, text)
 
@@ -1880,16 +1885,18 @@ def _render_report_source_provenance(report, source_fetch_times):
         return f' {name}="{html.escape(str(value or ""), quote=True)}"'
 
     return (
-        '<section class="report-source-provenance" aria-label="证据时间"'
+        '<details class="report-source-provenance" aria-label="证据时间"'
         ' data-report-source-provenance'
         f'{attribute("data-match-id", match_id)}'
         f'{attribute("data-report-generated-at", report_generated_at)}'
         f'{attribute("data-stratz-fetched-at", stratz_fetched_at)}'
         f'{attribute("data-opendota-fetched-at", opendota_fetched_at)}>'
-        '<div class="source-provenance-heading">'
+        '<summary class="source-provenance-summary">'
         '<span>证据时间</span>'
         f'<strong>{html.escape(status_label)}</strong>'
-        '</div>'
+        '<small>展开完整时间</small>'
+        '</summary>'
+        '<div class="source-provenance-body">'
         '<div class="source-provenance-grid">'
         '<div><span>报告生成</span>'
         f'{_render_public_time(report_generated_at, "未记录")}</div>'
@@ -1899,7 +1906,8 @@ def _render_report_source_provenance(report, source_fetch_times):
         f'{_render_public_time(opendota_fetched_at, "未记录")}</div>'
         '</div>'
         '<small>本报告只使用以上时间点已缓存证据；Cloudflare 发布不会实时重抓比赛数据。</small>'
-        '</section>'
+        '</div>'
+        '</details>'
     )
 
 
@@ -1910,7 +1918,7 @@ def _inject_report_source_provenance(public_dir, reports, source_fetch_times):
             continue
         text = path.read_text(encoding="utf-8")
         text = re.sub(
-            r'\s*<section class="report-source-provenance"[\s\S]*?</section>',
+            r'\s*<(?:section|details) class="report-source-provenance"[\s\S]*?</(?:section|details)>',
             "",
             text,
             count=1,

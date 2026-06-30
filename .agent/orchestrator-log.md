@@ -1497,6 +1497,27 @@ Started: 2026-06-28
 
 - Completed per-report source provenance on `main` with unit/static checks, responsive browser QA, GitHub Actions, and live custom-domain acceptance.
 
+## 2026-07-01 - Long Cycle 7 Stage 3 UIUX - Local Complete
+
+- Stage: 3 / 6.
+- Type: UIUX.
+- Prompt: AGENT_UIUX_MAIN.txt.
+- Goal: reduce the report-top information stack while keeping exact source evidence directly accessible.
+- Completed: merged adjacent-match navigation and source provenance into a responsive `report-context-deck`; converted provenance into a native disclosure with persistent `证据时间 / 来源完整` summary and one-click full timestamps.
+- Desktop behavior: navigation and provenance render side by side; the latest report decision card begins at 500px in a 1280x720 viewport.
+- Mobile behavior: context deck becomes one column, adjacent matches remain a stable two-column control, provenance stays collapsed by default, and the decision card begins at 611px inside the first 390x844 viewport.
+- Interaction/accessibility: native `details/summary` supports keyboard disclosure without custom JavaScript; expanded content exposes all three exact timestamps and the cache limitation.
+- Local verification:
+  - New layout/disclosure tests failed before implementation and pass now.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 103 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 reports.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Browser QA passed 1280x720 and 390x844; disclosure opens correctly, decision card is in the first mobile viewport, no console errors, and no horizontal overflow.
+- Forbidden-file check: Docker and `AGENTS.md` remain untouched.
+- Pending: commit, push, GitHub Actions, production interaction acceptance, and Stage 3 closeout.
+
 ## 2026-06-30 - Long Cycle 5 Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 6.
