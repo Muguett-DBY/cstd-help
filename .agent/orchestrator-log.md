@@ -1613,6 +1613,20 @@ Started: 2026-06-28
   - `git diff --check`: passed.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 5 closeout log.
 
+## 2026-06-30 - Long Cycle 5 Stage 5 CHECK - Complete
+
+- Completed stage: 5 / 6.
+- Type: CHECK.
+- Prompt: AGENT_CHECK_MAIN.txt.
+- Stage commit: `test: enforce report text quality` (`6ea8025`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28421523540`; unit tests, compile, enhanced static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports and latest report `Legion_Commander_8870219537_20260630_144813.html`.
+  - Latest Legion Commander report returned 200 with `目标前90秒生存规则`, `处理基地防守`, `复盘报告`, and without `接失去`.
+- Remaining risk: the new static text checker catches known bad patterns and required drill coverage, not every possible awkward sentence.
+- Next stage: Stage 6 IMPROVE should make one final evidence-backed product improvement and complete the full 6-stage cycle.
+
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 2.
