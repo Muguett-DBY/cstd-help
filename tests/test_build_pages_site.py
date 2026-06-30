@@ -178,6 +178,36 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_missing_quality_gate_summary(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Legion_Commander_8870219537.html").write_text(
+                "<html><head><title>Legion Commander 复盘报告</title></head>"
+                "<body>"
+                '<section id="decision-snapshot" class="decision-snapshot">上分决策卡</section>'
+                '<section class="report-trend-context">近期同类问题'
+                '<div class="trend-context-examples">完整趋势证据</div></section>'
+                '<div class="evidence-source-list"><div class="evidence-source-row">证据来源与覆盖</div></div>'
+                "</body></html>",
+                encoding="utf-8",
+            )
+            (public_path / "index.html").write_text("<html><body>复盘数据覆盖</body></html>", encoding="utf-8")
+            (public_path / "site-manifest.json").write_text(
+                json.dumps({"schema_version": 1, "report_count": 1}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_quality_gate_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "index.html -> missing quality gate panel",
+                "site-manifest.json -> missing quality gate summary",
+            ],
+        )
+
     def test_static_site_checker_detects_report_text_quality_issues(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
@@ -576,10 +606,15 @@ class BuildPagesSiteTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
             first_report = self._write_report(source, metadata, filename="Mirana_8867002237_20260626_224839.html")
+            quality_snippet = (
+                '<section id="decision-snapshot" class="decision-snapshot">上分决策卡</section>'
+                '<div class="evidence-source-list"><div class="evidence-source-row">证据来源与覆盖</div></div>'
+            )
             first_text = first_report.read_text(encoding="utf-8")
             first_report.write_text(
                 first_text.replace(
                     "</body>",
+                    quality_snippet +
                     '<div class="death-review-workbench"></div>'
                     '<div class="death-coordinate-map"></div>'
                     '<div>死亡后恢复窗口</div>'
@@ -597,6 +632,7 @@ class BuildPagesSiteTests(unittest.TestCase):
             second_report.write_text(
                 second_text.replace(
                     "</body>",
+                    quality_snippet +
                     '<div class="death-review-workbench"></div>'
                     '<div>死亡后恢复窗口</div>'
                     "</body>",
@@ -618,10 +654,21 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(manifest["death_recovery_window_report_count"], 2)
         self.assertEqual(manifest["death_coordinate_map_report_count"], 1)
         self.assertEqual(manifest["complete_death_review_report_count"], 1)
+        self.assertEqual(manifest["quality_gate"]["status"], "pass")
+        self.assertEqual(manifest["quality_gate"]["decision_snapshot_report_count"], 2)
+        self.assertEqual(manifest["quality_gate"]["trend_context_report_count"], 2)
+        self.assertEqual(manifest["quality_gate"]["evidence_source_report_count"], 2)
+        self.assertEqual(manifest["quality_gate"]["manual_review_language_hit_count"], 0)
+        self.assertEqual(manifest["quality_gate"]["complete_quality_report_count"], 2)
         self.assertEqual(manifest["latest_match"]["hero"], "Doom")
         self.assertEqual(manifest["latest_match"]["match_id"], "8867002240")
         self.assertIn("复盘数据覆盖", index_html)
         self.assertIn("死亡复盘覆盖", index_html)
+        self.assertIn("复盘质量门禁", index_html)
+        self.assertIn("质量门禁：通过", index_html)
+        self.assertIn("决策卡覆盖", index_html)
+        self.assertIn("趋势上下文覆盖", index_html)
+        self.assertIn("手工复盘旧词", index_html)
         self.assertIn("2 局", index_html)
         self.assertIn("恢复窗口", index_html)
         self.assertIn("1 局", index_html)
@@ -632,7 +679,9 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("2 条 finding", index_html)
         self.assertIn("1 个训练主题", index_html)
         self.assertIn("data-coverage-panel", index_html)
+        self.assertIn("data-quality-gate-panel", index_html)
         self.assertIn("复盘数据覆盖", plan_html)
+        self.assertIn("复盘质量门禁", plan_html)
 
     def test_build_pages_site_writes_practice_plan_page(self):
         metadata = {
@@ -795,6 +844,9 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".topic-empty-state", stylesheet)
         self.assertIn(".data-coverage", stylesheet)
         self.assertIn(".coverage-subtitle", stylesheet)
+        self.assertIn(".quality-gate-panel", stylesheet)
+        self.assertIn(".quality-gate-status", stylesheet)
+        self.assertIn(".quality-gate-pass", stylesheet)
         self.assertIn(".practice-workbench", stylesheet)
         self.assertIn(".practice-evidence-links", stylesheet)
         self.assertIn(".practice-checklist", stylesheet)

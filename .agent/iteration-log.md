@@ -878,3 +878,23 @@
 - Production acceptance: live `dota.custard.top` serves 18 reports; latest `Legion_Commander_8870219537_20260630_212154.html` returns 200 with `上分决策卡`, `近期同类问题`, `证据窗口`/`系统证据窗口`, `目标前90秒证据检查点`, and zero banned manual-review phrase hits.
 - Risks: source labels such as `STRATZ回放事件` remain because they identify the data source, not a user instruction to manually review.
 - Recommended next direction: add a final deployment-quality manifest/check card so the site itself exposes current report coverage and quality-gate status.
+
+## 2026-07-01 - Long Cycle 6 Stage 6 IMPROVE
+
+- Goal: complete the previous direction by exposing report quality-gate status directly on the site, not only in CI logs.
+- Completed: added a `quality_gate` summary to `site-manifest.json` with decision-card coverage, trend-context coverage, evidence-source coverage, manual-review-language hits, complete-quality count, and pass/attention status.
+- User-visible gain: the history page and practice plan now show `复盘质量门禁` with `质量门禁：通过`, `18/18` decision-card coverage, `18/18` trend-context coverage, `18/18` evidence-source coverage, and `0` manual-review old-word hits.
+- Stability gain: `scripts/check_public_site.py` now recomputes quality-gate counts from generated reports and rejects missing/inconsistent quality summaries or missing quality panels.
+- Public refresh: rebuilt all 18 reports into `public/`; latest report remains `Legion_Commander_8870219537_20260630_212154.html`.
+- Browser verification: in-app Browser passed desktop 1280x720 and mobile 390x844 homepage checks; the quality panel renders, console logs are clean, and no document-level horizontal overflow appears.
+- Local verification:
+  - New quality-gate manifest, static-checker, and CSS tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 101 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- GitHub Actions / CI: pending commit and push for this stage.
+- Risks: quality gate proves required rendered evidence surfaces and banned wording checks; it does not certify external STRATZ/OpenDota live fetch freshness.
+- Recommended next direction: add fetch-freshness/source-age telemetry so the site distinguishes cached event evidence from freshly fetched STRATZ/OpenDota data.

@@ -41,6 +41,14 @@ REQUIRED_DEATH_REVIEW_MANIFEST_FIELDS = [
     "death_coordinate_map_report_count",
     "complete_death_review_report_count",
 ]
+REQUIRED_QUALITY_GATE_FIELDS = [
+    "status",
+    "decision_snapshot_report_count",
+    "trend_context_report_count",
+    "evidence_source_report_count",
+    "manual_review_language_hit_count",
+    "complete_quality_report_count",
+]
 FORBIDDEN_REPORT_TEXT = [
     "接失去",
     "接获取",
@@ -312,6 +320,92 @@ def _find_death_review_coverage_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _report_quality_evidence(report):
+    text = report.read_text(encoding="utf-8")
+    manual_hits = [
+        phrase for phrase in FORBIDDEN_MANUAL_REVIEW_LANGUAGE
+        if phrase in text
+    ]
+    return {
+        "has_decision_snapshot": 'id="decision-snapshot"' in text and "上分决策卡" in text,
+        "has_trend_context": 'class="report-trend-context"' in text and "近期同类问题" in text,
+        "has_evidence_source_coverage": "证据来源与覆盖" in text and "evidence-source-list" in text,
+        "manual_review_language_hits": manual_hits,
+    }
+
+
+def _find_quality_gate_issues(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    issues = []
+    index_path = public_dir / "index.html"
+    if index_path.exists():
+        index_text = index_path.read_text(encoding="utf-8")
+        if "复盘质量门禁" not in index_text or "data-quality-gate-panel" not in index_text:
+            issues.append("index.html -> missing quality gate panel")
+
+    manifest_path = public_dir / "site-manifest.json"
+    if not manifest_path.exists():
+        return issues
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        manifest = {}
+    quality_gate = manifest.get("quality_gate") if isinstance(manifest, dict) else None
+    if not isinstance(quality_gate, dict):
+        issues.append("site-manifest.json -> missing quality gate summary")
+        return issues
+
+    missing_fields = [
+        field for field in REQUIRED_QUALITY_GATE_FIELDS
+        if field not in quality_gate
+    ]
+    if missing_fields:
+        issues.append("site-manifest.json -> missing quality gate fields: " + ", ".join(missing_fields))
+        return issues
+
+    expected = {
+        "decision_snapshot_report_count": 0,
+        "trend_context_report_count": 0,
+        "evidence_source_report_count": 0,
+        "manual_review_language_hit_count": 0,
+        "complete_quality_report_count": 0,
+    }
+    reports = _report_pages(public_dir)
+    for report in reports:
+        evidence = _report_quality_evidence(report)
+        if evidence["has_decision_snapshot"]:
+            expected["decision_snapshot_report_count"] += 1
+        if evidence["has_trend_context"]:
+            expected["trend_context_report_count"] += 1
+        if evidence["has_evidence_source_coverage"]:
+            expected["evidence_source_report_count"] += 1
+        expected["manual_review_language_hit_count"] += len(evidence["manual_review_language_hits"])
+        if (
+            evidence["has_decision_snapshot"]
+            and evidence["has_trend_context"]
+            and evidence["has_evidence_source_coverage"]
+            and not evidence["manual_review_language_hits"]
+        ):
+            expected["complete_quality_report_count"] += 1
+    expected_status = (
+        "pass"
+        if reports
+        and expected["complete_quality_report_count"] == len(reports)
+        and expected["manual_review_language_hit_count"] == 0
+        else "needs_attention"
+    )
+    mismatches = [
+        f"{field} expected {expected[field]} got {quality_gate.get(field)}"
+        for field in expected
+        if quality_gate.get(field) != expected[field]
+    ]
+    if quality_gate.get("status") != expected_status:
+        mismatches.append(f"status expected {expected_status} got {quality_gate.get('status')}")
+    if mismatches:
+        issues.append("site-manifest.json -> inconsistent quality gate summary: " + ", ".join(mismatches))
+    return issues
+
+
 def _find_hero_benchmark_issues(public_dir=PUBLIC_DIR):
     issues = []
     for report in _report_pages(public_dir):
@@ -468,6 +562,11 @@ def main():
     if death_review_issues:
         preview = "; ".join(death_review_issues[:10])
         raise SystemExit(f"public death review coverage is incomplete: {preview}")
+
+    quality_gate_issues = _find_quality_gate_issues(PUBLIC_DIR)
+    if quality_gate_issues:
+        preview = "; ".join(quality_gate_issues[:10])
+        raise SystemExit(f"public quality gate summary is incomplete: {preview}")
 
     hero_benchmark_issues = _find_hero_benchmark_issues(PUBLIC_DIR)
     if hero_benchmark_issues:

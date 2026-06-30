@@ -13,6 +13,14 @@
   "death_recovery_window_report_count": 18,
   "death_coordinate_map_report_count": 17,
   "complete_death_review_report_count": 17,
+  "quality_gate": {
+    "status": "pass",
+    "decision_snapshot_report_count": 18,
+    "trend_context_report_count": 18,
+    "evidence_source_report_count": 18,
+    "manual_review_language_hit_count": 0,
+    "complete_quality_report_count": 18
+  },
   "latest_match": {
     "hero": "Legion Commander",
     "match_id": "8870219537",

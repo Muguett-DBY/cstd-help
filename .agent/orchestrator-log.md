@@ -1944,3 +1944,19 @@ Started: 2026-06-28
   - Latest Legion Commander report returned 200 with `上分决策卡`, `近期同类问题`, `证据窗口`/`系统证据窗口`, `目标前90秒证据检查点`, and zero banned manual-review phrase hits.
 - Remaining risk: `STRATZ回放事件` and `Valve回放事件` remain as source labels; this is intentional source attribution, not an instruction to manually review.
 - Next stage: Stage 6 should add a final production-quality/coverage summary so report readers can immediately see current evidence coverage and quality gate status.
+
+## 2026-07-01 - Long Cycle 6 Stage 6 IMPROVE - Local Complete
+
+- Previous direction carried forward: expose production quality/coverage status to report readers, not just CI.
+- Completed: added `quality_gate` to `site-manifest.json` and rendered `复盘质量门禁` in the shared coverage panel on the history page and practice plan.
+- Quality-gate values in current public build: status `pass`, decision snapshot coverage `18/18`, trend context coverage `18/18`, evidence-source coverage `18/18`, manual-review-language hits `0`, complete-quality reports `18`.
+- Static validation: `scripts/check_public_site.py` now rejects missing quality panels, missing quality-gate manifest summaries, and inconsistent quality counts.
+- Browser verification: desktop and 390x844 mobile homepage QA passed with the quality panel visible, clean console, and no horizontal overflow.
+- Local verification:
+  - New quality-gate tests failed before implementation and pass now.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 101 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 reports.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+- Pending: commit, push, GitHub Actions, live custom-domain acceptance, final closeout log.
