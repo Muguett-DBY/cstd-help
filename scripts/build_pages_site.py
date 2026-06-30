@@ -28,6 +28,19 @@ LEGACY_ITEM_SLOT_RE = re.compile(
     re.MULTILINE,
 )
 HERO_IMAGE_BASE = "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes"
+FORBIDDEN_MANUAL_REVIEW_LANGUAGE = [
+    "需要回放确认",
+    "优先回看",
+    "可回放复查",
+    "回放确认后的",
+    "回放场景",
+    "逐一回放",
+    "回放时只核对",
+    "回放检查点",
+    "人工回看",
+    "人工查看",
+    "手动复盘",
+]
 PRIORITY_PREFIX_RE = re.compile(r"^(?:高|中|低)优先级\s*[·:：\-]\s*")
 FOCUS_TAXONOMY = (
     {
@@ -230,6 +243,21 @@ def _parse_report(path):
         "has_death_coordinate_map": 'class="death-coordinate-map"' in report_text,
     }
     death_evidence["has_complete_death_review"] = all(death_evidence.values())
+    quality_evidence = {
+        "has_decision_snapshot": 'id="decision-snapshot"' in report_text and "上分决策卡" in report_text,
+        "has_trend_context": 'class="report-trend-context"' in report_text and "近期同类问题" in report_text,
+        "has_evidence_source_coverage": "证据来源与覆盖" in report_text and "evidence-source-list" in report_text,
+        "manual_review_language_hits": [
+            phrase for phrase in FORBIDDEN_MANUAL_REVIEW_LANGUAGE
+            if phrase in report_text
+        ],
+    }
+    quality_evidence["has_complete_quality_gate"] = (
+        quality_evidence["has_decision_snapshot"]
+        and quality_evidence["has_trend_context"]
+        and quality_evidence["has_evidence_source_coverage"]
+        and not quality_evidence["manual_review_language_hits"]
+    )
 
     return {
         "file": path.name,
@@ -246,6 +274,7 @@ def _parse_report(path):
         "size": path.stat().st_size,
         "review_findings": coach_findings,
         "death_evidence": death_evidence,
+        "quality_evidence": quality_evidence,
         **coach_finding,
     }
 
@@ -787,6 +816,33 @@ def _build_site_manifest(reports, trends):
         1 for report in sorted_reports
         if (report.get("death_evidence") or {}).get("has_complete_death_review")
     )
+    decision_snapshot_count = sum(
+        1 for report in sorted_reports
+        if (report.get("quality_evidence") or {}).get("has_decision_snapshot")
+    )
+    trend_context_count = sum(
+        1 for report in sorted_reports
+        if (report.get("quality_evidence") or {}).get("has_trend_context")
+    )
+    evidence_source_count = sum(
+        1 for report in sorted_reports
+        if (report.get("quality_evidence") or {}).get("has_evidence_source_coverage")
+    )
+    manual_hit_count = sum(
+        len((report.get("quality_evidence") or {}).get("manual_review_language_hits") or [])
+        for report in sorted_reports
+    )
+    complete_quality_count = sum(
+        1 for report in sorted_reports
+        if (report.get("quality_evidence") or {}).get("has_complete_quality_gate")
+    )
+    quality_status = (
+        "pass"
+        if sorted_reports
+        and complete_quality_count == len(sorted_reports)
+        and manual_hit_count == 0
+        else "needs_attention"
+    )
     latest_match = {
         "hero": newest.get("hero") or "未知英雄",
         "match_id": str(newest.get("match_id") or ""),
@@ -810,6 +866,14 @@ def _build_site_manifest(reports, trends):
         "death_recovery_window_report_count": death_recovery_window_count,
         "death_coordinate_map_report_count": death_coordinate_map_count,
         "complete_death_review_report_count": complete_death_review_count,
+        "quality_gate": {
+            "status": quality_status,
+            "decision_snapshot_report_count": decision_snapshot_count,
+            "trend_context_report_count": trend_context_count,
+            "evidence_source_report_count": evidence_source_count,
+            "manual_review_language_hit_count": manual_hit_count,
+            "complete_quality_report_count": complete_quality_count,
+        },
         "latest_match": latest_match,
         "topics": [
             {
@@ -839,6 +903,12 @@ def _render_coverage_panel(manifest):
         )
     else:
         latest_time = '<span class="missing-value">结束时间缺失</span>'
+    quality = manifest.get("quality_gate") or {}
+    report_count = int(manifest.get("report_count") or 0)
+    quality_status = quality.get("status") or "needs_attention"
+    quality_status_label = "质量门禁：通过" if quality_status == "pass" else "质量门禁：需检查"
+    quality_status_class = "quality-gate-pass" if quality_status == "pass" else "quality-gate-warning"
+    manual_hits = int(quality.get("manual_review_language_hit_count") or 0)
     return f"""
     <section class="data-coverage" data-coverage-panel aria-label="复盘数据覆盖">
         <div class="history-title-row">
@@ -857,6 +927,19 @@ def _render_coverage_panel(manifest):
             <div class="coverage-stat"><strong>{html.escape(str(manifest.get('death_recovery_window_report_count') or 0))} 局</strong><span>恢复窗口</span></div>
             <div class="coverage-stat"><strong>{html.escape(str(manifest.get('death_coordinate_map_report_count') or 0))} 局</strong><span>坐标图</span></div>
             <div class="coverage-stat"><strong>{html.escape(str(manifest.get('complete_death_review_report_count') or 0))} 局</strong><span>完整死亡复盘</span></div>
+        </div>
+        <div class="quality-gate-panel" data-quality-gate-panel aria-label="复盘质量门禁">
+            <div class="quality-gate-head">
+                <span class="quality-gate-status {quality_status_class}">{quality_status_label}</span>
+                <strong>复盘质量门禁</strong>
+                <small>这些检查来自当前 public 构建，和 CI 发布前验证使用同一批报告。</small>
+            </div>
+            <div class="coverage-grid quality-gate-grid">
+                <div class="coverage-stat"><strong>{html.escape(str(quality.get('decision_snapshot_report_count') or 0))}/{report_count}</strong><span>决策卡覆盖</span></div>
+                <div class="coverage-stat"><strong>{html.escape(str(quality.get('trend_context_report_count') or 0))}/{report_count}</strong><span>趋势上下文覆盖</span></div>
+                <div class="coverage-stat"><strong>{html.escape(str(quality.get('evidence_source_report_count') or 0))}/{report_count}</strong><span>证据来源覆盖</span></div>
+                <div class="coverage-stat"><strong>{manual_hits}</strong><span>手工复盘旧词</span></div>
+            </div>
         </div>
         <a class="coverage-latest" href="{latest_file}">
             <span>最新比赛</span>
@@ -1950,8 +2033,9 @@ def build_pages_site(source, public_dir=PUBLIC_DIR):
     _inject_report_navigation(public_dir, reports)
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
     focus_trends = _build_focus_trends(reports)
-    site_manifest = _build_site_manifest(reports, focus_trends)
     _inject_report_trend_context(public_dir, reports, focus_trends)
+    reports = [_parse_report(public_dir / report["file"]) for report in reports]
+    site_manifest = _build_site_manifest(reports, focus_trends)
     _write_focus_trends_json(focus_trends, public_dir / "review-trends.json")
     _write_site_manifest_json(site_manifest, public_dir / "site-manifest.json")
     _render_topic_pages(focus_trends, public_dir)
