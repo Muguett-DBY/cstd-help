@@ -7,7 +7,7 @@
 - User-visible gain: latest Legion Commander report now identifies 9 concrete windows, including a high-ground tower 15 seconds after the 38.0-minute death and Roshan 36 seconds after the 43.5-minute death.
 - Real issue fixed: the player no longer has to manually compare two long timestamp lists to find deaths that overlap objective-loss windows.
 - Verification: 88 tests, compileall, 18-page static validation, gitleaks, diff check, and desktop/mobile browser QA passed; target tests completed RED-to-GREEN.
-- Deployment: pending Stage 2 commit, push, CI, and custom-domain acceptance.
+- Deployment: committed as `feat: connect deaths to objective losses` (`be4a85c`), pushed to `main`; `Deploy Cloudflare Pages` run `28419797426` passed and the live report plus generated trend page returned 200.
 - Remaining risk: the join intentionally proves temporal proximity only and does not assign causality.
 - Next flagship direction: redesign the now-long objective/death evidence area into a filterable, mobile-friendly review workbench.
 

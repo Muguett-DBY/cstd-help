@@ -1492,6 +1492,18 @@ Started: 2026-06-28
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 2 closeout log.
 
+## 2026-06-30 - Long Cycle 5 Stage 2 IMPROVE - Complete
+
+- Completed stage: 2 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Stage commit: `feat: connect deaths to objective losses` (`be4a85c`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28419797426`.
+- Production acceptance: latest Legion Commander report returned 200 with 9 death/objective windows, the exact 15-second high-ground loss window, the non-causality caveat, and a `死亡后目标损失` finding; generated trend page `trend-custom-bac9d883f8.html` also returned 200.
+- Remaining risk: long reports now contain up to dozens of objective and death rows without in-section filtering.
+- Next stage: Stage 3 UIUX will turn the objective/death area into a responsive evidence workbench with meaningful filters and direct navigation.
+
 ## 2026-06-30 - Short Cycle Stage 1 IMPROVE - Complete
 
 - Completed stage: 1 / 2.
