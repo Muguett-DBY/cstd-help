@@ -390,6 +390,58 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("OpenDota对局汇总字段", html)
         self.assertIn("不是职业均值", html)
 
+    def test_generated_report_starts_with_primary_decision_snapshot(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match["deaths"] = 3
+            stratz_data = {
+                "players": [{
+                    "steamAccount": {"id": 173776719},
+                    "isRadiant": True,
+                    "hero": {"id": 1, "displayName": "Anti-Mage"},
+                    "position": "POSITION_1",
+                    "role": "CORE",
+                    "stats": {
+                        "lastHitsPerMinute": [5] * 30,
+                        "goldPerMinute": [400] * 30,
+                    },
+                    "playbackData": {
+                        "deathEvents": [{"time": 420}, {"time": 930}, {"time": 1280}],
+                    },
+                }],
+            }
+            analysis = analyze_match(match, stratz_data=stratz_data)
+            top_finding = analysis["review_findings"][0]
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+        generator.REPORT_DIR = old_report_dir
+
+        self.assertIn('id="decision-snapshot"', html)
+        self.assertIn('id="coach-summary"', html)
+        decision_index = html.index('id="decision-snapshot"')
+        coach_index = html.index('id="coach-summary"')
+        self.assertLess(decision_index, coach_index)
+        self.assertIn("上分决策卡", html)
+        self.assertIn("本局最该修", html)
+        self.assertIn(top_finding["category_label"], html)
+        self.assertIn(top_finding["evidence"], html)
+        self.assertIn(top_finding["action"], html)
+        self.assertIn(top_finding["success_metric"], html)
+        self.assertIn('href="#decision-snapshot"', html)
+        self.assertIn('data-decision-tab="action"', html)
+        self.assertIn('data-decision-tab="evidence"', html)
+        self.assertIn('data-decision-tab="validation"', html)
+        self.assertIn('data-decision-panel="validation"', html)
+        self.assertIn('aria-live="polite"', html)
+        self.assertIn('data-decision-tabs', html)
+
     def test_generated_report_shows_real_objective_timeline(self):
         from report.generator import generate_report
         import report.generator as generator

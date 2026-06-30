@@ -813,3 +813,25 @@
 - Recommended next direction: improve the report's first-screen decision flow so the highest-cost evidence and one next-match rule are visible before long detail sections.
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28437943940`.
 - Production acceptance: live `dota.custard.top` serves 18 reports and latest `Legion_Commander_8870219537_20260630_202728.html` with the performance context values and event-first recommendation ordering.
+
+## 2026-06-30 - Long Cycle 6 Stage 3 UIUX
+
+- Goal: make the report first screen immediately actionable instead of forcing the user to read the full AI summary before seeing the highest-priority evidence.
+- Completed: added a source-backed `上分决策卡` before the coach summary, showing the top `review_findings` item, one next-game rule, evidence, validation metric, data coverage, and quick jumps to the supporting sections.
+- UI/UX gain: the latest report now starts with the strongest deterministic finding and a tabbed action/evidence/validation view; the long report remains available below without burying the decision.
+- Responsive/interaction work: added desktop two-column layout, mobile single-column layout, 44px mobile tab targets, visible focus/active states, `aria-live` status, and hidden panel state.
+- Static validation: `scripts/check_public_site.py` now fails any report with findings that lacks the decision snapshot.
+- Public refresh: regenerated and rebuilt all 18 reports; latest report is `Legion_Commander_8870219537_20260630_204657.html`.
+- Real-report acceptance: latest Legion Commander report contains `上分决策卡`, `本局最该修`, decision tabs, validation panel, and still keeps `下一局行动清单`, `分路与参战画像`, and evidence sections.
+- Browser verification: in-app Browser passed desktop 1280x720 and mobile 390x844; action/evidence/validation tab switching worked, no console warnings/errors, and no document-level horizontal overflow.
+- Local verification:
+  - New decision-card report, CSS, and static-checker tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 97 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- GitHub Actions / CI: pending push for Stage 3.
+- Risks: the decision card improves first-screen prioritization, but further precision still depends on richer public event data rather than inferred causes.
+- Recommended next direction: add rolling trend context to connect the latest top finding with repeated historical weaknesses across recent matches.

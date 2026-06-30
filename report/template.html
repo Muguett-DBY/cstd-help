@@ -21,6 +21,7 @@
     <nav class="report-section-nav" aria-label="报告章节">
         <div class="report-section-nav-track">
             <span class="report-section-nav-label">本局复盘</span>
+            {% if review_findings %}<a class="report-section-link" href="#decision-snapshot" data-report-section-link>决策卡</a>{% endif %}
             {% if ai_analysis %}<a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a>{% endif %}
             {% if review_findings %}<a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>{% endif %}
             <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
@@ -35,6 +36,81 @@
     </nav>
 
     <main id="report-main">
+
+    {% if review_findings %}
+    {% set primary_finding = review_findings[0] %}
+    <section class="section priority-section decision-snapshot {{ primary_finding.priority }}" id="decision-snapshot" data-decision-snapshot>
+        <div class="section-header">&#127919; 上分决策卡</div>
+        <div class="section-body">
+            <div class="decision-snapshot-grid">
+                <div class="decision-main">
+                    <div class="decision-kicker">
+                        <span class="priority-chip {{ primary_finding.priority }}">{{ primary_finding.priority_label or primary_finding.priority }}</span>
+                        <span>本局最该修</span>
+                    </div>
+                    <h2>{{ primary_finding.category_label or primary_finding.category }}</h2>
+                    <div class="decision-tabs" role="tablist" aria-label="上分决策视图" data-decision-tabs>
+                        <button type="button" class="decision-tab active" role="tab" aria-selected="true" aria-controls="decision-panel-action" data-decision-tab="action">下一局规则</button>
+                        <button type="button" class="decision-tab" role="tab" aria-selected="false" aria-controls="decision-panel-evidence" data-decision-tab="evidence">证据</button>
+                        <button type="button" class="decision-tab" role="tab" aria-selected="false" aria-controls="decision-panel-validation" data-decision-tab="validation">验收</button>
+                    </div>
+                    <div class="decision-panel active" id="decision-panel-action" role="tabpanel" data-decision-panel="action">
+                        <strong>下一局只执行</strong>
+                        <p>{{ primary_finding.action }}</p>
+                        <small>{{ primary_finding.training_goal }}</small>
+                    </div>
+                    <div class="decision-panel" id="decision-panel-evidence" role="tabpanel" data-decision-panel="evidence" hidden>
+                        <strong>本局证据</strong>
+                        <p>{{ primary_finding.evidence }}</p>
+                        <small>{{ primary_finding.why_it_matters }}</small>
+                    </div>
+                    <div class="decision-panel" id="decision-panel-validation" role="tabpanel" data-decision-panel="validation" hidden>
+                        <strong>赛后验收</strong>
+                        <p>{{ primary_finding.success_metric }}</p>
+                        <small>{{ primary_finding.replay_check }}</small>
+                    </div>
+                    <div class="decision-tab-status" aria-live="polite" data-decision-status>当前显示：下一局规则</div>
+                </div>
+                <div class="decision-evidence-rail" aria-label="决策证据摘要">
+                    <div class="decision-rail-item">
+                        <span>证据覆盖</span>
+                        <strong>{{ data_quality.score if data_quality and data_quality.score is not none else '-' }}/100</strong>
+                    </div>
+                    {% if events and events.death_coverage_label %}
+                    <div class="decision-rail-item">
+                        <span>死亡定位</span>
+                        <strong>{{ events.death_coverage_label }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if performance_context and performance_context.available and performance_context.dead_time_label %}
+                    <div class="decision-rail-item">
+                        <span>死亡占时</span>
+                        <strong>{{ performance_context.dead_time_label }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if timeline and timeline.available %}
+                    <div class="decision-rail-item">
+                        <span>10分钟补刀</span>
+                        <strong>{{ timeline.ten_min_last_hits }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if opendota_benchmarks and opendota_benchmarks.available %}
+                    <div class="decision-rail-item">
+                        <span>低百分位项</span>
+                        <strong>{{ opendota_benchmarks.summary.weak_count }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="decision-jump-row" aria-label="相关证据入口">
+                <a href="#next-actions">行动清单</a>
+                {% if events %}<a href="#match-events">事件证据</a>{% endif %}
+                {% if timeline %}<a href="#timeline-diagnosis">时间线</a>{% endif %}
+                {% if performance_context and performance_context.available %}<a href="#performance-context">表现画像</a>{% endif %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
 
     {% if ai_analysis %}
     <div class="section priority-section" id="coach-summary">
@@ -695,6 +771,40 @@
 
 </div>
 <script id="report-metadata" type="application/json">{{ report_metadata_json|safe }}</script>
+<script data-decision-tabs>
+(() => {
+    const labels = {
+        action: '下一局规则',
+        evidence: '证据',
+        validation: '验收'
+    };
+    document.querySelectorAll('[data-decision-snapshot]').forEach((snapshot) => {
+        const tabs = Array.from(snapshot.querySelectorAll('[data-decision-tab]'));
+        const panels = Array.from(snapshot.querySelectorAll('[data-decision-panel]'));
+        const status = snapshot.querySelector('[data-decision-status]');
+        if (!tabs.length || !panels.length) return;
+
+        const activate = (target) => {
+            tabs.forEach((tab) => {
+                const isActive = tab.dataset.decisionTab === target;
+                tab.classList.toggle('active', isActive);
+                tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+            panels.forEach((panel) => {
+                const isActive = panel.dataset.decisionPanel === target;
+                panel.hidden = !isActive;
+                panel.classList.toggle('active', isActive);
+            });
+            if (status) status.textContent = `当前显示：${labels[target] || '决策'}`;
+        };
+
+        tabs.forEach((tab) => {
+            tab.addEventListener('click', () => activate(tab.dataset.decisionTab || 'action'));
+        });
+        activate('action');
+    });
+})();
+</script>
 <script data-report-section-navigation>
 (() => {
     const links = Array.from(document.querySelectorAll('[data-report-section-link]'));

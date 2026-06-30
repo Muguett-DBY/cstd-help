@@ -1874,3 +1874,20 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 2 closeout log.
+
+## 2026-06-30 - Long Cycle 6 Stage 3 UIUX - Local Complete
+
+- Completed: added a first-screen `上分决策卡` driven only by the highest-priority `review_findings` item, with action, evidence, validation, data coverage, and supporting-section jump links.
+- Interaction/UI: added tabbed action/evidence/validation panels, `aria-live` status, visible selected/focus states, desktop evidence rail, and mobile single-column layout with 44px controls.
+- Static validation: `scripts/check_public_site.py` now rejects reports with findings that do not render the decision snapshot.
+- Public refresh: regenerated 18 reports and rebuilt `public/`; latest report is `Legion_Commander_8870219537_20260630_204657.html`.
+- Browser verification: in-app Browser passed 1280x720 and 390x844 flows; tab switching worked, console logs were clean, and document width stayed within the viewport.
+- Local verification:
+  - New UI/report/checker tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 97 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 3 closeout log.

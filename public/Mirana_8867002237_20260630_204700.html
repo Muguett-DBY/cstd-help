@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legion Commander 复盘报告 - 2026-06-28 13:26</title>
+    <title>Mirana 复盘报告 - 2026-06-26 20:23</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="static/style.css">
 </head>
@@ -13,15 +13,16 @@
 
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
-<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 1 / 18 场</strong></div><div class="neighbor-grid"><span class="neighbor-card disabled"><span class="neighbor-label">上一局（更新）</span><strong>没有相邻比赛</strong><small>当前已经是这一侧的边界。</small></span><a class="neighbor-card" href="Death_Prophet_8870188563_20260630_202728.html"><span class="neighbor-label">下一局（更早）</span><strong>Death Prophet #8870188563</strong><small>失败 · 高优先级 · 死亡后目标损失</small></a></div></nav>
-        <h1>Legion Commander 复盘报告</h1>
-        <div class="subtitle">比赛ID: 8870219537 | 结束于 2026-06-28 13:26 | 时长 46.4分钟</div>
+<nav class="report-neighbors" aria-label="相邻比赛"><div class="neighbor-heading"><span>相邻比赛</span><strong>第 10 / 18 场</strong></div><div class="neighbor-grid"><a class="neighbor-card" href="Dragon_Knight_8867124876_20260630_204659.html"><span class="neighbor-label">上一局（更新）</span><strong>Dragon Knight #8867124876</strong><small>失败 · 高优先级 · 终结比赛</small></a><a class="neighbor-card" href="Crystal_Maiden_8866935458_20260630_204700.html"><span class="neighbor-label">下一局（更早）</span><strong>Crystal Maiden #8866935458</strong><small>胜利 · 中优先级 · 死亡后目标损失</small></a></div></nav>
+        <h1>Mirana 复盘报告</h1>
+        <div class="subtitle">比赛ID: 8867002237 | 结束于 2026-06-26 20:23 | 时长 48.2分钟</div>
         <div class="result-badge lose">失败</div>
     </div>
 
     <nav class="report-section-nav" aria-label="报告章节">
         <div class="report-section-nav-track">
             <span class="report-section-nav-label">本局复盘</span>
+            <a class="report-section-link" href="#decision-snapshot" data-report-section-link>决策卡</a>
             <a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a>
             <a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>
             <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
@@ -38,20 +39,95 @@
     <main id="report-main">
 
 
+
+    <section class="section priority-section decision-snapshot high" id="decision-snapshot" data-decision-snapshot>
+        <div class="section-header">&#127919; 上分决策卡</div>
+        <div class="section-body">
+            <div class="decision-snapshot-grid">
+                <div class="decision-main">
+                    <div class="decision-kicker">
+                        <span class="priority-chip high">高优先级</span>
+                        <span>本局最该修</span>
+                    </div>
+                    <h2>死亡后目标损失</h2>
+                    <div class="decision-tabs" role="tablist" aria-label="上分决策视图" data-decision-tabs>
+                        <button type="button" class="decision-tab active" role="tab" aria-selected="true" aria-controls="decision-panel-action" data-decision-tab="action">下一局规则</button>
+                        <button type="button" class="decision-tab" role="tab" aria-selected="false" aria-controls="decision-panel-evidence" data-decision-tab="evidence">证据</button>
+                        <button type="button" class="decision-tab" role="tab" aria-selected="false" aria-controls="decision-panel-validation" data-decision-tab="validation">验收</button>
+                    </div>
+                    <div class="decision-panel active" id="decision-panel-action" role="tabpanel" data-decision-panel="action">
+                        <strong>下一局只执行</strong>
+                        <p>下一局每次准备处理基地防守或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。</p>
+                        <small>下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。</small>
+                    </div>
+                    <div class="decision-panel" id="decision-panel-evidence" role="tabpanel" data-decision-panel="evidence" hidden>
+                        <strong>本局证据</strong>
+                        <p>死亡后90秒内失去目标: 32.1分死亡 → 32.5分失去肉山（24秒）；32.1分死亡 → 32.5分失去不朽盾（24秒）；32.1分死亡 → 33.0分失去中路二塔（57秒）；47.5分死亡 → 48.2分失去遗迹（43秒）；48.1分死亡 → 48.2分失去遗迹（10秒）。</p>
+                        <small>这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。</small>
+                    </div>
+                    <div class="decision-panel" id="decision-panel-validation" role="tabpanel" data-decision-panel="validation" hidden>
+                        <strong>赛后验收</strong>
+                        <p>死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</p>
+                        <small>系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。 优先回看：48.1分死亡 → 48.2分失去遗迹（10秒）；只确认死亡前90秒是否满足接应、控制露头、撤退路线三项条件。</small>
+                    </div>
+                    <div class="decision-tab-status" aria-live="polite" data-decision-status>当前显示：下一局规则</div>
+                </div>
+                <div class="decision-evidence-rail" aria-label="决策证据摘要">
+                    <div class="decision-rail-item">
+                        <span>证据覆盖</span>
+                        <strong>100/100</strong>
+                    </div>
+
+                    <div class="decision-rail-item">
+                        <span>死亡定位</span>
+                        <strong>已定位 5/5 次死亡</strong>
+                    </div>
+
+
+                    <div class="decision-rail-item">
+                        <span>死亡占时</span>
+                        <strong>1分46秒</strong>
+                    </div>
+
+
+                    <div class="decision-rail-item">
+                        <span>10分钟补刀</span>
+                        <strong>30</strong>
+                    </div>
+
+
+                    <div class="decision-rail-item">
+                        <span>低百分位项</span>
+                        <strong>0</strong>
+                    </div>
+
+                </div>
+            </div>
+            <div class="decision-jump-row" aria-label="相关证据入口">
+                <a href="#next-actions">行动清单</a>
+                <a href="#match-events">事件证据</a>
+                <a href="#timeline-diagnosis">时间线</a>
+                <a href="#performance-context">表现画像</a>
+            </div>
+        </div>
+    </section>
+
+
+
     <div class="section priority-section" id="coach-summary">
         <div class="section-header">&#129504; 教练总结</div>
         <div class="section-body">
-            <div class="coach-analysis">Legion Commander 复盘分析（失败）
+            <div class="coach-analysis">Mirana 复盘分析（失败）
 
 本局最重要结论
 当前最影响胜负的是死亡成本，优先使用已定位死亡分钟检查死亡前30秒的地图状态。
 
-核心证据：KDA 10/12/22，GPM 514，LH/min 4.48，推塔伤害/分钟 0.0，每10分钟死亡 2.59。
+核心证据：KDA 13/5/21，GPM 597，LH/min 5.95，推塔伤害/分钟 6.18，每10分钟死亡 1.04。
 数据完整度：100/100。
 
 可以保留的习惯
-- GPM达到514，经济效率不错
-- 补刀总量208，LH/min 4.48
+- GPM达到597，经济效率不错
+- 补刀总量287，LH/min 5.95
 
 下一局只盯这几件事
 1. 死亡后目标损失: 下一局每次准备处理基地防守或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。 验收：死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。
@@ -82,20 +158,14 @@
 
                 <div class="goal-row">
                     <div class="goal-title">重复死亡坐标</div>
-                    <div class="goal-body"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从2个压到最多1个；每个重复点赛前写一条撤退规则。</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。</div>
                     <div class="goal-body muted"><strong>验收标准:</strong> 重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。</div>
                 </div>
 
                 <div class="goal-row">
                     <div class="goal-title">死亡前后资源变化</div>
-                    <div class="goal-body"><strong>训练目标:</strong> 下一局把死亡前后资源明显下降窗口从6个压到最多1个。</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局把死亡前后资源明显下降窗口从1个压到最多1个。</div>
                     <div class="goal-body muted"><strong>验收标准:</strong> 死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。</div>
-                </div>
-
-                <div class="goal-row">
-                    <div class="goal-title">英雄样本短板</div>
-                    <div class="goal-body"><strong>训练目标:</strong> 下一局优先把 推塔伤害 从本局第17百分位往上抬。</div>
-                    <div class="goal-body muted"><strong>验收标准:</strong> 下一份报告该主短板百分位高于本局；低于第30百分位的指标数量减少。</div>
                 </div>
 
             </div>
@@ -108,52 +178,42 @@
 
             <div class="finding-card high">
                 <div class="finding-title">高优先级 · 死亡后目标损失</div>
-                <div class="finding-line"><strong>证据:</strong> 死亡后90秒内失去目标: 33.8分死亡 → 34.6分失去中路二塔（45秒）；33.8分死亡 → 35.1分失去下路二塔（75秒）；38.0分死亡 → 38.2分失去中路高地塔（15秒）；38.0分死亡 → 38.5分失去中路近战兵营（27秒）；43.5分死亡 → 44.1分失去肉山（36秒）。</div>
+                <div class="finding-line"><strong>证据:</strong> 死亡后90秒内失去目标: 32.1分死亡 → 32.5分失去肉山（24秒）；32.1分死亡 → 32.5分失去不朽盾（24秒）；32.1分死亡 → 33.0分失去中路二塔（57秒）；47.5分死亡 → 48.2分失去遗迹（43秒）；48.1分死亡 → 48.2分失去遗迹（10秒）。</div>
                 <div class="finding-line"><strong>影响:</strong> 这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。</div>
                 <div class="finding-line"><strong>行动:</strong> 下一局每次准备处理基地防守或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。</div>
                 <div class="finding-line"><strong>训练目标:</strong> 下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。</div>
                 <div class="finding-line"><strong>验收标准:</strong> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</div>
-                <div class="finding-line muted"><strong>系统检查:</strong> 系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。 优先回看：45.5分死亡 → 46.5分失去遗迹（54秒）；只确认死亡前90秒是否满足接应、控制露头、撤退路线三项条件。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> 系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。 优先回看：48.1分死亡 → 48.2分失去遗迹（10秒）；只确认死亡前90秒是否满足接应、控制露头、撤退路线三项条件。</div>
             </div>
 
             <div class="finding-card high">
                 <div class="finding-title">高优先级 · 死亡成本</div>
-                <div class="finding-line"><strong>证据:</strong> 已定位 12/12 次死亡，时间: 11.2, 13.6, 22.7, 25.3, 28.3, 30.4, 32.2, 33.8, 38.0, 41.5, 43.5, 45.5分钟；每10分钟死亡 2.59。 死亡占时 12分52秒（27.7%）。 死亡位置: 11.2分 x=94,y=168（死亡时）；13.6分 x=80,y=154（死亡时）；22.7分 x=138,y=130（死亡前3秒）；25.3分 x=130,y=72（死亡前1秒）；28.3分 x=158,y=102（死亡前2秒）；30.4分 x=72,y=184（死亡前2秒）。</div>
+                <div class="finding-line"><strong>证据:</strong> 已定位 5/5 次死亡，时间: 1.2, 4.6, 32.1, 47.5, 48.1分钟；每10分钟死亡 1.04。 死亡占时 1分46秒（3.7%）。 死亡位置: 1.2分 x=80,y=152（死亡时）；4.6分 x=86,y=166（死亡前2秒）；32.1分 x=112,y=148（死亡前1秒）；47.5分 x=72,y=78（死亡前1秒）；48.1分 x=84,y=84（死亡前2秒）。</div>
                 <div class="finding-line"><strong>影响:</strong> 核心或节奏位的连续死亡会直接交出地图区域和关键目标时间。</div>
                 <div class="finding-line"><strong>行动:</strong> 下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。</div>
                 <div class="finding-line"><strong>训练目标:</strong> 下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。</div>
                 <div class="finding-line"><strong>验收标准:</strong> 每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。</div>
-                <div class="finding-line muted"><strong>系统检查:</strong> 系统已定位的死亡分钟优先检查装备冷却、队友距离、敌方控制威胁和撤退路线。 位置采样: 11.2分 x=94,y=168（死亡时）；13.6分 x=80,y=154（死亡时）；22.7分 x=138,y=130（死亡前3秒）；25.3分 x=130,y=72（死亡前1秒）；28.3分 x=158,y=102（死亡前2秒）；30.4分 x=72,y=184（死亡前2秒）；优先确认是否在无视野高坡、带线深处或队友脱节位置。 连续死亡簇: 11.2-13.6分钟、22.7-45.5分钟。</div>
+                <div class="finding-line muted"><strong>系统检查:</strong> 系统已定位的死亡分钟优先检查装备冷却、队友距离、敌方控制威胁和撤退路线。 位置采样: 1.2分 x=80,y=152（死亡时）；4.6分 x=86,y=166（死亡前2秒）；32.1分 x=112,y=148（死亡前1秒）；47.5分 x=72,y=78（死亡前1秒）；48.1分 x=84,y=84（死亡前2秒）；优先确认是否在无视野高坡、带线深处或队友脱节位置。 连续死亡簇: 1.2-4.6分钟、47.5-48.1分钟。</div>
             </div>
 
-            <div class="finding-card high">
-                <div class="finding-title">高优先级 · 重复死亡坐标</div>
-                <div class="finding-line"><strong>证据:</strong> 重复死亡坐标簇: 22.7、33.8分重复死亡坐标簇，中心x=137.0,y=129.0，样本2次；25.3、43.5分重复死亡坐标簇，中心x=125.0,y=72.0，样本2次。</div>
+            <div class="finding-card medium">
+                <div class="finding-title">中优先级 · 重复死亡坐标</div>
+                <div class="finding-line"><strong>证据:</strong> 重复死亡坐标簇: 47.5、48.1分重复死亡坐标簇，中心x=78.0,y=81.0，样本2次。</div>
                 <div class="finding-line"><strong>影响:</strong> 同一 raw 坐标附近重复死亡，说明至少有一个可回放复查的高风险场景在反复出现。</div>
                 <div class="finding-line"><strong>行动:</strong> 下一局每次进入这些重复坐标对应的回放场景前，先确认三个条件：队友能否接应、敌方关键控制是否露头、自己是否有明确撤退路线；任一条件缺失就先退回安全资源点。</div>
-                <div class="finding-line"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从2个压到最多1个；每个重复点赛前写一条撤退规则。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。</div>
                 <div class="finding-line"><strong>验收标准:</strong> 重复死亡坐标簇不超过1个；每个重复点都有一条回放确认后的撤退规则。</div>
                 <div class="finding-line muted"><strong>系统检查:</strong> 系统只按 STRATZ raw x/y 距离聚类，不转换成地图区域名；需要回放确认这些点对应的入口、线口、目标区或高低坡。</div>
             </div>
 
-            <div class="finding-card high">
-                <div class="finding-title">高优先级 · 死亡前后资源变化</div>
-                <div class="finding-line"><strong>证据:</strong> 死亡前后资源下降窗口: 25.3分死亡前后：补刀/分 8.7→3.3（-5.4），平均GPM 633.3→660.0（+26.7）（22-25分钟→26-29分钟）；28.3分死亡前后：补刀/分 2.0→4.3（+2.3），平均GPM 844.7→447.0（-397.7）（25-28分钟→29-32分钟）；30.4分死亡前后：补刀/分 4.0→1.7（-2.3），平均GPM 563.0→558.0（-5.0）（27-30分钟→31-34分钟）；32.2分死亡前后：补刀/分 4.3→0.7（-3.6），平均GPM 447.0→906.3（+459.3）（29-32分钟→33-36分钟）。</div>
+            <div class="finding-card medium">
+                <div class="finding-title">中优先级 · 死亡前后资源变化</div>
+                <div class="finding-line"><strong>证据:</strong> 死亡前后资源下降窗口: 32.1分死亡前后：补刀/分 6.7→3.0（-3.7），平均GPM 704.7→624.0（-80.7）（29-32分钟→33-36分钟）。</div>
                 <div class="finding-line"><strong>影响:</strong> 死亡相邻阶段的补刀或经济节奏明显下滑，会让一次阵亡继续影响下一段刷钱、守塔或控图节奏。</div>
                 <div class="finding-line"><strong>行动:</strong> 下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。</div>
-                <div class="finding-line"><strong>训练目标:</strong> 下一局把死亡前后资源明显下降窗口从6个压到最多1个。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局把死亡前后资源明显下降窗口从1个压到最多1个。</div>
                 <div class="finding-line"><strong>验收标准:</strong> 死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。</div>
                 <div class="finding-line muted"><strong>系统检查:</strong> 系统只比较死亡前后真实分钟数组，不判断死亡原因；逐一回看这些窗口的复活路径、TP落点、是否空走等人、是否重复进入无视野区域。</div>
-            </div>
-
-            <div class="finding-card medium">
-                <div class="finding-title">中优先级 · 英雄样本短板</div>
-                <div class="finding-line"><strong>证据:</strong> OpenDota同英雄样本低位指标: 推塔伤害 第17百分位。</div>
-                <div class="finding-line"><strong>影响:</strong> 同英雄样本百分位能区分这局是总量正常但某个维度掉队，还是所有面板都处在正常区间。</div>
-                <div class="finding-line"><strong>行动:</strong> 下一局先只追 推塔伤害：把路线和团战选择改到能直接抬升这个指标，不同时追多个目标。</div>
-                <div class="finding-line"><strong>训练目标:</strong> 下一局优先把 推塔伤害 从本局第17百分位往上抬。</div>
-                <div class="finding-line"><strong>验收标准:</strong> 下一份报告该主短板百分位高于本局；低于第30百分位的指标数量减少。</div>
-                <div class="finding-line muted"><strong>系统检查:</strong> OpenDota英雄样本百分位只描述公开样本相对位置，不是职业均值；回放时只核对低位指标对应的真实分钟和事件证据。</div>
             </div>
 
         </div>
@@ -190,7 +250,7 @@
                     <div class="evidence-source-name">分钟时间线</div>
                     <div class="evidence-source-detail">
                         <span class="evidence-source-origin">OpenDota解析日志 + STRATZ分钟数组</span>
-                        <span class="evidence-source-coverage">覆盖 46 分钟：补刀、经济、英雄伤害、推塔伤害</span>
+                        <span class="evidence-source-coverage">覆盖 48 分钟：补刀、经济、英雄伤害、推塔伤害</span>
                     </div>
                 </div>
 
@@ -198,7 +258,7 @@
                     <div class="evidence-source-name">购买时间</div>
                     <div class="evidence-source-detail">
                         <span class="evidence-source-origin">OpenDota解析日志</span>
-                        <span class="evidence-source-coverage">43条购买；1个关键装备完成点</span>
+                        <span class="evidence-source-coverage">46条购买；1个关键装备完成点</span>
                     </div>
                 </div>
 
@@ -206,7 +266,7 @@
                     <div class="evidence-source-name">死亡时间</div>
                     <div class="evidence-source-detail">
                         <span class="evidence-source-origin">STRATZ回放事件</span>
-                        <span class="evidence-source-coverage">已定位 12/12 次死亡</span>
+                        <span class="evidence-source-coverage">已定位 5/5 次死亡</span>
                     </div>
                 </div>
 
@@ -214,7 +274,7 @@
                     <div class="evidence-source-name">死亡位置</div>
                     <div class="evidence-source-detail">
                         <span class="evidence-source-origin">STRATZ位置采样</span>
-                        <span class="evidence-source-coverage">覆盖 12/12 次已定位死亡</span>
+                        <span class="evidence-source-coverage">覆盖 5/5 次已定位死亡</span>
                     </div>
                 </div>
 
@@ -222,7 +282,7 @@
                     <div class="evidence-source-name">击杀/助攻事件</div>
                     <div class="evidence-source-detail">
                         <span class="evidence-source-origin">OpenDota解析日志 + STRATZ回放事件</span>
-                        <span class="evidence-source-coverage">29条个人击杀/助攻事件</span>
+                        <span class="evidence-source-coverage">33条个人击杀/助攻事件</span>
                     </div>
                 </div>
 
@@ -230,7 +290,7 @@
                     <div class="evidence-source-name">地图目标事件</div>
                     <div class="evidence-source-detail">
                         <span class="evidence-source-origin">OpenDota目标事件</span>
-                        <span class="evidence-source-coverage">19条塔、兵营、肉山、盾或折磨者事件</span>
+                        <span class="evidence-source-coverage">26条塔、兵营、肉山、盾或折磨者事件</span>
                     </div>
                 </div>
 
@@ -238,7 +298,7 @@
                     <div class="evidence-source-name">视野事件</div>
                     <div class="evidence-source-detail">
                         <span class="evidence-source-origin">OpenDota视野事件</span>
-                        <span class="evidence-source-coverage">5条插眼事件</span>
+                        <span class="evidence-source-coverage">2条插眼事件</span>
                     </div>
                 </div>
 
@@ -254,7 +314,7 @@
                     <div class="evidence-source-name">分路与参战汇总</div>
                     <div class="evidence-source-detail">
                         <span class="evidence-source-origin">OpenDota对局汇总字段</span>
-                        <span class="evidence-source-coverage">对线效率66%、参战率68%、死亡占时12分52秒、买活1次</span>
+                        <span class="evidence-source-coverage">对线效率52%、参战率79%、死亡占时1分46秒、买活1次</span>
                     </div>
                 </div>
 
@@ -282,12 +342,12 @@
                     <div class="stat-label">阵营</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">44/59</div>
+                    <div class="stat-value">43/39</div>
                     <div class="stat-label">己方/敌方击杀</div>
                 </div>
             </div>
 
-            <div class="hero-line">敌方英雄：Viper / Earthshaker / Lina / Lifestealer / Ursa</div>
+            <div class="hero-line">敌方英雄：Silencer / Sand King / Axe / Largo / Drow Ranger</div>
 
         </div>
     </div>
@@ -298,47 +358,47 @@
         <div class="section-body">
             <div class="stat-grid">
                 <div class="stat-card">
-                    <div class="stat-value">10/12/22</div>
+                    <div class="stat-value">13/5/21</div>
                     <div class="stat-label">K/D/A</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">2.67</div>
+                    <div class="stat-value">6.8</div>
                     <div class="stat-label">KDA比率</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">514</div>
+                    <div class="stat-value">597</div>
                     <div class="stat-label">GPM</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">932</div>
+                    <div class="stat-value">770</div>
                     <div class="stat-label">XPM</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">208/12</div>
+                    <div class="stat-value">287/10</div>
                     <div class="stat-label">正补/反补</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">17513</div>
+                    <div class="stat-value">24635</div>
                     <div class="stat-label">净财产</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">4.48</div>
+                    <div class="stat-value">5.95</div>
                     <div class="stat-label">LH/min</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">837.91</div>
+                    <div class="stat-value">1029.48</div>
                     <div class="stat-label">伤害/分钟</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">2.59</div>
+                    <div class="stat-value">1.04</div>
                     <div class="stat-label">每10分钟死亡</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">38879</div>
+                    <div class="stat-value">49621</div>
                     <div class="stat-label">英雄伤害</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">0</div>
+                    <div class="stat-value">298</div>
                     <div class="stat-label">推塔伤害</div>
                 </div>
             </div>
@@ -354,20 +414,20 @@
 
                 <div class="performance-context-card normal">
                     <div class="performance-context-label">对线效率</div>
-                    <div class="performance-context-value">66%</div>
+                    <div class="performance-context-value">52%</div>
                     <div class="performance-context-detail">OpenDota返回的本局对线阶段资源效率</div>
                 </div>
 
                 <div class="performance-context-card strong">
                     <div class="performance-context-label">参战率</div>
-                    <div class="performance-context-value">68%</div>
+                    <div class="performance-context-value">79%</div>
                     <div class="performance-context-detail">OpenDota返回的本局击杀参与汇总</div>
                 </div>
 
-                <div class="performance-context-card attention">
+                <div class="performance-context-card strong">
                     <div class="performance-context-label">死亡占时</div>
-                    <div class="performance-context-value">12分52秒</div>
-                    <div class="performance-context-detail">占全局27.7% · 每次死亡平均64秒</div>
+                    <div class="performance-context-value">1分46秒</div>
+                    <div class="performance-context-detail">占全局3.7% · 每次死亡平均21秒</div>
                 </div>
 
                 <div class="performance-context-card normal">
@@ -388,86 +448,86 @@
             <div class="compact-row muted">来源：OpenDota英雄样本百分位；只表示同英雄公开样本相对位置，不是职业均值。</div>
             <div class="benchmark-summary" aria-label="英雄样本百分位摘要">
                 <div><strong>7</strong><span>可比较指标</span></div>
-                <div><strong>2</strong><span>高于第70百分位</span></div>
-                <div><strong>1</strong><span>低于第30百分位</span></div>
+                <div><strong>5</strong><span>高于第70百分位</span></div>
+                <div><strong>0</strong><span>低于第30百分位</span></div>
             </div>
             <div class="benchmark-grid">
 
                 <div class="benchmark-card strong">
                     <div class="benchmark-head">
-                        <strong>XPM</strong>
-                        <span>第84百分位</span>
+                        <strong>英雄伤害/分钟</strong>
+                        <span>第97百分位</span>
                     </div>
-                    <div class="benchmark-bar" aria-label="XPM 第84百分位">
-                        <span style="width: 84%;"></span>
+                    <div class="benchmark-bar" aria-label="英雄伤害/分钟 第97百分位">
+                        <span style="width: 97%;"></span>
                     </div>
-                    <div class="benchmark-foot">本局值：932</div>
+                    <div class="benchmark-foot">本局值：1028.77</div>
                 </div>
 
                 <div class="benchmark-card strong">
                     <div class="benchmark-head">
-                        <strong>英雄伤害/分钟</strong>
-                        <span>第76百分位</span>
-                    </div>
-                    <div class="benchmark-bar" aria-label="英雄伤害/分钟 第76百分位">
-                        <span style="width: 76%;"></span>
-                    </div>
-                    <div class="benchmark-foot">本局值：837.31</div>
-                </div>
-
-                <div class="benchmark-card normal">
-                    <div class="benchmark-head">
                         <strong>GPM</strong>
-                        <span>第61百分位</span>
+                        <span>第93百分位</span>
                     </div>
-                    <div class="benchmark-bar" aria-label="GPM 第61百分位">
-                        <span style="width: 61%;"></span>
+                    <div class="benchmark-bar" aria-label="GPM 第93百分位">
+                        <span style="width: 93%;"></span>
                     </div>
-                    <div class="benchmark-foot">本局值：514</div>
+                    <div class="benchmark-foot">本局值：597</div>
                 </div>
 
-                <div class="benchmark-card normal">
-                    <div class="benchmark-head">
-                        <strong>击杀/分钟</strong>
-                        <span>第53百分位</span>
-                    </div>
-                    <div class="benchmark-bar" aria-label="击杀/分钟 第53百分位">
-                        <span style="width: 53%;"></span>
-                    </div>
-                    <div class="benchmark-foot">本局值：0.22</div>
-                </div>
-
-                <div class="benchmark-card normal">
+                <div class="benchmark-card strong">
                     <div class="benchmark-head">
                         <strong>补刀/分钟</strong>
-                        <span>第44百分位</span>
+                        <span>第89百分位</span>
                     </div>
-                    <div class="benchmark-bar" aria-label="补刀/分钟 第44百分位">
-                        <span style="width: 44%;"></span>
+                    <div class="benchmark-bar" aria-label="补刀/分钟 第89百分位">
+                        <span style="width: 89%;"></span>
                     </div>
-                    <div class="benchmark-foot">本局值：4.48</div>
+                    <div class="benchmark-foot">本局值：5.95</div>
+                </div>
+
+                <div class="benchmark-card strong">
+                    <div class="benchmark-head">
+                        <strong>击杀/分钟</strong>
+                        <span>第86百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="击杀/分钟 第86百分位">
+                        <span style="width: 86%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：0.27</div>
+                </div>
+
+                <div class="benchmark-card strong">
+                    <div class="benchmark-head">
+                        <strong>XPM</strong>
+                        <span>第77百分位</span>
+                    </div>
+                    <div class="benchmark-bar" aria-label="XPM 第77百分位">
+                        <span style="width: 77%;"></span>
+                    </div>
+                    <div class="benchmark-foot">本局值：770</div>
                 </div>
 
                 <div class="benchmark-card normal">
                     <div class="benchmark-head">
                         <strong>治疗/分钟</strong>
-                        <span>第32百分位</span>
+                        <span>第62百分位</span>
                     </div>
-                    <div class="benchmark-bar" aria-label="治疗/分钟 第32百分位">
-                        <span style="width: 32%;"></span>
+                    <div class="benchmark-bar" aria-label="治疗/分钟 第62百分位">
+                        <span style="width: 62%;"></span>
                     </div>
-                    <div class="benchmark-foot">本局值：14.21</div>
+                    <div class="benchmark-foot">本局值：0.25</div>
                 </div>
 
-                <div class="benchmark-card weak">
+                <div class="benchmark-card normal">
                     <div class="benchmark-head">
                         <strong>推塔伤害</strong>
-                        <span>第17百分位</span>
+                        <span>第33百分位</span>
                     </div>
-                    <div class="benchmark-bar" aria-label="推塔伤害 第17百分位">
-                        <span style="width: 17%;"></span>
+                    <div class="benchmark-bar" aria-label="推塔伤害 第33百分位">
+                        <span style="width: 33%;"></span>
                     </div>
-                    <div class="benchmark-foot">本局值：0</div>
+                    <div class="benchmark-foot">本局值：298</div>
                 </div>
 
             </div>
@@ -482,15 +542,15 @@
 
             <div class="stat-grid">
                 <div class="stat-card">
-                    <div class="stat-value">48</div>
+                    <div class="stat-value">30</div>
                     <div class="stat-label">10分钟补刀</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">126</div>
+                    <div class="stat-value">97</div>
                     <div class="stat-label">20分钟补刀</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">438.4</div>
+                    <div class="stat-value">407.4</div>
                     <div class="stat-label">20分钟平均GPM</div>
                 </div>
             </div>
@@ -513,37 +573,37 @@
 
                     <tr>
                         <td>0-10分钟</td>
-                        <td>4.8</td>
-                        <td>48</td>
-                        <td>331.0</td>
-                        <td>1497</td>
+                        <td>3.0</td>
+                        <td>30</td>
+                        <td>260.6</td>
+                        <td>1594</td>
                         <td>0</td>
                     </tr>
 
                     <tr>
                         <td>10-20分钟</td>
-                        <td>7.8</td>
-                        <td>78</td>
-                        <td>545.8</td>
-                        <td>5861</td>
-                        <td>0</td>
+                        <td>6.7</td>
+                        <td>67</td>
+                        <td>554.3</td>
+                        <td>2560</td>
+                        <td>298</td>
                     </tr>
 
                     <tr>
                         <td>20-30分钟</td>
-                        <td>4.7</td>
-                        <td>47</td>
-                        <td>605.5</td>
-                        <td>10630</td>
+                        <td>7.0</td>
+                        <td>70</td>
+                        <td>713.0</td>
+                        <td>9814</td>
                         <td>0</td>
                     </tr>
 
                     <tr>
-                        <td>30-46分钟</td>
-                        <td>2.2</td>
-                        <td>35</td>
-                        <td>564.6</td>
-                        <td>20873</td>
+                        <td>30-48分钟</td>
+                        <td>6.6</td>
+                        <td>119</td>
+                        <td>748.7</td>
+                        <td>35100</td>
                         <td>0</td>
                     </tr>
 
@@ -554,12 +614,12 @@
                 <div class="timeline-phase-card">
                     <div class="timeline-phase-head">
                         <strong>0-10分钟</strong>
-                        <span>LH/min 4.8</span>
+                        <span>LH/min 3.0</span>
                     </div>
                     <div class="timeline-phase-metrics">
-                        <span><strong>48</strong><small>正补</small></span>
-                        <span><strong>331.0</strong><small>平均GPM</small></span>
-                        <span><strong>1497</strong><small>英雄伤害</small></span>
+                        <span><strong>30</strong><small>正补</small></span>
+                        <span><strong>260.6</strong><small>平均GPM</small></span>
+                        <span><strong>1594</strong><small>英雄伤害</small></span>
                         <span><strong>0</strong><small>推塔伤害</small></span>
                     </div>
                 </div>
@@ -567,38 +627,38 @@
                 <div class="timeline-phase-card">
                     <div class="timeline-phase-head">
                         <strong>10-20分钟</strong>
-                        <span>LH/min 7.8</span>
+                        <span>LH/min 6.7</span>
                     </div>
                     <div class="timeline-phase-metrics">
-                        <span><strong>78</strong><small>正补</small></span>
-                        <span><strong>545.8</strong><small>平均GPM</small></span>
-                        <span><strong>5861</strong><small>英雄伤害</small></span>
-                        <span><strong>0</strong><small>推塔伤害</small></span>
+                        <span><strong>67</strong><small>正补</small></span>
+                        <span><strong>554.3</strong><small>平均GPM</small></span>
+                        <span><strong>2560</strong><small>英雄伤害</small></span>
+                        <span><strong>298</strong><small>推塔伤害</small></span>
                     </div>
                 </div>
 
                 <div class="timeline-phase-card">
                     <div class="timeline-phase-head">
                         <strong>20-30分钟</strong>
-                        <span>LH/min 4.7</span>
+                        <span>LH/min 7.0</span>
                     </div>
                     <div class="timeline-phase-metrics">
-                        <span><strong>47</strong><small>正补</small></span>
-                        <span><strong>605.5</strong><small>平均GPM</small></span>
-                        <span><strong>10630</strong><small>英雄伤害</small></span>
+                        <span><strong>70</strong><small>正补</small></span>
+                        <span><strong>713.0</strong><small>平均GPM</small></span>
+                        <span><strong>9814</strong><small>英雄伤害</small></span>
                         <span><strong>0</strong><small>推塔伤害</small></span>
                     </div>
                 </div>
 
                 <div class="timeline-phase-card">
                     <div class="timeline-phase-head">
-                        <strong>30-46分钟</strong>
-                        <span>LH/min 2.2</span>
+                        <strong>30-48分钟</strong>
+                        <span>LH/min 6.6</span>
                     </div>
                     <div class="timeline-phase-metrics">
-                        <span><strong>35</strong><small>正补</small></span>
-                        <span><strong>564.6</strong><small>平均GPM</small></span>
-                        <span><strong>20873</strong><small>英雄伤害</small></span>
+                        <span><strong>119</strong><small>正补</small></span>
+                        <span><strong>748.7</strong><small>平均GPM</small></span>
+                        <span><strong>35100</strong><small>英雄伤害</small></span>
                         <span><strong>0</strong><small>推塔伤害</small></span>
                     </div>
                 </div>
@@ -608,64 +668,40 @@
             <div class="subsection-title">低效率窗口</div>
 
 
-            <div class="compact-row">低效率窗口 25-27分钟：平均 1.0 补/分钟。该窗口连续补刀偏少，系统会结合事件日志判断是被压制、转线、参战还是刷野路线断档。</div>
+            <div class="compact-row">低效率窗口 0-2分钟：平均 1.0 补/分钟。该窗口连续补刀偏少，系统会结合事件日志判断是被压制、转线、参战还是刷野路线断档。</div>
 
-            <div class="compact-row">低效率窗口 32-36分钟：平均 0.5 补/分钟。该窗口连续补刀偏少，系统会结合事件日志判断是被压制、转线、参战还是刷野路线断档。</div>
-
-            <div class="compact-row">低效率窗口 40-46分钟：平均 0.2 补/分钟。该窗口连续补刀偏少，系统会结合事件日志判断是被压制、转线、参战还是刷野路线断档。</div>
+            <div class="compact-row">低效率窗口 31-33分钟：平均 1.0 补/分钟。该窗口连续补刀偏少，系统会结合事件日志判断是被压制、转线、参战还是刷野路线断档。</div>
 
 
 
             <div class="subsection-title">死亡打断资源窗口</div>
 
-            <div class="compact-row">低效率窗口 25-27分钟含 25.3分死亡；该窗口平均 1.0 补/分钟。</div>
+            <div class="compact-row">低效率窗口 0-2分钟含 1.2分死亡；该窗口平均 1.0 补/分钟。</div>
 
-            <div class="compact-row">低效率窗口 32-36分钟含 32.2分死亡、33.8分死亡；该窗口平均 0.5 补/分钟。</div>
-
-            <div class="compact-row">低效率窗口 40-46分钟含 41.5分死亡、43.5分死亡、45.5分死亡；该窗口平均 0.2 补/分钟。</div>
+            <div class="compact-row">低效率窗口 31-33分钟含 32.1分死亡；该窗口平均 1.0 补/分钟。</div>
 
 
 
             <div class="subsection-title">死亡后恢复窗口</div>
 
             <div class="compact-row">
-                11.2分死亡后11-14分钟：
-                25补，平均GPM 504.3，已恢复资源。
+                1.2分死亡后1-4分钟：
+                7补，平均GPM 212.3，一般恢复。
             </div>
 
             <div class="compact-row">
-                13.6分死亡后13-16分钟：
-                28补，平均GPM 676.3，已恢复资源。
+                4.6分死亡后4-7分钟：
+                9补，平均GPM 292.3，一般恢复。
             </div>
 
             <div class="compact-row">
-                22.7分死亡后22-25分钟：
-                26补，平均GPM 633.3，已恢复资源。
+                32.1分死亡后32-35分钟：
+                6补，平均GPM 404.0，一般恢复。
             </div>
 
             <div class="compact-row">
-                25.3分死亡后25-28分钟：
-                6补，平均GPM 844.7，已恢复资源。
-            </div>
-
-            <div class="compact-row">
-                28.3分死亡后28-31分钟：
-                13补，平均GPM 507.0，已恢复资源。
-            </div>
-
-            <div class="compact-row">
-                30.4分死亡后30-33分钟：
-                9补，平均GPM 396.3，一般恢复。
-            </div>
-
-            <div class="compact-row">
-                32.2分死亡后32-35分钟：
-                1补，平均GPM 488.7，已恢复资源。
-            </div>
-
-            <div class="compact-row">
-                33.8分死亡后33-36分钟：
-                2补，平均GPM 906.3，已恢复资源。
+                47.5分死亡后47-48分钟：
+                5补，平均GPM 1193.0，已恢复资源。
             </div>
 
 
@@ -674,43 +710,18 @@
             <div class="compact-row muted">同一玩家死亡前后各取最多3分钟真实样本；窗口不足时按实际分钟数换算，非整分钟死亡会跳过含事件的混合分钟。变化只描述时间相邻数据，不代表死亡原因。</div>
 
             <div class="compact-row">
-                11.2分死亡（8-11分钟 → 12-15分钟）：
-                补刀/分钟 7.3→9.3（+2.0），平均GPM 481.0→560.3（+79.3）；补刀与经济未下降。
+                1.2分死亡（0-1分钟 → 2-5分钟）：
+                补刀/分钟 2.0→3.3（+1.3），平均GPM 243.0→335.7（+92.7）；补刀与经济未下降。
             </div>
 
             <div class="compact-row">
-                13.6分死亡（10-13分钟 → 14-17分钟）：
-                补刀/分钟 7.7→10.3（+2.6），平均GPM 528.7→721.7（+193.0）；补刀与经济未下降。
+                4.6分死亡（1-4分钟 → 5-8分钟）：
+                补刀/分钟 2.3→3.7（+1.4），平均GPM 212.3→248.7（+36.4）；补刀与经济未下降。
             </div>
 
             <div class="compact-row">
-                22.7分死亡（19-22分钟 → 23-26分钟）：
-                补刀/分钟 2.3→7.0（+4.7），平均GPM 318.7→730.0（+411.3）；补刀与经济未下降。
-            </div>
-
-            <div class="compact-row">
-                25.3分死亡（22-25分钟 → 26-29分钟）：
-                补刀/分钟 8.7→3.3（-5.4），平均GPM 633.3→660.0（+26.7）；补刀与经济变化不一致。
-            </div>
-
-            <div class="compact-row">
-                28.3分死亡（25-28分钟 → 29-32分钟）：
-                补刀/分钟 2.0→4.3（+2.3），平均GPM 844.7→447.0（-397.7）；补刀与经济变化不一致。
-            </div>
-
-            <div class="compact-row">
-                30.4分死亡（27-30分钟 → 31-34分钟）：
-                补刀/分钟 4.0→1.7（-2.3），平均GPM 563.0→558.0（-5.0）；补刀与经济均下降。
-            </div>
-
-            <div class="compact-row">
-                32.2分死亡（29-32分钟 → 33-36分钟）：
-                补刀/分钟 4.3→0.7（-3.6），平均GPM 447.0→906.3（+459.3）；补刀与经济变化不一致。
-            </div>
-
-            <div class="compact-row">
-                33.8分死亡（30-33分钟 → 34-37分钟）：
-                补刀/分钟 3.0→3.3（+0.3），平均GPM 396.3→913.0（+516.7）；补刀与经济未下降。
+                32.1分死亡（29-32分钟 → 33-36分钟）：
+                补刀/分钟 6.7→3.0（-3.7），平均GPM 704.7→624.0（-80.7）；补刀与经济均下降。
             </div>
 
 
@@ -734,9 +745,9 @@
                 </div>
                 <div class="death-review-summary objective-summary" aria-label="目标事件摘要">
                     <div class="death-review-metric"><strong>4</strong><span>我方获取</span></div>
-                    <div class="death-review-metric"><strong>15</strong><span>我方失去</span></div>
+                    <div class="death-review-metric"><strong>22</strong><span>我方失去</span></div>
                     <div class="death-review-metric"><strong>0</strong><span>本人直接参与</span></div>
-                    <div class="death-review-metric"><strong>19</strong><span>目标事件</span></div>
+                    <div class="death-review-metric"><strong>26</strong><span>目标事件</span></div>
                 </div>
                 <div class="objective-filter-panel" aria-label="目标事件筛选">
                     <div class="objective-filter-row" role="group" aria-label="目标事件筛选">
@@ -745,138 +756,187 @@
                         <button type="button" class="objective-filter-button" data-objective-filter="lost" aria-pressed="false" aria-controls="objective-event-list">我方失去</button>
                         <button type="button" class="objective-filter-button" data-objective-filter="direct" aria-pressed="false" aria-controls="objective-event-list">本人参与</button>
                     </div>
-                    <div class="objective-filter-status" aria-live="polite" data-objective-filter-status>正在显示 19 条目标事件</div>
+                    <div class="objective-filter-status" aria-live="polite" data-objective-filter-status>正在显示 26 条目标事件</div>
                 </div>
                 <div class="objective-event-list" id="objective-event-list">
 
                     <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">10.7分</span>
+                        <span class="event-pill danger">15.1分</span>
                         <span class="objective-outcome-label">我方失去</span>
                         <strong>失去下路一塔</strong>
 
                     </div>
 
                     <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
-                        <span class="event-pill">12.1分</span>
-                        <span class="objective-outcome-label">我方获取</span>
-                        <strong>获取中路一塔</strong>
-
-                    </div>
-
-                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
-                        <span class="event-pill">12.4分</span>
+                        <span class="event-pill">15.2分</span>
                         <span class="objective-outcome-label">我方获取</span>
                         <strong>获取上路一塔</strong>
 
                     </div>
 
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">15.6分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路一塔</strong>
+
+                    </div>
+
                     <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">15.2分</span>
+                        <span class="event-pill danger">21.3分</span>
                         <span class="objective-outcome-label">我方失去</span>
                         <strong>失去中路一塔</strong>
 
                     </div>
 
-                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="roshan" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">19.4分</span>
-                        <span class="objective-outcome-label">我方失去</span>
-                        <strong>失去肉山</strong>
-
-                    </div>
-
-                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="aegis" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">19.4分</span>
-                        <span class="objective-outcome-label">我方失去</span>
-                        <strong>失去不朽盾</strong>
-
-                    </div>
-
-                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
-                        <span class="event-pill">29.9分</span>
-                        <span class="objective-outcome-label">我方获取</span>
-                        <strong>获取下路一塔</strong>
-
-                    </div>
-
                     <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">34.6分</span>
-                        <span class="objective-outcome-label">我方失去</span>
-                        <strong>失去中路二塔</strong>
-
-                    </div>
-
-                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">35.1分</span>
-                        <span class="objective-outcome-label">我方失去</span>
-                        <strong>失去下路二塔</strong>
-
-                    </div>
-
-                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">35.4分</span>
+                        <span class="event-pill danger">27.4分</span>
                         <span class="objective-outcome-label">我方失去</span>
                         <strong>失去上路一塔</strong>
 
                     </div>
 
                     <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">38.2分</span>
+                        <span class="event-pill danger">29.9分</span>
                         <span class="objective-outcome-label">我方失去</span>
-                        <strong>失去中路高地塔</strong>
-
-                    </div>
-
-                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="barracks" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">38.5分</span>
-                        <span class="objective-outcome-label">我方失去</span>
-                        <strong>失去中路近战兵营</strong>
+                        <strong>失去下路二塔</strong>
 
                     </div>
 
                     <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
-                        <span class="event-pill">42.5分</span>
+                        <span class="event-pill">32.2分</span>
                         <span class="objective-outcome-label">我方获取</span>
-                        <strong>获取上路二塔</strong>
+                        <strong>获取下路一塔</strong>
 
                     </div>
 
                     <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="roshan" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">44.1分</span>
+                        <span class="event-pill danger">32.5分</span>
                         <span class="objective-outcome-label">我方失去</span>
                         <strong>失去肉山</strong>
 
                     </div>
 
                     <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="aegis" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">44.1分</span>
+                        <span class="event-pill danger">32.5分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去不朽盾</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">33.0分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去中路二塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">34.7分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去上路二塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">35.7分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去上路高地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="barracks" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">36.2分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去上路近战兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="barracks" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">36.4分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去上路远程兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row gained" data-objective-row data-objective-kind="tower" data-objective-outcome="gained" data-objective-direct="false">
+                        <span class="event-pill">38.4分</span>
+                        <span class="objective-outcome-label">我方获取</span>
+                        <strong>获取中路二塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">41.3分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去中路高地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="barracks" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">41.4分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去中路远程兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="barracks" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">41.5分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去中路近战兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">41.9分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去下路高地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">42.7分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去基地塔</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="roshan" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">46.0分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去肉山</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="aegis" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">46.0分</span>
                         <span class="objective-outcome-label">我方失去</span>
                         <strong>失去不朽盾</strong>
 
                     </div>
 
                     <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="barracks" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">45.3分</span>
+                        <span class="event-pill danger">46.6分</span>
                         <span class="objective-outcome-label">我方失去</span>
-                        <strong>失去中路远程兵营</strong>
+                        <strong>失去下路近战兵营</strong>
+
+                    </div>
+
+                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="barracks" data-objective-outcome="lost" data-objective-direct="false">
+                        <span class="event-pill danger">46.9分</span>
+                        <span class="objective-outcome-label">我方失去</span>
+                        <strong>失去下路远程兵营</strong>
 
                     </div>
 
                     <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">45.9分</span>
-                        <span class="objective-outcome-label">我方失去</span>
-                        <strong>失去基地塔</strong>
-
-                    </div>
-
-                    <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="tower" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">46.3分</span>
+                        <span class="event-pill danger">47.0分</span>
                         <span class="objective-outcome-label">我方失去</span>
                         <strong>失去基地塔</strong>
 
                     </div>
 
                     <div class="compact-row objective-event-row lost" data-objective-row data-objective-kind="ancient" data-objective-outcome="lost" data-objective-direct="false">
-                        <span class="event-pill danger">46.5分</span>
+                        <span class="event-pill danger">48.2分</span>
                         <span class="objective-outcome-label">我方失去</span>
                         <strong>失去遗迹</strong>
 
@@ -889,57 +949,33 @@
                 <div class="objective-window-list">
 
                     <div class="compact-row objective-window-row">
-                        <span class="event-pill danger">33.8分死亡</span>
-                        <strong>失去中路二塔</strong>
-                        <span>34.6分 · 相隔45秒</span>
-                    </div>
-
-                    <div class="compact-row objective-window-row">
-                        <span class="event-pill danger">33.8分死亡</span>
-                        <strong>失去下路二塔</strong>
-                        <span>35.1分 · 相隔75秒</span>
-                    </div>
-
-                    <div class="compact-row objective-window-row">
-                        <span class="event-pill danger">38.0分死亡</span>
-                        <strong>失去中路高地塔</strong>
-                        <span>38.2分 · 相隔15秒</span>
-                    </div>
-
-                    <div class="compact-row objective-window-row">
-                        <span class="event-pill danger">38.0分死亡</span>
-                        <strong>失去中路近战兵营</strong>
-                        <span>38.5分 · 相隔27秒</span>
-                    </div>
-
-                    <div class="compact-row objective-window-row">
-                        <span class="event-pill danger">43.5分死亡</span>
+                        <span class="event-pill danger">32.1分死亡</span>
                         <strong>失去肉山</strong>
-                        <span>44.1分 · 相隔36秒</span>
+                        <span>32.5分 · 相隔24秒</span>
                     </div>
 
                     <div class="compact-row objective-window-row">
-                        <span class="event-pill danger">43.5分死亡</span>
+                        <span class="event-pill danger">32.1分死亡</span>
                         <strong>失去不朽盾</strong>
-                        <span>44.1分 · 相隔37秒</span>
+                        <span>32.5分 · 相隔24秒</span>
                     </div>
 
                     <div class="compact-row objective-window-row">
-                        <span class="event-pill danger">45.5分死亡</span>
-                        <strong>失去基地塔</strong>
-                        <span>45.9分 · 相隔20秒</span>
+                        <span class="event-pill danger">32.1分死亡</span>
+                        <strong>失去中路二塔</strong>
+                        <span>33.0分 · 相隔57秒</span>
                     </div>
 
                     <div class="compact-row objective-window-row">
-                        <span class="event-pill danger">45.5分死亡</span>
-                        <strong>失去基地塔</strong>
-                        <span>46.3分 · 相隔44秒</span>
-                    </div>
-
-                    <div class="compact-row objective-window-row">
-                        <span class="event-pill danger">45.5分死亡</span>
+                        <span class="event-pill danger">47.5分死亡</span>
                         <strong>失去遗迹</strong>
-                        <span>46.5分 · 相隔54秒</span>
+                        <span>48.2分 · 相隔43秒</span>
+                    </div>
+
+                    <div class="compact-row objective-window-row">
+                        <span class="event-pill danger">48.1分死亡</span>
+                        <strong>失去遗迹</strong>
+                        <span>48.2分 · 相隔10秒</span>
                     </div>
 
                 </div>
@@ -949,7 +985,7 @@
                     <div><span>触发:</span> 下一局每次准备处理基地防守或同级关键目标前90秒</div>
                     <div><span>执行:</span> 先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。</div>
                     <div><span>验收:</span> 死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。</div>
-                    <div class="muted"><span>优先回看:</span> 45.5分死亡 → 46.5分失去遗迹（54秒）</div>
+                    <div class="muted"><span>优先回看:</span> 48.1分死亡 → 48.2分失去遗迹（10秒）</div>
 
                     <div class="objective-drill-checklist" aria-label="目标前90秒回放检查点">
 
@@ -980,7 +1016,7 @@
 
             <div class="event-list">
 
-                <span class="event-pill">27.7分 Black King Bar</span>
+                <span class="event-pill">14.6分 Hand of Midas</span>
 
             </div>
 
@@ -988,7 +1024,7 @@
             <div class="subsection-title">装备后转化</div>
 
 
-            <div class="compact-row">Black King Bar 27.7分：参战 1 次，推塔伤害 0</div>
+            <div class="compact-row">Hand of Midas 14.6分：后5分钟刷钱 37 补，平均GPM 736.8</div>
 
 
 
@@ -997,19 +1033,19 @@
             <div class="death-review-workbench">
                 <div class="death-review-summary" aria-label="死亡复盘摘要">
                     <div class="death-review-metric">
-                        <strong>12</strong>
+                        <strong>5</strong>
                         <span>已定位死亡</span>
                     </div>
                     <div class="death-review-metric">
-                        <strong>12</strong>
+                        <strong>4</strong>
                         <span>恢复窗口</span>
                     </div>
                     <div class="death-review-metric">
-                        <strong>12</strong>
+                        <strong>5</strong>
                         <span>坐标点</span>
                     </div>
                     <div class="death-review-metric">
-                        <strong>2</strong>
+                        <strong>1</strong>
                         <span>重复簇</span>
                     </div>
                 </div>
@@ -1024,110 +1060,61 @@
             </div>
 
 
-            <div class="compact-row">已定位 12/12 次死亡</div>
+            <div class="compact-row">已定位 5/5 次死亡</div>
 
 
             <div class="death-event-grid" id="death-event-list">
 
                 <div class="death-event-card">
-                    <span class="event-pill danger">11.2分</span>
+                    <span class="event-pill danger">1.2分</span>
 
 
-                    <span class="death-position-label">死亡位置：x=94,y=168（死亡时）</span>
+                    <span class="death-position-label">死亡位置：x=80,y=152（死亡时）</span>
 
 
                 </div>
 
                 <div class="death-event-card">
-                    <span class="event-pill danger">13.6分</span>
+                    <span class="event-pill danger">4.6分</span>
 
 
-                    <span class="death-position-label">死亡位置：x=80,y=154（死亡时）</span>
+                    <span class="death-position-label">死亡位置：x=86,y=166（死亡前2秒）</span>
+
+
+                </div>
+
+                <div class="death-event-card">
+                    <span class="event-pill danger">32.1分</span>
+
+
+                    <span class="death-position-label">死亡位置：x=112,y=148（死亡前1秒）</span>
 
 
                 </div>
 
                 <div class="death-event-card repeat-position">
-                    <span class="event-pill danger">22.7分</span>
+                    <span class="event-pill danger">47.5分</span>
 
                     <span class="event-pill warning">重复坐标</span>
 
 
-                    <span class="death-position-label">死亡位置：x=138,y=130（死亡前3秒）</span>
+                    <span class="death-position-label">死亡位置：x=72,y=78（死亡前1秒）</span>
 
 
-                    <span class="death-position-label repeat">重复簇 #1 中心x=137.0,y=129.0</span>
+                    <span class="death-position-label repeat">重复簇 #1 中心x=78.0,y=81.0</span>
 
                 </div>
 
                 <div class="death-event-card repeat-position">
-                    <span class="event-pill danger">25.3分</span>
+                    <span class="event-pill danger">48.1分</span>
 
                     <span class="event-pill warning">重复坐标</span>
 
 
-                    <span class="death-position-label">死亡位置：x=130,y=72（死亡前1秒）</span>
+                    <span class="death-position-label">死亡位置：x=84,y=84（死亡前2秒）</span>
 
 
-                    <span class="death-position-label repeat">重复簇 #2 中心x=125.0,y=72.0</span>
-
-                </div>
-
-                <div class="death-event-card">
-                    <span class="event-pill danger">28.3分</span>
-
-
-                    <span class="death-position-label">死亡位置：x=158,y=102（死亡前2秒）</span>
-
-
-                </div>
-
-                <div class="death-event-card">
-                    <span class="event-pill danger">30.4分</span>
-
-
-                    <span class="death-position-label">死亡位置：x=72,y=184（死亡前2秒）</span>
-
-
-                </div>
-
-                <div class="death-event-card">
-                    <span class="event-pill danger">32.2分</span>
-
-
-                    <span class="death-position-label">死亡位置：x=76,y=140（死亡时）</span>
-
-
-                </div>
-
-                <div class="death-event-card repeat-position">
-                    <span class="event-pill danger">33.8分</span>
-
-                    <span class="event-pill warning">重复坐标</span>
-
-
-                    <span class="death-position-label">死亡位置：x=136,y=128（死亡时）</span>
-
-
-                    <span class="death-position-label repeat">重复簇 #1 中心x=137.0,y=129.0</span>
-
-                </div>
-
-                <div class="death-event-card">
-                    <span class="event-pill danger">38.0分</span>
-
-
-                    <span class="death-position-label">死亡位置：x=112,y=100（死亡前5秒）</span>
-
-
-                </div>
-
-                <div class="death-event-card">
-                    <span class="event-pill danger">41.5分</span>
-
-
-                    <span class="death-position-label">死亡位置：x=110,y=122（死亡前6秒）</span>
-
+                    <span class="death-position-label repeat">重复簇 #1 中心x=78.0,y=81.0</span>
 
                 </div>
 
@@ -1141,89 +1128,43 @@
                     <line class="death-coordinate-axis" x1="127.5" y1="0" x2="127.5" y2="255"></line>
                     <line class="death-coordinate-axis" x1="0" y1="127.5" x2="255" y2="127.5"></line>
 
-                    <circle class="death-coordinate-cluster-ring" cx="137.0" cy="126.0" r="14">
-                        <title>22.7、33.8分重复死亡坐标簇，中心x=137.0,y=129.0，样本2次</title>
-                    </circle>
-
-                    <circle class="death-coordinate-cluster-ring" cx="125.0" cy="183.0" r="14">
-                        <title>25.3、43.5分重复死亡坐标簇，中心x=125.0,y=72.0，样本2次</title>
+                    <circle class="death-coordinate-cluster-ring" cx="78.0" cy="174.0" r="14">
+                        <title>47.5、48.1分重复死亡坐标簇，中心x=78.0,y=81.0，样本2次</title>
                     </circle>
 
 
-                    <circle class="death-coordinate-point" cx="94" cy="87" r="6" data-minute="11.2">
-                        <title>11.2分 x=94,y=168</title>
+                    <circle class="death-coordinate-point" cx="80" cy="103" r="6" data-minute="1.2">
+                        <title>1.2分 x=80,y=152</title>
                     </circle>
 
-                    <circle class="death-coordinate-point" cx="80" cy="101" r="6" data-minute="13.6">
-                        <title>13.6分 x=80,y=154</title>
+                    <circle class="death-coordinate-point" cx="86" cy="89" r="6" data-minute="4.6">
+                        <title>4.6分 x=86,y=166</title>
                     </circle>
 
-                    <circle class="death-coordinate-point" cx="138" cy="125" r="6" data-minute="22.7">
-                        <title>22.7分 x=138,y=130</title>
+                    <circle class="death-coordinate-point" cx="112" cy="107" r="6" data-minute="32.1">
+                        <title>32.1分 x=112,y=148</title>
                     </circle>
 
-                    <circle class="death-coordinate-point" cx="130" cy="183" r="6" data-minute="25.3">
-                        <title>25.3分 x=130,y=72</title>
+                    <circle class="death-coordinate-point" cx="72" cy="177" r="6" data-minute="47.5">
+                        <title>47.5分 x=72,y=78</title>
                     </circle>
 
-                    <circle class="death-coordinate-point" cx="158" cy="153" r="6" data-minute="28.3">
-                        <title>28.3分 x=158,y=102</title>
-                    </circle>
-
-                    <circle class="death-coordinate-point" cx="72" cy="71" r="6" data-minute="30.4">
-                        <title>30.4分 x=72,y=184</title>
-                    </circle>
-
-                    <circle class="death-coordinate-point" cx="76" cy="115" r="6" data-minute="32.2">
-                        <title>32.2分 x=76,y=140</title>
-                    </circle>
-
-                    <circle class="death-coordinate-point" cx="136" cy="127" r="6" data-minute="33.8">
-                        <title>33.8分 x=136,y=128</title>
-                    </circle>
-
-                    <circle class="death-coordinate-point" cx="112" cy="155" r="6" data-minute="38.0">
-                        <title>38.0分 x=112,y=100</title>
-                    </circle>
-
-                    <circle class="death-coordinate-point" cx="110" cy="133" r="6" data-minute="41.5">
-                        <title>41.5分 x=110,y=122</title>
-                    </circle>
-
-                    <circle class="death-coordinate-point" cx="120" cy="183" r="6" data-minute="43.5">
-                        <title>43.5分 x=120,y=72</title>
-                    </circle>
-
-                    <circle class="death-coordinate-point" cx="88" cy="157" r="6" data-minute="45.5">
-                        <title>45.5分 x=88,y=98</title>
+                    <circle class="death-coordinate-point" cx="84" cy="171" r="6" data-minute="48.1">
+                        <title>48.1分 x=84,y=84</title>
                     </circle>
 
                 </svg>
                 <div class="death-coordinate-list">
 
-                    <span class="death-coordinate-chip" data-minute="11.2">11.2分 x=94,y=168</span>
+                    <span class="death-coordinate-chip" data-minute="1.2">1.2分 x=80,y=152</span>
 
-                    <span class="death-coordinate-chip" data-minute="13.6">13.6分 x=80,y=154</span>
+                    <span class="death-coordinate-chip" data-minute="4.6">4.6分 x=86,y=166</span>
 
-                    <span class="death-coordinate-chip" data-minute="22.7">22.7分 x=138,y=130</span>
+                    <span class="death-coordinate-chip" data-minute="32.1">32.1分 x=112,y=148</span>
 
-                    <span class="death-coordinate-chip" data-minute="25.3">25.3分 x=130,y=72</span>
+                    <span class="death-coordinate-chip" data-minute="47.5">47.5分 x=72,y=78</span>
 
-                    <span class="death-coordinate-chip" data-minute="28.3">28.3分 x=158,y=102</span>
-
-                    <span class="death-coordinate-chip" data-minute="30.4">30.4分 x=72,y=184</span>
-
-                    <span class="death-coordinate-chip" data-minute="32.2">32.2分 x=76,y=140</span>
-
-                    <span class="death-coordinate-chip" data-minute="33.8">33.8分 x=136,y=128</span>
-
-                    <span class="death-coordinate-chip" data-minute="38.0">38.0分 x=112,y=100</span>
-
-                    <span class="death-coordinate-chip" data-minute="41.5">41.5分 x=110,y=122</span>
-
-                    <span class="death-coordinate-chip" data-minute="43.5">43.5分 x=120,y=72</span>
-
-                    <span class="death-coordinate-chip" data-minute="45.5">45.5分 x=88,y=98</span>
+                    <span class="death-coordinate-chip" data-minute="48.1">48.1分 x=84,y=84</span>
 
                 </div>
 
@@ -1232,13 +1173,8 @@
                     <div class="death-coordinate-note">只按 STRATZ 原始x/y距离聚类；不生成地图区域名，具体入口/线口/目标区需要回放确认。</div>
 
                     <div class="death-coordinate-cluster-row">
-                        <strong>22.7、33.8分重复死亡坐标簇，中心x=137.0,y=129.0，样本2次</strong>
-                        <span>原始样本：22.7分 x=138,y=130；33.8分 x=136,y=128</span>
-                    </div>
-
-                    <div class="death-coordinate-cluster-row">
-                        <strong>25.3、43.5分重复死亡坐标簇，中心x=125.0,y=72.0，样本2次</strong>
-                        <span>原始样本：25.3分 x=130,y=72；43.5分 x=120,y=72</span>
+                        <strong>47.5、48.1分重复死亡坐标簇，中心x=78.0,y=81.0，样本2次</strong>
+                        <span>原始样本：47.5分 x=72,y=78；48.1分 x=84,y=84</span>
                     </div>
 
                 </div>
@@ -1260,23 +1196,19 @@
         <div class="section-body">
 
             <div class="compact-row">
-                <strong>死亡后目标损失</strong>：死亡后90秒内失去目标: 33.8分死亡 → 34.6分失去中路二塔（45秒）；33.8分死亡 → 35.1分失去下路二塔（75秒）；38.0分死亡 → 38.2分失去中路高地塔（15秒）；38.0分死亡 → 38.5分失去中路近战兵营（27秒）；43.5分死亡 → 44.1分失去肉山（36秒）。 这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。
+                <strong>死亡后目标损失</strong>：死亡后90秒内失去目标: 32.1分死亡 → 32.5分失去肉山（24秒）；32.1分死亡 → 32.5分失去不朽盾（24秒）；32.1分死亡 → 33.0分失去中路二塔（57秒）；47.5分死亡 → 48.2分失去遗迹（43秒）；48.1分死亡 → 48.2分失去遗迹（10秒）。 这些死亡与目标损失发生在同一短窗口，意味着该时段本人客观上无法持续参与防守或交换；时间邻接不等于因果归责。
             </div>
 
             <div class="compact-row">
-                <strong>死亡成本</strong>：已定位 12/12 次死亡，时间: 11.2, 13.6, 22.7, 25.3, 28.3, 30.4, 32.2, 33.8, 38.0, 41.5, 43.5, 45.5分钟；每10分钟死亡 2.59。 死亡占时 12分52秒（27.7%）。 死亡位置: 11.2分 x=94,y=168（死亡时）；13.6分 x=80,y=154（死亡时）；22.7分 x=138,y=130（死亡前3秒）；25.3分 x=130,y=72（死亡前1秒）；28.3分 x=158,y=102（死亡前2秒）；30.4分 x=72,y=184（死亡前2秒）。 核心或节奏位的连续死亡会直接交出地图区域和关键目标时间。
+                <strong>死亡成本</strong>：已定位 5/5 次死亡，时间: 1.2, 4.6, 32.1, 47.5, 48.1分钟；每10分钟死亡 1.04。 死亡占时 1分46秒（3.7%）。 死亡位置: 1.2分 x=80,y=152（死亡时）；4.6分 x=86,y=166（死亡前2秒）；32.1分 x=112,y=148（死亡前1秒）；47.5分 x=72,y=78（死亡前1秒）；48.1分 x=84,y=84（死亡前2秒）。 核心或节奏位的连续死亡会直接交出地图区域和关键目标时间。
             </div>
 
             <div class="compact-row">
-                <strong>重复死亡坐标</strong>：重复死亡坐标簇: 22.7、33.8分重复死亡坐标簇，中心x=137.0,y=129.0，样本2次；25.3、43.5分重复死亡坐标簇，中心x=125.0,y=72.0，样本2次。 同一 raw 坐标附近重复死亡，说明至少有一个可回放复查的高风险场景在反复出现。
+                <strong>重复死亡坐标</strong>：重复死亡坐标簇: 47.5、48.1分重复死亡坐标簇，中心x=78.0,y=81.0，样本2次。 同一 raw 坐标附近重复死亡，说明至少有一个可回放复查的高风险场景在反复出现。
             </div>
 
             <div class="compact-row">
-                <strong>死亡前后资源变化</strong>：死亡前后资源下降窗口: 25.3分死亡前后：补刀/分 8.7→3.3（-5.4），平均GPM 633.3→660.0（+26.7）（22-25分钟→26-29分钟）；28.3分死亡前后：补刀/分 2.0→4.3（+2.3），平均GPM 844.7→447.0（-397.7）（25-28分钟→29-32分钟）；30.4分死亡前后：补刀/分 4.0→1.7（-2.3），平均GPM 563.0→558.0（-5.0）（27-30分钟→31-34分钟）；32.2分死亡前后：补刀/分 4.3→0.7（-3.6），平均GPM 447.0→906.3（+459.3）（29-32分钟→33-36分钟）。 死亡相邻阶段的补刀或经济节奏明显下滑，会让一次阵亡继续影响下一段刷钱、守塔或控图节奏。
-            </div>
-
-            <div class="compact-row">
-                <strong>英雄样本短板</strong>：OpenDota同英雄样本低位指标: 推塔伤害 第17百分位。 同英雄样本百分位能区分这局是总量正常但某个维度掉队，还是所有面板都处在正常区间。
+                <strong>死亡前后资源变化</strong>：死亡前后资源下降窗口: 32.1分死亡前后：补刀/分 6.7→3.0（-3.7），平均GPM 704.7→624.0（-80.7）（29-32分钟→33-36分钟）。 死亡相邻阶段的补刀或经济节奏明显下滑，会让一次阵亡继续影响下一段刷钱、守塔或控图节奏。
             </div>
 
         </div>
@@ -1290,28 +1222,28 @@
             <div class="item-grid">
 
 
-                <div class="item-slot item-name" title="ID 73">
-                    Bracer
+                <div class="item-slot item-name" title="ID 277">
+                    Yasha and Kaya
                 </div>
 
-                <div class="item-slot item-name" title="ID 127">
-                    Blade Mail
+                <div class="item-slot item-name" title="ID 63">
+                    Power Treads
                 </div>
 
-                <div class="item-slot item-name" title="ID 1">
-                    Blink Dagger
+                <div class="item-slot item-name" title="ID 1852">
+                    Essence Distiller
                 </div>
 
-                <div class="item-slot item-name" title="ID 50">
-                    Phase Boots
+                <div class="item-slot item-name" title="ID 235">
+                    Octarine Core
                 </div>
 
-                <div class="item-slot item-name" title="ID 116">
-                    Black King Bar
+                <div class="item-slot item-name" title="ID 65">
+                    Hand of Midas
                 </div>
 
-                <div class="item-slot item-name" title="ID 112">
-                    Assault Cuirass
+                <div class="item-slot item-name" title="ID 108">
+                    Aghanim's Scepter
                 </div>
 
 
@@ -1325,18 +1257,6 @@
 
 
 
-
-    <div class="section" id="reported-issues">
-        <div class="section-header">&#9888;&#65039; 发现的问题</div>
-        <div class="section-body">
-
-            <div class="suggestion high">
-                <div class="suggestion-priority">high</div>
-                <div class="suggestion-text">对手阵容中存在需要重点处理的对位英雄: Viper</div>
-            </div>
-
-        </div>
-    </div>
 
 
 
@@ -1344,11 +1264,45 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 20:27:28
+        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | 2026-06-30 20:47:00
     </div>
 
 </div>
-<script id="report-metadata" type="application/json">{"schema_version":1,"match_id":8870219537,"hero":{"id":104,"name":"Legion Commander","slug":"legion_commander"},"is_win":false,"side":"Radiant","started_at":"2026-06-28T02:40:12Z","ended_at":"2026-06-28T03:26:38Z","duration_seconds":2786,"kda":{"kills":10,"deaths":12,"assists":22},"score":{"team":44,"enemy":59},"allies":[{"id":86,"name":"Rubick","slug":"rubick"},{"id":51,"name":"Clockwerk","slug":"rattletrap"},{"id":104,"name":"Legion Commander","slug":"legion_commander"},{"id":128,"name":"Snapfire","slug":"snapfire"},{"id":42,"name":"Wraith King","slug":"skeleton_king"}],"enemies":[{"id":47,"name":"Viper","slug":"viper"},{"id":7,"name":"Earthshaker","slug":"earthshaker"},{"id":25,"name":"Lina","slug":"lina"},{"id":54,"name":"Lifestealer","slug":"life_stealer"},{"id":70,"name":"Ursa","slug":"ursa"}]}</script>
+<script id="report-metadata" type="application/json">{"schema_version":1,"match_id":8867002237,"hero":{"id":9,"name":"Mirana","slug":"mirana"},"is_win":false,"side":"Radiant","started_at":"2026-06-26T09:35:05Z","ended_at":"2026-06-26T10:23:19Z","duration_seconds":2894,"kda":{"kills":13,"deaths":5,"assists":21},"score":{"team":43,"enemy":39},"allies":[{"id":8,"name":"Juggernaut","slug":"juggernaut"},{"id":17,"name":"Storm Spirit","slug":"storm_spirit"},{"id":9,"name":"Mirana","slug":"mirana"},{"id":100,"name":"Tusk","slug":"tusk"},{"id":64,"name":"Jakiro","slug":"jakiro"}],"enemies":[{"id":75,"name":"Silencer","slug":"silencer"},{"id":16,"name":"Sand King","slug":"sand_king"},{"id":2,"name":"Axe","slug":"axe"},{"id":155,"name":"Largo","slug":"largo"},{"id":6,"name":"Drow Ranger","slug":"drow_ranger"}]}</script>
+<script data-decision-tabs>
+(() => {
+    const labels = {
+        action: '下一局规则',
+        evidence: '证据',
+        validation: '验收'
+    };
+    document.querySelectorAll('[data-decision-snapshot]').forEach((snapshot) => {
+        const tabs = Array.from(snapshot.querySelectorAll('[data-decision-tab]'));
+        const panels = Array.from(snapshot.querySelectorAll('[data-decision-panel]'));
+        const status = snapshot.querySelector('[data-decision-status]');
+        if (!tabs.length || !panels.length) return;
+
+        const activate = (target) => {
+            tabs.forEach((tab) => {
+                const isActive = tab.dataset.decisionTab === target;
+                tab.classList.toggle('active', isActive);
+                tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+            panels.forEach((panel) => {
+                const isActive = panel.dataset.decisionPanel === target;
+                panel.hidden = !isActive;
+                panel.classList.toggle('active', isActive);
+            });
+            if (status) status.textContent = `当前显示：${labels[target] || '决策'}`;
+        };
+
+        tabs.forEach((tab) => {
+            tab.addEventListener('click', () => activate(tab.dataset.decisionTab || 'action'));
+        });
+        activate('action');
+    });
+})();
+</script>
 <script data-report-section-navigation>
 (() => {
     const links = Array.from(document.querySelectorAll('[data-report-section-link]'));
