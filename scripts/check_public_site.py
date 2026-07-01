@@ -608,6 +608,9 @@ def _find_report_evidence_completeness_issues(public_dir=PUBLIC_DIR):
         if any(required not in text for required in REQUIRED_REPORT_EVIDENCE_COMPLETENESS_TEXT):
             issues.append(f"{report.name} -> missing report evidence completeness summary")
             continue
+        if "evidence-completeness-guidance" not in text or "执行信号" not in text:
+            issues.append(f"{report.name} -> missing evidence execution guidance")
+            continue
         attrs = _report_evidence_completeness_attrs(text)
         if attrs is None:
             issues.append(f"{report.name} -> malformed report evidence completeness summary")
