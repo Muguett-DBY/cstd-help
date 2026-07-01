@@ -426,6 +426,17 @@ EVIDENCE_FIELD_SPECS = (
     },
 )
 
+EVIDENCE_FIELD_REPORT_LABELS = {
+    "minute_economy": "分钟时间线",
+    "death_events": "死亡时间",
+    "purchase_events": "购买时间",
+    "position_samples": "死亡位置",
+    "combat_events": "击杀/助攻事件",
+    "objective_events": "地图目标事件",
+    "vision_events": "视野事件",
+    "hero_benchmarks": "英雄样本百分位",
+}
+
 
 def _load_evidence_payloads(match_ids, db_path=None):
     db_path = Path(db_path) if db_path else None
@@ -605,23 +616,50 @@ def _has_evidence_field(field_key, stratz_player, opendota_player, stratz_payloa
     return False
 
 
+def _report_evidence_field_status(report, field_key, stratz_player, opendota_player, stratz_payload, opendota_payload):
+    label = EVIDENCE_FIELD_REPORT_LABELS.get(field_key)
+    evidence_sources = report.get("evidence_sources") if isinstance(report, dict) else None
+    if label and evidence_sources:
+        for source in evidence_sources:
+            if source.get("label") == label and source.get("status") in {"available", "partial", "missing"}:
+                return source["status"]
+    if _has_evidence_field(field_key, stratz_player, opendota_player, stratz_payload, opendota_payload):
+        return "available"
+    return "missing"
+
+
 def _build_evidence_field_audit(sorted_reports, evidence_payloads=None):
     evidence_payloads = evidence_payloads or {}
     report_count = len(sorted_reports)
     fields = []
     for spec in EVIDENCE_FIELD_SPECS:
-        covered = 0
+        complete_reports = 0
+        partial_reports = 0
+        missing_reports = 0
         for report in sorted_reports:
             payload = evidence_payloads.get(str(report.get("match_id") or "")) or {}
             stratz_payload = payload.get("stratz") if isinstance(payload, dict) else {}
             opendota_payload = payload.get("opendota") if isinstance(payload, dict) else {}
             stratz_player = _find_payload_player(stratz_payload, report)
             opendota_player = _find_payload_player(opendota_payload, report)
-            if _has_evidence_field(spec["key"], stratz_player, opendota_player, stratz_payload, opendota_payload):
-                covered += 1
+            status = _report_evidence_field_status(
+                report,
+                spec["key"],
+                stratz_player,
+                opendota_player,
+                stratz_payload,
+                opendota_payload,
+            )
+            if status == "available":
+                complete_reports += 1
+            elif status == "partial":
+                partial_reports += 1
+            else:
+                missing_reports += 1
+        covered = complete_reports + partial_reports
         if report_count <= 0 or covered <= 0:
             status = "missing"
-        elif covered == report_count:
+        elif complete_reports == report_count:
             status = "complete"
         else:
             status = "partial"
@@ -629,6 +667,9 @@ def _build_evidence_field_audit(sorted_reports, evidence_payloads=None):
             **spec,
             "coverage_count": covered,
             "coverage_ratio": round(covered / report_count, 4) if report_count else 0,
+            "complete_report_count": complete_reports,
+            "partial_report_count": partial_reports,
+            "missing_report_count": missing_reports,
             "status": status,
         })
     complete_count = sum(1 for field in fields if field["status"] == "complete")
@@ -640,7 +681,7 @@ def _build_evidence_field_audit(sorted_reports, evidence_payloads=None):
     )
     if payload_match_count <= 0:
         status = "untracked"
-    elif missing_count:
+    elif missing_count or partial_count:
         status = "partial"
     else:
         status = "tracked"
@@ -654,7 +695,7 @@ def _build_evidence_field_audit(sorted_reports, evidence_payloads=None):
         "partial_field_count": partial_count,
         "missing_field_count": missing_count,
         "fields": fields,
-        "limitation": "字段覆盖来自本地缓存 JSON；未覆盖字段不会作为复盘归因或行动建议依据。",
+        "limitation": "字段覆盖来自报告证据明细和本地缓存 JSON；部分字段只按已覆盖范围使用，不扩大归因。",
     }
 
 
@@ -1466,18 +1507,26 @@ def _render_evidence_field_audit_panel(manifest):
         source = html.escape(str(field.get("source") or "来源未记录"))
         supports = html.escape(str(field.get("supports") or "支持维度未记录"))
         covered = int(field.get("coverage_count") or 0)
+        complete_reports = int(field.get("complete_report_count") or 0)
+        partial_reports = int(field.get("partial_report_count") or 0)
+        missing_reports = int(field.get("missing_report_count") or 0)
+        detail = ""
+        if partial_reports or missing_reports:
+            detail = (
+                f'<small>完整{complete_reports} · 部分{partial_reports} · 缺失{missing_reports}</small>'
+            )
         rows.append(
             f'<div class="field-audit-row {status}">'
             f'<div><strong>{label}</strong><span>{source}</span></div>'
             f'<div><em>{covered}/{report_count}</em><small>{html.escape(_field_status_label(field.get("status")))}</small></div>'
-            f'<p>{supports}</p>'
+            f'<p>{supports}{detail}</p>'
             '</div>'
         )
     status = audit.get("status") or "untracked"
     status_class = "field-audit-ok" if status == "tracked" else "field-audit-warning"
     note = html.escape(
         audit.get("limitation")
-        or "字段覆盖来自本地缓存 JSON；未覆盖字段不会作为复盘归因或行动建议依据。"
+        or "字段覆盖来自报告证据明细和本地缓存 JSON；部分字段只按已覆盖范围使用，不扩大归因。"
     )
     return (
         '<div class="evidence-field-audit-panel" id="evidence-field-audit" data-evidence-field-audit-panel aria-label="实证字段覆盖">'

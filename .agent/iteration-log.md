@@ -1066,3 +1066,25 @@
   - Implementation commit: `fix: close match evidence gaps` (`00480fa`).
   - GitHub Actions: `Deploy Cloudflare Pages` run `28500651659` passed unit tests, compile, static Pages validation, credential validation, and deployment.
   - Production acceptance: `dota.custard.top` serves 18 reports, site field audit 8/8 complete with 0 partial and 0 missing, the refreshed zero-vision reports show real totals, and Rubick serves 4/7 source-backed coordinates with no missing evidence class.
+
+## 2026-07-01 - Evidence Risk Closure Follow-up
+
+- Goal: remove remaining hidden-quality risks after the previous closure pass.
+- Root-cause fixes:
+  - Rubick report showed `9/10` evidence classes complete but still displayed `证据覆盖 100/100` and `数据完整度：100/100`; data quality scoring is now capped by report evidence status, so partial evidence cannot present as perfect coverage.
+  - Site-level `evidence_field_audit` previously counted a field class complete if any usable field existed in each report. It now uses report evidence-source statuses and stores complete/partial/missing report counts for each tracked field.
+  - Utility/support key items were under-detected because the key item list focused on core items. Added deterministic recognition for Aether Lens, Blink Dagger, Aghanim's Shard/Scepter, Mekansm, Guardian Greaves, Octarine Core, and related utility items.
+- Public refresh: regenerated all 18 reports and rebuilt `public/`. Current site audit is `partial`, 7/8 complete field classes, 1/8 partial (`position_samples`: 17 complete reports, 1 partial report), 0 missing. Rubick now shows 97/100 data quality and the death-position limitation in the data-gap section.
+- Static gates added:
+  - Partial evidence fields must include explicit complete/partial/missing report counts.
+  - A report with partial or missing evidence cannot display `100/100` in the decision rail, quality score, or AI coach text.
+- Verification:
+  - Red/green tests added for partial-position quality score, partial field-audit counts, partial audit acceptance with explicit counts, perfect-score rejection, support utility key purchases, and aura/teamfight utility purchases.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 120 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+  - Public content scan: no report has missing evidence, partial evidence with `100/100`, or `0个关键装备完成点` / `没有识别到关键装备完成点`.
+  - Chrome desktop/mobile checks: index shows `字段 7/8` and `字段覆盖：有缺口`; Rubick mobile shows partial=1, missing=0, 97/100, no `数据完整度：100/100`, 4/7 death coordinates, and utility key items; Dark Seer shows utility key items and no zero-key-item warning.

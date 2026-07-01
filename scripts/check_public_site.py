@@ -596,6 +596,17 @@ def _find_evidence_field_audit_issues(public_dir=PUBLIC_DIR):
             mismatches.append(f"{field.get('key')} coverage_count invalid {coverage}")
         elif isinstance(report_count, int) and coverage > report_count:
             mismatches.append(f"{field.get('key')} coverage_count exceeds report_count")
+        report_count_keys = ("complete_report_count", "partial_report_count", "missing_report_count")
+        if any(key in field for key in report_count_keys):
+            detail_counts = []
+            for key in report_count_keys:
+                value = field.get(key)
+                if not isinstance(value, int) or value < 0:
+                    mismatches.append(f"{field.get('key')} {key} invalid {value}")
+                    value = 0
+                detail_counts.append(value)
+            if isinstance(report_count, int) and sum(detail_counts) != report_count:
+                mismatches.append(f"{field.get('key')} report counts do not sum to report_count")
     for field_name, status_name in (
         ("complete_field_count", "complete"),
         ("partial_field_count", "partial"),
@@ -610,11 +621,22 @@ def _find_evidence_field_audit_issues(public_dir=PUBLIC_DIR):
         mismatches.append("payload_match_count exceeds report_count")
     if mismatches:
         issues.append("site-manifest.json -> inconsistent evidence field audit summary: " + "; ".join(mismatches))
-    elif audit.get("partial_field_count") or audit.get("missing_field_count"):
+    elif audit.get("missing_field_count"):
         issues.append(
             "site-manifest.json -> evidence field coverage is incomplete: "
             f"partial {audit.get('partial_field_count')}, missing {audit.get('missing_field_count')}"
         )
+    elif audit.get("partial_field_count"):
+        fields_needing_counts = [
+            str(field.get("key") or "unknown")
+            for field in fields
+            if field.get("status") == "partial" and int(field.get("partial_report_count") or 0) <= 0
+        ]
+        if fields_needing_counts:
+            issues.append(
+                "site-manifest.json -> partial evidence fields need explicit report counts: "
+                + ", ".join(fields_needing_counts)
+            )
     return issues
 
 
@@ -752,6 +774,13 @@ def _find_report_evidence_completeness_issues(public_dir=PUBLIC_DIR):
         elif attrs.get("missing", 0) > 0:
             issues.append(
                 f"{report.name} -> report evidence still has {attrs['missing']} missing classes"
+            )
+        elif (attrs.get("partial", 0) > 0 or attrs.get("missing", 0) > 0) and re.search(
+            r"(证据覆盖</span>\s*<strong>100/100|quality-score\">100/100|数据完整度：100/100)",
+            text,
+        ):
+            issues.append(
+                f"{report.name} -> partial or missing evidence must not be presented as 100/100"
             )
     return issues
 
