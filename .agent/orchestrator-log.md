@@ -2166,4 +2166,23 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- Pending: commit, push, GitHub Actions, custom-domain acceptance, and final closeout log.
+- Stage commit: `feat: add evidence execution signal` (`be7e1d3`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28494629304`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports and latest report `Legion_Commander_8870219537_20260630_212154.html`.
+  - Latest report returned 200 with `本局证据完整度`, `执行信号：`, `10/10 类完整`, `上分决策卡`, and `数据缺口`.
+- Remaining risk: this stage adds a deterministic trust/use signal for existing evidence coverage; it does not add new external evidence fields.
+
+## 2026-07-01 - Long Cycle 7 Final
+
+- Completed all 6 requested stages on `main`, with implementation, tests, browser QA, pushes, GitHub Actions checks, and live Cloudflare Pages acceptance.
+- Stage commits:
+  - Stage 1: source-freshness telemetry and deployment closeout.
+  - Stage 2: per-report source provenance and deployment closeout.
+  - Stage 3: compact responsive evidence header and deployment closeout.
+  - Stage 4: per-match evidence completeness summary and deployment closeout.
+  - Stage 5: report-header stability gate and deployment closeout.
+  - Stage 6: `feat: add evidence execution signal` (`be7e1d3`).
+- Final production state: `dota.custard.top` serves 18 reports with hero-first titles, match history, decision cards, source freshness, per-report source provenance, evidence completeness, header stability gates, and execution-signal guidance.
+- Final residual risk: richer advice still depends on the event fields available in cached STRATZ/OpenDota data, but reports now expose those evidence limits instead of hiding them.

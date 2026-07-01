@@ -977,4 +977,20 @@
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
 - Risk: the signal explains how to trust existing rendered evidence; it does not add new evidence fields or certify live API freshness beyond the source-time panel.
-- Pending: commit, push, GitHub Actions, custom-domain acceptance, and final closeout log.
+- Stage commit: `feat: add evidence execution signal` (`be7e1d3`).
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28494629304`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment all succeeded.
+- Production acceptance: live `dota.custard.top` serves 18 reports; latest `Legion_Commander_8870219537_20260630_212154.html` returns 200 with `本局证据完整度`, `执行信号：`, `10/10 类完整`, `上分决策卡`, and `数据缺口`.
+
+## 2026-07-01 - Long Cycle 7 Final
+
+- Completed: all 6 requested stages are implemented, tested, pushed, CI-passed, and live on `dota.custard.top`.
+- Current live gain: reports now expose source freshness, per-report source provenance, a compact first-screen evidence header, per-match evidence completeness, enforced header stability, and an execution signal that tells the player how to use the next-game action list based on available evidence.
+- Final verification set:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 107 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - `git diff --check`: passed.
+  - Browser QA: latest report passed desktop and 390x844 mobile checks with no console/page errors or horizontal overflow.
+- Production acceptance: custom domain serves 18 reports; latest Legion Commander report has evidence completeness, execution signal, decision card, and data-gap sections.
+- Residual risk: the system is now explicit about evidence coverage and source times, but coaching depth remains bounded by the STRATZ/OpenDota fields available in cached data.
