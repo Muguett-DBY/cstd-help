@@ -1062,3 +1062,7 @@
   - `git diff --check`: passed.
   - Chrome desktop 1280x720 and mobile 390x844: Rubick and Anti-Mage reports have no horizontal overflow or console errors; hero-first titles, 0 missing evidence, real vision totals, and four Rubick coordinates render correctly.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Release:
+  - Implementation commit: `fix: close match evidence gaps` (`00480fa`).
+  - GitHub Actions: `Deploy Cloudflare Pages` run `28500651659` passed unit tests, compile, static Pages validation, credential validation, and deployment.
+  - Production acceptance: `dota.custard.top` serves 18 reports, site field audit 8/8 complete with 0 partial and 0 missing, the refreshed zero-vision reports show real totals, and Rubick serves 4/7 source-backed coordinates with no missing evidence class.
