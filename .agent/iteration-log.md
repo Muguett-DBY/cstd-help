@@ -1006,3 +1006,21 @@
 - GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28497287383`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment succeeded.
 - Production acceptance: live `dota.custard.top` serves `evidence_field_audit.status=tracked`, 18/18 cached payloads, 7/8 complete field classes, 1/8 partial, 0 missing; history and practice pages both render `实证字段覆盖`.
 - Next stage: Stage 2 UIUX should improve first-glance readability/interaction around the now denser coverage surface.
+
+## 2026-07-01 - Short Cycle 1 Stage 2 UIUX
+
+- Goal: make the denser evidence and coverage surface easier to scan immediately on the history and practice pages.
+- Completed: added a first-screen `证据指挥台` command bar to `index.html` and `practice-plan.html`, showing report count, quality status, evidence-field coverage, source tracking, and quick links to latest report, match brief, field audit, and coverage JSON.
+- Navigation gain: the field audit panel now exposes a stable `#evidence-field-audit` anchor, and both entry pages link directly to it.
+- Stability gain: `scripts/check_public_site.py` now fails public builds missing the evidence command bar, required command chips/links, or the field-audit anchor link.
+- Public refresh: rebuilt all 18 reports into `public/`; both entry pages contain 4 command chips, 4 command links, and the field-audit anchor/link pair.
+- Browser verification: system Chrome passed desktop 1280x720 and mobile 390x844 checks on both entry pages, with no console/page errors and no horizontal overflow. The latest quick link rendered `Legion Commander #8870219537`.
+- Verification:
+  - New command-bar tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 109 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Risk: this stage improves navigation and scanability over existing evidence; it does not add new external match evidence.

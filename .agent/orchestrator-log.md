@@ -2221,3 +2221,30 @@ Started: 2026-06-28
   - `index.html` and `practice-plan.html` both returned 200 and rendered `实证字段覆盖`.
 - Remaining risk: one match lacks STRATZ position samples, so position-based death/pathing attribution is explicitly partial at 17/18 instead of hidden.
 - Next stage: Stage 2 UIUX should make the denser evidence/coverage surface easier to scan on the first visit and on mobile.
+
+## 2026-07-01 - Short Cycle 1 Stage 2 UIUX - Started
+
+- Stage: 2 / 2.
+- Type: UIUX.
+- Prompt: AGENT_UIUX_MAIN.txt.
+- Start state: `main` clean and synchronized with `origin/main`; Stage 1 is live and CI-passed.
+- UX issue: the history/practice pages now contain strong evidence, quality, freshness, and field-audit panels, but the first visit requires scrolling to understand current system health and jump to the right next action.
+- Goal: add a first-screen evidence command bar with compact status chips and quick actions, plus stable anchors/responsive styles so the denser coverage surface is easier to scan and navigate on desktop and mobile.
+- Planned verification: target red/green tests, public rebuild, static validator, full unit suite, compileall, gitleaks, diff checks, Chrome desktop/mobile QA, push to `main`, GitHub Actions, and live custom-domain acceptance.
+
+## 2026-07-01 - Short Cycle 1 Stage 2 UIUX - Local Complete
+
+- Completed: added a first-screen `证据指挥台` to the history and practice pages with compact chips for report count, quality gate, evidence-field coverage, source tracking, plus quick links to the latest replay report, match brief, field audit, and manifest JSON.
+- Navigation gain: the `实证字段覆盖` panel now has a stable `#evidence-field-audit` anchor, and the command bar jumps directly to it.
+- Stability gain: `scripts/check_public_site.py` now rejects missing evidence command bars, missing command chips/links, and missing field-audit anchors on both public entry pages.
+- Public refresh: rebuilt all 18 reports into `public/`; `index.html` and `practice-plan.html` both contain 4 command chips, 4 command links, and the field-audit anchor/link pair.
+- Browser QA: system Chrome passed desktop 1280x720 and mobile 390x844 checks for both pages; command bars rendered, latest report link showed `Legion Commander #8870219537`, field-audit jumps worked, console/page errors were clean, and no horizontal overflow appeared.
+- Local verification:
+  - New command-bar tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 109 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Remaining risk: the command bar improves first-glance navigation and scanability; it does not add new match evidence beyond the Stage 1 cached-field audit.

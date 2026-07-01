@@ -255,6 +255,23 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_missing_evidence_command_bar(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "index.html").write_text("<html><body>实证字段覆盖</body></html>", encoding="utf-8")
+            (public_path / "practice-plan.html").write_text("<html><body>实证字段覆盖</body></html>", encoding="utf-8")
+
+            finder = getattr(check_public_site, "_find_evidence_command_bar_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "index.html -> missing evidence command bar",
+                "practice-plan.html -> missing evidence command bar",
+            ],
+        )
+
     def test_static_site_checker_detects_missing_or_mismatched_report_source_provenance(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
@@ -971,6 +988,11 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(manifest["report_sources"][0]["match_id"], "8867002240")
         self.assertEqual(manifest["report_sources"][1]["stratz_fetched_at"], "2026-06-26T22:20:00Z")
         self.assertIn("复盘数据覆盖", index_html)
+        self.assertIn("evidence-command-bar", index_html)
+        self.assertIn("证据指挥台", index_html)
+        self.assertIn("字段 4/8", index_html)
+        self.assertIn('href="#evidence-field-audit"', index_html)
+        self.assertIn('href="match-brief.html"', index_html)
         self.assertIn("死亡复盘覆盖", index_html)
         self.assertIn("复盘质量门禁", index_html)
         self.assertIn("数据新鲜度", index_html)
@@ -999,6 +1021,10 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("data-coverage-panel", index_html)
         self.assertIn("data-quality-gate-panel", index_html)
         self.assertIn("复盘数据覆盖", plan_html)
+        self.assertIn("evidence-command-bar", plan_html)
+        self.assertIn("证据指挥台", plan_html)
+        self.assertIn("字段 4/8", plan_html)
+        self.assertIn('href="#evidence-field-audit"', plan_html)
         self.assertIn("复盘质量门禁", plan_html)
         self.assertIn("数据新鲜度", plan_html)
         self.assertIn("实证字段覆盖", plan_html)
@@ -1180,6 +1206,10 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".topic-filter-button", stylesheet)
         self.assertIn(".topic-empty-state", stylesheet)
         self.assertIn(".data-coverage", stylesheet)
+        self.assertIn(".evidence-command-bar", stylesheet)
+        self.assertIn(".evidence-command-track", stylesheet)
+        self.assertIn(".evidence-command-link", stylesheet)
+        self.assertIn(".evidence-command-chip", stylesheet)
         self.assertIn(".coverage-subtitle", stylesheet)
         self.assertIn(".quality-gate-panel", stylesheet)
         self.assertIn(".quality-gate-status", stylesheet)

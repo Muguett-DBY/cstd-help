@@ -891,6 +891,74 @@ body {
 }
 .history-summary .summary-win strong { color: var(--accent-green); }
 .history-summary .summary-loss strong { color: var(--accent-red); }
+.evidence-command-bar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+    padding: 10px 12px;
+    border: 1px solid rgba(88,166,255,0.24);
+    border-radius: 6px;
+    background: rgba(88,166,255,0.06);
+}
+.evidence-command-head {
+    display: grid;
+    gap: 2px;
+    min-width: 122px;
+}
+.evidence-command-head span {
+    color: var(--accent-blue);
+    font-size: 11px;
+    font-weight: 700;
+}
+.evidence-command-head strong {
+    color: var(--text-primary);
+    font-size: 13px;
+}
+.evidence-command-track {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+}
+.evidence-command-track::-webkit-scrollbar {
+    display: none;
+}
+.evidence-command-chip,
+.evidence-command-link {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    scroll-snap-align: start;
+}
+.evidence-command-link {
+    border-color: rgba(88,166,255,0.24);
+    color: var(--text-primary);
+}
+.evidence-command-link.primary {
+    border-color: rgba(63,185,80,0.34);
+    background: rgba(63,185,80,0.1);
+}
+.evidence-command-link:hover,
+.evidence-command-link:focus-visible {
+    border-color: rgba(88,166,255,0.62);
+    background: rgba(88,166,255,0.14);
+    outline: none;
+}
 .data-coverage {
     display: grid;
     gap: 12px;
@@ -3248,6 +3316,27 @@ tr:hover { background: rgba(88,166,255,0.05); }
     .history-header h1 { font-size: 25px; }
     .history-header .primary-link { margin-top: 0; }
     .history-summary { gap: 8px 16px; }
+    .evidence-command-bar {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-inline: -12px;
+        padding: 9px 12px;
+        border-inline: 0;
+        border-radius: 0;
+    }
+    .evidence-command-head {
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        min-width: 0;
+    }
+    .evidence-command-track {
+        margin-inline: -2px;
+        padding-inline: 2px;
+    }
+    .evidence-command-chip,
+    .evidence-command-link {
+        min-height: 42px;
+    }
     .topic-summary {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));

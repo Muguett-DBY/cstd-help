@@ -613,6 +613,27 @@ def _find_evidence_field_audit_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_evidence_command_bar_issues(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    issues = []
+    required_fragments = (
+        "data-evidence-command-bar",
+        "evidence-command-bar",
+        "证据指挥台",
+        "evidence-command-chip",
+        "evidence-command-link",
+        'href="#evidence-field-audit"',
+    )
+    for page_name in ("index.html", "practice-plan.html"):
+        page_path = public_dir / page_name
+        if not page_path.exists():
+            continue
+        page_text = page_path.read_text(encoding="utf-8")
+        if any(fragment not in page_text for fragment in required_fragments):
+            issues.append(f"{page_name} -> missing evidence command bar")
+    return issues
+
+
 def _find_report_source_provenance_issues(public_dir=PUBLIC_DIR):
     public_dir = Path(public_dir)
     issues = []
@@ -961,6 +982,11 @@ def main():
     if evidence_field_audit_issues:
         preview = "; ".join(evidence_field_audit_issues[:10])
         raise SystemExit(f"public evidence field audit summary is incomplete: {preview}")
+
+    evidence_command_bar_issues = _find_evidence_command_bar_issues(PUBLIC_DIR)
+    if evidence_command_bar_issues:
+        preview = "; ".join(evidence_command_bar_issues[:10])
+        raise SystemExit(f"public evidence command bar is incomplete: {preview}")
 
     report_source_issues = _find_report_source_provenance_issues(PUBLIC_DIR)
     if report_source_issues:
