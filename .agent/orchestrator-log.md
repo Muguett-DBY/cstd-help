@@ -2213,4 +2213,11 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
-- Pending: commit, push, GitHub Actions, live custom-domain acceptance, then Stage 2 UIUX.
+- Stage commit: `feat: audit cached evidence fields` (`7141f57`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28497287383`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned `evidence_field_audit.status=tracked`, `payload_match_count=18`, `field_count=8`, `complete_field_count=7`, `partial_field_count=1`, and `missing_field_count=0`.
+  - `index.html` and `practice-plan.html` both returned 200 and rendered `实证字段覆盖`.
+- Remaining risk: one match lacks STRATZ position samples, so position-based death/pathing attribution is explicitly partial at 17/18 instead of hidden.
+- Next stage: Stage 2 UIUX should make the denser evidence/coverage surface easier to scan on the first visit and on mobile.

@@ -1002,4 +1002,7 @@
 - Current public build evidence: 18/18 reports have cached payloads; 7/8 key field classes are complete, 1/8 is partial (`位置采样` 17/18), and 0/8 are fully missing.
 - Stability gain: `scripts/check_public_site.py` now rejects missing or inconsistent evidence-field audit summaries and panels.
 - Verification: target red/green tests, 108 full unit tests, compileall, public-site validator, gitleaks, diff check, forbidden-file check, and Chrome desktop/mobile QA passed.
-- Pending: commit, push, GitHub Actions, live custom-domain acceptance, then Stage 2 UIUX.
+- Stage commit: `feat: audit cached evidence fields` (`7141f57`).
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28497287383`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment succeeded.
+- Production acceptance: live `dota.custard.top` serves `evidence_field_audit.status=tracked`, 18/18 cached payloads, 7/8 complete field classes, 1/8 partial, 0 missing; history and practice pages both render `实证字段覆盖`.
+- Next stage: Stage 2 UIUX should improve first-glance readability/interaction around the now denser coverage surface.
