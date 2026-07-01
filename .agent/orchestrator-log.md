@@ -2247,4 +2247,18 @@ Started: 2026-06-28
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Stage commit: `feat: add evidence command bar` (`0a28386`).
+- Pushed to main: yes.
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28497780052`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment succeeded.
+- Production acceptance:
+  - `site-manifest.json` returned 18 reports, `evidence_field_audit.status=tracked`, 7 complete field classes, 1 partial field class, and 0 missing field classes.
+  - `index.html` and `practice-plan.html` both returned 200 and rendered `证据指挥台`, `#evidence-field-audit`, and `Legion Commander #8870219537`.
 - Remaining risk: the command bar improves first-glance navigation and scanability; it does not add new match evidence beyond the Stage 1 cached-field audit.
+
+## 2026-07-01 - Short Cycle 1 Final
+
+- Completed both requested stages on `main`, with implementation, tests, browser QA, pushes, GitHub Actions checks, and live Cloudflare Pages acceptance.
+- Stage 1 IMPROVE: converted the cached-field limitation into a real STRATZ/OpenDota evidence-field audit rendered on the history and practice pages.
+- Stage 2 UIUX: added the first-screen evidence command bar and stable field-audit anchor so the denser evidence surface is immediately scannable and navigable.
+- Final production state: `dota.custard.top` serves 18 reports; entry pages show `证据指挥台`, `实证字段覆盖`, 7/8 complete evidence-field classes, 1/8 partial, 0 missing, and the latest report link `Legion Commander #8870219537`.
+- Final residual risk: one cached match still lacks STRATZ position samples, so position-based pathing attribution remains explicitly partial instead of hidden.

@@ -1023,4 +1023,21 @@
   - `gitleaks dir . --redact`: passed, no leaks found.
   - `git diff --check`: passed.
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Stage commit: `feat: add evidence command bar` (`0a28386`).
+- GitHub Actions / CI: passed, `Deploy Cloudflare Pages` run `28497780052`; unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment succeeded.
+- Production acceptance: live `dota.custard.top` returns 200 for `site-manifest.json`, `index.html`, and `practice-plan.html`; both entry pages render `证据指挥台`, the `#evidence-field-audit` anchor link, and latest report quick link `Legion Commander #8870219537`.
 - Risk: this stage improves navigation and scanability over existing evidence; it does not add new external match evidence.
+
+## 2026-07-01 - Short Cycle 1 Final
+
+- Completed: both requested stages are implemented, tested, pushed, CI-passed, and live on `dota.custard.top`.
+- Current live gain: the site now exposes real cached STRATZ/OpenDota evidence-field coverage and gives a first-screen command bar for latest report, match brief, field audit, and coverage JSON.
+- Final verification set:
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 109 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: no leaks found.
+  - `git diff --check`: passed.
+  - Browser QA: index and practice pages passed desktop 1280x720 and mobile 390x844 checks with no console/page errors or horizontal overflow.
+- Production acceptance: custom domain serves 18 reports, `evidence_field_audit.status=tracked`, 7/8 complete field classes, 1/8 partial (`位置采样`), 0 missing, and both entry pages render `证据指挥台`.
+- Residual risk: position-sample coverage remains partial for 1 cached match; this is now visible as a data limitation rather than hidden in the report.
