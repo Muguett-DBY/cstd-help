@@ -610,6 +610,11 @@ def _find_evidence_field_audit_issues(public_dir=PUBLIC_DIR):
         mismatches.append("payload_match_count exceeds report_count")
     if mismatches:
         issues.append("site-manifest.json -> inconsistent evidence field audit summary: " + "; ".join(mismatches))
+    elif audit.get("partial_field_count") or audit.get("missing_field_count"):
+        issues.append(
+            "site-manifest.json -> evidence field coverage is incomplete: "
+            f"partial {audit.get('partial_field_count')}, missing {audit.get('missing_field_count')}"
+        )
     return issues
 
 
@@ -744,6 +749,10 @@ def _find_report_evidence_completeness_issues(public_dir=PUBLIC_DIR):
         ]
         if mismatches:
             issues.append(f"{report.name} -> evidence completeness mismatch: " + "; ".join(mismatches))
+        elif attrs.get("missing", 0) > 0:
+            issues.append(
+                f"{report.name} -> report evidence still has {attrs['missing']} missing classes"
+            )
     return issues
 
 

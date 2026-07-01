@@ -397,7 +397,7 @@ EVIDENCE_FIELD_SPECS = (
     {
         "key": "position_samples",
         "label": "位置采样",
-        "source": "STRATZ playerUpdatePositionEvents",
+        "source": "STRATZ playerUpdatePositionEvents 或 OpenDota teamfight deaths_pos",
         "supports": "死亡位置、重复危险区域、撤退边界",
     },
     {
@@ -510,16 +510,24 @@ def _find_payload_player(payload, report):
     players = _payload_players(payload)
     if not players:
         return {}
-    for player in players:
+    for index, player in enumerate(players):
         if PLAYER_ACCOUNT_ID in _player_identifier_values(player):
-            return player
+            item = dict(player)
+            item["_player_index"] = index
+            return item
     hero_id = report.get("hero_id")
     if hero_id not in (None, ""):
         hero_value = str(hero_id)
-        for player in players:
+        for index, player in enumerate(players):
             if hero_value in _player_hero_values(player):
-                return player
-    return players[0] if isinstance(players[0], dict) else {}
+                item = dict(player)
+                item["_player_index"] = index
+                return item
+    if isinstance(players[0], dict):
+        item = dict(players[0])
+        item["_player_index"] = 0
+        return item
+    return {}
 
 
 def _playback(player):
@@ -537,6 +545,22 @@ def _payload_has_any(payload, keys):
     if not isinstance(payload, dict):
         return False
     return any(_nonempty(payload.get(key)) for key in keys)
+
+
+def _opendota_has_teamfight_death_positions(opendota_payload, opendota_player):
+    if not isinstance(opendota_payload, dict) or not isinstance(opendota_player, dict):
+        return False
+    player_index = opendota_player.get("_player_index")
+    if not isinstance(player_index, int):
+        return False
+    for fight in opendota_payload.get("teamfights") or []:
+        players = fight.get("players") or []
+        if player_index >= len(players):
+            continue
+        player_fight = players[player_index] or {}
+        if _nonempty(player_fight.get("deaths_pos")):
+            return True
+    return False
 
 
 def _has_evidence_field(field_key, stratz_player, opendota_player, stratz_payload, opendota_payload):
@@ -559,7 +583,10 @@ def _has_evidence_field(field_key, stratz_player, opendota_player, stratz_payloa
             ("purchase_log", "purchase_time", "first_purchase_time"),
         )
     if field_key == "position_samples":
-        return _nonempty(playback.get("playerUpdatePositionEvents"))
+        return (
+            _nonempty(playback.get("playerUpdatePositionEvents"))
+            or _opendota_has_teamfight_death_positions(opendota_payload, opendota_player)
+        )
     if field_key == "combat_events":
         return (
             _player_has_any(playback, ("killEvents", "assistEvents"))
