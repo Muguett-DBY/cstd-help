@@ -62,6 +62,27 @@ REQUIRED_SOURCE_FRESHNESS_FIELDS = [
     "latest_external_fetch_at",
     "limitation",
 ]
+REQUIRED_EVIDENCE_FIELD_AUDIT_FIELDS = [
+    "status",
+    "basis",
+    "report_count",
+    "payload_match_count",
+    "field_count",
+    "complete_field_count",
+    "partial_field_count",
+    "missing_field_count",
+    "fields",
+    "limitation",
+]
+REQUIRED_EVIDENCE_FIELD_KEYS = [
+    "key",
+    "label",
+    "source",
+    "supports",
+    "coverage_count",
+    "coverage_ratio",
+    "status",
+]
 REQUIRED_REPORT_SOURCE_PROVENANCE_TEXT = [
     "证据时间",
     "report-context-deck",
@@ -513,6 +534,85 @@ def _find_source_freshness_issues(public_dir=PUBLIC_DIR):
     return issues
 
 
+def _find_evidence_field_audit_issues(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    issues = []
+    for page_name in ("index.html", "practice-plan.html"):
+        page_path = public_dir / page_name
+        if not page_path.exists():
+            continue
+        page_text = page_path.read_text(encoding="utf-8")
+        if "实证字段覆盖" not in page_text or "data-evidence-field-audit-panel" not in page_text:
+            issues.append(f"{page_name} -> missing evidence field audit panel")
+
+    manifest_path = public_dir / "site-manifest.json"
+    if not manifest_path.exists():
+        return issues
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        manifest = {}
+    audit = manifest.get("evidence_field_audit") if isinstance(manifest, dict) else None
+    if not isinstance(audit, dict):
+        issues.append("site-manifest.json -> missing evidence field audit summary")
+        return issues
+
+    missing_fields = [
+        field for field in REQUIRED_EVIDENCE_FIELD_AUDIT_FIELDS
+        if field not in audit
+    ]
+    if missing_fields:
+        issues.append("site-manifest.json -> missing evidence field audit fields: " + ", ".join(missing_fields))
+        return issues
+
+    report_count = manifest.get("report_count")
+    fields = audit.get("fields")
+    mismatches = []
+    if audit.get("status") not in {"tracked", "partial", "untracked"}:
+        mismatches.append(f"status invalid {audit.get('status')}")
+    if isinstance(report_count, int) and audit.get("report_count") != report_count:
+        mismatches.append(f"report_count expected {report_count} got {audit.get('report_count')}")
+    if not isinstance(fields, list):
+        mismatches.append("fields is not a list")
+        fields = []
+    if audit.get("field_count") != len(fields):
+        mismatches.append(f"field_count expected {len(fields)} got {audit.get('field_count')}")
+    status_counts = {"complete": 0, "partial": 0, "missing": 0}
+    for field in fields:
+        if not isinstance(field, dict):
+            mismatches.append("field entry is not an object")
+            continue
+        missing_keys = [key for key in REQUIRED_EVIDENCE_FIELD_KEYS if key not in field]
+        if missing_keys:
+            mismatches.append(f"{field.get('key') or 'unknown'} missing keys: {', '.join(missing_keys)}")
+            continue
+        status = field.get("status")
+        if status not in status_counts:
+            mismatches.append(f"{field.get('key')} status invalid {status}")
+        else:
+            status_counts[status] += 1
+        coverage = field.get("coverage_count")
+        if not isinstance(coverage, int) or coverage < 0:
+            mismatches.append(f"{field.get('key')} coverage_count invalid {coverage}")
+        elif isinstance(report_count, int) and coverage > report_count:
+            mismatches.append(f"{field.get('key')} coverage_count exceeds report_count")
+    for field_name, status_name in (
+        ("complete_field_count", "complete"),
+        ("partial_field_count", "partial"),
+        ("missing_field_count", "missing"),
+    ):
+        if audit.get(field_name) != status_counts[status_name]:
+            mismatches.append(f"{field_name} expected {status_counts[status_name]} got {audit.get(field_name)}")
+    payload_count = audit.get("payload_match_count")
+    if not isinstance(payload_count, int) or payload_count < 0:
+        mismatches.append(f"payload_match_count invalid {payload_count}")
+    elif isinstance(report_count, int) and payload_count > report_count:
+        mismatches.append("payload_match_count exceeds report_count")
+    if mismatches:
+        issues.append("site-manifest.json -> inconsistent evidence field audit summary: " + "; ".join(mismatches))
+    return issues
+
+
 def _find_report_source_provenance_issues(public_dir=PUBLIC_DIR):
     public_dir = Path(public_dir)
     issues = []
@@ -856,6 +956,11 @@ def main():
     if source_freshness_issues:
         preview = "; ".join(source_freshness_issues[:10])
         raise SystemExit(f"public source freshness summary is incomplete: {preview}")
+
+    evidence_field_audit_issues = _find_evidence_field_audit_issues(PUBLIC_DIR)
+    if evidence_field_audit_issues:
+        preview = "; ".join(evidence_field_audit_issues[:10])
+        raise SystemExit(f"public evidence field audit summary is incomplete: {preview}")
 
     report_source_issues = _find_report_source_provenance_issues(PUBLIC_DIR)
     if report_source_issues:
