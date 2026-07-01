@@ -784,6 +784,7 @@ def _build_opendota_performance_context(opendota_player, duration_seconds=0, dea
 def _event_source_label(source):
     labels = {
         "opendota_parsed_logs": "OpenDota解析日志",
+        "opendota_death_positions": "OpenDota团战死亡坐标",
         "opendota_objectives": "OpenDota目标事件",
         "opendota_teamfights": "OpenDota团战事件",
         "opendota_vision": "OpenDota视野事件",
@@ -940,6 +941,11 @@ def _normalize_opendota_timed_events(events):
 
 
 def _clean_position_value(value):
+    if isinstance(value, str):
+        try:
+            value = float(value)
+        except ValueError:
+            return None
     if not isinstance(value, (int, float)):
         return None
     return int(value) if float(value).is_integer() else round(value, 1)
@@ -961,6 +967,66 @@ def _normalize_position_events(events, source="stratz"):
             "x": x,
             "y": y,
             "source": source,
+        })
+    return sorted(normalized, key=lambda item: item["time"])
+
+
+def _flatten_opendota_deaths_pos(deaths_pos):
+    positions = []
+    if not isinstance(deaths_pos, dict):
+        return positions
+    for raw_x, y_values in deaths_pos.items():
+        x = _clean_position_value(raw_x)
+        if x is None:
+            continue
+        iterable = y_values.items() if isinstance(y_values, dict) else [(y_values, 1)]
+        for raw_y, raw_count in iterable:
+            y = _clean_position_value(raw_y)
+            if y is None:
+                continue
+            try:
+                count = max(int(raw_count), 1)
+            except (TypeError, ValueError):
+                count = 1
+            positions.extend({"x": x, "y": y} for _ in range(count))
+    return positions
+
+
+def _normalize_opendota_death_position_events(opendota_data, opendota_player):
+    if not opendota_data or not opendota_player:
+        return []
+    player_index = opendota_player.get("_player_index")
+    if player_index is None:
+        return []
+    normalized = []
+    for fight in opendota_data.get("teamfights") or []:
+        players = fight.get("players") or []
+        if not isinstance(player_index, int) or player_index < 0 or player_index >= len(players):
+            continue
+        player_fight = players[player_index] or {}
+        positions = _flatten_opendota_deaths_pos(player_fight.get("deaths_pos"))
+        player_death_count = player_fight.get("deaths")
+        if len(positions) != 1 or (
+            isinstance(player_death_count, (int, float)) and int(player_death_count) != 1
+        ):
+            continue
+        fight_start = fight.get("start")
+        fight_end = fight.get("end")
+        if not isinstance(fight_start, (int, float)) or not isinstance(fight_end, (int, float)):
+            continue
+        event_time = fight.get("last_death") or fight.get("end") or fight.get("start")
+        if not isinstance(event_time, (int, float)):
+            continue
+        position = positions[0]
+        normalized.append({
+            "time": event_time,
+            "minute": round(event_time / 60, 1),
+            "fight_start": fight_start,
+            "fight_end": fight_end,
+            "x": position["x"],
+            "y": position["y"],
+            "source": "opendota_death_positions",
+            "direct_death_position": True,
         })
     return sorted(normalized, key=lambda item: item["time"])
 
@@ -996,6 +1062,40 @@ def _attach_position_samples_to_deaths(deaths, position_events, max_age_seconds=
             item["position_sample_age_seconds"] = age
             item["position_label"] = _death_position_label(position, age)
         enriched.append(item)
+    return enriched
+
+
+def _attach_direct_death_positions_to_deaths(deaths, position_events):
+    if not deaths or not position_events:
+        return deaths
+    enriched = [dict(death) for death in deaths]
+    used_deaths = set()
+    for sample in position_events:
+        fight_start = sample.get("fight_start")
+        fight_end = sample.get("fight_end")
+        if not isinstance(fight_start, (int, float)) or not isinstance(fight_end, (int, float)):
+            continue
+        candidates = []
+        for index, item in enumerate(enriched):
+            if index in used_deaths or item.get("position"):
+                continue
+            death_time = item.get("time")
+            if not isinstance(death_time, (int, float)):
+                continue
+            if fight_start <= death_time <= fight_end:
+                candidates.append((index, item))
+        if len(candidates) != 1:
+            continue
+        death_index, item = candidates[0]
+        used_deaths.add(death_index)
+        death_time = item["time"]
+        position = {"x": sample["x"], "y": sample["y"]}
+        item["position"] = position
+        item["position_source"] = sample.get("source")
+        item["position_sample_time"] = sample.get("time")
+        item["position_sample_delta_seconds"] = int(round(sample["time"] - death_time))
+        item["position_sample_age_seconds"] = 0
+        item["position_label"] = _death_position_label(position, 0)
     return enriched
 
 
@@ -1112,6 +1212,50 @@ def _normalize_opendota_vision_events(events, ward_type):
     return sorted(normalized, key=lambda item: item["time"])
 
 
+VISION_SUMMARY_KEYS = (
+    "obs_placed",
+    "sen_placed",
+    "observer_kills",
+    "sentry_kills",
+    "observer_uses",
+    "sentry_uses",
+)
+
+
+def _build_opendota_vision_summary(opendota_player):
+    if not isinstance(opendota_player, dict):
+        return {"available": False}
+
+    summary = {
+        "available": any(key in opendota_player for key in VISION_SUMMARY_KEYS),
+    }
+    for key in VISION_SUMMARY_KEYS:
+        value = opendota_player.get(key)
+        summary[key] = int(value) if isinstance(value, (int, float)) else None
+    summary["placed_total"] = sum(
+        value or 0 for value in (summary.get("obs_placed"), summary.get("sen_placed"))
+    )
+    summary["kill_total"] = sum(
+        value or 0 for value in (summary.get("observer_kills"), summary.get("sentry_kills"))
+    )
+    return summary
+
+
+def _vision_coverage_label(events):
+    vision_events = events.get("vision_events") or []
+    vision_summary = events.get("vision_summary") or {}
+    if not events.get("has_vision_log"):
+        return "未获取插眼/排眼事件"
+
+    parts = []
+    if vision_events:
+        parts.append(f"{len(vision_events)}条插眼事件")
+    if vision_summary.get("available"):
+        parts.append(f"插眼{vision_summary.get('placed_total') or 0}个")
+        parts.append(f"排眼{vision_summary.get('kill_total') or 0}个")
+    return "；".join(parts) if parts else "OpenDota已解析，个人视野事件0条"
+
+
 KEY_ITEM_IDS = {65, 116, 135, 139, 145, 147, 160, 208}
 KEY_ITEM_NAMES = {
     "Battle Fury",
@@ -1186,7 +1330,6 @@ def _extract_deaths_from_teamfights(opendota_data, opendota_player):
                 "time": event_time,
                 "minute": round(event_time / 60, 1),
                 "source": "opendota_teamfights",
-                "position": player_fight.get("deaths_pos") or {},
             })
     return sorted(deaths, key=lambda item: item["time"])
 
@@ -1410,7 +1553,11 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     stratz_deaths = _normalize_timed_events(playback.get("deathEvents"), source="stratz")
     stratz_kills = _normalize_timed_events(playback.get("killEvents"), source="stratz")
     stratz_assists = _normalize_timed_events(playback.get("assistEvents"), source="stratz")
-    stratz_positions = _normalize_position_events(playback.get("playerUpdatePositionEvents"), source="stratz")
+    stratz_positions = _normalize_position_events(
+        playback.get("playerUpdatePositionEvents"),
+        source="stratz_position_samples",
+    )
+    opendota_death_positions = []
 
     opendota_purchases = []
     opendota_deaths = []
@@ -1419,6 +1566,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     opendota_assists = []
     opendota_observer_wards = []
     opendota_sentry_wards = []
+    vision_summary = {"available": False}
     valve_replay_deaths = _normalize_timed_events(
         (opendota_data or {}).get("replay_death_events"),
         source="valve_replay",
@@ -1431,8 +1579,10 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         opendota_assists = _normalize_opendota_timed_events(
             opendota_player.get("assists_log") or opendota_player.get("assist_log")
         )
+        opendota_death_positions = _normalize_opendota_death_position_events(opendota_data, opendota_player)
         opendota_observer_wards = _normalize_opendota_vision_events(opendota_player.get("obs_log"), "observer")
         opendota_sentry_wards = _normalize_opendota_vision_events(opendota_player.get("sen_log"), "sentry")
+        vision_summary = _build_opendota_vision_summary(opendota_player)
 
     source_parts = set()
     objectives = _normalize_opendota_objectives(opendota_data, opendota_player)
@@ -1469,12 +1619,18 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     else:
         deaths = []
     deaths = _attach_position_samples_to_deaths(deaths, stratz_positions)
+    deaths = _attach_direct_death_positions_to_deaths(deaths, opendota_death_positions)
     death_position_count = len([item for item in deaths if item.get("position")])
     death_map_points = _build_death_map_points(deaths)
     death_position_clusters = _build_death_position_clusters(death_map_points)
     deaths = _annotate_death_position_cluster_members(deaths, death_position_clusters)
+    position_sources = sorted({
+        item.get("position_source")
+        for item in deaths
+        if item.get("position") and item.get("position_source")
+    })
     if death_position_count:
-        source_parts.add("stratz_position_samples")
+        source_parts.update(position_sources)
 
     kills = opendota_kills or stratz_kills
     kill_source = None
@@ -1495,8 +1651,9 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         source_parts.add("stratz_playback")
 
     vision_events = opendota_observer_wards + opendota_sentry_wards
+    has_vision_log = bool(vision_events) or bool(vision_summary.get("available"))
     vision_source = None
-    if vision_events:
+    if has_vision_log:
         vision_source = "opendota_vision"
         source_parts.add("opendota_vision")
 
@@ -1524,7 +1681,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         "source": source,
         "purchase_source": purchase_source,
         "death_source": death_source,
-        "position_source": "stratz_position_samples" if death_position_count else None,
+        "position_source": "+".join(position_sources) if position_sources else None,
         "fight_source": fight_source,
         "vision_source": vision_source,
         "purchases": purchases,
@@ -1537,7 +1694,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         "death_position_count": death_position_count,
         "death_map_points": death_map_points,
         "death_position_clusters": death_position_clusters,
-        "position_sample_count": len(stratz_positions),
+        "position_sample_count": len(stratz_positions) + len(opendota_death_positions),
         "has_death_positions": death_position_count > 0,
         "death_coverage_label": death_coverage_label,
         "death_gap_note": (
@@ -1549,18 +1706,19 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         "observer_wards": opendota_observer_wards,
         "sentry_wards": opendota_sentry_wards,
         "vision_events": sorted(vision_events, key=lambda item: item["time"]),
+        "vision_summary": vision_summary,
         "objective_source": "opendota_objectives" if objectives else None,
         "objectives": objectives,
         "objective_summary": objective_summary,
         "has_objective_log": bool(objectives),
         "has_purchase_timeline": bool(purchases),
         "has_fight_log": bool(deaths or kills or assists),
-        "has_vision_log": bool(vision_events),
+        "has_vision_log": has_vision_log,
         "missing": {
             "purchases": not bool(purchases),
             "deaths": not bool(deaths),
             "fights": not bool(deaths or kills or assists),
-            "vision": not bool(vision_events),
+            "vision": not has_vision_log,
         },
     }
 
@@ -2484,7 +2642,7 @@ def _build_evidence_sources(result):
         if observed_deaths else "本局没有已定位死亡"
     )
     fight_count = len(events.get("kills") or []) + len(events.get("assists") or [])
-    vision_count = len(events.get("vision_events") or [])
+    vision_coverage = _vision_coverage_label(events)
     objective_count = len(events.get("objectives") or [])
     benchmark_profile = result.get("opendota_benchmarks") or {}
     benchmark_count = (benchmark_profile.get("summary") or {}).get("metric_count", 0)
@@ -2557,8 +2715,8 @@ def _build_evidence_sources(result):
             "id": "vision_events",
             "label": "视野事件",
             "source": _event_source_label(events.get("vision_source")),
-            "coverage": f"{vision_count}条插眼事件" if vision_count else "未获取插眼事件",
-            "status": "available" if vision_count else "missing",
+            "coverage": vision_coverage,
+            "status": "available" if events.get("has_vision_log") else "missing",
         },
         {
             "id": "hero_benchmarks",
@@ -2643,7 +2801,9 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
     if has_fight_log:
         available.append("fight_log")
         if events.get("has_death_positions"):
-            available.append("stratz_position_samples")
+            for source in (events.get("position_source") or "").split("+"):
+                if source and source not in available:
+                    available.append(source)
         score += 7
     else:
         limitations.append("缺少团战/击杀日志，不能还原每次死亡和团战站位")

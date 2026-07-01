@@ -11,8 +11,8 @@
   "losses": 9,
   "death_review_workbench_report_count": 18,
   "death_recovery_window_report_count": 18,
-  "death_coordinate_map_report_count": 17,
-  "complete_death_review_report_count": 17,
+  "death_coordinate_map_report_count": 18,
+  "complete_death_review_report_count": 18,
   "quality_gate": {
     "status": "pass",
     "decision_snapshot_report_count": 18,
@@ -28,9 +28,9 @@
     "stratz_fetch_timestamp_report_count": 18,
     "opendota_fetch_timestamp_report_count": 18,
     "complete_source_timestamp_report_count": 18,
-    "latest_report_generated_at": "2026-06-30T21:21:58",
+    "latest_report_generated_at": "2026-07-01T17:16:58",
     "oldest_report_generated_at": "2026-06-30T21:21:54",
-    "latest_external_fetch_at": "2026-06-30T10:27:03Z",
+    "latest_external_fetch_at": "2026-07-01T07:16:53Z",
     "oldest_external_fetch_at": "2026-06-26T12:31:07Z",
     "limitation": "公开页展示的是已缓存证据的抓取时间；Cloudflare Pages 发布不会重新访问 STRATZ/OpenDota。"
   },
@@ -40,8 +40,8 @@
     "report_count": 18,
     "payload_match_count": 18,
     "field_count": 8,
-    "complete_field_count": 7,
-    "partial_field_count": 1,
+    "complete_field_count": 8,
+    "partial_field_count": 0,
     "missing_field_count": 0,
     "fields": [
       {
@@ -74,11 +74,11 @@
       {
         "key": "position_samples",
         "label": "位置采样",
-        "source": "STRATZ playerUpdatePositionEvents",
+        "source": "STRATZ playerUpdatePositionEvents 或 OpenDota teamfight deaths_pos",
         "supports": "死亡位置、重复危险区域、撤退边界",
-        "coverage_count": 17,
-        "coverage_ratio": 0.9444,
-        "status": "partial"
+        "coverage_count": 18,
+        "coverage_ratio": 1.0,
+        "status": "complete"
       },
       {
         "key": "combat_events",
@@ -175,12 +175,12 @@
       "oldest_external_fetch_at": "2026-06-28T05:56:44Z"
     },
     {
-      "file": "Rubick_8867351572_20260630_212156.html",
+      "file": "Rubick_8867351572_20260701_171658.html",
       "match_id": "8867351572",
-      "report_generated_at": "2026-06-30T21:21:56",
-      "stratz_fetched_at": "2026-06-30T10:26:27Z",
+      "report_generated_at": "2026-07-01T17:16:58",
+      "stratz_fetched_at": "2026-07-01T07:16:53Z",
       "opendota_fetched_at": "2026-06-28T05:56:07Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:27Z",
+      "latest_external_fetch_at": "2026-07-01T07:16:53Z",
       "oldest_external_fetch_at": "2026-06-28T05:56:07Z"
     },
     {
@@ -229,12 +229,12 @@
       "oldest_external_fetch_at": "2026-06-26T12:34:28Z"
     },
     {
-      "file": "Dawnbreaker_8866682981_20260630_212157.html",
+      "file": "Dawnbreaker_8866682981_20260701_171124.html",
       "match_id": "8866682981",
-      "report_generated_at": "2026-06-30T21:21:57",
-      "stratz_fetched_at": "2026-06-30T10:26:47Z",
+      "report_generated_at": "2026-07-01T17:11:24",
+      "stratz_fetched_at": "2026-07-01T07:11:16Z",
       "opendota_fetched_at": "2026-06-26T12:34:29Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:47Z",
+      "latest_external_fetch_at": "2026-07-01T07:11:16Z",
       "oldest_external_fetch_at": "2026-06-26T12:34:29Z"
     },
     {
@@ -247,21 +247,21 @@
       "oldest_external_fetch_at": "2026-06-26T12:34:30Z"
     },
     {
-      "file": "Doom_8866610277_20260630_212158.html",
+      "file": "Doom_8866610277_20260701_171135.html",
       "match_id": "8866610277",
-      "report_generated_at": "2026-06-30T21:21:58",
-      "stratz_fetched_at": "2026-06-30T10:26:53Z",
+      "report_generated_at": "2026-07-01T17:11:35",
+      "stratz_fetched_at": "2026-07-01T07:11:30Z",
       "opendota_fetched_at": "2026-06-26T12:34:54Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:53Z",
+      "latest_external_fetch_at": "2026-07-01T07:11:30Z",
       "oldest_external_fetch_at": "2026-06-26T12:34:54Z"
     },
     {
-      "file": "Anti-Mage_8866174845_20260630_212158.html",
+      "file": "Anti-Mage_8866174845_20260701_171109.html",
       "match_id": "8866174845",
-      "report_generated_at": "2026-06-30T21:21:58",
-      "stratz_fetched_at": "2026-06-30T10:26:56Z",
+      "report_generated_at": "2026-07-01T17:11:09",
+      "stratz_fetched_at": "2026-07-01T07:11:04Z",
       "opendota_fetched_at": "2026-06-26T12:31:07Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:56Z",
+      "latest_external_fetch_at": "2026-07-01T07:11:04Z",
       "oldest_external_fetch_at": "2026-06-26T12:31:07Z"
     },
     {
@@ -274,12 +274,12 @@
       "oldest_external_fetch_at": "2026-06-26T12:31:09Z"
     },
     {
-      "file": "Meepo_8865878802_20260630_212158.html",
+      "file": "Meepo_8865878802_20260701_171147.html",
       "match_id": "8865878802",
-      "report_generated_at": "2026-06-30T21:21:58",
-      "stratz_fetched_at": "2026-06-30T10:27:03Z",
+      "report_generated_at": "2026-07-01T17:11:47",
+      "stratz_fetched_at": "2026-07-01T07:11:42Z",
       "opendota_fetched_at": "2026-06-26T12:35:16Z",
-      "latest_external_fetch_at": "2026-06-30T10:27:03Z",
+      "latest_external_fetch_at": "2026-07-01T07:11:42Z",
       "oldest_external_fetch_at": "2026-06-26T12:35:16Z"
     }
   ],

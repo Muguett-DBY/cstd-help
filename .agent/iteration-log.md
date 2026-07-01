@@ -1041,3 +1041,24 @@
   - Browser QA: index and practice pages passed desktop 1280x720 and mobile 390x844 checks with no console/page errors or horizontal overflow.
 - Production acceptance: custom domain serves 18 reports, `evidence_field_audit.status=tracked`, 7/8 complete field classes, 1/8 partial (`位置采样`), 0 missing, and both entry pages render `证据指挥台`.
 - Residual risk: position-sample coverage remains partial for 1 cached match; this is now visible as a data limitation rather than hidden in the report.
+
+## 2026-07-01 - Evidence Risk Closure
+
+- Goal: remove the remaining actionable evidence risks without inventing match facts.
+- Root-cause fixes:
+  - Rubick `8867351572` had no STRATZ position samples, but OpenDota contained four real `teamfights[].players[].deaths_pos` coordinates. The analyzer now uses those coordinates only when the teamfight window has one unambiguous matching Valve death.
+  - Four reports treated explicit OpenDota zero-value vision summaries as missing because availability depended on non-empty ward logs. The analyzer now separates parsed availability from event count and reports real placed/ward-kill totals, including zero.
+- Integrity controls:
+  - Ambiguous multi-death/multi-coordinate OpenDota windows are rejected instead of assigned by proximity.
+  - Static validation now fails when any report has a missing evidence class or the site-level 8-field audit is partial/missing.
+- Public refresh: rebuilt 18 reports. Site audit is 8/8 complete, 0 partial, 0 missing; every report has `data-evidence-missing="0"`.
+- Source boundary: Rubick has 7/7 real death times and 4/7 real death coordinates. The other three coordinates are absent from public data and remain explicitly unlocated; no map location is inferred.
+- Verification:
+  - Red/green coverage added for OpenDota death coordinates, ambiguous coordinate rejection, explicit zero-value vision summaries, site-level incomplete field rejection, and per-report missing evidence rejection.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 115 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Chrome desktop 1280x720 and mobile 390x844: Rubick and Anti-Mage reports have no horizontal overflow or console errors; hero-first titles, 0 missing evidence, real vision totals, and four Rubick coordinates render correctly.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.

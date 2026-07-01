@@ -985,6 +985,120 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(sources["death_positions"]["coverage"], "覆盖 2/2 次已定位死亡")
         self.assertEqual(sources["fight_events"]["source"], "STRATZ回放事件")
 
+    def test_opendota_teamfight_death_positions_attach_to_valve_deaths(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        match["player_slot"] = 1
+        opendota_data = {
+            "replay_death_events": [
+                {"time": 930, "targetname": "npc_dota_hero_antimage"},
+                {"time": 1540, "targetname": "npc_dota_hero_antimage"},
+            ],
+            "players": [
+                {"account_id": 1, "hero_id": 2, "player_slot": 0},
+                {
+                    "account_id": 173776719,
+                    "hero_id": 1,
+                    "player_slot": 1,
+                    "purchase_log": [{"time": 760, "key": "bfury"}],
+                    "lh_t": [0, 5, 10, 16, 22, 28, 34, 40, 46, 52, 58],
+                    "gold_t": [0, 300, 650, 980, 1320, 1660, 2020, 2380, 2740, 3100, 3500],
+                },
+            ],
+            "teamfights": [
+                {
+                    "start": 900,
+                    "end": 960,
+                    "last_death": 948,
+                    "players": [
+                        {"deaths": 0, "deaths_pos": {}},
+                        {"deaths": 1, "deaths_pos": {"120": {"140": 1}}},
+                    ],
+                }
+            ],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        sources = {
+            item["id"]: item
+            for item in result["data_quality"]["evidence_sources"]
+        }
+
+        self.assertEqual(result["events"]["death_count_observed"], 2)
+        self.assertEqual(result["events"]["death_position_count"], 1)
+        self.assertEqual(result["events"]["deaths"][0]["position"], {"x": 120, "y": 140})
+        self.assertEqual(result["events"]["deaths"][0]["position_source"], "opendota_death_positions")
+        self.assertEqual(sources["death_positions"]["source"], "OpenDota团战死亡坐标")
+        self.assertEqual(sources["death_positions"]["coverage"], "覆盖 1/2 次已定位死亡")
+        self.assertEqual(sources["death_positions"]["status"], "partial")
+        death_finding = next(f for f in result["review_findings"] if f["category"] == "death_review")
+        self.assertIn("x=120,y=140", death_finding["evidence"])
+
+    def test_ambiguous_opendota_teamfight_positions_are_not_assigned(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        opendota_data = {
+            "replay_death_events": [{"time": 930}, {"time": 950}],
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "purchase_log": [{"time": 760, "key": "bfury"}],
+                "lh_t": [0, 5, 10, 16, 22, 28, 34, 40, 46, 52, 58],
+                "gold_t": [0, 300, 650, 980, 1320, 1660, 2020, 2380, 2740, 3100, 3500],
+            }],
+            "teamfights": [{
+                "start": 900,
+                "end": 960,
+                "last_death": 950,
+                "players": [{
+                    "deaths": 2,
+                    "deaths_pos": {"120": {"140": 1}, "130": {"150": 1}},
+                }],
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+
+        self.assertEqual(result["events"]["death_count_observed"], 2)
+        self.assertEqual(result["events"]["death_position_count"], 0)
+        self.assertTrue(all(not item.get("position") for item in result["events"]["deaths"]))
+
+    def test_zero_opendota_vision_counts_are_available_evidence(self):
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "purchase_log": [{"time": 760, "key": "bfury"}],
+                "lh_t": [0, 5, 10, 16, 22, 28, 34, 40, 46, 52, 58],
+                "gold_t": [0, 300, 650, 980, 1320, 1660, 2020, 2380, 2740, 3100, 3500],
+                "obs_log": [],
+                "sen_log": [],
+                "obs_left_log": [],
+                "sen_left_log": [],
+                "obs_placed": 0,
+                "sen_placed": 0,
+                "observer_kills": 0,
+                "sentry_kills": 0,
+                "observer_uses": 0,
+                "sentry_uses": 0,
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        sources = {
+            item["id"]: item
+            for item in result["data_quality"]["evidence_sources"]
+        }
+
+        self.assertTrue(result["events"]["has_vision_log"])
+        self.assertEqual(sources["vision_events"]["source"], "OpenDota视野事件")
+        self.assertEqual(sources["vision_events"]["status"], "available")
+        self.assertIn("插眼0个", sources["vision_events"]["coverage"])
+        self.assertIn("排眼0个", sources["vision_events"]["coverage"])
+
     def test_generated_report_shows_evidence_source_coverage(self):
         from report.generator import generate_report
         import report.generator as generator

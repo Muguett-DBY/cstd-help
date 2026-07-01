@@ -255,6 +255,82 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_rejects_incomplete_evidence_field_coverage(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            panel = '<html><body><section data-evidence-field-audit-panel>实证字段覆盖</section></body></html>'
+            (public_path / "index.html").write_text(panel, encoding="utf-8")
+            (public_path / "practice-plan.html").write_text(panel, encoding="utf-8")
+            audit = {
+                "status": "tracked",
+                "basis": "fixture",
+                "report_count": 2,
+                "payload_match_count": 2,
+                "field_count": 1,
+                "complete_field_count": 0,
+                "partial_field_count": 1,
+                "missing_field_count": 0,
+                "fields": [{
+                    "key": "position_samples",
+                    "label": "位置采样",
+                    "source": "fixture",
+                    "supports": "死亡位置",
+                    "coverage_count": 1,
+                    "coverage_ratio": 0.5,
+                    "status": "partial",
+                }],
+                "limitation": "fixture",
+            }
+            (public_path / "site-manifest.json").write_text(
+                json.dumps({"report_count": 2, "evidence_field_audit": audit}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            issues = check_public_site._find_evidence_field_audit_issues(public_path)
+
+        self.assertEqual(
+            issues,
+            ["site-manifest.json -> evidence field coverage is incomplete: partial 1, missing 0"],
+        )
+
+    def test_evidence_field_audit_counts_opendota_teamfight_death_positions(self):
+        reports = [{
+            "match_id": "8867002237",
+            "hero_id": 9,
+            "hero": "Mirana",
+            "file": "Mirana_8867002237.html",
+        }]
+        evidence_payloads = {
+            "8867002237": {
+                "stratz": {
+                    "players": [{
+                        "steamAccount": {"id": 173776719},
+                        "hero": {"id": 9},
+                        "playbackData": {"deathEvents": [{"time": 948}]},
+                    }]
+                },
+                "opendota": {
+                    "players": [
+                        {"account_id": 173776719, "hero_id": 9, "player_slot": 0},
+                    ],
+                    "teamfights": [{
+                        "start": 920,
+                        "end": 960,
+                        "last_death": 948,
+                        "players": [
+                            {"deaths": 1, "deaths_pos": {"120": {"140": 1}}},
+                        ],
+                    }],
+                },
+            }
+        }
+
+        audit = pages_site._build_evidence_field_audit(reports, evidence_payloads)
+        fields = {item["key"]: item for item in audit["fields"]}
+
+        self.assertEqual(fields["position_samples"]["coverage_count"], 1)
+        self.assertEqual(fields["position_samples"]["status"], "complete")
+
     def test_static_site_checker_detects_missing_evidence_command_bar(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
@@ -393,6 +469,33 @@ class BuildPagesSiteTests(unittest.TestCase):
                 "Mirana_8867002237.html -> source provenance must be collapsed by default",
                 "Mirana_8867002237.html -> evidence completeness details must be collapsed by default",
             ],
+        )
+
+    def test_static_site_checker_rejects_report_missing_evidence_classes(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Doom_8867002240.html").write_text(
+                '<html><head><title>Doom 复盘报告</title></head><body>'
+                '<div class="evidence-source-list">'
+                '<div class="evidence-source-row missing"><div class="evidence-source-name">视野事件</div></div>'
+                '</div>'
+                '<section class="report-evidence-completeness" data-report-evidence-completeness '
+                'data-evidence-total="1" data-evidence-complete="0" data-evidence-usable="0" '
+                'data-evidence-partial="0" data-evidence-missing="1">'
+                '<div class="evidence-completeness-summary">本局证据完整度</div>'
+                '<div class="evidence-completeness-guidance"><strong>执行信号</strong>'
+                '<span>存在缺失证据类。</span></div>'
+                '<span class="evidence-completeness-chip missing">视野事件</span>'
+                '</section>'
+                '</body></html>',
+                encoding="utf-8",
+            )
+
+            issues = check_public_site._find_report_evidence_completeness_issues(public_path)
+
+        self.assertEqual(
+            issues,
+            ["Doom_8867002240.html -> report evidence still has 1 missing classes"],
         )
 
     def test_static_site_checker_detects_missing_evidence_execution_guidance(self):
