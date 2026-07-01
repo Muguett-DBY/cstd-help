@@ -2146,3 +2146,24 @@ Started: 2026-06-28
   - `git diff --check`: passed.
   - Browser QA passed index and practice-plan at 1280x720 and 390x844 with source-freshness panel visible, no console messages, and no horizontal overflow.
 - Pending: commit, push, GitHub Actions, custom-domain acceptance, and Stage 1 closeout log.
+
+## 2026-07-01 - Long Cycle 7 Stage 6 IMPROVE - Local Complete
+
+- Stage: 6 / 6.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Goal: make the report header evidence completeness card immediately tell the player whether the next-match action list is directly executable or bounded by data gaps.
+- Completed: added deterministic `执行信号：` guidance to every per-report evidence completeness card, with wording derived only from evidence-source complete/partial/missing counts.
+- User-visible gain: latest `Legion_Commander_8870219537_20260630_212154.html` shows `10/10 类完整`, 10 evidence chips, and `执行信号：本局建议由完整证据支撑，可直接按行动清单执行并复核。`
+- Static validation: `scripts/check_public_site.py` now fails reports that render evidence completeness without the execution signal.
+- Public refresh: rebuilt all 18 reports into `public/`.
+- Browser verification: system Chrome passed desktop 1280x720 and mobile 390x844 checks on the latest report; mobile decision card remains inside the first viewport, evidence details are collapsed by default, expanded details have 10 rows, console/page errors are clean, and no horizontal overflow appears.
+- Local verification:
+  - New execution-signal tests failed before implementation and pass now.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 107 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 reports.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and final closeout log.

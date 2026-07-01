@@ -960,3 +960,21 @@
 - Verification: 106 tests, compileall, static validation, gitleaks, diff check, forbidden-file check, GitHub Actions run `28459840182`, and live custom-domain checks passed.
 - Risk: static checks enforce DOM structure, while exact pixel first-screen height still depends on browser QA for major UI changes.
 - Recommended next direction: Stage 6 IMPROVE should add a small user-facing final increment that turns this evidence completeness into a clearer next-match trust/limitation signal without adding new inference.
+
+## 2026-07-01 - Long Cycle 7 Stage 6 IMPROVE
+
+- Goal: turn the per-match evidence completeness card into a clearer next-match execution/trust signal without inventing new coaching evidence.
+- Completed: each report evidence card now shows `执行信号：` derived only from complete/partial/missing evidence counts. Complete matches say the action list can be executed and checked against its success metric; partial/missing matches explicitly keep attribution inside available evidence, with missing evidence not used as match causality.
+- Stability gain: `scripts/check_public_site.py` now rejects reports that have an evidence completeness card but lack the execution signal.
+- Public refresh: rebuilt all 18 reports into `public/`; latest Legion Commander shows `10/10 类完整`, 10 evidence chips, and `执行信号：本局建议由完整证据支撑，可直接按行动清单执行并复核。`
+- Browser verification: system Chrome passed desktop 1280x720 and mobile 390x844 report checks. Mobile decision card still begins in the first viewport at 834px, the evidence details are collapsed by default, details expansion has 10 rows, console/page errors are clean, and no horizontal overflow appears.
+- Local verification:
+  - New execution-signal tests failed before implementation, then passed.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 107 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Risk: the signal explains how to trust existing rendered evidence; it does not add new evidence fields or certify live API freshness beyond the source-time panel.
+- Pending: commit, push, GitHub Actions, custom-domain acceptance, and final closeout log.

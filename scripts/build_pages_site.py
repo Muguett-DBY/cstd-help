@@ -2003,12 +2003,23 @@ def _evidence_status_label(status):
     }.get(status, "待确认")
 
 
+def _evidence_execution_guidance(counts):
+    if counts["total"] <= 0:
+        return ("执行信号：", "证据覆盖未记录，先确认本局数据完整性。")
+    if counts["missing"] == 0 and counts["partial"] == 0:
+        return ("执行信号：", "本局建议由完整证据支撑，可直接按行动清单执行并复核。")
+    if counts["missing"] == 0:
+        return ("执行信号：", "本局建议可执行；部分证据只按已覆盖范围复核，不扩大归因。")
+    return ("执行信号：", "优先执行完整/部分证据对应建议；缺失证据项不作为本局归因。")
+
+
 def _render_report_evidence_completeness(evidence_sources):
     counts = _evidence_source_counts(evidence_sources)
     if counts["total"] <= 0:
         return ""
     status_class = "complete" if counts["missing"] == 0 and counts["partial"] == 0 else "attention"
     status_label = "证据完整" if status_class == "complete" else "证据有缺口"
+    guidance_label, guidance_text = _evidence_execution_guidance(counts)
     attrs = " ".join(
         f'data-evidence-{key}="{html.escape(str(value), quote=True)}"'
         for key, value in counts.items()
@@ -2041,6 +2052,10 @@ def _render_report_evidence_completeness(evidence_sources):
         '</div>'
         '<div class="evidence-completeness-status">'
         f'<span>{html.escape(status_label)}</span>'
+        '</div>'
+        '<div class="evidence-completeness-guidance">'
+        f'<strong>{html.escape(guidance_label)}</strong>'
+        f'<span>{html.escape(guidance_text)}</span>'
         '</div>'
         '<div class="evidence-completeness-chips" aria-label="证据类覆盖">'
         f'{"".join(chips)}'

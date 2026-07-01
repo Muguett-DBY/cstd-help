@@ -303,6 +303,8 @@ class BuildPagesSiteTests(unittest.TestCase):
                 'data-evidence-total="2" data-evidence-complete="1" data-evidence-usable="1" '
                 'data-evidence-partial="0" data-evidence-missing="1">'
                 '<div class="evidence-completeness-summary">本局证据完整度</div>'
+                '<div class="evidence-completeness-guidance"><strong>执行信号</strong>'
+                '<span>本局建议由完整证据支撑，可直接按行动清单执行并复核。</span></div>'
                 '<span class="evidence-completeness-chip available">比赛核心数据</span>'
                 '</section>'
                 '</body></html>',
@@ -352,6 +354,39 @@ class BuildPagesSiteTests(unittest.TestCase):
                 "Mirana_8867002237.html -> source provenance must be collapsed by default",
                 "Mirana_8867002237.html -> evidence completeness details must be collapsed by default",
             ],
+        )
+
+    def test_static_site_checker_detects_missing_evidence_execution_guidance(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Mirana_8867002237.html").write_text(
+                '<html><head><title>Mirana 复盘报告</title></head><body>'
+                '<div class="report-context-deck" data-report-context-deck>'
+                '<nav class="report-neighbors" aria-label="相邻比赛"></nav>'
+                '<details class="report-source-provenance"><summary class="source-provenance-summary">证据时间</summary></details>'
+                '<section class="report-evidence-completeness" data-report-evidence-completeness '
+                'data-evidence-total="1" data-evidence-complete="1" data-evidence-usable="1" '
+                'data-evidence-partial="0" data-evidence-missing="0">'
+                '<div class="evidence-completeness-summary">本局证据完整度</div>'
+                '<span class="evidence-completeness-chip available">比赛核心数据</span>'
+                '<details class="evidence-completeness-details"><summary>查看证据类明细</summary></details>'
+                '</section>'
+                '</div>'
+                '<h1>Mirana 复盘报告</h1>'
+                '<section id="decision-snapshot" class="decision-snapshot">上分决策卡</section>'
+                '<div class="evidence-source-list">'
+                '<div class="evidence-source-row available"><div class="evidence-source-name">比赛核心数据</div></div>'
+                '</div>'
+                '</body></html>',
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_report_evidence_completeness_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            ["Mirana_8867002237.html -> missing evidence execution guidance"],
         )
 
     def test_static_site_checker_detects_report_text_quality_issues(self):
@@ -1057,6 +1092,7 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".evidence-completeness-chips", stylesheet)
         self.assertIn(".evidence-completeness-chip", stylesheet)
         self.assertIn(".evidence-completeness-details", stylesheet)
+        self.assertIn(".evidence-completeness-guidance", stylesheet)
         self.assertIn(".practice-workbench", stylesheet)
         self.assertIn(".practice-evidence-links", stylesheet)
         self.assertIn(".practice-checklist", stylesheet)
@@ -1223,6 +1259,9 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn('data-evidence-partial="1"', report_html)
         self.assertIn('data-evidence-missing="1"', report_html)
         self.assertIn("本局证据完整度", report_html)
+        self.assertIn('class="evidence-completeness-guidance"', report_html)
+        self.assertIn("执行信号", report_html)
+        self.assertIn("缺失证据项不作为本局归因", report_html)
         self.assertIn("1/3 类完整", report_html)
         self.assertIn("可用/部分 2/3 · 缺失 1", report_html)
         self.assertIn("比赛核心数据", report_html)
