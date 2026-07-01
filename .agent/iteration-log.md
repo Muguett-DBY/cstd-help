@@ -994,3 +994,12 @@
   - Browser QA: latest report passed desktop and 390x844 mobile checks with no console/page errors or horizontal overflow.
 - Production acceptance: custom domain serves 18 reports; latest Legion Commander report has evidence completeness, execution signal, decision card, and data-gap sections.
 - Residual risk: the system is now explicit about evidence coverage and source times, but coaching depth remains bounded by the STRATZ/OpenDota fields available in cached data.
+
+## 2026-07-01 - Short Cycle 1 Stage 1 IMPROVE
+
+- Goal: reduce the remaining cached-field risk by auditing actual STRATZ/OpenDota JSON fields instead of only describing data limits.
+- Completed: added `evidence_field_audit` to `site-manifest.json` and rendered `实证字段覆盖` on the history and practice pages.
+- Current public build evidence: 18/18 reports have cached payloads; 7/8 key field classes are complete, 1/8 is partial (`位置采样` 17/18), and 0/8 are fully missing.
+- Stability gain: `scripts/check_public_site.py` now rejects missing or inconsistent evidence-field audit summaries and panels.
+- Verification: target red/green tests, 108 full unit tests, compileall, public-site validator, gitleaks, diff check, forbidden-file check, and Chrome desktop/mobile QA passed.
+- Pending: commit, push, GitHub Actions, live custom-domain acceptance, then Stage 2 UIUX.

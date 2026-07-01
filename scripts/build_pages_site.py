@@ -24,6 +24,7 @@ DEFAULT_SOURCE = Path(r"C:\Users\12031\Desktop\REVIEW_REPORT")
 PUBLIC_DIR = ROOT / "public"
 STATIC_SOURCE = ROOT / "report" / "static"
 SOURCE_DB_PATH = ROOT / "data" / "dota2.db"
+PLAYER_ACCOUNT_ID = "173776719"
 REPORT_NAME_RE = re.compile(r"^(?P<hero>.+)_(?P<match_id>\d{8,})_(?P<stamp>\d{8}_\d{6})\.html$")
 LEGACY_ITEM_SLOT_RE = re.compile(
     r'(<div class="item-slot item-name" title=")(?:Item #|ID )(?P<item_id>\d+)(">\s*)(?:Item #)?\d+(\s*</div>)',
@@ -374,6 +375,262 @@ def _load_source_fetch_times(match_ids, db_path=None):
     return _normalize_source_fetch_times(fetched)
 
 
+EVIDENCE_FIELD_SPECS = (
+    {
+        "key": "minute_economy",
+        "label": "分钟经济/补刀曲线",
+        "source": "STRATZ stats 或 OpenDota lh_t/gold_t/xp_t",
+        "supports": "10分钟补刀、低效率窗口、阶段资源连续性",
+    },
+    {
+        "key": "death_events",
+        "label": "死亡事件时间线",
+        "source": "STRATZ deathEvents 或 OpenDota teamfights/deaths_log",
+        "supports": "死亡成本、死亡后恢复窗口、目标损失",
+    },
+    {
+        "key": "purchase_events",
+        "label": "装备购买时间线",
+        "source": "STRATZ purchaseEvents 或 OpenDota purchase_log",
+        "supports": "关键装备时机、装备后转化",
+    },
+    {
+        "key": "position_samples",
+        "label": "位置采样",
+        "source": "STRATZ playerUpdatePositionEvents",
+        "supports": "死亡位置、重复危险区域、撤退边界",
+    },
+    {
+        "key": "combat_events",
+        "label": "击杀/助攻参战",
+        "source": "STRATZ kill/assistEvents 或 OpenDota kills_log/teamfights",
+        "supports": "参战窗口、输出转目标、团战参与",
+    },
+    {
+        "key": "objective_events",
+        "label": "地图目标事件",
+        "source": "OpenDota objectives",
+        "supports": "推塔、肉山、死亡后目标损失",
+    },
+    {
+        "key": "vision_events",
+        "label": "视野事件",
+        "source": "OpenDota obs/sen log",
+        "supports": "辅助视野、控图与排眼",
+    },
+    {
+        "key": "hero_benchmarks",
+        "label": "英雄样本百分位",
+        "source": "OpenDota benchmarks",
+        "supports": "同英雄样本对比、低百分位训练项",
+    },
+)
+
+
+def _load_evidence_payloads(match_ids, db_path=None):
+    db_path = Path(db_path) if db_path else None
+    if not db_path or not db_path.exists():
+        return {}
+    clean_ids = sorted({str(match_id) for match_id in match_ids if match_id})
+    if not clean_ids:
+        return {}
+    placeholders = ",".join("?" for _ in clean_ids)
+    tables = {
+        "stratz": ("stratz_details", "player_data"),
+        "opendota": ("opendota_details", "match_data"),
+    }
+    payloads = {}
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            for source, (table, column) in tables.items():
+                rows = conn.execute(
+                    f"SELECT match_id, {column} FROM {table} WHERE CAST(match_id AS TEXT) IN ({placeholders})",
+                    clean_ids,
+                ).fetchall()
+                for row in rows:
+                    try:
+                        parsed = json.loads(row[column])
+                    except (TypeError, json.JSONDecodeError):
+                        continue
+                    payloads.setdefault(str(row["match_id"]), {})[source] = parsed
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        return payloads
+    return payloads
+
+
+def _nonempty(value):
+    if isinstance(value, (list, tuple, dict, set)):
+        return bool(value)
+    return value is not None
+
+
+def _nested_value(payload, *keys):
+    current = payload
+    for key in keys:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    return current
+
+
+def _payload_players(payload):
+    if not isinstance(payload, dict):
+        return []
+    players = payload.get("players")
+    if isinstance(players, list):
+        return players
+    nested_players = _nested_value(payload, "match", "players")
+    return nested_players if isinstance(nested_players, list) else []
+
+
+def _player_identifier_values(player):
+    values = [
+        player.get("account_id"),
+        player.get("accountId"),
+        player.get("steamAccountId"),
+        _nested_value(player, "steamAccount", "id"),
+    ]
+    return {str(value) for value in values if value not in (None, "")}
+
+
+def _player_hero_values(player):
+    values = [
+        player.get("hero_id"),
+        player.get("heroId"),
+        _nested_value(player, "hero", "id"),
+    ]
+    return {str(value) for value in values if value not in (None, "")}
+
+
+def _find_payload_player(payload, report):
+    players = _payload_players(payload)
+    if not players:
+        return {}
+    for player in players:
+        if PLAYER_ACCOUNT_ID in _player_identifier_values(player):
+            return player
+    hero_id = report.get("hero_id")
+    if hero_id not in (None, ""):
+        hero_value = str(hero_id)
+        for player in players:
+            if hero_value in _player_hero_values(player):
+                return player
+    return players[0] if isinstance(players[0], dict) else {}
+
+
+def _playback(player):
+    value = player.get("playbackData") if isinstance(player, dict) else None
+    return value if isinstance(value, dict) else {}
+
+
+def _player_has_any(player, keys):
+    if not isinstance(player, dict):
+        return False
+    return any(_nonempty(player.get(key)) for key in keys)
+
+
+def _payload_has_any(payload, keys):
+    if not isinstance(payload, dict):
+        return False
+    return any(_nonempty(payload.get(key)) for key in keys)
+
+
+def _has_evidence_field(field_key, stratz_player, opendota_player, stratz_payload, opendota_payload):
+    playback = _playback(stratz_player)
+    if field_key == "minute_economy":
+        stats = stratz_player.get("stats") if isinstance(stratz_player, dict) else {}
+        return (
+            _player_has_any(stats, ("lastHitsPerMinute", "goldPerMinute", "experiencePerMinute"))
+            or _player_has_any(opendota_player, ("lh_t", "gold_t", "xp_t"))
+        )
+    if field_key == "death_events":
+        return (
+            _nonempty(playback.get("deathEvents"))
+            or _player_has_any(opendota_player, ("deaths_log", "death_log"))
+            or _payload_has_any(opendota_payload, ("teamfights",))
+        )
+    if field_key == "purchase_events":
+        return _nonempty(playback.get("purchaseEvents")) or _player_has_any(
+            opendota_player,
+            ("purchase_log", "purchase_time", "first_purchase_time"),
+        )
+    if field_key == "position_samples":
+        return _nonempty(playback.get("playerUpdatePositionEvents"))
+    if field_key == "combat_events":
+        return (
+            _player_has_any(playback, ("killEvents", "assistEvents"))
+            or _player_has_any(opendota_player, ("kills_log", "hero_hits"))
+            or _payload_has_any(opendota_payload, ("teamfights",))
+        )
+    if field_key == "objective_events":
+        return _payload_has_any(opendota_payload, ("objectives",))
+    if field_key == "vision_events":
+        return _player_has_any(
+            opendota_player,
+            ("obs_log", "sen_log", "obs_left_log", "observer_kills", "sentry_kills"),
+        )
+    if field_key == "hero_benchmarks":
+        return _player_has_any(opendota_player, ("benchmarks",))
+    return False
+
+
+def _build_evidence_field_audit(sorted_reports, evidence_payloads=None):
+    evidence_payloads = evidence_payloads or {}
+    report_count = len(sorted_reports)
+    fields = []
+    for spec in EVIDENCE_FIELD_SPECS:
+        covered = 0
+        for report in sorted_reports:
+            payload = evidence_payloads.get(str(report.get("match_id") or "")) or {}
+            stratz_payload = payload.get("stratz") if isinstance(payload, dict) else {}
+            opendota_payload = payload.get("opendota") if isinstance(payload, dict) else {}
+            stratz_player = _find_payload_player(stratz_payload, report)
+            opendota_player = _find_payload_player(opendota_payload, report)
+            if _has_evidence_field(spec["key"], stratz_player, opendota_player, stratz_payload, opendota_payload):
+                covered += 1
+        if report_count <= 0 or covered <= 0:
+            status = "missing"
+        elif covered == report_count:
+            status = "complete"
+        else:
+            status = "partial"
+        fields.append({
+            **spec,
+            "coverage_count": covered,
+            "coverage_ratio": round(covered / report_count, 4) if report_count else 0,
+            "status": status,
+        })
+    complete_count = sum(1 for field in fields if field["status"] == "complete")
+    partial_count = sum(1 for field in fields if field["status"] == "partial")
+    missing_count = sum(1 for field in fields if field["status"] == "missing")
+    payload_match_count = sum(
+        1 for report in sorted_reports
+        if evidence_payloads.get(str(report.get("match_id") or ""))
+    )
+    if payload_match_count <= 0:
+        status = "untracked"
+    elif missing_count:
+        status = "partial"
+    else:
+        status = "tracked"
+    return {
+        "status": status,
+        "basis": "sqlite_cached_stratz_opendota_json",
+        "report_count": report_count,
+        "payload_match_count": payload_match_count,
+        "field_count": len(fields),
+        "complete_field_count": complete_count,
+        "partial_field_count": partial_count,
+        "missing_field_count": missing_count,
+        "fields": fields,
+        "limitation": "字段覆盖来自本地缓存 JSON；未覆盖字段不会作为复盘归因或行动建议依据。",
+    }
+
+
 def _read_embedded_metadata(path):
     parser = ReportMetadataParser()
     parser.feed(path.read_text(encoding="utf-8"))
@@ -449,6 +706,7 @@ def _parse_report(path):
     return {
         "file": path.name,
         "hero": hero.get("name") or fallback_hero,
+        "hero_id": hero.get("id"),
         "hero_slug": hero.get("slug") or "",
         "match_id": str(metadata.get("match_id") or fallback_match_id),
         "report_generated_at": _report_generated_at_from_name(path.name),
@@ -1029,7 +1287,7 @@ def _build_source_freshness(sorted_reports, source_fetch_times):
     }
 
 
-def _build_site_manifest(reports, trends, source_fetch_times=None):
+def _build_site_manifest(reports, trends, source_fetch_times=None, evidence_payloads=None):
     sorted_reports = sorted(reports, key=_report_sort_key, reverse=True)
     source_fetch_times = _normalize_source_fetch_times(source_fetch_times or {})
     newest = sorted_reports[0] if sorted_reports else {}
@@ -1113,6 +1371,7 @@ def _build_site_manifest(reports, trends, source_fetch_times=None):
             "complete_quality_report_count": complete_quality_count,
         },
         "source_freshness": _build_source_freshness(sorted_reports, source_fetch_times),
+        "evidence_field_audit": _build_evidence_field_audit(sorted_reports, evidence_payloads),
         "report_sources": [
             {
                 "file": report.get("file") or "",
@@ -1141,6 +1400,76 @@ def _render_public_time(value, missing_label="时间缺失"):
         return f'<span class="missing-value">{html.escape(missing_label)}</span>'
     label = html.escape(str(value).replace("T", " ").replace("Z", " UTC"))
     return f'<time datetime="{html.escape(str(value), quote=True)}">{label}</time>'
+
+
+def _field_audit_status_label(status):
+    return {
+        "tracked": "字段覆盖：已追踪",
+        "partial": "字段覆盖：有缺口",
+        "untracked": "字段覆盖：未追踪",
+    }.get(status, "字段覆盖：需检查")
+
+
+def _field_status_label(status):
+    return {
+        "complete": "完整",
+        "partial": "部分",
+        "missing": "缺失",
+    }.get(status, "待确认")
+
+
+def _render_evidence_field_audit_panel(manifest):
+    audit = manifest.get("evidence_field_audit") or {}
+    report_count = int(audit.get("report_count") or manifest.get("report_count") or 0)
+    fields = [
+        field for field in (audit.get("fields") or [])
+        if isinstance(field, dict)
+    ]
+    visible_fields = sorted(
+        fields,
+        key=lambda field: (
+            {"missing": 0, "partial": 1, "complete": 2}.get(field.get("status"), 3),
+            str(field.get("label") or ""),
+        ),
+    )[:8]
+    rows = []
+    for field in visible_fields:
+        status = html.escape(str(field.get("status") or "missing"), quote=True)
+        label = html.escape(str(field.get("label") or "未命名字段"))
+        source = html.escape(str(field.get("source") or "来源未记录"))
+        supports = html.escape(str(field.get("supports") or "支持维度未记录"))
+        covered = int(field.get("coverage_count") or 0)
+        rows.append(
+            f'<div class="field-audit-row {status}">'
+            f'<div><strong>{label}</strong><span>{source}</span></div>'
+            f'<div><em>{covered}/{report_count}</em><small>{html.escape(_field_status_label(field.get("status")))}</small></div>'
+            f'<p>{supports}</p>'
+            '</div>'
+        )
+    status = audit.get("status") or "untracked"
+    status_class = "field-audit-ok" if status == "tracked" else "field-audit-warning"
+    note = html.escape(
+        audit.get("limitation")
+        or "字段覆盖来自本地缓存 JSON；未覆盖字段不会作为复盘归因或行动建议依据。"
+    )
+    return (
+        '<div class="evidence-field-audit-panel" data-evidence-field-audit-panel aria-label="实证字段覆盖">'
+        '<div class="field-audit-head">'
+        f'<span class="field-audit-status {status_class}">{html.escape(_field_audit_status_label(status))}</span>'
+        '<strong>实证字段覆盖</strong>'
+        f'<small>{note}</small>'
+        '</div>'
+        '<div class="coverage-grid field-audit-grid">'
+        f'<div class="coverage-stat"><strong>{html.escape(str(audit.get("payload_match_count") or 0))}/{report_count}</strong><span>缓存比赛</span></div>'
+        f'<div class="coverage-stat"><strong>{html.escape(str(audit.get("complete_field_count") or 0))}/{html.escape(str(audit.get("field_count") or 0))}</strong><span>完整字段类</span></div>'
+        f'<div class="coverage-stat"><strong>{html.escape(str(audit.get("partial_field_count") or 0))}</strong><span>部分字段类</span></div>'
+        f'<div class="coverage-stat"><strong>{html.escape(str(audit.get("missing_field_count") or 0))}</strong><span>缺失字段类</span></div>'
+        '</div>'
+        '<div class="field-audit-list">'
+        f'{"".join(rows)}'
+        '</div>'
+        '</div>'
+    )
 
 
 def _render_coverage_panel(manifest):
@@ -1181,6 +1510,7 @@ def _render_coverage_panel(manifest):
         freshness.get("limitation")
         or "公开页展示的是已缓存证据的抓取时间；Cloudflare Pages 发布不会重新访问 STRATZ/OpenDota。"
     )
+    field_audit_panel = _render_evidence_field_audit_panel(manifest)
     return f"""
     <section class="data-coverage" data-coverage-panel aria-label="复盘数据覆盖">
         <div class="history-title-row">
@@ -1226,6 +1556,7 @@ def _render_coverage_panel(manifest):
                 <div class="coverage-stat"><strong>{latest_fetch_time}</strong><span>最新外部抓取</span></div>
             </div>
         </div>
+        {field_audit_panel}
         <a class="coverage-latest" href="{latest_file}">
             <span>最新比赛</span>
             <strong>{latest_label}</strong>
@@ -2493,7 +2824,7 @@ applyMatchFilters();
     _write_utf8(output_path, index_html)
 
 
-def build_pages_site(source, public_dir=PUBLIC_DIR, source_fetch_times=None, source_db_path=None):
+def build_pages_site(source, public_dir=PUBLIC_DIR, source_fetch_times=None, source_db_path=None, evidence_payloads=None):
     source = Path(source)
     public_dir = Path(public_dir)
     if not source.exists():
@@ -2513,12 +2844,22 @@ def build_pages_site(source, public_dir=PUBLIC_DIR, source_fetch_times=None, sou
             source_db_path,
         )
     source_fetch_times = _normalize_source_fetch_times(source_fetch_times or {})
+    if evidence_payloads is None:
+        evidence_payloads = _load_evidence_payloads(
+            [report.get("match_id") for report in reports],
+            source_db_path,
+        )
     _inject_report_source_provenance(public_dir, reports, source_fetch_times)
     _inject_report_evidence_completeness(public_dir, reports)
     focus_trends = _build_focus_trends(reports)
     _inject_report_trend_context(public_dir, reports, focus_trends)
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
-    site_manifest = _build_site_manifest(reports, focus_trends, source_fetch_times=source_fetch_times)
+    site_manifest = _build_site_manifest(
+        reports,
+        focus_trends,
+        source_fetch_times=source_fetch_times,
+        evidence_payloads=evidence_payloads,
+    )
     _write_focus_trends_json(focus_trends, public_dir / "review-trends.json")
     _write_site_manifest_json(site_manifest, public_dir / "site-manifest.json")
     _render_topic_pages(focus_trends, public_dir)

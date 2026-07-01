@@ -2186,3 +2186,31 @@ Started: 2026-06-28
   - Stage 6: `feat: add evidence execution signal` (`be7e1d3`).
 - Final production state: `dota.custard.top` serves 18 reports with hero-first titles, match history, decision cards, source freshness, per-report source provenance, evidence completeness, header stability gates, and execution-signal guidance.
 - Final residual risk: richer advice still depends on the event fields available in cached STRATZ/OpenDota data, but reports now expose those evidence limits instead of hiding them.
+
+## 2026-07-01 - Short Cycle 1 Stage 1 IMPROVE - Started
+
+- Stage: 1 / 2.
+- Type: IMPROVE.
+- Prompt: AGENT_IMPROVE_MAIN.txt.
+- Start state: `main` clean and synchronized with `origin/main`; recent commits end at `c89cc6f chore: record evidence signal deployment`.
+- Previous residual risk: coaching depth is bounded by cached STRATZ/OpenDota fields.
+- Goal: convert that residual risk into a user-visible, static-validated evidence-field audit generated from real cached STRATZ/OpenDota JSON, so players can see which coaching dimensions are fully supported, partially supported, or still missing.
+- Planned verification: target red/green tests, public rebuild, static site validator, full unit suite, compileall, gitleaks, diff checks, browser QA, push to `main`, GitHub Actions, and live custom-domain acceptance.
+
+## 2026-07-01 - Short Cycle 1 Stage 1 IMPROVE - Local Complete
+
+- Completed: added real cached-field auditing for 8 key coaching evidence classes, sourced from SQLite STRATZ/OpenDota JSON and written into `site-manifest.json` as `evidence_field_audit`.
+- User-visible gain: history and practice pages now show `实证字段覆盖`, including cached match coverage, complete/partial/missing field class counts, and per-field support notes.
+- Current public build evidence: 18/18 matches have cached payloads; 7/8 field classes are complete, `位置采样` is partial at 17/18, and 0 field classes are fully missing.
+- Stability gain: static validation now catches missing audit panels, missing manifest summaries, invalid statuses, inconsistent field counts, and impossible coverage counts.
+- Documentation: updated `docs/KNOWN_LIMITATIONS.md` so the remaining cached-source limitation points to the new public audit instead of staying vague.
+- Browser QA: Chrome desktop 1280x720 and mobile 390x844 passed for `index.html` and `practice-plan.html`; audit panel rendered, 8 field rows appeared, console/page errors were clean, and no horizontal overflow appeared.
+- Local verification:
+  - New audit tests failed before implementation and pass now.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 108 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 reports.
+  - `gitleaks dir . --redact`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Pending: commit, push, GitHub Actions, live custom-domain acceptance, then Stage 2 UIUX.

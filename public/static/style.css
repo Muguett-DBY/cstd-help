@@ -1063,6 +1063,97 @@ body {
     line-height: 1.35;
     overflow-wrap: anywhere;
 }
+.evidence-field-audit-panel {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid rgba(188,140,255,0.24);
+    border-radius: 6px;
+    background: rgba(188,140,255,0.06);
+}
+.field-audit-head {
+    display: grid;
+    gap: 3px;
+}
+.field-audit-status {
+    width: max-content;
+    min-height: 24px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.field-audit-ok {
+    border: 1px solid rgba(188,140,255,0.45);
+    background: rgba(188,140,255,0.14);
+    color: var(--accent-purple);
+}
+.field-audit-warning {
+    border: 1px solid rgba(210,153,34,0.42);
+    background: rgba(210,153,34,0.14);
+    color: var(--accent-yellow);
+}
+.field-audit-head strong {
+    color: var(--text-primary);
+    font-size: 15px;
+}
+.field-audit-head small {
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.45;
+}
+.field-audit-grid .coverage-stat {
+    min-height: 62px;
+}
+.field-audit-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.field-audit-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 5px 10px;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-yellow);
+    border-radius: 6px;
+    background: rgba(13,17,23,0.66);
+}
+.field-audit-row.complete {
+    border-left-color: var(--accent-green);
+}
+.field-audit-row.missing {
+    border-left-color: var(--accent-red);
+}
+.field-audit-row strong {
+    color: var(--text-primary);
+    font-size: 12px;
+}
+.field-audit-row span,
+.field-audit-row p {
+    color: var(--text-secondary);
+    font-size: 11px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+.field-audit-row em {
+    display: block;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-style: normal;
+    font-weight: 700;
+    text-align: right;
+}
+.field-audit-row small {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+}
+.field-audit-row p {
+    grid-column: 1 / -1;
+    margin: 0;
+}
 .history-filters {
     display: grid;
     gap: 12px;
@@ -3167,6 +3258,9 @@ tr:hover { background: rgba(88,166,255,0.05); }
     }
     .coverage-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .field-audit-list {
+        grid-template-columns: 1fr;
     }
     .coverage-latest {
         align-items: flex-start;

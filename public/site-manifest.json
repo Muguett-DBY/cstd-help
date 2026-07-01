@@ -34,6 +34,91 @@
     "oldest_external_fetch_at": "2026-06-26T12:31:07Z",
     "limitation": "公开页展示的是已缓存证据的抓取时间；Cloudflare Pages 发布不会重新访问 STRATZ/OpenDota。"
   },
+  "evidence_field_audit": {
+    "status": "tracked",
+    "basis": "sqlite_cached_stratz_opendota_json",
+    "report_count": 18,
+    "payload_match_count": 18,
+    "field_count": 8,
+    "complete_field_count": 7,
+    "partial_field_count": 1,
+    "missing_field_count": 0,
+    "fields": [
+      {
+        "key": "minute_economy",
+        "label": "分钟经济/补刀曲线",
+        "source": "STRATZ stats 或 OpenDota lh_t/gold_t/xp_t",
+        "supports": "10分钟补刀、低效率窗口、阶段资源连续性",
+        "coverage_count": 18,
+        "coverage_ratio": 1.0,
+        "status": "complete"
+      },
+      {
+        "key": "death_events",
+        "label": "死亡事件时间线",
+        "source": "STRATZ deathEvents 或 OpenDota teamfights/deaths_log",
+        "supports": "死亡成本、死亡后恢复窗口、目标损失",
+        "coverage_count": 18,
+        "coverage_ratio": 1.0,
+        "status": "complete"
+      },
+      {
+        "key": "purchase_events",
+        "label": "装备购买时间线",
+        "source": "STRATZ purchaseEvents 或 OpenDota purchase_log",
+        "supports": "关键装备时机、装备后转化",
+        "coverage_count": 18,
+        "coverage_ratio": 1.0,
+        "status": "complete"
+      },
+      {
+        "key": "position_samples",
+        "label": "位置采样",
+        "source": "STRATZ playerUpdatePositionEvents",
+        "supports": "死亡位置、重复危险区域、撤退边界",
+        "coverage_count": 17,
+        "coverage_ratio": 0.9444,
+        "status": "partial"
+      },
+      {
+        "key": "combat_events",
+        "label": "击杀/助攻参战",
+        "source": "STRATZ kill/assistEvents 或 OpenDota kills_log/teamfights",
+        "supports": "参战窗口、输出转目标、团战参与",
+        "coverage_count": 18,
+        "coverage_ratio": 1.0,
+        "status": "complete"
+      },
+      {
+        "key": "objective_events",
+        "label": "地图目标事件",
+        "source": "OpenDota objectives",
+        "supports": "推塔、肉山、死亡后目标损失",
+        "coverage_count": 18,
+        "coverage_ratio": 1.0,
+        "status": "complete"
+      },
+      {
+        "key": "vision_events",
+        "label": "视野事件",
+        "source": "OpenDota obs/sen log",
+        "supports": "辅助视野、控图与排眼",
+        "coverage_count": 18,
+        "coverage_ratio": 1.0,
+        "status": "complete"
+      },
+      {
+        "key": "hero_benchmarks",
+        "label": "英雄样本百分位",
+        "source": "OpenDota benchmarks",
+        "supports": "同英雄样本对比、低百分位训练项",
+        "coverage_count": 18,
+        "coverage_ratio": 1.0,
+        "status": "complete"
+      }
+    ],
+    "limitation": "字段覆盖来自本地缓存 JSON；未覆盖字段不会作为复盘归因或行动建议依据。"
+  },
   "report_sources": [
     {
       "file": "Legion_Commander_8870219537_20260630_212154.html",

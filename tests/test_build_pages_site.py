@@ -233,6 +233,28 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_detects_missing_evidence_field_audit(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "index.html").write_text("<html><body>复盘数据覆盖</body></html>", encoding="utf-8")
+            (public_path / "practice-plan.html").write_text("<html><body>训练计划</body></html>", encoding="utf-8")
+            (public_path / "site-manifest.json").write_text(
+                json.dumps({"schema_version": 1, "report_count": 1}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            finder = getattr(check_public_site, "_find_evidence_field_audit_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "index.html -> missing evidence field audit panel",
+                "practice-plan.html -> missing evidence field audit panel",
+                "site-manifest.json -> missing evidence field audit summary",
+            ],
+        )
+
     def test_static_site_checker_detects_missing_or_mismatched_report_source_provenance(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
@@ -833,8 +855,73 @@ class BuildPagesSiteTests(unittest.TestCase):
                     "latest_external_fetch_at": "2026-06-27T08:55:00Z",
                 },
             }
+            evidence_payloads = {
+                "8867002237": {
+                    "stratz": {
+                        "players": [
+                            {
+                                "steamAccount": {"id": 173776719},
+                                "hero": {"id": 9},
+                                "stats": {"lastHitsPerMinute": [4, 6], "goldPerMinute": [320, 410]},
+                                "playbackData": {
+                                    "deathEvents": [{"time": 840}],
+                                    "purchaseEvents": [{"time": 620, "itemId": 50}],
+                                    "playerUpdatePositionEvents": [{"time": 830, "x": 91, "y": 112}],
+                                    "killEvents": [{"time": 900}],
+                                },
+                            }
+                        ]
+                    },
+                    "opendota": {
+                        "objectives": [{"time": 950, "type": "CHAT_MESSAGE_TOWER_KILL"}],
+                        "teamfights": [{"start": 840, "deaths": [{"player_slot": 0}]}],
+                        "players": [
+                            {
+                                "account_id": 173776719,
+                                "hero_id": 9,
+                                "lh_t": [0, 7, 15],
+                                "gold_t": [600, 1200],
+                                "purchase_log": [{"time": 620, "key": "phase_boots"}],
+                                "kills_log": [{"time": 900, "key": "axe"}],
+                                "obs_log": [{"time": 500, "x": 100, "y": 120}],
+                                "benchmarks": {"gold_per_min": {"pct": 0.55}},
+                            }
+                        ],
+                    },
+                },
+                "8867002240": {
+                    "stratz": {
+                        "players": [
+                            {
+                                "steamAccount": {"id": 173776719},
+                                "hero": {"id": 69},
+                                "playbackData": {
+                                    "deathEvents": [{"time": 740}],
+                                    "purchaseEvents": [{"time": 520, "itemId": 1}],
+                                },
+                            }
+                        ]
+                    },
+                    "opendota": {
+                        "objectives": [{"time": 1020, "type": "CHAT_MESSAGE_ROSHAN_KILL"}],
+                        "players": [
+                            {
+                                "account_id": 173776719,
+                                "hero_id": 69,
+                                "lh_t": [0, 5, 11],
+                                "purchase_log": [{"time": 520, "key": "blink"}],
+                            }
+                        ],
+                    },
+                },
+            }
 
-            pages_site.build_pages_site(source, public_dir=public, source_fetch_times=source_fetch_times)
+            pages_site.build_pages_site(
+                source,
+                public_dir=public,
+                source_fetch_times=source_fetch_times,
+                evidence_payloads=evidence_payloads,
+            )
             manifest = json.loads((Path(public) / "site-manifest.json").read_text(encoding="utf-8"))
             index_html = (Path(public) / "index.html").read_text(encoding="utf-8")
             plan_html = (Path(public) / "practice-plan.html").read_text(encoding="utf-8")
@@ -868,6 +955,18 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(manifest["source_freshness"]["complete_source_timestamp_report_count"], 2)
         self.assertEqual(manifest["source_freshness"]["latest_report_generated_at"], "2026-06-27T09:00:00")
         self.assertEqual(manifest["source_freshness"]["latest_external_fetch_at"], "2026-06-27T08:55:00Z")
+        self.assertEqual(manifest["evidence_field_audit"]["status"], "tracked")
+        self.assertEqual(manifest["evidence_field_audit"]["basis"], "sqlite_cached_stratz_opendota_json")
+        self.assertEqual(manifest["evidence_field_audit"]["report_count"], 2)
+        self.assertEqual(manifest["evidence_field_audit"]["field_count"], 8)
+        self.assertGreaterEqual(manifest["evidence_field_audit"]["complete_field_count"], 4)
+        field_status = {
+            item["key"]: item["status"]
+            for item in manifest["evidence_field_audit"]["fields"]
+        }
+        self.assertEqual(field_status["death_events"], "complete")
+        self.assertEqual(field_status["position_samples"], "partial")
+        self.assertEqual(field_status["vision_events"], "partial")
         self.assertEqual(len(manifest["report_sources"]), 2)
         self.assertEqual(manifest["report_sources"][0]["match_id"], "8867002240")
         self.assertEqual(manifest["report_sources"][1]["stratz_fetched_at"], "2026-06-26T22:20:00Z")
@@ -880,6 +979,10 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("STRATZ 抓取", index_html)
         self.assertIn("OpenDota 抓取", index_html)
         self.assertIn("公开页展示的是已缓存证据", index_html)
+        self.assertIn("实证字段覆盖", index_html)
+        self.assertIn("data-evidence-field-audit-panel", index_html)
+        self.assertIn("死亡事件时间线", index_html)
+        self.assertIn("位置采样", index_html)
         self.assertIn("质量门禁：通过", index_html)
         self.assertIn("决策卡覆盖", index_html)
         self.assertIn("趋势上下文覆盖", index_html)
@@ -898,6 +1001,7 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("复盘数据覆盖", plan_html)
         self.assertIn("复盘质量门禁", plan_html)
         self.assertIn("数据新鲜度", plan_html)
+        self.assertIn("实证字段覆盖", plan_html)
         self.assertIn('data-report-source-provenance', mirana_html)
         self.assertIn('data-report-context-deck', mirana_html)
         self.assertIn('<details class="report-source-provenance"', mirana_html)
@@ -1082,6 +1186,9 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn(".quality-gate-pass", stylesheet)
         self.assertIn(".source-freshness-panel", stylesheet)
         self.assertIn(".source-freshness-status", stylesheet)
+        self.assertIn(".evidence-field-audit-panel", stylesheet)
+        self.assertIn(".field-audit-list", stylesheet)
+        self.assertIn(".field-audit-row", stylesheet)
         self.assertIn(".report-source-provenance", stylesheet)
         self.assertIn(".source-provenance-grid", stylesheet)
         self.assertIn(".report-context-deck", stylesheet)
