@@ -255,7 +255,7 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
-    def test_static_site_checker_rejects_incomplete_evidence_field_coverage(self):
+    def test_static_site_checker_rejects_partial_evidence_field_without_report_counts(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
             panel = '<html><body><section data-evidence-field-audit-panel>实证字段覆盖</section></body></html>'
@@ -290,8 +290,46 @@ class BuildPagesSiteTests(unittest.TestCase):
 
         self.assertEqual(
             issues,
-            ["site-manifest.json -> evidence field coverage is incomplete: partial 1, missing 0"],
+            ["site-manifest.json -> partial evidence fields need explicit report counts: position_samples"],
         )
+
+    def test_static_site_checker_accepts_source_bounded_partial_evidence_field(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            panel = '<html><body><section data-evidence-field-audit-panel>实证字段覆盖</section></body></html>'
+            (public_path / "index.html").write_text(panel, encoding="utf-8")
+            (public_path / "practice-plan.html").write_text(panel, encoding="utf-8")
+            audit = {
+                "status": "partial",
+                "basis": "fixture",
+                "report_count": 2,
+                "payload_match_count": 2,
+                "field_count": 1,
+                "complete_field_count": 0,
+                "partial_field_count": 1,
+                "missing_field_count": 0,
+                "fields": [{
+                    "key": "position_samples",
+                    "label": "位置采样",
+                    "source": "fixture",
+                    "supports": "死亡位置",
+                    "coverage_count": 2,
+                    "coverage_ratio": 1.0,
+                    "complete_report_count": 1,
+                    "partial_report_count": 1,
+                    "missing_report_count": 0,
+                    "status": "partial",
+                }],
+                "limitation": "字段覆盖来自报告证据明细；部分字段按已覆盖范围使用。",
+            }
+            (public_path / "site-manifest.json").write_text(
+                json.dumps({"report_count": 2, "evidence_field_audit": audit}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            issues = check_public_site._find_evidence_field_audit_issues(public_path)
+
+        self.assertEqual(issues, [])
 
     def test_evidence_field_audit_counts_opendota_teamfight_death_positions(self):
         reports = [{
@@ -330,6 +368,32 @@ class BuildPagesSiteTests(unittest.TestCase):
 
         self.assertEqual(fields["position_samples"]["coverage_count"], 1)
         self.assertEqual(fields["position_samples"]["status"], "complete")
+
+    def test_evidence_field_audit_marks_partial_death_position_reports(self):
+        reports = [{
+            "match_id": "8867002237",
+            "hero_id": 9,
+            "hero": "Mirana",
+            "file": "Mirana_8867002237.html",
+            "evidence_sources": [{
+                "label": "死亡位置",
+                "status": "partial",
+                "coverage": "覆盖 1/2 次已定位死亡",
+            }],
+        }]
+        evidence_payloads = {
+            "8867002237": {
+                "stratz": {"players": [{"hero": {"id": 9}}]},
+                "opendota": {"players": [{"account_id": 173776719, "hero_id": 9}]},
+            }
+        }
+
+        audit = pages_site._build_evidence_field_audit(reports, evidence_payloads)
+        fields = {item["key"]: item for item in audit["fields"]}
+
+        self.assertEqual(fields["position_samples"]["status"], "partial")
+        self.assertEqual(fields["position_samples"]["partial_report_count"], 1)
+        self.assertEqual(audit["partial_field_count"], 1)
 
     def test_static_site_checker_detects_missing_evidence_command_bar(self):
         with tempfile.TemporaryDirectory() as public:
@@ -496,6 +560,38 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(
             issues,
             ["Doom_8867002240.html -> report evidence still has 1 missing classes"],
+        )
+
+    def test_static_site_checker_rejects_partial_evidence_scored_as_perfect(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Rubick_8867351572.html").write_text(
+                '<html><head><title>Rubick 复盘报告</title></head><body>'
+                '<div class="evidence-source-list">'
+                '<div class="evidence-source-row available"><div class="evidence-source-name">比赛核心数据</div></div>'
+                '<div class="evidence-source-row partial"><div class="evidence-source-name">死亡位置</div></div>'
+                '</div>'
+                '<section class="report-evidence-completeness" data-report-evidence-completeness '
+                'data-evidence-total="2" data-evidence-complete="1" data-evidence-usable="2" '
+                'data-evidence-partial="1" data-evidence-missing="0">'
+                '<div class="evidence-completeness-summary">本局证据完整度</div>'
+                '<div class="evidence-completeness-guidance"><strong>执行信号</strong>'
+                '<span>部分证据只按已覆盖范围复核。</span></div>'
+                '<span class="evidence-completeness-chip available">比赛核心数据</span>'
+                '<span class="evidence-completeness-chip partial">死亡位置</span>'
+                '</section>'
+                '<div class="decision-rail-item"><span>证据覆盖</span><strong>100/100</strong></div>'
+                '<div class="quality-score">100/100</div>'
+                '<div class="coach-analysis">数据完整度：100/100。</div>'
+                '</body></html>',
+                encoding="utf-8",
+            )
+
+            issues = check_public_site._find_report_evidence_completeness_issues(public_path)
+
+        self.assertEqual(
+            issues,
+            ["Rubick_8867351572.html -> partial or missing evidence must not be presented as 100/100"],
         )
 
     def test_static_site_checker_detects_missing_evidence_execution_guidance(self):
@@ -1075,7 +1171,7 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(manifest["source_freshness"]["complete_source_timestamp_report_count"], 2)
         self.assertEqual(manifest["source_freshness"]["latest_report_generated_at"], "2026-06-27T09:00:00")
         self.assertEqual(manifest["source_freshness"]["latest_external_fetch_at"], "2026-06-27T08:55:00Z")
-        self.assertEqual(manifest["evidence_field_audit"]["status"], "tracked")
+        self.assertEqual(manifest["evidence_field_audit"]["status"], "partial")
         self.assertEqual(manifest["evidence_field_audit"]["basis"], "sqlite_cached_stratz_opendota_json")
         self.assertEqual(manifest["evidence_field_audit"]["report_count"], 2)
         self.assertEqual(manifest["evidence_field_audit"]["field_count"], 8)

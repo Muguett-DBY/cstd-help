@@ -22,7 +22,10 @@ HERO_NAME_TO_ID = {}
 HERO_ID_TO_SLUG = {}
 
 ITEM_FALLBACKS = {
+    1: "Blink Dagger",
     7: "Javelin",
+    37: "Ghost Scepter",
+    48: "Mekansm",
     50: "Phase Boots",
     63: "Power Treads",
     65: "Hand of Midas",
@@ -47,8 +50,11 @@ ITEM_FALLBACKS = {
     208: "Abyssal Blade",
     214: "Tranquil Boots",
     220: "Boots of Travel 2",
+    231: "Guardian Greaves",
+    232: "Aether Lens",
     235: "Octarine Core",
     254: "Glimmer Cape",
+    609: "Aghanim's Shard",
     277: "Yasha and Kaya",
     598: "Mage Slayer",
     600: "Overwhelming Blink",
@@ -74,6 +80,19 @@ ITEM_KEY_FALLBACKS = {
     "power_treads": (63, "Power Treads"),
     "phase_boots": (50, "Phase Boots"),
     "hand_of_midas": (65, "Hand of Midas"),
+    "blink": (1, "Blink Dagger"),
+    "blink_dagger": (1, "Blink Dagger"),
+    "ultimate_scepter": (108, "Aghanim's Scepter"),
+    "aghanims_scepter": (108, "Aghanim's Scepter"),
+    "aghanims_shard": (609, "Aghanim's Shard"),
+    "aether_lens": (232, "Aether Lens"),
+    "force_staff": (102, "Force Staff"),
+    "glimmer_cape": (254, "Glimmer Cape"),
+    "ghost": (37, "Ghost Scepter"),
+    "ghost_scepter": (37, "Ghost Scepter"),
+    "mekansm": (48, "Mekansm"),
+    "guardian_greaves": (231, "Guardian Greaves"),
+    "octarine_core": (235, "Octarine Core"),
 }
 
 ABILITY_FALLBACKS = {
@@ -1256,16 +1275,30 @@ def _vision_coverage_label(events):
     return "；".join(parts) if parts else "OpenDota已解析，个人视野事件0条"
 
 
-KEY_ITEM_IDS = {65, 116, 135, 139, 145, 147, 160, 208}
+KEY_ITEM_IDS = {1, 37, 48, 65, 108, 110, 116, 119, 135, 139, 145, 147, 160, 208, 231, 232, 235, 254, 609}
 KEY_ITEM_NAMES = {
+    "Aether Lens",
+    "Aghanim's Scepter",
+    "Aghanim's Shard",
     "Battle Fury",
     "Black King Bar",
+    "Blink Dagger",
     "Manta Style",
     "Abyssal Blade",
     "Eye of Skadi",
     "Butterfly",
+    "Force Staff",
+    "Ghost Scepter",
+    "Glimmer Cape",
+    "Guardian Greaves",
     "Monkey King Bar",
+    "Mekansm",
     "Hand of Midas",
+    "Lotus Orb",
+    "Octarine Core",
+    "Refresher Orb",
+    "Scythe of Vyse",
+    "Shiva's Guard",
 }
 FARM_ACCELERATION_ITEM_NAMES = {"Battle Fury", "Hand of Midas", "Maelstrom", "Mjollnir", "Radiance"}
 
@@ -2735,6 +2768,31 @@ def _build_evidence_sources(result):
     ]
 
 
+def _evidence_coverage_score(evidence_sources):
+    if not evidence_sources:
+        return 0
+    weights = {
+        "available": 100,
+        "partial": 70,
+        "missing": 0,
+    }
+    total = sum(weights.get(item.get("status"), 0) for item in evidence_sources)
+    return round(total / len(evidence_sources))
+
+
+def _evidence_coverage_limitations(evidence_sources):
+    limitations = []
+    for item in evidence_sources or []:
+        status = item.get("status")
+        label = item.get("label") or item.get("id") or "证据"
+        coverage = item.get("coverage") or "覆盖未记录"
+        if status == "partial":
+            limitations.append(f"{label}部分覆盖：{coverage}；只按已覆盖证据复核，不扩大归因")
+        elif status == "missing":
+            limitations.append(f"{label}缺失：{coverage}；不用于复盘归因")
+    return limitations
+
+
 def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota_data=None):
     available = ["opendota_core_stats"]
     limitations = []
@@ -2841,11 +2899,15 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
     for warning in (opendota_data or {}).get("_fetch_warnings", []):
         limitations.append(f"OpenDota抓取状态: {warning}")
 
+    evidence_sources = _build_evidence_sources(result)
+    score = min(score, _evidence_coverage_score(evidence_sources))
+    limitations.extend(_evidence_coverage_limitations(evidence_sources))
+
     return {
         "score": min(score, 100),
         "available": available,
         "limitations": limitations,
-        "evidence_sources": _build_evidence_sources(result),
+        "evidence_sources": evidence_sources,
     }
 
 

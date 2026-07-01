@@ -3,8 +3,8 @@
   "source": "generated_public_reports",
   "player_id": "173776719",
   "report_count": 18,
-  "finding_count": 73,
-  "topic_count": 11,
+  "finding_count": 76,
+  "topic_count": 10,
   "high_priority_report_count": 17,
   "known_result_count": 18,
   "wins": 9,
@@ -28,20 +28,20 @@
     "stratz_fetch_timestamp_report_count": 18,
     "opendota_fetch_timestamp_report_count": 18,
     "complete_source_timestamp_report_count": 18,
-    "latest_report_generated_at": "2026-07-01T17:16:58",
-    "oldest_report_generated_at": "2026-06-30T21:21:54",
-    "latest_external_fetch_at": "2026-07-01T07:16:53Z",
+    "latest_report_generated_at": "2026-07-01T21:14:47",
+    "oldest_report_generated_at": "2026-07-01T21:14:43",
+    "latest_external_fetch_at": "2026-07-01T11:13:55Z",
     "oldest_external_fetch_at": "2026-06-26T12:31:07Z",
     "limitation": "公开页展示的是已缓存证据的抓取时间；Cloudflare Pages 发布不会重新访问 STRATZ/OpenDota。"
   },
   "evidence_field_audit": {
-    "status": "tracked",
+    "status": "partial",
     "basis": "sqlite_cached_stratz_opendota_json",
     "report_count": 18,
     "payload_match_count": 18,
     "field_count": 8,
-    "complete_field_count": 8,
-    "partial_field_count": 0,
+    "complete_field_count": 7,
+    "partial_field_count": 1,
     "missing_field_count": 0,
     "fields": [
       {
@@ -51,6 +51,9 @@
         "supports": "10分钟补刀、低效率窗口、阶段资源连续性",
         "coverage_count": 18,
         "coverage_ratio": 1.0,
+        "complete_report_count": 18,
+        "partial_report_count": 0,
+        "missing_report_count": 0,
         "status": "complete"
       },
       {
@@ -60,6 +63,9 @@
         "supports": "死亡成本、死亡后恢复窗口、目标损失",
         "coverage_count": 18,
         "coverage_ratio": 1.0,
+        "complete_report_count": 18,
+        "partial_report_count": 0,
+        "missing_report_count": 0,
         "status": "complete"
       },
       {
@@ -69,6 +75,9 @@
         "supports": "关键装备时机、装备后转化",
         "coverage_count": 18,
         "coverage_ratio": 1.0,
+        "complete_report_count": 18,
+        "partial_report_count": 0,
+        "missing_report_count": 0,
         "status": "complete"
       },
       {
@@ -78,7 +87,10 @@
         "supports": "死亡位置、重复危险区域、撤退边界",
         "coverage_count": 18,
         "coverage_ratio": 1.0,
-        "status": "complete"
+        "complete_report_count": 17,
+        "partial_report_count": 1,
+        "missing_report_count": 0,
+        "status": "partial"
       },
       {
         "key": "combat_events",
@@ -87,6 +99,9 @@
         "supports": "参战窗口、输出转目标、团战参与",
         "coverage_count": 18,
         "coverage_ratio": 1.0,
+        "complete_report_count": 18,
+        "partial_report_count": 0,
+        "missing_report_count": 0,
         "status": "complete"
       },
       {
@@ -96,6 +111,9 @@
         "supports": "推塔、肉山、死亡后目标损失",
         "coverage_count": 18,
         "coverage_ratio": 1.0,
+        "complete_report_count": 18,
+        "partial_report_count": 0,
+        "missing_report_count": 0,
         "status": "complete"
       },
       {
@@ -105,6 +123,9 @@
         "supports": "辅助视野、控图与排眼",
         "coverage_count": 18,
         "coverage_ratio": 1.0,
+        "complete_report_count": 18,
+        "partial_report_count": 0,
+        "missing_report_count": 0,
         "status": "complete"
       },
       {
@@ -114,184 +135,187 @@
         "supports": "同英雄样本对比、低百分位训练项",
         "coverage_count": 18,
         "coverage_ratio": 1.0,
+        "complete_report_count": 18,
+        "partial_report_count": 0,
+        "missing_report_count": 0,
         "status": "complete"
       }
     ],
-    "limitation": "字段覆盖来自本地缓存 JSON；未覆盖字段不会作为复盘归因或行动建议依据。"
+    "limitation": "字段覆盖来自报告证据明细和本地缓存 JSON；部分字段只按已覆盖范围使用，不扩大归因。"
   },
   "report_sources": [
     {
-      "file": "Legion_Commander_8870219537_20260630_212154.html",
+      "file": "Legion_Commander_8870219537_20260701_211443.html",
       "match_id": "8870219537",
-      "report_generated_at": "2026-06-30T21:21:54",
-      "stratz_fetched_at": "2026-06-30T10:26:10Z",
+      "report_generated_at": "2026-07-01T21:14:43",
+      "stratz_fetched_at": "2026-07-01T11:12:34Z",
       "opendota_fetched_at": "2026-06-28T05:56:30Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:10Z",
+      "latest_external_fetch_at": "2026-07-01T11:12:34Z",
       "oldest_external_fetch_at": "2026-06-28T05:56:30Z"
     },
     {
-      "file": "Death_Prophet_8870188563_20260630_212155.html",
+      "file": "Death_Prophet_8870188563_20260701_211443.html",
       "match_id": "8870188563",
-      "report_generated_at": "2026-06-30T21:21:55",
-      "stratz_fetched_at": "2026-06-30T10:26:13Z",
+      "report_generated_at": "2026-07-01T21:14:43",
+      "stratz_fetched_at": "2026-07-01T11:12:38Z",
       "opendota_fetched_at": "2026-06-28T05:56:33Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:13Z",
+      "latest_external_fetch_at": "2026-07-01T11:12:38Z",
       "oldest_external_fetch_at": "2026-06-28T05:56:33Z"
     },
     {
-      "file": "Dragon_Knight_8870145903_20260630_212155.html",
+      "file": "Dragon_Knight_8870145903_20260701_211444.html",
       "match_id": "8870145903",
-      "report_generated_at": "2026-06-30T21:21:55",
-      "stratz_fetched_at": "2026-06-30T10:26:16Z",
+      "report_generated_at": "2026-07-01T21:14:44",
+      "stratz_fetched_at": "2026-07-01T11:12:42Z",
       "opendota_fetched_at": "2026-06-28T05:56:36Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:16Z",
+      "latest_external_fetch_at": "2026-07-01T11:12:42Z",
       "oldest_external_fetch_at": "2026-06-28T05:56:36Z"
     },
     {
-      "file": "Beastmaster_8870116015_20260630_212155.html",
+      "file": "Beastmaster_8870116015_20260701_211444.html",
       "match_id": "8870116015",
-      "report_generated_at": "2026-06-30T21:21:55",
-      "stratz_fetched_at": "2026-06-30T10:26:18Z",
+      "report_generated_at": "2026-07-01T21:14:44",
+      "stratz_fetched_at": "2026-07-01T11:12:47Z",
       "opendota_fetched_at": "2026-06-28T05:56:38Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:18Z",
+      "latest_external_fetch_at": "2026-07-01T11:12:47Z",
       "oldest_external_fetch_at": "2026-06-28T05:56:38Z"
     },
     {
-      "file": "Pangolier_8869892215_20260630_212155.html",
+      "file": "Pangolier_8869892215_20260701_211444.html",
       "match_id": "8869892215",
-      "report_generated_at": "2026-06-30T21:21:55",
-      "stratz_fetched_at": "2026-06-30T10:26:22Z",
+      "report_generated_at": "2026-07-01T21:14:44",
+      "stratz_fetched_at": "2026-07-01T11:12:53Z",
       "opendota_fetched_at": "2026-06-28T05:56:41Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:22Z",
+      "latest_external_fetch_at": "2026-07-01T11:12:53Z",
       "oldest_external_fetch_at": "2026-06-28T05:56:41Z"
     },
     {
-      "file": "Chaos_Knight_8869500868_20260630_212156.html",
+      "file": "Chaos_Knight_8869500868_20260701_211444.html",
       "match_id": "8869500868",
-      "report_generated_at": "2026-06-30T21:21:56",
-      "stratz_fetched_at": "2026-06-30T10:26:25Z",
+      "report_generated_at": "2026-07-01T21:14:44",
+      "stratz_fetched_at": "2026-07-01T11:12:57Z",
       "opendota_fetched_at": "2026-06-28T05:56:44Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:25Z",
+      "latest_external_fetch_at": "2026-07-01T11:12:57Z",
       "oldest_external_fetch_at": "2026-06-28T05:56:44Z"
     },
     {
-      "file": "Rubick_8867351572_20260701_171658.html",
+      "file": "Rubick_8867351572_20260701_211445.html",
       "match_id": "8867351572",
-      "report_generated_at": "2026-07-01T17:16:58",
-      "stratz_fetched_at": "2026-07-01T07:16:53Z",
+      "report_generated_at": "2026-07-01T21:14:45",
+      "stratz_fetched_at": "2026-07-01T11:13:00Z",
       "opendota_fetched_at": "2026-06-28T05:56:07Z",
-      "latest_external_fetch_at": "2026-07-01T07:16:53Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:00Z",
       "oldest_external_fetch_at": "2026-06-28T05:56:07Z"
     },
     {
-      "file": "Earth_Spirit_8867246517_20260630_212156.html",
+      "file": "Earth_Spirit_8867246517_20260701_211445.html",
       "match_id": "8867246517",
-      "report_generated_at": "2026-06-30T21:21:56",
-      "stratz_fetched_at": "2026-06-30T10:26:30Z",
+      "report_generated_at": "2026-07-01T21:14:45",
+      "stratz_fetched_at": "2026-07-01T11:13:04Z",
       "opendota_fetched_at": "2026-06-28T05:56:49Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:30Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:04Z",
       "oldest_external_fetch_at": "2026-06-28T05:56:49Z"
     },
     {
-      "file": "Dragon_Knight_8867124876_20260630_212156.html",
+      "file": "Dragon_Knight_8867124876_20260701_211445.html",
       "match_id": "8867124876",
-      "report_generated_at": "2026-06-30T21:21:56",
-      "stratz_fetched_at": "2026-06-30T10:26:33Z",
+      "report_generated_at": "2026-07-01T21:14:45",
+      "stratz_fetched_at": "2026-07-01T11:13:09Z",
       "opendota_fetched_at": "2026-06-28T05:42:46Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:33Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:09Z",
       "oldest_external_fetch_at": "2026-06-28T05:42:46Z"
     },
     {
-      "file": "Mirana_8867002237_20260630_212156.html",
+      "file": "Mirana_8867002237_20260701_211445.html",
       "match_id": "8867002237",
-      "report_generated_at": "2026-06-30T21:21:56",
-      "stratz_fetched_at": "2026-06-30T10:26:36Z",
+      "report_generated_at": "2026-07-01T21:14:45",
+      "stratz_fetched_at": "2026-07-01T11:13:14Z",
       "opendota_fetched_at": "2026-06-28T05:42:48Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:36Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:14Z",
       "oldest_external_fetch_at": "2026-06-28T05:42:48Z"
     },
     {
-      "file": "Crystal_Maiden_8866935458_20260630_212157.html",
+      "file": "Crystal_Maiden_8866935458_20260701_211445.html",
       "match_id": "8866935458",
-      "report_generated_at": "2026-06-30T21:21:57",
-      "stratz_fetched_at": "2026-06-30T10:26:41Z",
+      "report_generated_at": "2026-07-01T21:14:45",
+      "stratz_fetched_at": "2026-07-01T11:13:19Z",
       "opendota_fetched_at": "2026-06-26T12:34:28Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:41Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:19Z",
       "oldest_external_fetch_at": "2026-06-26T12:34:28Z"
     },
     {
-      "file": "Gyrocopter_8866888706_20260630_212157.html",
+      "file": "Gyrocopter_8866888706_20260701_211446.html",
       "match_id": "8866888706",
-      "report_generated_at": "2026-06-30T21:21:57",
-      "stratz_fetched_at": "2026-06-30T10:26:44Z",
+      "report_generated_at": "2026-07-01T21:14:46",
+      "stratz_fetched_at": "2026-07-01T11:13:24Z",
       "opendota_fetched_at": "2026-06-26T12:34:28Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:44Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:24Z",
       "oldest_external_fetch_at": "2026-06-26T12:34:28Z"
     },
     {
-      "file": "Dawnbreaker_8866682981_20260701_171124.html",
+      "file": "Dawnbreaker_8866682981_20260701_211446.html",
       "match_id": "8866682981",
-      "report_generated_at": "2026-07-01T17:11:24",
-      "stratz_fetched_at": "2026-07-01T07:11:16Z",
+      "report_generated_at": "2026-07-01T21:14:46",
+      "stratz_fetched_at": "2026-07-01T11:13:29Z",
       "opendota_fetched_at": "2026-06-26T12:34:29Z",
-      "latest_external_fetch_at": "2026-07-01T07:11:16Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:29Z",
       "oldest_external_fetch_at": "2026-06-26T12:34:29Z"
     },
     {
-      "file": "Dark_Seer_8866655915_20260630_212157.html",
+      "file": "Dark_Seer_8866655915_20260701_211446.html",
       "match_id": "8866655915",
-      "report_generated_at": "2026-06-30T21:21:57",
-      "stratz_fetched_at": "2026-06-30T10:26:50Z",
+      "report_generated_at": "2026-07-01T21:14:46",
+      "stratz_fetched_at": "2026-07-01T11:13:33Z",
       "opendota_fetched_at": "2026-06-26T12:34:30Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:50Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:33Z",
       "oldest_external_fetch_at": "2026-06-26T12:34:30Z"
     },
     {
-      "file": "Doom_8866610277_20260701_171135.html",
+      "file": "Doom_8866610277_20260701_211446.html",
       "match_id": "8866610277",
-      "report_generated_at": "2026-07-01T17:11:35",
-      "stratz_fetched_at": "2026-07-01T07:11:30Z",
+      "report_generated_at": "2026-07-01T21:14:46",
+      "stratz_fetched_at": "2026-07-01T11:13:38Z",
       "opendota_fetched_at": "2026-06-26T12:34:54Z",
-      "latest_external_fetch_at": "2026-07-01T07:11:30Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:38Z",
       "oldest_external_fetch_at": "2026-06-26T12:34:54Z"
     },
     {
-      "file": "Anti-Mage_8866174845_20260701_171109.html",
+      "file": "Anti-Mage_8866174845_20260701_211447.html",
       "match_id": "8866174845",
-      "report_generated_at": "2026-07-01T17:11:09",
-      "stratz_fetched_at": "2026-07-01T07:11:04Z",
+      "report_generated_at": "2026-07-01T21:14:47",
+      "stratz_fetched_at": "2026-07-01T11:13:44Z",
       "opendota_fetched_at": "2026-06-26T12:31:07Z",
-      "latest_external_fetch_at": "2026-07-01T07:11:04Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:44Z",
       "oldest_external_fetch_at": "2026-06-26T12:31:07Z"
     },
     {
-      "file": "Anti-Mage_8866000193_20260630_212158.html",
+      "file": "Anti-Mage_8866000193_20260701_211447.html",
       "match_id": "8866000193",
-      "report_generated_at": "2026-06-30T21:21:58",
-      "stratz_fetched_at": "2026-06-30T10:26:59Z",
+      "report_generated_at": "2026-07-01T21:14:47",
+      "stratz_fetched_at": "2026-07-01T11:13:49Z",
       "opendota_fetched_at": "2026-06-26T12:31:09Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:59Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:49Z",
       "oldest_external_fetch_at": "2026-06-26T12:31:09Z"
     },
     {
-      "file": "Meepo_8865878802_20260701_171147.html",
+      "file": "Meepo_8865878802_20260701_211447.html",
       "match_id": "8865878802",
-      "report_generated_at": "2026-07-01T17:11:47",
-      "stratz_fetched_at": "2026-07-01T07:11:42Z",
+      "report_generated_at": "2026-07-01T21:14:47",
+      "stratz_fetched_at": "2026-07-01T11:13:55Z",
       "opendota_fetched_at": "2026-06-26T12:35:16Z",
-      "latest_external_fetch_at": "2026-07-01T07:11:42Z",
+      "latest_external_fetch_at": "2026-07-01T11:13:55Z",
       "oldest_external_fetch_at": "2026-06-26T12:35:16Z"
     }
   ],
   "latest_match": {
     "hero": "Legion Commander",
     "match_id": "8870219537",
-    "file": "Legion_Commander_8870219537_20260630_212154.html",
-    "report_generated_at": "2026-06-30T21:21:54",
+    "file": "Legion_Commander_8870219537_20260701_211443.html",
+    "report_generated_at": "2026-07-01T21:14:43",
     "source_fetches": {
-      "stratz_fetched_at": "2026-06-30T10:26:10Z",
+      "stratz_fetched_at": "2026-07-01T11:12:34Z",
       "opendota_fetched_at": "2026-06-28T05:56:30Z",
-      "latest_external_fetch_at": "2026-06-30T10:26:10Z",
+      "latest_external_fetch_at": "2026-07-01T11:12:34Z",
       "oldest_external_fetch_at": "2026-06-28T05:56:30Z"
     },
     "ended_at": "2026-06-28T03:26:38Z",
@@ -352,8 +376,8 @@
       "topic_id": "item_conversion",
       "focus": "装备后转化",
       "page": "trend-item-conversion.html",
-      "match_count": 4,
-      "finding_count": 4
+      "match_count": 10,
+      "finding_count": 10
     },
     {
       "topic_id": "vision_control",
@@ -366,13 +390,6 @@
       "topic_id": "resource_continuity",
       "focus": "中后期资源连续性",
       "page": "trend-resource-continuity.html",
-      "match_count": 3,
-      "finding_count": 3
-    },
-    {
-      "topic_id": "custom::英雄样本短板",
-      "focus": "英雄样本短板",
-      "page": "trend-custom-696a4d63aa.html",
       "match_count": 3,
       "finding_count": 3
     }

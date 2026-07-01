@@ -557,7 +557,8 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("Axe", result["context"]["enemy_heroes"])
         self.assertEqual(result["skills"]["upgrades"][0]["abilityId"], 5003)
         self.assertIn("stratz_player_detail", result["data_quality"]["available"])
-        self.assertGreaterEqual(result["data_quality"]["score"], 60)
+        self.assertLess(result["data_quality"]["score"], 60)
+        self.assertIn("死亡时间", " ".join(result["data_quality"]["limitations"]))
 
     def test_prompt_is_evidence_driven_and_names_data_gaps(self):
         analysis = analyze_match(self._base_match())
@@ -1031,6 +1032,11 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(sources["death_positions"]["source"], "OpenDota团战死亡坐标")
         self.assertEqual(sources["death_positions"]["coverage"], "覆盖 1/2 次已定位死亡")
         self.assertEqual(sources["death_positions"]["status"], "partial")
+        self.assertLess(result["data_quality"]["score"], 100)
+        self.assertIn(
+            "死亡位置部分覆盖：覆盖 1/2 次已定位死亡",
+            " ".join(result["data_quality"]["limitations"]),
+        )
         death_finding = next(f for f in result["review_findings"] if f["category"] == "death_review")
         self.assertIn("x=120,y=140", death_finding["evidence"])
 
@@ -1278,6 +1284,74 @@ class ReportQualityTests(unittest.TestCase):
             "没有识别到关键装备完成点",
             " ".join(result["data_quality"]["limitations"]),
         )
+
+    def test_support_utility_items_are_key_purchases(self):
+        match = self._base_match()
+        match["hero_id"] = 86
+        match["hero_name"] = "Rubick"
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 86,
+                "player_slot": 128,
+                "purchase_log": [
+                    {"time": 1342, "key": "aether_lens"},
+                    {"time": 1690, "key": "blink"},
+                    {"time": 1842, "key": "aghanims_shard"},
+                    {"time": 2283, "key": "ultimate_scepter"},
+                ],
+                "lh_t": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                "gold_t": [0, 120, 240, 360, 480, 600, 720, 840, 960, 1080, 1200],
+                "obs_log": [],
+                "sen_log": [],
+                "obs_placed": 0,
+                "sen_placed": 0,
+                "observer_kills": 0,
+                "sentry_kills": 0,
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        names = [item["item_name"] for item in result["events"]["key_purchases"]]
+
+        self.assertEqual(
+            names,
+            ["Aether Lens", "Blink Dagger", "Aghanim's Shard", "Aghanim's Scepter"],
+        )
+        self.assertNotIn(
+            "没有识别到关键装备完成点",
+            " ".join(result["data_quality"]["limitations"]),
+        )
+
+    def test_aura_and_teamfight_utility_items_are_key_purchases(self):
+        match = self._base_match()
+        match["hero_id"] = 55
+        match["hero_name"] = "Dark Seer"
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 55,
+                "player_slot": 128,
+                "purchase_log": [
+                    {"time": 945, "key": "mekansm"},
+                    {"time": 1004, "key": "guardian_greaves"},
+                    {"time": 1771, "key": "octarine_core"},
+                ],
+                "lh_t": [0, 3, 6, 10, 14, 18, 22, 26, 30, 35, 40],
+                "gold_t": [0, 160, 330, 510, 700, 900, 1120, 1360, 1620, 1900, 2200],
+                "obs_log": [],
+                "sen_log": [],
+                "obs_placed": 0,
+                "sen_placed": 0,
+                "observer_kills": 0,
+                "sentry_kills": 0,
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        names = [item["item_name"] for item in result["events"]["key_purchases"]]
+
+        self.assertEqual(names, ["Mekansm", "Guardian Greaves", "Octarine Core"])
 
     def test_death_review_highlights_clusters_and_next_game_death_metric(self):
         match = self._base_match()
