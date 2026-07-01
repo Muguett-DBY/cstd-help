@@ -1453,7 +1453,7 @@ def _render_evidence_field_audit_panel(manifest):
         or "字段覆盖来自本地缓存 JSON；未覆盖字段不会作为复盘归因或行动建议依据。"
     )
     return (
-        '<div class="evidence-field-audit-panel" data-evidence-field-audit-panel aria-label="实证字段覆盖">'
+        '<div class="evidence-field-audit-panel" id="evidence-field-audit" data-evidence-field-audit-panel aria-label="实证字段覆盖">'
         '<div class="field-audit-head">'
         f'<span class="field-audit-status {status_class}">{html.escape(_field_audit_status_label(status))}</span>'
         '<strong>实证字段覆盖</strong>'
@@ -1469,6 +1469,42 @@ def _render_evidence_field_audit_panel(manifest):
         f'{"".join(rows)}'
         '</div>'
         '</div>'
+    )
+
+
+def _render_evidence_command_bar(manifest, current_page="index"):
+    latest = manifest.get("latest_match") or {}
+    latest_file = html.escape(latest.get("file") or "index.html", quote=True)
+    latest_label = html.escape(
+        f"{latest.get('hero') or '最新复盘'} #{latest.get('match_id') or ''}".strip()
+    )
+    report_count = int(manifest.get("report_count") or 0)
+    quality = manifest.get("quality_gate") or {}
+    quality_label = "质量通过" if quality.get("status") == "pass" else "质量待查"
+    freshness = manifest.get("source_freshness") or {}
+    freshness_label = "来源已追踪" if freshness.get("status") == "tracked" else "来源部分"
+    audit = manifest.get("evidence_field_audit") or {}
+    complete_fields = int(audit.get("complete_field_count") or 0)
+    total_fields = int(audit.get("field_count") or 0)
+    field_label = f"字段 {complete_fields}/{total_fields}"
+    current_label = "训练计划" if current_page == "practice" else "比赛历史"
+    return (
+        '<nav class="evidence-command-bar" data-evidence-command-bar aria-label="证据指挥台">'
+        '<div class="evidence-command-head">'
+        '<span>证据指挥台</span>'
+        f'<strong>{html.escape(current_label)}</strong>'
+        '</div>'
+        '<div class="evidence-command-track">'
+        f'<span class="evidence-command-chip">{report_count} 场复盘</span>'
+        f'<span class="evidence-command-chip">{html.escape(quality_label)}</span>'
+        f'<span class="evidence-command-chip">{html.escape(field_label)}</span>'
+        f'<span class="evidence-command-chip">{html.escape(freshness_label)}</span>'
+        f'<a class="evidence-command-link primary" href="{latest_file}">{latest_label}</a>'
+        '<a class="evidence-command-link" href="match-brief.html">赛前执行卡</a>'
+        '<a class="evidence-command-link" href="#evidence-field-audit">字段覆盖</a>'
+        '<a class="evidence-command-link" href="site-manifest.json">覆盖 JSON</a>'
+        '</div>'
+        '</nav>'
     )
 
 
@@ -1673,6 +1709,7 @@ def _render_focus_trends(trends):
 def _render_practice_plan(trends, reports, output_path, manifest=None):
     newest = reports[0] if reports else {}
     manifest = manifest or _build_site_manifest(reports, trends)
+    command_bar = _render_evidence_command_bar(manifest, current_page="practice")
     coverage_panel = _render_coverage_panel(manifest)
     cards = []
     for index, trend in enumerate(trends[:5], start=1):
@@ -1755,6 +1792,7 @@ def _render_practice_plan(trends, reports, output_path, manifest=None):
         <a class="primary-link secondary-link" href="match-brief.html">赛前执行卡</a>
         <a class="primary-link secondary-link" href="practice-plan.txt">导出训练清单</a>
     </header>
+    {command_bar}
     {coverage_panel}
     <section class="practice-workbench" aria-label="训练任务工作台">
         <div class="practice-workbench-head">
@@ -2554,6 +2592,7 @@ def _render_index(reports, output_path=None, focus_trends=None, manifest=None):
     high_priority_count = sum(1 for report in reports if report.get("review_priority") == "high")
     focus_trends = focus_trends if focus_trends is not None else _build_focus_trends(reports)
     manifest = manifest or _build_site_manifest(reports, focus_trends)
+    command_bar = _render_evidence_command_bar(manifest, current_page="index")
     coverage_panel = _render_coverage_panel(manifest)
 
     for report in reports:
@@ -2629,6 +2668,8 @@ def _render_index(reports, output_path=None, focus_trends=None, manifest=None):
         <a class="primary-link secondary-link" href="practice-plan.html">下一次训练计划</a>
         <a class="primary-link secondary-link" href="match-brief.html">赛前执行卡</a>
     </header>
+
+    {command_bar}
 
     <div class="history-summary" aria-label="历史比赛统计">
         <span><strong>{len(reports)}</strong> 场已复盘</span>
