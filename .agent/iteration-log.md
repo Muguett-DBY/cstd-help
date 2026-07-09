@@ -1103,4 +1103,8 @@
   - Related report quality tests passed for STRATZ position samples, OpenDota teamfight death positions, death workbench rendering, and responsive styles.
   - `python scripts/check_public_site.py`: passed, 18 report pages.
   - Playwright CLI desktop/mobile screenshots of Rubick death cards show readable context blocks without visible horizontal overflow.
+- Release:
+  - Commit `61c644b` (`feat: add death evidence context cards`) pushed to `origin/main`.
+  - GitHub Actions `Deploy Cloudflare Pages` run `29000477651` passed unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment.
+  - Production acceptance: `dota.custard.top` serves 18 reports, latest `Legion_Commander_8870219537_20260709_050206`, and Rubick `8867351572` serves 7 death-context blocks with the two target-loss windows and 3 explicit coordinate-gap rows.
 - Risk: this improves review usability inside available public evidence; it still does not create coordinates when STRATZ/OpenDota do not provide them.
