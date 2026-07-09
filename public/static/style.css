@@ -2459,7 +2459,7 @@ body {
 }
 .death-review-summary {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
 }
 .death-review-metric {
@@ -2844,6 +2844,37 @@ body {
     flex-basis: 100%;
     color: var(--accent-yellow);
     font-weight: 700;
+}
+.death-context-list {
+    flex: 1 0 100%;
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    margin-top: 2px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(248,81,73,0.18);
+}
+.death-context-heading {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+.death-context-line {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 6px;
+    align-items: start;
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.45;
+}
+.death-context-line strong {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+.death-context-line span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 .death-coordinate-map {
     margin-top: 12px;
@@ -3252,7 +3283,11 @@ tr:hover { background: rgba(88,166,255,0.05); }
         grid-template-columns: 1fr;
     }
     .death-review-summary {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .death-context-line {
+        grid-template-columns: 1fr;
+        gap: 2px;
     }
     .death-review-metric {
         min-height: 54px;

@@ -575,6 +575,17 @@
                     {% if item.position_cluster_label %}
                     <span class="death-position-label repeat">{{ item.position_cluster_label }}</span>
                     {% endif %}
+                    {% if item.context_lines %}
+                    <div class="death-context-list" aria-label="死亡证据上下文">
+                        <span class="death-context-heading">死亡证据上下文</span>
+                        {% for context in item.context_lines[:5] %}
+                        <div class="death-context-line {{ context.kind }}">
+                            <strong>{{ context.label }}</strong>
+                            <span>{{ context.text }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
