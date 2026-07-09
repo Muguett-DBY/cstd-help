@@ -239,6 +239,11 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
     result["timeline"]["death_overlap_windows"] = _build_death_overlap_windows(result["timeline"], result["events"])
     result["timeline"]["death_recovery_windows"] = _build_death_recovery_windows(result["timeline"], result["events"])
     result["timeline"]["death_resource_deltas"] = _build_death_resource_deltas(result["timeline"], result["events"])
+    result["events"]["deaths"] = _attach_death_contexts_to_deaths(result["events"], result["timeline"])
+    result["events"]["death_context_count"] = sum(
+        1 for death in result["events"].get("deaths") or []
+        if death.get("context_lines")
+    )
     result["opendota_benchmarks"] = _build_opendota_benchmark_profile(opendota_player)
     result["performance_context"] = _build_opendota_performance_context(
         opendota_player,
@@ -1884,6 +1889,7 @@ def _build_death_recovery_windows(timeline, events, window_minutes=3):
         if avg_gpm is not None:
             resource_parts.append(f"{avg_gpm}平均GPM")
         windows.append({
+            "death_time": death_time,
             "minute": minute,
             "start_minute": start,
             "end_minute": end,
@@ -1988,6 +1994,7 @@ def _build_death_resource_deltas(timeline, events, window_minutes=3):
                 f"平均GPM {before_avg_gpm}→{after_avg_gpm}（{avg_gpm_delta:+.1f}）"
             )
         deltas.append({
+            "death_time": death_time,
             "minute": minute,
             "before_window_label": f"{before_start}-{before_end}分钟",
             "after_window_label": f"{after_start}-{after_end}分钟",
@@ -2005,6 +2012,109 @@ def _build_death_resource_deltas(timeline, events, window_minutes=3):
             "evidence_label": f"{minute}分死亡前后：{'，'.join(evidence_parts)}",
         })
     return deltas
+
+
+def _death_context_line(label, text, kind):
+    return {
+        "label": label,
+        "text": text,
+        "kind": kind,
+    }
+
+
+def _index_by_death_time(items):
+    indexed = {}
+    for item in items or []:
+        death_time = item.get("death_time")
+        if not isinstance(death_time, (int, float)):
+            continue
+        indexed.setdefault(death_time, []).append(item)
+    return indexed
+
+
+def _nearest_key_purchase_context(death_time, key_purchases, max_distance_seconds=180):
+    if not isinstance(death_time, (int, float)):
+        return None
+    candidates = []
+    for purchase in key_purchases or []:
+        purchase_time = purchase.get("time")
+        if not isinstance(purchase_time, (int, float)):
+            continue
+        distance = purchase_time - death_time
+        if abs(distance) > max_distance_seconds:
+            continue
+        candidates.append((abs(distance), distance, purchase))
+    if not candidates:
+        return None
+    _, distance, purchase = min(candidates, key=lambda item: (item[0], abs(item[1])))
+    seconds = int(round(abs(distance)))
+    item_name = purchase.get("item_name") or "关键装备"
+    if distance <= 0:
+        text = f"死亡前{seconds}秒完成 {item_name}"
+    else:
+        text = f"死亡后{seconds}秒完成 {item_name}"
+    return _death_context_line("装备上下文", text, "purchase")
+
+
+def _attach_death_contexts_to_deaths(events, timeline):
+    deaths = events.get("deaths") or []
+    if not deaths:
+        return deaths
+
+    objective_by_death = _index_by_death_time(events.get("death_objective_windows"))
+    recovery_by_death = _index_by_death_time((timeline or {}).get("death_recovery_windows"))
+    delta_by_death = _index_by_death_time((timeline or {}).get("death_resource_deltas"))
+    key_purchases = events.get("key_purchases") or []
+
+    enriched = []
+    for death in deaths:
+        item = dict(death)
+        death_time = item.get("time")
+        context_lines = []
+
+        if isinstance(death_time, (int, float)):
+            for window in objective_by_death.get(death_time, [])[:2]:
+                context_lines.append(_death_context_line(
+                    "目标上下文",
+                    (
+                        f"死亡后{window.get('elapsed_seconds')}秒"
+                        f"{window.get('objective_display_label')}"
+                    ),
+                    "objective",
+                ))
+
+            deltas = delta_by_death.get(death_time, [])
+            if deltas:
+                delta = deltas[0]
+                context_lines.append(_death_context_line(
+                    "前后资源",
+                    f"{delta.get('evidence_label')}（{delta.get('status_label')}）",
+                    "resource-delta",
+                ))
+
+            recoveries = recovery_by_death.get(death_time, [])
+            if recoveries:
+                recovery = recoveries[0]
+                context_lines.append(_death_context_line(
+                    "恢复上下文",
+                    f"{recovery.get('evidence_label')}（{recovery.get('status_label')}）",
+                    "recovery",
+                ))
+
+            purchase_context = _nearest_key_purchase_context(death_time, key_purchases)
+            if purchase_context:
+                context_lines.append(purchase_context)
+
+        if not item.get("position_label"):
+            context_lines.append(_death_context_line(
+                "坐标缺口",
+                "公共数据源未提供这次死亡坐标；本卡只使用时间线、目标和装备事件。",
+                "position-gap",
+            ))
+
+        item["context_lines"] = context_lines[:5]
+        enriched.append(item)
+    return enriched
 
 
 def _has_meaningful_death_resource_drop(window):

@@ -1088,3 +1088,19 @@
   - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
   - Public content scan: no report has missing evidence, partial evidence with `100/100`, or `0个关键装备完成点` / `没有识别到关键装备完成点`.
   - Chrome desktop/mobile checks: index shows `字段 7/8` and `字段覆盖：有缺口`; Rubick mobile shows partial=1, missing=0, 97/100, no `数据完整度：100/100`, 4/7 death coordinates, and utility key items; Dark Seer shows utility key items and no zero-key-item warning.
+
+## 2026-07-09 - Death Context Usability Closure
+
+- Goal: remove the remaining user-facing weakness where deaths without source-backed coordinates only showed `无位置采样`.
+- Source boundary: STRATZ live playback is still Cloudflare-blocked from this environment, and Rubick `8867351572` still has only 4/7 public death coordinates. The system does not infer map locations for the other three deaths.
+- Completed:
+  - Added deterministic per-death `context_lines` built from real death time, death/objective windows, death resource deltas, recovery windows, and nearby key purchases.
+  - Rendered a `死亡证据上下文` block inside every death card, including `目标上下文`, `前后资源`, `恢复上下文`, `装备上下文`, and explicit `坐标缺口` when coordinates are absent.
+  - Fixed the death review summary grid from 3 columns to 4 on desktop and 2 on mobile so the four metrics stay aligned.
+  - Regenerated all 18 reports and rebuilt `public/`; Rubick now has 7 death-context cards, 3 explicit coordinate gaps, and source-backed target-loss context for the unlocated deaths.
+- Verification:
+  - New red/green tests cover source-backed context for unlocated deaths and generated HTML rendering.
+  - Related report quality tests passed for STRATZ position samples, OpenDota teamfight death positions, death workbench rendering, and responsive styles.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - Playwright CLI desktop/mobile screenshots of Rubick death cards show readable context blocks without visible horizontal overflow.
+- Risk: this improves review usability inside available public evidence; it still does not create coordinates when STRATZ/OpenDota do not provide them.

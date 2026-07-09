@@ -1040,6 +1040,106 @@ class ReportQualityTests(unittest.TestCase):
         death_finding = next(f for f in result["review_findings"] if f["category"] == "death_review")
         self.assertIn("x=120,y=140", death_finding["evidence"])
 
+    def test_unlocated_deaths_keep_source_backed_context(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        match["duration"] = 1500
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [5] * 25,
+                    "goldPerMinute": [420] * 10 + [160, 170, 180, 390, 400, 410, 420, 420, 420, 420, 420, 420, 420, 420, 420],
+                },
+                "playbackData": {
+                    "deathEvents": [{"time": 600}, {"time": 960}],
+                    "purchaseEvents": [{"time": 540, "itemId": 145}, {"time": 1020, "itemId": 116}],
+                },
+            }],
+        }
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+            }],
+            "objectives": [{
+                "time": 660,
+                "type": "building_kill",
+                "key": "npc_dota_goodguys_mid_tower1",
+                "player_slot": 129,
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data, opendota_data=opendota_data)
+        first_death = result["events"]["deaths"][0]
+        joined_context = " ".join(line["text"] for line in first_death["context_lines"])
+
+        self.assertFalse(first_death.get("position_label"))
+        self.assertIn("目标上下文", {line["label"] for line in first_death["context_lines"]})
+        self.assertIn("死亡后60秒失去中路一塔", joined_context)
+        self.assertIn("恢复上下文", {line["label"] for line in first_death["context_lines"]})
+        self.assertIn("装备上下文", {line["label"] for line in first_death["context_lines"]})
+        self.assertIn("坐标缺口", {line["label"] for line in first_death["context_lines"]})
+
+    def test_generated_report_explains_unlocated_death_cards_with_context(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match["deaths"] = 1
+            match["duration"] = 1200
+            stratz_data = {
+                "players": [{
+                    "steamAccount": {"id": 173776719},
+                    "isRadiant": True,
+                    "hero": {"id": 1, "displayName": "Anti-Mage"},
+                    "position": "POSITION_1",
+                    "role": "CORE",
+                    "stats": {
+                        "lastHitsPerMinute": [5] * 20,
+                        "goldPerMinute": [420] * 20,
+                    },
+                    "playbackData": {
+                        "deathEvents": [{"time": 600}],
+                        "purchaseEvents": [{"time": 540, "itemId": 145}],
+                    },
+                }],
+            }
+            opendota_data = {
+                "players": [{
+                    "account_id": 173776719,
+                    "hero_id": 1,
+                    "player_slot": 1,
+                }],
+                "objectives": [{
+                    "time": 660,
+                    "type": "building_kill",
+                    "key": "npc_dota_goodguys_mid_tower1",
+                    "player_slot": 129,
+                }],
+            }
+
+            analysis = analyze_match(match, stratz_data=stratz_data, opendota_data=opendota_data)
+            path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+        generator.REPORT_DIR = old_report_dir
+
+        self.assertIn("死亡位置：无位置采样", html)
+        self.assertIn("死亡证据上下文", html)
+        self.assertIn("目标上下文", html)
+        self.assertIn("死亡后60秒失去中路一塔", html)
+        self.assertIn("坐标缺口", html)
+
     def test_ambiguous_opendota_teamfight_positions_are_not_assigned(self):
         match = self._base_match()
         match["deaths"] = 2
@@ -1757,6 +1857,8 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn(".death-review-summary", stylesheet)
         self.assertIn(".death-evidence-toolbar", stylesheet)
         self.assertIn(".death-event-card.repeat-position", stylesheet)
+        self.assertIn(".death-context-list", stylesheet)
+        self.assertIn(".death-context-line", stylesheet)
         self.assertIn("@media (max-width: 720px)", stylesheet)
         self.assertIn("#timeline-diagnosis .timeline-phase-table", stylesheet)
         self.assertIn(".timeline-phase-cards {", stylesheet)
