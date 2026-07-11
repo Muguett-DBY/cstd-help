@@ -327,6 +327,44 @@ class BuildPagesSiteTests(unittest.TestCase):
             ],
         )
 
+    def test_static_site_checker_treats_zero_death_review_as_not_applicable(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            metadata = {
+                "match_id": 8889758913,
+                "hero": {"id": 80, "name": "Lone Druid", "slug": "lone_druid"},
+                "kda": {"kills": 11, "deaths": 0, "assists": 10},
+            }
+            payload = json.dumps(metadata, ensure_ascii=False)
+            (public_path / "Lone_Druid_8889758913.html").write_text(
+                "<html><body>"
+                '<div class="death-review-summary">本局0次死亡</div>'
+                '<div class="timeline-phase-cards"></div>'
+                f'<script id="report-metadata" type="application/json">{payload}</script>'
+                "</body></html>",
+                encoding="utf-8",
+            )
+            (public_path / "index.html").write_text(
+                "<html><body>死亡复盘覆盖</body></html>",
+                encoding="utf-8",
+            )
+            (public_path / "site-manifest.json").write_text(
+                json.dumps({
+                    "death_review_workbench_report_count": 0,
+                    "death_recovery_window_report_count": 0,
+                    "death_coordinate_map_report_count": 0,
+                    "complete_death_review_report_count": 1,
+                }),
+                encoding="utf-8",
+            )
+
+            issues = check_public_site._find_death_review_coverage_issues(public_path)
+            parsed = pages_site._parse_report(public_path / "Lone_Druid_8889758913.html")
+
+        self.assertEqual(issues, [])
+        self.assertTrue(parsed["death_evidence"]["is_not_applicable"])
+        self.assertTrue(parsed["death_evidence"]["has_complete_death_review"])
+
     def test_static_site_checker_detects_missing_quality_gate_summary(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
@@ -1442,7 +1480,7 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("2 局", index_html)
         self.assertIn("恢复窗口", index_html)
         self.assertIn("1 局", index_html)
-        self.assertIn("完整死亡复盘", index_html)
+        self.assertIn("死亡复盘闭环（含0死亡）", index_html)
         self.assertIn("site-manifest.json", index_html)
         self.assertIn("Doom #8867002240", index_html)
         self.assertIn("2 场", index_html)
