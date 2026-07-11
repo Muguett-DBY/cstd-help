@@ -2,46 +2,46 @@
   "schema_version": 1,
   "source": "generated_public_reports",
   "player_id": "173776719",
-  "report_count": 42,
-  "finding_count": 184,
+  "report_count": 43,
+  "finding_count": 189,
   "topic_count": 13,
-  "high_priority_report_count": 35,
-  "known_result_count": 42,
+  "high_priority_report_count": 36,
+  "known_result_count": 43,
   "wins": 22,
-  "losses": 20,
-  "death_review_workbench_report_count": 41,
-  "death_recovery_window_report_count": 41,
-  "death_coordinate_map_report_count": 41,
-  "complete_death_review_report_count": 42,
+  "losses": 21,
+  "death_review_workbench_report_count": 42,
+  "death_recovery_window_report_count": 42,
+  "death_coordinate_map_report_count": 42,
+  "complete_death_review_report_count": 43,
   "quality_gate": {
     "status": "pass",
-    "decision_snapshot_report_count": 42,
-    "trend_context_report_count": 42,
-    "evidence_source_report_count": 42,
+    "decision_snapshot_report_count": 43,
+    "trend_context_report_count": 43,
+    "evidence_source_report_count": 43,
     "manual_review_language_hit_count": 0,
-    "complete_quality_report_count": 42
+    "complete_quality_report_count": 43
   },
   "source_freshness": {
     "status": "tracked",
     "basis": "embedded_report_timestamp+sqlite_fetched_at",
-    "report_timestamp_count": 42,
-    "stratz_fetch_timestamp_report_count": 42,
-    "opendota_fetch_timestamp_report_count": 42,
-    "complete_source_timestamp_report_count": 42,
+    "report_timestamp_count": 43,
+    "stratz_fetch_timestamp_report_count": 43,
+    "opendota_fetch_timestamp_report_count": 43,
+    "complete_source_timestamp_report_count": 43,
     "latest_report_generated_at": "2026-07-11T20:53:27",
     "oldest_report_generated_at": "2026-07-09T05:02:06",
-    "latest_external_fetch_at": "2026-07-11T18:01:54Z",
+    "latest_external_fetch_at": "2026-07-11T18:16:59Z",
     "oldest_external_fetch_at": "2026-06-26T12:31:07Z",
     "limitation": "公开页展示的是已缓存证据的抓取时间；Cloudflare Pages 发布不会重新访问 STRATZ/OpenDota。"
   },
   "evidence_field_audit": {
     "status": "untracked",
     "basis": "sqlite_cached_stratz_opendota_json",
-    "report_count": 42,
+    "report_count": 43,
     "payload_match_count": 0,
     "field_count": 8,
-    "complete_field_count": 7,
-    "partial_field_count": 1,
+    "complete_field_count": 6,
+    "partial_field_count": 2,
     "missing_field_count": 0,
     "fields": [
       {
@@ -49,9 +49,9 @@
         "label": "分钟经济/补刀曲线",
         "source": "STRATZ stats 或 OpenDota lh_t/gold_t/xp_t",
         "supports": "10分钟补刀、低效率窗口、阶段资源连续性",
-        "coverage_count": 42,
+        "coverage_count": 43,
         "coverage_ratio": 1.0,
-        "complete_report_count": 42,
+        "complete_report_count": 43,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -61,21 +61,21 @@
         "label": "死亡事件时间线",
         "source": "STRATZ deathEvents 或 OpenDota teamfights/deaths_log",
         "supports": "死亡成本、死亡后恢复窗口、目标损失",
-        "coverage_count": 42,
+        "coverage_count": 43,
         "coverage_ratio": 1.0,
         "complete_report_count": 42,
-        "partial_report_count": 0,
+        "partial_report_count": 1,
         "missing_report_count": 0,
-        "status": "complete"
+        "status": "partial"
       },
       {
         "key": "purchase_events",
         "label": "装备购买时间线",
         "source": "STRATZ purchaseEvents 或 OpenDota purchase_log",
         "supports": "关键装备时机、装备后转化",
-        "coverage_count": 42,
+        "coverage_count": 43,
         "coverage_ratio": 1.0,
-        "complete_report_count": 42,
+        "complete_report_count": 43,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -85,9 +85,9 @@
         "label": "位置采样",
         "source": "STRATZ playerUpdatePositionEvents 或 OpenDota teamfight deaths_pos",
         "supports": "死亡位置、重复危险区域、撤退边界",
-        "coverage_count": 42,
+        "coverage_count": 43,
         "coverage_ratio": 1.0,
-        "complete_report_count": 41,
+        "complete_report_count": 42,
         "partial_report_count": 1,
         "missing_report_count": 0,
         "status": "partial"
@@ -97,9 +97,9 @@
         "label": "击杀/助攻参战",
         "source": "STRATZ kill/assistEvents 或 OpenDota kills_log/teamfights",
         "supports": "参战窗口、输出转目标、团战参与",
-        "coverage_count": 42,
+        "coverage_count": 43,
         "coverage_ratio": 1.0,
-        "complete_report_count": 42,
+        "complete_report_count": 43,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -109,9 +109,9 @@
         "label": "地图目标事件",
         "source": "OpenDota objectives",
         "supports": "推塔、肉山、死亡后目标损失",
-        "coverage_count": 42,
+        "coverage_count": 43,
         "coverage_ratio": 1.0,
-        "complete_report_count": 42,
+        "complete_report_count": 43,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -121,9 +121,9 @@
         "label": "视野事件",
         "source": "OpenDota obs/sen log",
         "supports": "辅助视野、控图与排眼",
-        "coverage_count": 42,
+        "coverage_count": 43,
         "coverage_ratio": 1.0,
-        "complete_report_count": 42,
+        "complete_report_count": 43,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -133,9 +133,9 @@
         "label": "英雄样本百分位",
         "source": "OpenDota benchmarks",
         "supports": "同英雄样本对比、低百分位训练项",
-        "coverage_count": 42,
+        "coverage_count": 43,
         "coverage_ratio": 1.0,
-        "complete_report_count": 42,
+        "complete_report_count": 43,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -521,6 +521,15 @@
       "opendota_fetched_at": "2026-07-11T18:01:31Z",
       "latest_external_fetch_at": "2026-07-11T18:01:54Z",
       "oldest_external_fetch_at": "2026-07-11T18:01:31Z"
+    },
+    {
+      "file": "Dawnbreaker_8479888724.html",
+      "match_id": "8479888724",
+      "report_generated_at": "2026-07-11T18:17:03",
+      "stratz_fetched_at": "2026-07-11T18:16:59Z",
+      "opendota_fetched_at": "2026-07-11T18:13:24Z",
+      "latest_external_fetch_at": "2026-07-11T18:16:59Z",
+      "oldest_external_fetch_at": "2026-07-11T18:13:24Z"
     }
   ],
   "latest_match": {
@@ -550,8 +559,8 @@
       "topic_id": "custom::死亡后目标损失",
       "focus": "死亡后目标损失",
       "page": "trend-custom-bac9d883f8.html",
-      "match_count": 31,
-      "finding_count": 31
+      "match_count": 32,
+      "finding_count": 32
     },
     {
       "topic_id": "custom::重复死亡坐标",
@@ -561,25 +570,25 @@
       "finding_count": 21
     },
     {
-      "topic_id": "custom::死亡前后资源变化",
-      "focus": "死亡前后资源变化",
-      "page": "trend-custom-0568eadc6b.html",
-      "match_count": 17,
-      "finding_count": 17
-    },
-    {
       "topic_id": "custom::死亡打断资源",
       "focus": "死亡打断资源",
       "page": "trend-custom-c37af761b7.html",
-      "match_count": 17,
-      "finding_count": 17
+      "match_count": 18,
+      "finding_count": 18
     },
     {
       "topic_id": "early_resource",
       "focus": "前10分钟资源",
       "page": "trend-early-resource.html",
-      "match_count": 16,
-      "finding_count": 16
+      "match_count": 17,
+      "finding_count": 17
+    },
+    {
+      "topic_id": "custom::死亡前后资源变化",
+      "focus": "死亡前后资源变化",
+      "page": "trend-custom-0568eadc6b.html",
+      "match_count": 17,
+      "finding_count": 17
     },
     {
       "topic_id": "close_game",
@@ -592,8 +601,8 @@
       "topic_id": "custom::死亡后恢复",
       "focus": "死亡后恢复",
       "page": "trend-custom-5f0c9d60ff.html",
-      "match_count": 2,
-      "finding_count": 2
+      "match_count": 3,
+      "finding_count": 3
     },
     {
       "topic_id": "item_conversion",
@@ -606,8 +615,8 @@
       "topic_id": "resource_continuity",
       "focus": "中后期资源连续性",
       "page": "trend-resource-continuity.html",
-      "match_count": 13,
-      "finding_count": 13
+      "match_count": 14,
+      "finding_count": 14
     },
     {
       "topic_id": "vision_control",
