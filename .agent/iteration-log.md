@@ -1134,3 +1134,26 @@
   - GitHub Actions `Deploy Cloudflare Pages` run `29153560115` passed unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment.
   - Production acceptance: `dota.custard.top` serves 18 canonical reports; both legacy Legion Commander timestamp routes return `301` to `/Legion_Commander_8870219537`; the latest report exposes generation time `2026-07-11T20:53:26` and all required evidence sections; Rubick retains 7 death-context blocks and 3 explicit coordinate gaps.
 - Residual boundary: live STRATZ playback remains blocked from this execution environment, so regeneration falls back to cached source evidence. The site continues to mark Rubick position coverage partial and does not infer the three coordinates absent from STRATZ/OpenDota.
+
+## 2026-07-11 - Historical Report Redirect Closure
+
+- Goal: close the historical-link gap left by the first stable-URL release. The earlier 36-rule count covered only the latest 18 timestamped report files, not every report URL previously published from Git history.
+- Root-cause fix:
+  - The Pages builder now reads timestamped report filenames from full Git history and generates both `.html` and extensionless redirects for every historical route whose match still has a canonical report.
+  - Redirect destinations are resolved by match ID, so legacy files with an incorrect hero alias still open the current correct report. Examples include `Dazzle_8867124876` to `Dragon_Knight_8867124876`, `Kunkka_8867002237` to `Mirana_8867002237`, and `Grimstroke_8866610277` to `Doom_8866610277`.
+  - CI now checks out full history before validation. The static validator requires every historical alias, verifies the destination match, requires `.html`/extensionless pairs, and rejects a redirect set above the configured 2,000-rule guard.
+- Public refresh: 347 historical timestamped filenames now produce 694 permanent redirect rules; the historical audit reports 694 expected, 694 present, and 0 missing.
+- Verification:
+  - Red/green tests cover wrong-hero historical aliases, missing historical routes, history import during build, and redirect-rule overflow.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 132 tests.
+  - `python -m compileall -q .`: passed.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact --no-banner`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Release:
+  - Implementation commit `6f09658` (`fix: preserve historical report redirects`) pushed to `origin/main`.
+  - GitHub Actions `Deploy Cloudflare Pages` run `29154259422` passed 132 tests, compile, static-site validation, credential validation, and Cloudflare deployment.
+  - Production HTTP acceptance: the sampled Dazzle, Kunkka, and Grimstroke historical routes return `301` to the correct Dragon Knight, Mirana, and Doom canonical match routes. The index exposes 0 timestamped report links.
+  - Playwright mobile acceptance at 390x844: the latest Legion Commander report has no horizontal overflow, renders all 10 evidence classes, exposes a populated coach summary and hero-first title, and a real browser navigation from the old Dazzle alias lands on the Dragon Knight report.
+- Residual boundary: this closes every timestamped report route present in repository history. Future growth is guarded at build time; no source-backed match evidence was altered by this URL-compatibility release.
