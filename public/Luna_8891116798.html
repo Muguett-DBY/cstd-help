@@ -63,7 +63,7 @@
                     <div class="decision-panel active" id="decision-panel-action" role="tabpanel" data-decision-panel="action">
                         <strong>下一局只执行</strong>
                         <p>下一局中后期每次集合前先推至少一条安全线；若队伍不开雾/不控盾，优先保持两路兵线压力。</p>
-                        <small>下一局10分钟后把低效率窗口从1个压到最多1个；集合前先推出一条安全线。</small>
+                        <small>下一局10分钟后把低效率窗口从1个压到0个；集合前先推出一条安全线。</small>
                     </div>
                     <div class="decision-panel" id="decision-panel-evidence" role="tabpanel" data-decision-panel="evidence" hidden>
                         <strong>本局证据</strong>
@@ -72,7 +72,7 @@
                     </div>
                     <div class="decision-panel" id="decision-panel-validation" role="tabpanel" data-decision-panel="validation" hidden>
                         <strong>赛后验收</strong>
-                        <p>10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。</p>
+                        <p>10分钟后低效率窗口=0；单个低效率窗口不超过2分钟。</p>
                         <small>系统已标记这些异常分钟，优先和死亡、购买、击杀事件时间点交叉核对。</small>
                     </div>
                     <div class="decision-tab-status" aria-live="polite" data-decision-status>当前显示：下一局规则</div>
@@ -137,7 +137,7 @@
 - 补刀总量643，LH/min 14.13
 
 下一局只盯这几件事
-1. 中后期资源连续性: 下一局中后期每次集合前先推至少一条安全线；若队伍不开雾/不控盾，优先保持两路兵线压力。 验收：10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。
+1. 中后期资源连续性: 下一局中后期每次集合前先推至少一条安全线；若队伍不开雾/不控盾，优先保持两路兵线压力。 验收：10分钟后低效率窗口=0；单个低效率窗口不超过2分钟。
 2. 死亡打断资源: 下一局10分钟后死亡或被迫回补后，先补回一波安全线，再决定是否继续集合、带线或进野区。 验收：死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。
 3. 死亡后目标损失: 下一局每次准备处理下路二塔攻防或同级关键目标前90秒：先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，改为清近线、守入口或明确对侧交换。 验收：死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。
 4. 死亡成本: 下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。 验收：每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。</div>
@@ -153,8 +153,8 @@
 
                 <div class="goal-row">
                     <div class="goal-title">中后期资源连续性</div>
-                    <div class="goal-body"><strong>训练目标:</strong> 下一局10分钟后把低效率窗口从1个压到最多1个；集合前先推出一条安全线。</div>
-                    <div class="goal-body muted"><strong>验收标准:</strong> 10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局10分钟后把低效率窗口从1个压到0个；集合前先推出一条安全线。</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> 10分钟后低效率窗口=0；单个低效率窗口不超过2分钟。</div>
                 </div>
 
                 <div class="goal-row">
@@ -194,8 +194,8 @@
                 <div class="finding-line"><strong>证据:</strong> 中后期低效率窗口: 32-34分钟 2.0补/分钟。</div>
                 <div class="finding-line"><strong>影响:</strong> 核心位中后期长时间无补刀通常意味着死亡、被迫集合、兵线未推出或地图区域丢失。</div>
                 <div class="finding-line"><strong>行动:</strong> 下一局中后期每次集合前先推至少一条安全线；若队伍不开雾/不控盾，优先保持两路兵线压力。</div>
-                <div class="finding-line"><strong>训练目标:</strong> 下一局10分钟后把低效率窗口从1个压到最多1个；集合前先推出一条安全线。</div>
-                <div class="finding-line"><strong>验收标准:</strong> 10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局10分钟后把低效率窗口从1个压到0个；集合前先推出一条安全线。</div>
+                <div class="finding-line"><strong>验收标准:</strong> 10分钟后低效率窗口=0；单个低效率窗口不超过2分钟。</div>
                 <div class="finding-line muted"><strong>系统检查:</strong> 系统已标记这些异常分钟，优先和死亡、购买、击杀事件时间点交叉核对。</div>
             </div>
 

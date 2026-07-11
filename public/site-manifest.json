@@ -35,10 +35,10 @@
     "limitation": "公开页展示的是已缓存证据的抓取时间；Cloudflare Pages 发布不会重新访问 STRATZ/OpenDota。"
   },
   "evidence_field_audit": {
-    "status": "untracked",
+    "status": "partial",
     "basis": "sqlite_cached_stratz_opendota_json",
     "report_count": 43,
-    "payload_match_count": 0,
+    "payload_match_count": 18,
     "field_count": 8,
     "complete_field_count": 6,
     "partial_field_count": 2,

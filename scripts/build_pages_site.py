@@ -996,6 +996,36 @@ def _upgrade_legacy_item_slots(text):
     return LEGACY_ITEM_SLOT_RE.sub(replace, text)
 
 
+def _upgrade_legacy_noop_targets(text):
+    replacements = (
+        (
+            "下一局10分钟后把低效率窗口从1个压到最多1个",
+            "下一局10分钟后把低效率窗口从1个压到0个",
+            "10分钟后低效率窗口不超过1个",
+            "10分钟后低效率窗口=0",
+        ),
+        (
+            "下一局把重复死亡坐标簇从1个压到最多1个",
+            "下一局把重复死亡坐标簇从1个压到0个",
+            "重复死亡坐标簇不超过1个",
+            "重复死亡坐标簇=0",
+        ),
+        (
+            "下一局把死亡前后资源明显下降窗口从1个压到最多1个",
+            "下一局把死亡前后资源明显下降窗口从1个压到0个",
+            "死亡前后资源明显下降窗口不超过1个",
+            "死亡前后资源明显下降窗口=0",
+        ),
+    )
+    upgraded = text
+    for noop_goal, measurable_goal, noop_metric, measurable_metric in replacements:
+        if noop_goal not in upgraded:
+            continue
+        upgraded = upgraded.replace(noop_goal, measurable_goal)
+        upgraded = upgraded.replace(noop_metric, measurable_metric)
+    return upgraded
+
+
 def _copy_reports(source, public_dir):
     reports = sorted(source.glob("*.html"), key=lambda item: item.stat().st_mtime, reverse=True)
     if not reports:
@@ -1012,6 +1042,7 @@ def _copy_reports(source, public_dir):
         target = public_dir / _canonical_report_filename(parsed, report.name)
         shutil.copy2(report, target)
         upgraded_text = _upgrade_legacy_item_slots(target.read_text(encoding="utf-8"))
+        upgraded_text = _upgrade_legacy_noop_targets(upgraded_text)
         upgraded_text = _ensure_report_generated_at_meta(upgraded_text, parsed.get("report_generated_at"))
         _write_utf8(target, upgraded_text)
         copied.append(_parse_report(target))

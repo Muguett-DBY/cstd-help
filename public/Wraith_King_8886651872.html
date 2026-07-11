@@ -138,8 +138,8 @@
 下一局只盯这几件事
 1. 前10分钟资源: 下一局前10分钟优先保证安全线和附近野区连续收取，除非队友明确形成高胜率击杀。 验收：10分钟补刀>=56；前10分钟低效率窗口=0。
 2. 死亡成本: 下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。 验收：每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。
-3. 重复死亡坐标: 下一局每次接近这些重复坐标对应的高风险区域前，先满足三个条件：队友能接应、敌方关键控制已露头、自己有明确撤退路线；任一条件缺失就先退回安全资源点。 验收：重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。
-4. 死亡前后资源变化: 下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。 验收：死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。</div>
+3. 重复死亡坐标: 下一局每次接近这些重复坐标对应的高风险区域前，先满足三个条件：队友能接应、敌方关键控制已露头、自己有明确撤退路线；任一条件缺失就先退回安全资源点。 验收：重复死亡坐标簇=0；每个重复点都有一条赛前撤退规则。
+4. 死亡前后资源变化: 下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。 验收：死亡前后资源明显下降窗口=0；复活后3分钟完成一波安全线或近区野区资源。</div>
         </div>
     </div>
 
@@ -164,14 +164,14 @@
 
                 <div class="goal-row">
                     <div class="goal-title">重复死亡坐标</div>
-                    <div class="goal-body"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。</div>
-                    <div class="goal-body muted"><strong>验收标准:</strong> 重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从1个压到0个；每个重复点赛前写一条撤退规则。</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> 重复死亡坐标簇=0；每个重复点都有一条赛前撤退规则。</div>
                 </div>
 
                 <div class="goal-row">
                     <div class="goal-title">死亡前后资源变化</div>
-                    <div class="goal-body"><strong>训练目标:</strong> 下一局把死亡前后资源明显下降窗口从1个压到最多1个。</div>
-                    <div class="goal-body muted"><strong>验收标准:</strong> 死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。</div>
+                    <div class="goal-body"><strong>训练目标:</strong> 下一局把死亡前后资源明显下降窗口从1个压到0个。</div>
+                    <div class="goal-body muted"><strong>验收标准:</strong> 死亡前后资源明显下降窗口=0；复活后3分钟完成一波安全线或近区野区资源。</div>
                 </div>
 
                 <div class="goal-row">
@@ -213,8 +213,8 @@
                 <div class="finding-line"><strong>证据:</strong> 重复死亡坐标簇: 3.9、6.5、16.9分重复死亡坐标簇，中心x=82.7,y=158.7，样本3次。</div>
                 <div class="finding-line"><strong>影响:</strong> 同一 raw 坐标附近重复死亡，说明至少有一个高风险坐标场景在反复出现。</div>
                 <div class="finding-line"><strong>行动:</strong> 下一局每次接近这些重复坐标对应的高风险区域前，先满足三个条件：队友能接应、敌方关键控制已露头、自己有明确撤退路线；任一条件缺失就先退回安全资源点。</div>
-                <div class="finding-line"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。</div>
-                <div class="finding-line"><strong>验收标准:</strong> 重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局把重复死亡坐标簇从1个压到0个；每个重复点赛前写一条撤退规则。</div>
+                <div class="finding-line"><strong>验收标准:</strong> 重复死亡坐标簇=0；每个重复点都有一条赛前撤退规则。</div>
                 <div class="finding-line muted"><strong>系统检查:</strong> 系统只按 STRATZ raw x/y 距离聚类，不转换成地图区域名；报告保留原始坐标和分钟，不把入口、线口、目标区或高低坡作为结论。</div>
             </div>
 
@@ -223,8 +223,8 @@
                 <div class="finding-line"><strong>证据:</strong> 死亡前后资源下降窗口: 16.9分死亡前后：补刀/分 14.7→11.0（-3.7），平均GPM 601.7→654.3（+52.6）（13-16分钟→17-20分钟）。</div>
                 <div class="finding-line"><strong>影响:</strong> 死亡相邻阶段的补刀或经济节奏明显下滑，会让一次阵亡继续影响下一段刷钱、守塔或控图节奏。</div>
                 <div class="finding-line"><strong>行动:</strong> 下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。</div>
-                <div class="finding-line"><strong>训练目标:</strong> 下一局把死亡前后资源明显下降窗口从1个压到最多1个。</div>
-                <div class="finding-line"><strong>验收标准:</strong> 死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。</div>
+                <div class="finding-line"><strong>训练目标:</strong> 下一局把死亡前后资源明显下降窗口从1个压到0个。</div>
+                <div class="finding-line"><strong>验收标准:</strong> 死亡前后资源明显下降窗口=0；复活后3分钟完成一波安全线或近区野区资源。</div>
                 <div class="finding-line muted"><strong>系统检查:</strong> 系统只比较死亡前后真实分钟数组，不判断死亡原因；报告只把这些窗口列为资源恢复验收点，不把复活路径、TP落点或无视野进入作为结论。</div>
             </div>
 
