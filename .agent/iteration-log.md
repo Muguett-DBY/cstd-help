@@ -1108,3 +1108,29 @@
   - GitHub Actions `Deploy Cloudflare Pages` run `29000477651` passed unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment.
   - Production acceptance: `dota.custard.top` serves 18 reports, latest `Legion_Commander_8870219537_20260709_050206`, and Rubick `8867351572` serves 7 death-context blocks with the two target-loss windows and 3 explicit coordinate-gap rows.
 - Risk: this improves review usability inside available public evidence; it still does not create coordinates when STRATZ/OpenDota do not provide them.
+
+## 2026-07-11 - Stable Report URL Closure
+
+- Goal: stop report regeneration from changing every public URL while preserving generation provenance and every previously published report link.
+- Root-cause fix:
+  - Public report identity is now `Hero_Name_<match_id>.html`; generation time is embedded in structured report metadata instead of the public filename.
+  - The Pages build preserves both `.html` and extensionless timestamped routes in `public/_redirects`, each returning a permanent redirect to the canonical match route.
+  - The static-site validator rejects timestamped public report filenames, malformed or duplicate redirect rules, missing redirect counterparts, and redirects whose canonical report is absent.
+- UI closure: long hero-first report titles use balanced 25px mobile typography, and all evidence-completeness chips wrap on mobile instead of hiding behind an undiscoverable horizontal strip.
+- Public refresh: regenerated the latest two reports through `main.py`, rebuilt all 18 public reports, and confirmed 18 canonical files, 0 timestamped report files, 36 legacy redirect rules, and 18 embedded generation timestamps.
+- Verification:
+  - Red/green tests cover canonical filenames, timestamp provenance across rebuilds, legacy redirects, generated metadata, and mobile report-title/evidence-chip styles.
+  - `python -m unittest discover -s tests -p "test*.py"`: passed, 127 tests.
+  - `python -m compileall -q .`: passed.
+  - `python main.py --skip-fetch --recent 2 --force`: passed using cached STRATZ evidence after the live endpoint was Cloudflare-blocked.
+  - `python scripts/check_public_site.py`: passed, 18 report pages.
+  - `gitleaks dir . --redact --no-banner`: passed, no leaks found.
+  - `git diff --check`: passed.
+  - Playwright local route sweep: all 18 report links were unique and canonical; every report returned successfully with a hero-first title, generation metadata, decision card, action list, data quality, timeline, events, and findings.
+  - Playwright desktop and 390x844 mobile QA: no page overflow; the mobile Legion Commander title stayed on one line and all 10 evidence chips were visible across four wrapped rows.
+  - Forbidden-file check: no `AGENTS.md`, Docker, or docker path changes.
+- Release:
+  - Implementation commit `f924243` (`fix: stabilize public report urls`) pushed to `origin/main`.
+  - GitHub Actions `Deploy Cloudflare Pages` run `29153560115` passed unit tests, compile, static Pages validation, credential validation, and Cloudflare deployment.
+  - Production acceptance: `dota.custard.top` serves 18 canonical reports; both legacy Legion Commander timestamp routes return `301` to `/Legion_Commander_8870219537`; the latest report exposes generation time `2026-07-11T20:53:26` and all required evidence sections; Rubick retains 7 death-context blocks and 3 explicit coordinate gaps.
+- Residual boundary: live STRATZ playback remains blocked from this execution environment, so regeneration falls back to cached source evidence. The site continues to mark Rubick position coverage partial and does not infer the three coordinates absent from STRATZ/OpenDota.
