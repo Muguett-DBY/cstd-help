@@ -3131,6 +3131,20 @@ tr:hover { background: rgba(88,166,255,0.05); }
     body {
         padding: 12px;
     }
+    .header h1 {
+        font-size: 25px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+        text-wrap: balance;
+    }
+    .evidence-completeness-chips {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        padding-bottom: 0;
+    }
+    .evidence-completeness-chip {
+        max-width: 100%;
+    }
     .section-body {
         padding: 14px;
     }

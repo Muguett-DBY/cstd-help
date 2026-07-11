@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 import unittest
+from pathlib import Path
 
 import analysis.ai_analyst as ai_analyst
 from analysis.ai_analyst import _build_analysis_prompt, _generate_fallback_analysis, _is_ai_response_safe
@@ -291,6 +292,26 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("第18百分位", html)
         self.assertIn("补刀/分钟", html)
         self.assertIn("第22百分位", html)
+
+    def test_generated_report_embeds_generation_timestamp_in_structured_metadata(self):
+        from report.generator import generate_report
+        import report.generator as generator
+        from scripts.build_pages_site import _read_embedded_metadata
+
+        analysis = analyze_match(self._base_match())
+        old_report_dir = generator.REPORT_DIR
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                generator.REPORT_DIR = tmpdir
+                report_path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
+                metadata = _read_embedded_metadata(Path(report_path))
+        finally:
+            generator.REPORT_DIR = old_report_dir
+
+        self.assertRegex(
+            metadata.get("report_generated_at") or "",
+            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$",
+        )
 
     def test_opendota_performance_context_uses_real_match_fields_in_findings(self):
         match = self._base_match()
@@ -1862,6 +1883,18 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("@media (max-width: 720px)", stylesheet)
         self.assertIn("#timeline-diagnosis .timeline-phase-table", stylesheet)
         self.assertIn(".timeline-phase-cards {", stylesheet)
+
+    def test_report_styles_balance_long_hero_title_on_mobile(self):
+        with open("report/static/style.css", "r", encoding="utf-8") as f:
+            stylesheet = f.read()
+
+        mobile_styles = stylesheet.split("@media (max-width: 720px)", 1)[1]
+        self.assertIn(".header h1 {", mobile_styles)
+        self.assertIn("font-size: 25px;", mobile_styles)
+        self.assertIn("text-wrap: balance;", mobile_styles)
+        self.assertIn(".evidence-completeness-chips {", mobile_styles)
+        self.assertIn("flex-wrap: wrap;", mobile_styles)
+        self.assertIn("overflow-x: visible;", mobile_styles)
 
     def test_review_findings_are_structured_and_prompt_is_limited_to_them(self):
         analysis = analyze_match(self._base_match())

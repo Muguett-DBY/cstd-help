@@ -140,10 +140,15 @@ SUPPORT_TEXT_EXPORTS = frozenset({
 REQUIRED_SUPPORT_FILES = frozenset({
     *SUPPORT_HTML_PAGES,
     *SUPPORT_TEXT_EXPORTS,
+    "_redirects",
     "review-trends.json",
     "site-manifest.json",
     "static/style.css",
 })
+CANONICAL_REPORT_FILENAME_RE = re.compile(r"^.+_\d{8,}\.html$")
+LEGACY_REPORT_REDIRECT_RE = re.compile(
+    r"^/(?P<hero>.+)_(?P<match_id>\d{8,})_(?P<stamp>\d{8}_\d{6})(?P<extension>\.html)?$"
+)
 
 
 class TitleParser(HTMLParser):
@@ -225,6 +230,56 @@ def _is_report_page(path):
 def _report_pages(public_dir=PUBLIC_DIR):
     public_dir = Path(public_dir)
     return sorted(path for path in public_dir.glob("*.html") if _is_report_page(path))
+
+
+def _find_report_url_stability_issues(public_dir=PUBLIC_DIR):
+    public_dir = Path(public_dir)
+    issues = []
+    for report in _report_pages(public_dir):
+        if not CANONICAL_REPORT_FILENAME_RE.fullmatch(report.name):
+            issues.append(f"{report.name} -> report filename is not canonical")
+
+    redirects_path = public_dir / "_redirects"
+    if not redirects_path.exists():
+        return issues + ["_redirects -> missing"]
+
+    redirect_sources = set()
+    legacy_sources = set()
+    for line_number, raw_line in enumerate(redirects_path.read_text(encoding="utf-8").splitlines(), start=1):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        if len(parts) != 3:
+            issues.append(f"_redirects:{line_number} -> expected source destination 301")
+            continue
+        source, destination, status = parts
+        if source in redirect_sources:
+            issues.append(f"_redirects:{line_number} -> duplicate source {source}")
+            continue
+        redirect_sources.add(source)
+        if status != "301":
+            issues.append(f"_redirects:{line_number} -> report redirects must use 301")
+        legacy_match = LEGACY_REPORT_REDIRECT_RE.fullmatch(source)
+        if not legacy_match:
+            continue
+        legacy_sources.add(source)
+        canonical_stem = f'{legacy_match.group("hero")}_{legacy_match.group("match_id")}'
+        expected_destination = f"/{canonical_stem}"
+        if destination != expected_destination:
+            issues.append(
+                f"_redirects:{line_number} -> {source} must redirect to {expected_destination}"
+            )
+        if not (public_dir / f"{canonical_stem}.html").exists():
+            issues.append(
+                f"_redirects:{line_number} -> destination report {canonical_stem}.html is missing"
+            )
+
+    for source in sorted(legacy_sources):
+        counterpart = source[:-5] if source.endswith(".html") else f"{source}.html"
+        if counterpart not in legacy_sources:
+            issues.append(f"_redirects -> {source} is missing counterpart {counterpart}")
+    return issues
 
 
 def _find_local_link_issues(public_dir=PUBLIC_DIR):
@@ -680,7 +735,7 @@ def _find_report_source_provenance_issues(public_dir=PUBLIC_DIR):
         if any(required not in text for required in REQUIRED_REPORT_SOURCE_PROVENANCE_TEXT):
             issues.append(f"{report.name} -> missing report source provenance")
             continue
-        filename_match = re.search(r"_(\d{8,})_(\d{8}_\d{6})\.html$", report.name)
+        filename_match = re.search(r"_(\d{8,})(?:_\d{8}_\d{6})?\.html$", report.name)
         markup_match = re.search(
             r'data-match-id="([^"]*)"[\s\S]*?'
             r'data-report-generated-at="([^"]*)"[\s\S]*?'
@@ -975,6 +1030,11 @@ def main():
     reports = _report_pages(PUBLIC_DIR)
     if not reports:
         raise SystemExit("public contains no report HTML files")
+
+    report_url_issues = _find_report_url_stability_issues(PUBLIC_DIR)
+    if report_url_issues:
+        preview = "; ".join(report_url_issues[:10])
+        raise SystemExit(f"public report URLs are unstable: {preview}")
 
     local_link_issues = _find_local_link_issues(PUBLIC_DIR)
     if local_link_issues:

@@ -26,6 +26,11 @@ STATIC_SOURCE = ROOT / "report" / "static"
 SOURCE_DB_PATH = ROOT / "data" / "dota2.db"
 PLAYER_ACCOUNT_ID = "173776719"
 REPORT_NAME_RE = re.compile(r"^(?P<hero>.+)_(?P<match_id>\d{8,})_(?P<stamp>\d{8}_\d{6})\.html$")
+CANONICAL_REPORT_NAME_RE = re.compile(r"^(?P<hero>.+)_(?P<match_id>\d{8,})\.html$")
+REPORT_GENERATED_META_RE = re.compile(
+    r'<meta\s+name="report-generated-at"\s+content="(?P<value>[^"]*)"\s*/?>',
+    re.IGNORECASE,
+)
 LEGACY_ITEM_SLOT_RE = re.compile(
     r'(<div class="item-slot item-name" title=")(?:Item #|ID )(?P<item_id>\d+)(">\s*)(?:Item #)?\d+(\s*</div>)',
     re.MULTILINE,
@@ -315,6 +320,82 @@ def _report_generated_at_from_name(filename):
     except ValueError:
         return None
     return generated.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def _report_generated_at_from_text(text):
+    match = REPORT_GENERATED_META_RE.search(str(text or ""))
+    if not match:
+        return None
+    return _coerce_iso_timestamp(html.unescape(match.group("value")))
+
+
+def _ensure_report_generated_at_meta(text, generated_at):
+    text = REPORT_GENERATED_META_RE.sub("", str(text), count=1)
+    generated_at = _coerce_iso_timestamp(generated_at)
+    if not generated_at:
+        return text
+    marker = f'<meta name="report-generated-at" content="{html.escape(generated_at, quote=True)}">'
+    head_match = re.search(r"<head(?:\s[^>]*)?>", text, re.IGNORECASE)
+    if head_match:
+        insert_at = head_match.end()
+        return text[:insert_at] + "\n" + marker + text[insert_at:]
+    return marker + "\n" + text
+
+
+def _safe_report_hero(value):
+    safe = str(value or "Unknown Hero").strip().replace("'", "")
+    safe = re.sub(r"[\s/\\:]+", "_", safe)
+    safe = re.sub(r"[^A-Za-z0-9_-]+", "_", safe)
+    safe = re.sub(r"_+", "_", safe).strip("_")
+    return safe or "Unknown_Hero"
+
+
+def _canonical_report_filename(report, source_name=None):
+    match_id = str((report or {}).get("match_id") or "")
+    if not re.fullmatch(r"\d{8,}", match_id):
+        return str(source_name or (report or {}).get("file") or "report.html")
+    hero = _safe_report_hero((report or {}).get("hero"))
+    return f"{hero}_{match_id}.html"
+
+
+def _read_redirect_rules(path):
+    rules = {}
+    path = Path(path)
+    if not path.exists():
+        return rules
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        if len(parts) not in {2, 3}:
+            continue
+        source, destination = parts[:2]
+        status = parts[2] if len(parts) == 3 else "301"
+        rules[source] = (destination, status)
+    return rules
+
+
+def _collect_report_redirect_rules(public_dir):
+    public_dir = Path(public_dir)
+    rules = _read_redirect_rules(public_dir / "_redirects")
+    for report in public_dir.glob("*.html"):
+        match = REPORT_NAME_RE.match(report.name)
+        if not match:
+            continue
+        canonical_stem = f'{match.group("hero")}_{match.group("match_id")}'
+        destination = f"/{canonical_stem}"
+        rules[f"/{report.name}"] = (destination, "301")
+        rules[f"/{report.stem}"] = (destination, "301")
+    return rules
+
+
+def _write_redirect_rules(path, rules):
+    lines = [
+        f"{source} {destination} {status}"
+        for source, (destination, status) in sorted((rules or {}).items())
+    ]
+    _write_utf8(path, "\n".join(lines) + ("\n" if lines else ""))
 
 
 def _normalize_source_fetch_times(source_fetch_times):
@@ -738,7 +819,7 @@ def _normalize_lineup(value):
 
 
 def _parse_report(path):
-    match = REPORT_NAME_RE.match(path.name)
+    match = REPORT_NAME_RE.match(path.name) or CANONICAL_REPORT_NAME_RE.match(path.name)
     fallback_hero = _display_hero(match.group("hero")) if match else path.stem
     fallback_match_id = match.group("match_id") if match else ""
     report_text = path.read_text(encoding="utf-8")
@@ -777,7 +858,11 @@ def _parse_report(path):
         "hero_id": hero.get("id"),
         "hero_slug": hero.get("slug") or "",
         "match_id": str(metadata.get("match_id") or fallback_match_id),
-        "report_generated_at": _report_generated_at_from_name(path.name),
+        "report_generated_at": (
+            _coerce_iso_timestamp(metadata.get("report_generated_at"))
+            or _report_generated_at_from_text(report_text)
+            or _report_generated_at_from_name(path.name)
+        ),
         "is_win": metadata.get("is_win") if isinstance(metadata.get("is_win"), bool) else None,
         "ended_at": metadata.get("ended_at"),
         "duration_seconds": metadata.get("duration_seconds"),
@@ -827,9 +912,10 @@ def _copy_reports(source, public_dir):
         if dedupe_key in seen_matches:
             continue
         seen_matches.add(dedupe_key)
-        target = public_dir / report.name
+        target = public_dir / _canonical_report_filename(parsed, report.name)
         shutil.copy2(report, target)
         upgraded_text = _upgrade_legacy_item_slots(target.read_text(encoding="utf-8"))
+        upgraded_text = _ensure_report_generated_at_meta(upgraded_text, parsed.get("report_generated_at"))
         _write_utf8(target, upgraded_text)
         copied.append(_parse_report(target))
     return copied
@@ -1342,7 +1428,7 @@ def _build_source_freshness(sorted_reports, source_fetch_times):
         status = "source_timestamps_missing"
     return {
         "status": status,
-        "basis": "report_filename_timestamp+sqlite_fetched_at" if (stratz_count or opendota_count) else "report_filename_timestamp",
+        "basis": "embedded_report_timestamp+sqlite_fetched_at" if (stratz_count or opendota_count) else "embedded_report_timestamp",
         "report_timestamp_count": sum(1 for value in report_generated_values if value),
         "stratz_fetch_timestamp_report_count": stratz_count,
         "opendota_fetch_timestamp_report_count": opendota_count,
@@ -2948,11 +3034,13 @@ def build_pages_site(source, public_dir=PUBLIC_DIR, source_fetch_times=None, sou
         raise SystemExit(f"Report source directory does not exist: {source}")
 
     public_dir.mkdir(parents=True, exist_ok=True)
+    redirect_rules = _collect_report_redirect_rules(public_dir)
     for old_report in public_dir.glob("*.html"):
         old_report.unlink()
 
     _copy_static_assets(public_dir)
     reports = _copy_reports(source, public_dir)
+    _write_redirect_rules(public_dir / "_redirects", redirect_rules)
     _inject_report_navigation(public_dir, reports)
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
     if source_fetch_times is None:

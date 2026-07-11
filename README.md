@@ -6,6 +6,8 @@ Live site: [dota.custard.top](https://dota.custard.top)
 
 The history page is generated from report-embedded OpenDota metadata and shows the real match end time, result, duration, KDA, score, and both five-hero lineups. Each row opens the evidence-based review for that match.
 
+Published report URLs are stable per match (`Hero_Name_<match_id>.html`). Report generation time is stored inside the report metadata, and `public/_redirects` preserves the timestamped URLs that were live before the stable-URL migration.
+
 ## Static Site
 
 The Cloudflare Pages output is committed under `public/`.
