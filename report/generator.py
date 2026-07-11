@@ -4,18 +4,19 @@ import shutil
 import json
 from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
+from config import REPORT_DIR
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = BASE_DIR
-REPORT_DIR = r"C:\Users\12031\Desktop\REVIEW_REPORT"
 
 
-def generate_report(match_analysis, ai_analysis, summary=None):
-    os.makedirs(REPORT_DIR, exist_ok=True)
+def generate_report(match_analysis, ai_analysis, summary=None, output_dir=None, source_fetches=None):
+    target_dir = os.fspath(output_dir or REPORT_DIR)
+    os.makedirs(target_dir, exist_ok=True)
 
     static_src = os.path.join(BASE_DIR, "static")
-    static_dst = os.path.join(REPORT_DIR, "static")
+    static_dst = os.path.join(target_dir, "static")
     if os.path.exists(static_src):
         shutil.copytree(static_src, static_dst, dirs_exist_ok=True)
 
@@ -35,6 +36,9 @@ def generate_report(match_analysis, ai_analysis, summary=None):
     generated_at = generated_now.strftime("%Y-%m-%d %H:%M:%S")
     report_metadata = dict(match_metadata)
     report_metadata["report_generated_at"] = generated_now.strftime("%Y-%m-%dT%H:%M:%S")
+    report_metadata["source_fetches"] = dict(
+        source_fetches or match_analysis.get("source_fetches") or {}
+    )
 
     hero_name = match_analysis.get("hero_name", "Unknown")
     match_id = match_analysis.get("match_id", "N/A")
@@ -89,7 +93,7 @@ def generate_report(match_analysis, ai_analysis, summary=None):
     safe_match_id = str(match_id).replace("/", "_").replace("\\", "_").replace(":", "_")
     safe_hero = hero_name.replace(" ", "_").replace("'", "").replace("/", "_").replace("\\", "_")
     filename = f"{safe_hero}_{safe_match_id}_{generated_now.strftime('%Y%m%d_%H%M%S')}.html"
-    filepath = os.path.join(REPORT_DIR, filename)
+    filepath = os.path.join(target_dir, filename)
 
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(html)

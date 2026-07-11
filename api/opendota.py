@@ -48,9 +48,12 @@ class OpenDotaClient:
                 time.sleep(delay)
         return None
 
-    def get_recent_matches(self, account_id=None, limit=20):
+    def get_recent_matches(self, account_id=None, limit=20, lobby_type=None):
         aid = account_id or ACCOUNT_ID
-        data = self._get(f"/players/{aid}/matches", params={"limit": limit})
+        params = {"limit": limit}
+        if lobby_type is not None:
+            params["lobby_type"] = lobby_type
+        data = self._get(f"/players/{aid}/matches", params=params)
         return data or []
 
     def get_match(self, match_id):
@@ -75,6 +78,10 @@ class OpenDotaClient:
             if isinstance(value, list) and value:
                 return True
         return False
+
+    def has_minute_player_logs(self, match_data, account_id=None):
+        player = self.find_player(match_data, account_id=account_id)
+        return bool(player and isinstance(player.get("lh_t"), list) and player.get("lh_t"))
 
     def get_match_with_parse(self, match_id, account_id=None, wait_seconds=90, poll_interval=15):
         match_data = self.get_match(match_id)

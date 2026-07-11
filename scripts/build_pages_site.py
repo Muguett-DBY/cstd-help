@@ -121,6 +121,23 @@ class ReportMetadataParser(HTMLParser):
             return {}
 
 
+class SourceProvenanceParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.source_fetches = {}
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        if "data-report-source-provenance" not in attributes:
+            return
+        for attribute, field in (
+            ("data-stratz-fetched-at", "stratz_fetched_at"),
+            ("data-opendota-fetched-at", "opendota_fetched_at"),
+        ):
+            value = _coerce_iso_timestamp(attributes.get(attribute), assume_utc=True)
+            if value:
+                self.source_fetches[field] = value
+
 class CoachFindingParser(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -840,6 +857,12 @@ def _read_embedded_metadata(path):
     return parser.metadata
 
 
+def _read_rendered_source_fetches(report_text):
+    parser = SourceProvenanceParser()
+    parser.feed(report_text)
+    return parser.source_fetches
+
+
 def _read_coach_finding(path):
     findings = _read_coach_findings(path)
     if findings:
@@ -879,6 +902,14 @@ def _parse_report(path):
     report_text = path.read_text(encoding="utf-8")
     evidence_sources = _read_evidence_sources_from_text(report_text)
     metadata = _read_embedded_metadata(path)
+    rendered_source_fetches = _read_rendered_source_fetches(report_text)
+    embedded_source_fetches = metadata.get("source_fetches")
+    if not isinstance(embedded_source_fetches, dict):
+        embedded_source_fetches = {}
+    source_fetches = dict(rendered_source_fetches)
+    source_fetches.update(
+        _normalize_source_fetch_times({"report": embedded_source_fetches}).get("report", {})
+    )
     coach_findings = _read_coach_findings(path)
     coach_finding = coach_findings[0] if coach_findings else _read_coach_finding(path)
     hero = metadata.get("hero") if isinstance(metadata.get("hero"), dict) else {}
@@ -917,6 +948,7 @@ def _parse_report(path):
             or _report_generated_at_from_text(report_text)
             or _report_generated_at_from_name(path.name)
         ),
+        "source_fetches": source_fetches,
         "is_win": metadata.get("is_win") if isinstance(metadata.get("is_win"), bool) else None,
         "ended_at": metadata.get("ended_at"),
         "duration_seconds": metadata.get("duration_seconds"),
@@ -2502,6 +2534,22 @@ def _render_report_neighbors(current_index, reports):
     )
 
 
+def _remove_report_context_deck(text):
+    start_match = re.search(r'<div class="report-context-deck"[^>]*>', text)
+    if not start_match:
+        return text
+    depth = 0
+    for tag in re.finditer(r'<div\b[^>]*>|</div\s*>', text[start_match.start():], re.IGNORECASE):
+        if tag.group(0).lower().startswith("<div"):
+            depth += 1
+            continue
+        depth -= 1
+        if depth == 0:
+            end = start_match.start() + tag.end()
+            return text[:start_match.start()] + text[end:]
+    return text
+
+
 def _inject_report_navigation(public_dir, reports):
     reports = sorted(reports, key=_report_sort_key, reverse=True)
     for index, report in enumerate(reports):
@@ -2509,6 +2557,7 @@ def _inject_report_navigation(public_dir, reports):
         if not path.exists():
             continue
         text = path.read_text(encoding="utf-8")
+        text = _remove_report_context_deck(text)
         text = re.sub(r'\s*<nav class="report-neighbors"[\s\S]*?</nav>', "", text, count=1)
         neighbors = _render_report_neighbors(index, reports)
         context_deck = (
@@ -3094,16 +3143,26 @@ def build_pages_site(source, public_dir=PUBLIC_DIR, source_fetch_times=None, sou
 
     _copy_static_assets(public_dir)
     reports = _copy_reports(source, public_dir)
+    embedded_source_fetch_times = _normalize_source_fetch_times({
+        str(report.get("match_id") or ""): report.get("source_fetches") or {}
+        for report in reports
+        if report.get("match_id")
+    })
     redirect_rules.update(_collect_historical_report_redirect_rules(reports))
     _write_redirect_rules(public_dir / "_redirects", redirect_rules)
     _inject_report_navigation(public_dir, reports)
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
     if source_fetch_times is None:
-        source_fetch_times = _load_source_fetch_times(
+        external_source_fetch_times = _load_source_fetch_times(
             [report.get("match_id") for report in reports],
             source_db_path,
         )
-    source_fetch_times = _normalize_source_fetch_times(source_fetch_times or {})
+    else:
+        external_source_fetch_times = _normalize_source_fetch_times(source_fetch_times)
+    source_fetch_times = dict(embedded_source_fetch_times)
+    for match_id, fetches in external_source_fetch_times.items():
+        source_fetch_times.setdefault(match_id, {}).update(fetches)
+    source_fetch_times = _normalize_source_fetch_times(source_fetch_times)
     if evidence_payloads is None:
         evidence_payloads = _load_evidence_payloads(
             [report.get("match_id") for report in reports],

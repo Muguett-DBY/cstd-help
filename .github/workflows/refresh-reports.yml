@@ -1,0 +1,112 @@
+name: Refresh Dota Reports
+
+on:
+  schedule:
+    - cron: "27 * * * *"
+  workflow_dispatch:
+    inputs:
+      recent:
+        description: Ranked matches to inspect
+        required: false
+        default: "50"
+      max_new:
+        description: Maximum unseen matches to process
+        required: false
+        default: "25"
+      parse_wait:
+        description: Seconds to wait after batched OpenDota parse requests
+        required: false
+        default: "180"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dota-report-refresh-main
+  cancel-in-progress: false
+
+jobs:
+  refresh-test-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Refresh evidence-ready reports
+        env:
+          STRATZ_API_KEY: ${{ secrets.STRATZ_API_KEY }}
+          RECENT_LIMIT: ${{ github.event.inputs.recent || '50' }}
+          MAX_NEW: ${{ github.event.inputs.max_new || '25' }}
+          PARSE_WAIT: ${{ github.event.inputs.parse_wait || '180' }}
+        run: >-
+          python scripts/refresh_public_reports.py
+          --recent "$RECENT_LIMIT"
+          --max-new "$MAX_NEW"
+          --parse-wait "$PARSE_WAIT"
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -p "test*.py"
+
+      - name: Compile Python sources
+        run: python -m compileall -q .
+
+      - name: Validate static Pages site
+        run: python scripts/check_public_site.py
+
+      - name: Commit refreshed public site
+        id: commit
+        shell: bash
+        run: |
+          git add -- public
+          if git diff --cached --quiet -- public; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: refresh dota reports"
+          git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Validate deployment credentials
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN is not configured"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID is not configured"; exit 1; }
+
+      - name: Deploy refreshed site to Cloudflare Pages
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: >-
+          npx wrangler@4.105.0 pages deploy public
+          --project-name cstd-help
+          --branch main
+          --commit-hash "${{ steps.commit.outputs.commit_sha }}"
+          --commit-message "${{ steps.commit.outputs.commit_sha }}"

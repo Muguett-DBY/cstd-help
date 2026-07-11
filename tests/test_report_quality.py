@@ -1,5 +1,7 @@
 import json
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -312,6 +314,61 @@ class ReportQualityTests(unittest.TestCase):
             metadata.get("report_generated_at") or "",
             r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$",
         )
+
+    def test_config_prefers_environment_paths_and_stratz_secret(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            report_dir = str(Path(tmpdir) / "reports")
+            db_path = str(Path(tmpdir) / "refresh.db")
+            env = os.environ.copy()
+            env.update({
+                "STRATZ_API_KEY": "environment-test-key",
+                "DOTA_REVIEW_REPORT_DIR": report_dir,
+                "DOTA_REVIEW_DB_PATH": db_path,
+            })
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    (
+                        "import json, config; "
+                        "print(json.dumps({"
+                        "'key_matches': config.STRATZ_API_KEY == 'environment-test-key', "
+                        "'report_dir': config.REPORT_DIR, "
+                        "'db_path': config.DB_PATH}))"
+                    ),
+                ],
+                cwd=Path(__file__).resolve().parents[1],
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["key_matches"])
+        self.assertEqual(payload["report_dir"], report_dir)
+        self.assertEqual(payload["db_path"], db_path)
+
+    def test_generated_report_honors_output_dir_and_embeds_source_fetches(self):
+        from report.generator import generate_report
+        from scripts.build_pages_site import _read_embedded_metadata
+
+        analysis = analyze_match(self._base_match())
+        source_fetches = {
+            "stratz_fetched_at": "2026-07-11T09:52:00Z",
+            "opendota_fetched_at": "2026-07-11T09:53:00Z",
+        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            report_path = generate_report(
+                analysis,
+                _generate_fallback_analysis(analysis, "Anti-Mage", True),
+                output_dir=tmpdir,
+                source_fetches=source_fetches,
+            )
+            metadata = _read_embedded_metadata(Path(report_path))
+
+        self.assertEqual(Path(report_path).parent, Path(tmpdir))
+        self.assertEqual(metadata["source_fetches"], source_fetches)
 
     def test_opendota_performance_context_uses_real_match_fields_in_findings(self):
         match = self._base_match()
