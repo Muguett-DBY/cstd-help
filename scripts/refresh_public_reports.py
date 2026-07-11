@@ -75,6 +75,14 @@ def _timeline_evidence_status(analysis):
 def analysis_is_publishable(analysis):
     if _timeline_evidence_status(analysis) not in {"available", "partial"}:
         return False
+    evidence_sources = ((analysis or {}).get("data_quality") or {}).get("evidence_sources") or []
+    if isinstance(evidence_sources, dict):
+        evidence_sources = evidence_sources.values()
+    if any(
+        not isinstance(source, dict) or source.get("status") not in {"available", "partial"}
+        for source in evidence_sources
+    ):
+        return False
     findings = (analysis or {}).get("review_findings") or []
     if not findings:
         return False
