@@ -7,9 +7,17 @@ from urllib.parse import unquote, urlsplit
 from bs4 import BeautifulSoup
 
 try:
-    from build_pages_site import _parse_report, _read_evidence_sources_from_text
+    from build_pages_site import (
+        _historical_report_filenames_from_git,
+        _parse_report,
+        _read_evidence_sources_from_text,
+    )
 except ModuleNotFoundError:
-    from scripts.build_pages_site import _parse_report, _read_evidence_sources_from_text
+    from scripts.build_pages_site import (
+        _historical_report_filenames_from_git,
+        _parse_report,
+        _read_evidence_sources_from_text,
+    )
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -145,10 +153,11 @@ REQUIRED_SUPPORT_FILES = frozenset({
     "site-manifest.json",
     "static/style.css",
 })
-CANONICAL_REPORT_FILENAME_RE = re.compile(r"^.+_\d{8,}\.html$")
+CANONICAL_REPORT_FILENAME_RE = re.compile(r"^(?P<hero>.+)_(?P<match_id>\d{8,})\.html$")
 LEGACY_REPORT_REDIRECT_RE = re.compile(
     r"^/(?P<hero>.+)_(?P<match_id>\d{8,})_(?P<stamp>\d{8}_\d{6})(?P<extension>\.html)?$"
 )
+MAX_STATIC_REDIRECT_RULES = 2000
 
 
 class TitleParser(HTMLParser):
@@ -232,12 +241,22 @@ def _report_pages(public_dir=PUBLIC_DIR):
     return sorted(path for path in public_dir.glob("*.html") if _is_report_page(path))
 
 
-def _find_report_url_stability_issues(public_dir=PUBLIC_DIR):
+def _find_report_url_stability_issues(public_dir=PUBLIC_DIR, historical_report_names=None):
     public_dir = Path(public_dir)
     issues = []
+    canonical_by_match = {}
     for report in _report_pages(public_dir):
-        if not CANONICAL_REPORT_FILENAME_RE.fullmatch(report.name):
+        canonical_match = CANONICAL_REPORT_FILENAME_RE.fullmatch(report.name)
+        if not canonical_match:
             issues.append(f"{report.name} -> report filename is not canonical")
+            continue
+        match_id = canonical_match.group("match_id")
+        destination = f"/{report.stem}"
+        existing = canonical_by_match.get(match_id)
+        if existing and existing != destination:
+            issues.append(f"{report.name} -> duplicate canonical report for match {match_id}")
+            continue
+        canonical_by_match[match_id] = destination
 
     redirects_path = public_dir / "_redirects"
     if not redirects_path.exists():
@@ -264,21 +283,47 @@ def _find_report_url_stability_issues(public_dir=PUBLIC_DIR):
         if not legacy_match:
             continue
         legacy_sources.add(source)
-        canonical_stem = f'{legacy_match.group("hero")}_{legacy_match.group("match_id")}'
-        expected_destination = f"/{canonical_stem}"
+        match_id = legacy_match.group("match_id")
+        expected_destination = canonical_by_match.get(match_id)
+        if not expected_destination:
+            issues.append(
+                f"_redirects:{line_number} -> no canonical report exists for match {match_id}"
+            )
+            continue
         if destination != expected_destination:
             issues.append(
                 f"_redirects:{line_number} -> {source} must redirect to {expected_destination}"
             )
-        if not (public_dir / f"{canonical_stem}.html").exists():
+        if not (public_dir / f"{expected_destination.lstrip('/')}.html").exists():
             issues.append(
-                f"_redirects:{line_number} -> destination report {canonical_stem}.html is missing"
+                f"_redirects:{line_number} -> destination report {expected_destination.lstrip('/')}.html is missing"
             )
+
+    if len(redirect_sources) > MAX_STATIC_REDIRECT_RULES:
+        issues.append(
+            f"_redirects -> {len(redirect_sources)} rules exceed the {MAX_STATIC_REDIRECT_RULES} static redirect limit"
+        )
 
     for source in sorted(legacy_sources):
         counterpart = source[:-5] if source.endswith(".html") else f"{source}.html"
         if counterpart not in legacy_sources:
             issues.append(f"_redirects -> {source} is missing counterpart {counterpart}")
+
+    if historical_report_names is not None:
+        for raw_name in sorted(set(historical_report_names)):
+            filename = Path(str(raw_name)).name
+            legacy_match = LEGACY_REPORT_REDIRECT_RE.fullmatch(f"/{filename}")
+            if not legacy_match:
+                continue
+            match_id = legacy_match.group("match_id")
+            if match_id not in canonical_by_match:
+                issues.append(
+                    f"_redirects -> historical report {filename} has no canonical report for match {match_id}"
+                )
+                continue
+            for source in (f"/{Path(filename).stem}", f"/{filename}"):
+                if source not in redirect_sources:
+                    issues.append(f"_redirects -> historical route {source} is not preserved")
     return issues
 
 
@@ -1031,7 +1076,10 @@ def main():
     if not reports:
         raise SystemExit("public contains no report HTML files")
 
-    report_url_issues = _find_report_url_stability_issues(PUBLIC_DIR)
+    report_url_issues = _find_report_url_stability_issues(
+        PUBLIC_DIR,
+        historical_report_names=_historical_report_filenames_from_git(ROOT),
+    )
     if report_url_issues:
         preview = "; ".join(report_url_issues[:10])
         raise SystemExit(f"public report URLs are unstable: {preview}")

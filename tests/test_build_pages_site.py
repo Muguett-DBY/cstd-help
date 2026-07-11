@@ -3,6 +3,7 @@ import re
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from scripts import build_pages_site as pages_site
 from scripts import check_public_site
@@ -53,6 +54,115 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(
             issues,
             ["Mirana_8867002237_20260711_091500.html -> report filename is not canonical"],
+        )
+
+    def test_historical_redirect_rules_follow_match_id_when_legacy_hero_is_wrong(self):
+        old_name = "Dazzle_8867124876_20260626_224839.html"
+
+        rules = pages_site._collect_historical_report_redirect_rules(
+            [{"file": "Dragon_Knight_8867124876.html", "match_id": "8867124876"}],
+            [old_name],
+        )
+
+        self.assertEqual(
+            rules,
+            {
+                f"/{old_name}": ("/Dragon_Knight_8867124876", "301"),
+                f"/{Path(old_name).stem}": ("/Dragon_Knight_8867124876", "301"),
+            },
+        )
+
+    def test_static_site_checker_accepts_historical_alias_with_corrected_hero(self):
+        old_name = "Dazzle_8867124876_20260626_224839.html"
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Dragon_Knight_8867124876.html").write_text("<html></html>", encoding="utf-8")
+            (public_path / "_redirects").write_text(
+                f"/{Path(old_name).stem} /Dragon_Knight_8867124876 301\n"
+                f"/{old_name} /Dragon_Knight_8867124876 301\n",
+                encoding="utf-8",
+            )
+
+            issues = check_public_site._find_report_url_stability_issues(
+                public_path,
+                historical_report_names=[old_name],
+            )
+
+        self.assertEqual(issues, [])
+
+    def test_static_site_checker_requires_every_historical_report_alias(self):
+        current_name = "Mirana_8867002237_20260709_050208.html"
+        older_name = "Kunkka_8867002237_20260626_224839.html"
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Mirana_8867002237.html").write_text("<html></html>", encoding="utf-8")
+            (public_path / "_redirects").write_text(
+                f"/{Path(current_name).stem} /Mirana_8867002237 301\n"
+                f"/{current_name} /Mirana_8867002237 301\n",
+                encoding="utf-8",
+            )
+
+            issues = check_public_site._find_report_url_stability_issues(
+                public_path,
+                historical_report_names=[current_name, older_name],
+            )
+
+        self.assertEqual(
+            issues,
+            [
+                f"_redirects -> historical route /{Path(older_name).stem} is not preserved",
+                f"_redirects -> historical route /{older_name} is not preserved",
+            ],
+        )
+
+    def test_build_pages_site_imports_git_history_aliases(self):
+        metadata = {
+            "match_id": 8867124876,
+            "hero": {"id": 49, "name": "Dragon Knight", "slug": "dragon_knight"},
+            "is_win": True,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 8, "deaths": 4, "assists": 17},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Dragon Knight", "slug": "dragon_knight"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        old_name = "Dazzle_8867124876_20260626_224839.html"
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            self._write_report(
+                source,
+                metadata,
+                filename="Dragon_Knight_8867124876_20260711_091500.html",
+            )
+            with mock.patch.object(
+                pages_site,
+                "_historical_report_filenames_from_git",
+                return_value=(old_name,),
+            ):
+                pages_site.build_pages_site(source, public_dir=public)
+
+            redirects = (Path(public) / "_redirects").read_text(encoding="utf-8").splitlines()
+
+        self.assertIn(f"/{Path(old_name).stem} /Dragon_Knight_8867124876 301", redirects)
+        self.assertIn(f"/{old_name} /Dragon_Knight_8867124876 301", redirects)
+
+    def test_static_site_checker_rejects_redirect_rule_limit_overflow(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            (public_path / "Mirana_8867002237.html").write_text("<html></html>", encoding="utf-8")
+            rules = [
+                f"/legacy-{index} /Mirana_8867002237 301"
+                for index in range(check_public_site.MAX_STATIC_REDIRECT_RULES + 1)
+            ]
+            (public_path / "_redirects").write_text("\n".join(rules) + "\n", encoding="utf-8")
+
+            issues = check_public_site._find_report_url_stability_issues(public_path)
+
+        self.assertEqual(
+            issues,
+            [
+                "_redirects -> 2001 rules exceed the 2000 static redirect limit",
+            ],
         )
 
     def test_static_site_checker_detects_broken_anchor_links(self):

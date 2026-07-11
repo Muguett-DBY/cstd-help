@@ -6,9 +6,11 @@ import os
 import re
 import shutil
 import sqlite3
+import subprocess
 import sys
 from collections import defaultdict
 from datetime import datetime, timezone
+from functools import lru_cache
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlencode
@@ -387,6 +389,58 @@ def _collect_report_redirect_rules(public_dir):
         destination = f"/{canonical_stem}"
         rules[f"/{report.name}"] = (destination, "301")
         rules[f"/{report.stem}"] = (destination, "301")
+    return rules
+
+
+@lru_cache(maxsize=4)
+def _historical_report_filenames_from_git(repo_root=ROOT):
+    repo_root = Path(repo_root).resolve()
+    try:
+        completed = subprocess.run(
+            ["git", "log", "--all", "--format=", "--name-only", "--", "public"],
+            cwd=repo_root,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+    except (OSError, ValueError):
+        return ()
+    if completed.returncode != 0:
+        return ()
+
+    filenames = set()
+    for raw_path in completed.stdout.splitlines():
+        filename = Path(raw_path.strip()).name
+        if REPORT_NAME_RE.fullmatch(filename):
+            filenames.add(filename)
+    return tuple(sorted(filenames))
+
+
+def _collect_historical_report_redirect_rules(reports, report_names=None):
+    canonical_by_match = {}
+    for report in reports or []:
+        match_id = str((report or {}).get("match_id") or "")
+        filename = str((report or {}).get("file") or "")
+        canonical_match = CANONICAL_REPORT_NAME_RE.fullmatch(filename)
+        if canonical_match and canonical_match.group("match_id") == match_id:
+            canonical_by_match[match_id] = f"/{Path(filename).stem}"
+
+    if report_names is None:
+        report_names = _historical_report_filenames_from_git()
+
+    rules = {}
+    for raw_name in report_names or []:
+        filename = Path(str(raw_name)).name
+        legacy_match = REPORT_NAME_RE.fullmatch(filename)
+        if not legacy_match:
+            continue
+        destination = canonical_by_match.get(legacy_match.group("match_id"))
+        if not destination:
+            continue
+        rules[f"/{filename}"] = (destination, "301")
+        rules[f"/{Path(filename).stem}"] = (destination, "301")
     return rules
 
 
@@ -3040,6 +3094,7 @@ def build_pages_site(source, public_dir=PUBLIC_DIR, source_fetch_times=None, sou
 
     _copy_static_assets(public_dir)
     reports = _copy_reports(source, public_dir)
+    redirect_rules.update(_collect_historical_report_redirect_rules(reports))
     _write_redirect_rules(public_dir / "_redirects", redirect_rules)
     _inject_report_navigation(public_dir, reports)
     reports = [_parse_report(public_dir / report["file"]) for report in reports]
