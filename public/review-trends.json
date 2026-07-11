@@ -7,8 +7,8 @@
       "topic_id": "death_cost",
       "focus": "死亡成本",
       "page": "trend-death-cost.html",
-      "count": 18,
-      "finding_count": 18,
+      "count": 40,
+      "finding_count": 40,
       "priority": "high",
       "heroes": [
         "Anti-Mage",
@@ -22,11 +22,24 @@
         "Dragon Knight",
         "Earth Spirit",
         "Gyrocopter",
+        "Juggernaut",
         "Legion Commander",
+        "Lifestealer",
+        "Lone Druid",
+        "Luna",
+        "Lycan",
+        "Medusa",
         "Meepo",
         "Mirana",
+        "Muerta",
         "Pangolier",
-        "Rubick"
+        "Phantom Assassin",
+        "Phantom Lancer",
+        "Rubick",
+        "Sven",
+        "Terrorblade",
+        "Vengeful Spirit",
+        "Wraith King"
       ],
       "source_focuses": [
         "死亡成本"
@@ -34,6 +47,12 @@
       "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
       "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
       "examples": [
+        {
+          "hero": "Vengeful Spirit",
+          "match_id": "8886597479",
+          "file": "Vengeful_Spirit_8886597479.html",
+          "result": "lose"
+        },
         {
           "hero": "Legion Commander",
           "match_id": "8870219537",
@@ -45,15 +64,21 @@
           "match_id": "8867124876",
           "file": "Dragon_Knight_8867124876.html",
           "result": "lose"
-        },
-        {
-          "hero": "Dragon Knight",
-          "match_id": "8870145903",
-          "file": "Dragon_Knight_8870145903.html",
-          "result": "lose"
         }
       ],
       "findings": [
+        {
+          "hero": "Vengeful Spirit",
+          "hero_slug": "vengefulspirit",
+          "match_id": "8886597479",
+          "file": "Vengeful_Spirit_8886597479.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 12/12 次死亡，时间: 3.8, 5.8, 8.2, 9.2, 14.4, 17.4, 20.1, 23.8, 26.0, 27.7, 29.3, 32.1分钟；每10分钟死亡 3.73。 死亡占时 6分53秒（21.4%）。 死亡位置: 3.8分 x=80,y=162（死亡前1秒）；5.8分 x=86,y=170（死亡时）；8.2分 x=84,y=168（死亡时）；9.2分 x=84,y=172（死亡前5秒）；14.4分 x=122,y=162（死亡前2秒）；17.4分 x=120,y=176（死亡前1秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
         {
           "hero": "Legion Commander",
           "hero_slug": "legion_commander",
@@ -86,6 +111,18 @@
           "result": "lose",
           "source_focus": "死亡成本",
           "review_evidence": "已定位 11/11 次死亡，时间: 2.4, 12.8, 13.6, 20.8, 24.1, 26.4, 30.3, 35.2, 37.9, 40.5, 42.0分钟；每10分钟死亡 2.61。 死亡占时 8分10秒（19.4%）。 死亡位置: 2.4分 x=76,y=146（死亡前1秒）；12.8分 x=66,y=158（死亡前1秒）；13.6分 x=82,y=168（死亡时）；20.8分 x=78,y=136（死亡前5秒）；24.1分 x=74,y=112（死亡前2秒）；26.4分 x=98,y=78（死亡时）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "hero_slug": "vengefulspirit",
+          "match_id": "8886726575",
+          "file": "Vengeful_Spirit_8886726575.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 10/10 次死亡，时间: 3.2, 4.6, 7.9, 10.2, 23.7, 26.4, 31.6, 37.5, 40.7, 45.5分钟；每10分钟死亡 2.17。 死亡占时 8分45秒（19.0%）。 死亡位置: 3.2分 x=82,y=166（死亡时）；4.6分 x=84,y=176（死亡前1秒）；7.9分 x=90,y=170（死亡前4秒）；10.2分 x=92,y=176（死亡前1秒）；23.7分 x=138,y=152（死亡时）；26.4分 x=76,y=158（死亡时）。",
           "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
           "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
           "priority": "high"
@@ -127,6 +164,66 @@
           "priority": "high"
         },
         {
+          "hero": "Phantom Lancer",
+          "hero_slug": "phantom_lancer",
+          "match_id": "8865400792",
+          "file": "Phantom_Lancer_8865400792.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 8/8 次死亡，时间: 4.6, 7.2, 13.9, 23.1, 27.1, 30.3, 33.2, 34.6分钟；每10分钟死亡 2.22。 死亡占时 6分26秒（17.8%）。 死亡位置: 4.6分 x=178,y=86（死亡前2秒）；7.2分 x=172,y=96（死亡时）；13.9分 x=116,y=176（死亡前2秒）；23.1分 x=92,y=98（死亡前3秒）；27.1分 x=110,y=108（死亡前2秒）；30.3分 x=96,y=82（死亡时）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8888423924",
+          "file": "Luna_8888423924.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 7/7 次死亡，时间: 5.3, 8.2, 22.2, 24.6, 26.2, 28.8, 30.4分钟；每10分钟死亡 2.26。 死亡占时 5分53秒（19.0%）。 死亡位置: 5.3分 x=78,y=168（死亡前5秒）；8.2分 x=82,y=152（死亡前2秒）；22.2分 x=120,y=164（死亡时）；24.6分 x=160,y=146（死亡前3秒）；26.2分 x=172,y=142（死亡前1秒）；28.8分 x=174,y=150（死亡前4秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8888275562",
+          "file": "Luna_8888275562.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 7/7 次死亡，时间: 5.7, 8.5, 14.8, 23.6, 37.4, 40.4, 40.6分钟；每10分钟死亡 1.69。 死亡占时 5分07秒（12.3%）。 死亡位置: 5.7分 x=168,y=86（死亡前3秒）；8.5分 x=168,y=86（死亡前2秒）；14.8分 x=94,y=114（死亡前1秒）；23.6分 x=102,y=98（死亡时）；37.4分 x=126,y=164（死亡时）；40.4分 x=88,y=78（死亡前1秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Beastmaster",
+          "hero_slug": "beastmaster",
+          "match_id": "8886509552",
+          "file": "Beastmaster_8886509552.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 6/6 次死亡，时间: 12.7, 20.9, 22.9, 26.3, 32.8, 34.2分钟；每10分钟死亡 1.7。 死亡占时 5分16秒（15.0%）。 死亡位置: 12.7分 x=138,y=76（死亡前1秒）；20.9分 x=112,y=90（死亡时）；22.9分 x=150,y=76（死亡前1秒）；26.3分 x=118,y=122（死亡时）；32.8分 x=142,y=148（死亡前1秒）；34.2分 x=168,y=170（死亡前1秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Lycan",
+          "hero_slug": "lycan",
+          "match_id": "8886472792",
+          "file": "Lycan_8886472792.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 6/6 次死亡，时间: 9.4, 13.2, 20.4, 27.1, 32.5, 43.5分钟；每10分钟死亡 1.33。 死亡占时 5分01秒（11.1%）。 死亡位置: 9.4分 x=98,y=176（死亡前2秒）；13.2分 x=104,y=172（死亡时）；20.4分 x=136,y=138（死亡前6秒）；27.1分 x=124,y=130（死亡前1秒）；32.5分 x=110,y=144（死亡前2秒）；43.5分 x=78,y=132（死亡前4秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
           "hero": "Death Prophet",
           "hero_slug": "death_prophet",
           "match_id": "8870188563",
@@ -134,6 +231,30 @@
           "result": "lose",
           "source_focus": "死亡成本",
           "review_evidence": "已定位 6/6 次死亡，时间: 17.7, 20.1, 22.2, 25.3, 28.7, 30.3分钟；每10分钟死亡 1.96。 死亡占时 4分12秒（13.7%）。 死亡位置: 17.7分 x=112,y=116（死亡前5秒）；20.1分 x=138,y=146（死亡时）；22.2分 x=170,y=162（死亡时）；25.3分 x=180,y=164（死亡时）；28.7分 x=150,y=170（死亡时）；30.3分 x=160,y=154（死亡时）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Terrorblade",
+          "hero_slug": "terrorblade",
+          "match_id": "8865456213",
+          "file": "Terrorblade_8865456213.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 6/6 次死亡，时间: 7.5, 19.8, 23.0, 29.2, 32.7, 38.7分钟；每10分钟死亡 1.53。 死亡占时 4分12秒（10.7%）。 死亡位置: 7.5分 x=170,y=86（死亡前1秒）；19.8分 x=66,y=114（死亡前3秒）；23.0分 x=104,y=114（死亡前2秒）；29.2分 x=98,y=102（死亡时）；32.7分 x=120,y=82（死亡前1秒）；38.7分 x=82,y=80（死亡前3秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Sven",
+          "hero_slug": "sven",
+          "match_id": "8887053523",
+          "file": "Sven_8887053523.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 5/5 次死亡，时间: 12.7, 28.2, 47.7, 55.5, 56.5分钟；每10分钟死亡 0.88。 死亡占时 4分40秒（8.2%）。 死亡位置: 12.7分 x=114,y=112（死亡时）；28.2分 x=78,y=180（死亡前7秒）；47.7分 x=160,y=78（死亡前3秒）；55.5分 x=118,y=118（死亡时）；56.5分 x=88,y=80（死亡前1秒）。",
           "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
           "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
           "priority": "high"
@@ -158,6 +279,30 @@
           "result": "lose",
           "source_focus": "死亡成本",
           "review_evidence": "已定位 5/5 次死亡，时间: 13.5, 29.5, 32.2, 37.6, 39.5分钟；每10分钟死亡 1.25。 死亡占时 5分11秒（13.0%）。 死亡位置: 13.5分 x=174,y=96（死亡前4秒）；29.5分 x=180,y=118（死亡前4秒）；32.2分 x=76,y=146（死亡时）；37.6分 x=100,y=98（死亡时）；39.5分 x=80,y=88（死亡前2秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8891064472",
+          "file": "Luna_8891064472.html",
+          "result": "lose",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 3/3 次死亡，时间: 0.9, 9.3, 24.7分钟；每10分钟死亡 0.81。 死亡占时 1分32秒（4.2%）。 死亡位置: 0.9分 x=70,y=164（死亡时）；9.3分 x=102,y=154（死亡时）；24.7分 x=132,y=162（死亡时）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Lone Druid",
+          "hero_slug": "lone_druid",
+          "match_id": "8886894610",
+          "file": "Lone_Druid_8886894610.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 11/11 次死亡，时间: 4.0, 6.9, 8.6, 11.1, 13.0, 14.7, 17.9, 24.7, 26.8, 29.7, 32.9分钟；每10分钟死亡 2.04。 死亡占时 6分47秒（12.6%）。 死亡位置: 4.0分 x=174,y=96（死亡时）；6.9分 x=174,y=88（死亡前1秒）；8.6分 x=176,y=94（死亡时）；11.1分 x=182,y=92（死亡时）；13.0分 x=174,y=104（死亡时）；14.7分 x=126,y=126（死亡前5秒）。",
           "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
           "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
           "priority": "high"
@@ -223,6 +368,114 @@
           "priority": "high"
         },
         {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8891116798",
+          "file": "Luna_8891116798.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 4/4 次死亡，时间: 5.8, 19.4, 27.7, 32.4分钟；每10分钟死亡 0.88。 死亡占时 4分22秒（9.6%）。 死亡位置: 5.8分 x=170,y=96（死亡前2秒）；19.4分 x=96,y=156（死亡前1秒）；27.7分 x=134,y=150（死亡前3秒）；32.4分 x=146,y=74（死亡前3秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8889354445",
+          "file": "Luna_8889354445.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 4/4 次死亡，时间: 6.8, 9.2, 15.6, 34.7分钟；每10分钟死亡 0.86。 死亡占时 2分58秒（6.4%）。 死亡位置: 6.8分 x=88,y=168（死亡时）；9.2分 x=80,y=162（死亡前2秒）；15.6分 x=166,y=80（死亡前3秒）；34.7分 x=68,y=142（死亡前2秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Juggernaut",
+          "hero_slug": "juggernaut",
+          "match_id": "8887946837",
+          "file": "Juggernaut_8887946837.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 4/4 次死亡，时间: 20.4, 23.9, 28.2, 35.7分钟；每10分钟死亡 0.9。 死亡占时 4分19秒（9.7%）。 死亡位置: 20.4分 x=100,y=160（死亡前4秒）；23.9分 x=124,y=180（死亡前6秒）；28.2分 x=142,y=78（死亡前3秒）；35.7分 x=90,y=96（死亡前3秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Wraith King",
+          "hero_slug": "skeleton_king",
+          "match_id": "8886651872",
+          "file": "Wraith_King_8886651872.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 4/4 次死亡，时间: 3.9, 6.5, 8.3, 16.9分钟；每10分钟死亡 1.2。 死亡占时 1分31秒（4.6%）。 死亡位置: 3.9分 x=84,y=162（死亡前3秒）；6.5分 x=78,y=158（死亡前1秒）；8.3分 x=78,y=148（死亡时）；16.9分 x=86,y=156（死亡前1秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Phantom Lancer",
+          "hero_slug": "phantom_lancer",
+          "match_id": "8865424980",
+          "file": "Phantom_Lancer_8865424980.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 4/4 次死亡，时间: 10.6, 13.9, 36.6, 39.5分钟；每10分钟死亡 0.94。 死亡占时 3分42秒（8.7%）。 死亡位置: 10.6分 x=186,y=110（死亡前1秒）；13.9分 x=172,y=88（死亡前1秒）；36.6分 x=184,y=154（死亡前3秒）；39.5分 x=170,y=152（死亡时）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Muerta",
+          "hero_slug": "muerta",
+          "match_id": "8865330563",
+          "file": "Muerta_8865330563.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 4/4 次死亡，时间: 3.9, 11.2, 16.1, 23.4分钟；每10分钟死亡 1.22。 死亡占时 2分21秒（7.1%）。 死亡位置: 3.9分 x=172,y=78（死亡时）；11.2分 x=170,y=78（死亡前2秒）；16.1分 x=172,y=92（死亡前2秒）；23.4分 x=136,y=136（死亡前3秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Phantom Assassin",
+          "hero_slug": "phantom_assassin",
+          "match_id": "8889651971",
+          "file": "Phantom_Assassin_8889651971.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 3/3 次死亡，时间: 2.8, 10.5, 23.6分钟；每10分钟死亡 0.56。 死亡占时 1分38秒（3.0%）。 死亡位置: 2.8分 x=160,y=74（死亡时）；10.5分 x=74,y=132（死亡时）；23.6分 x=122,y=106（死亡前1秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Medusa",
+          "hero_slug": "medusa",
+          "match_id": "8888484031",
+          "file": "Medusa_8888484031.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 3/3 次死亡，时间: 4.2, 17.7, 27.4分钟；每10分钟死亡 0.66。 死亡占时 2分20秒（5.2%）。 死亡位置: 4.2分 x=176,y=96（死亡前1秒）；17.7分 x=94,y=132（死亡时）；27.4分 x=114,y=118（死亡前2秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Sven",
+          "hero_slug": "sven",
+          "match_id": "8886548527",
+          "file": "Sven_8886548527.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 3/3 次死亡，时间: 15.5, 26.6, 36.1分钟；每10分钟死亡 0.71。 死亡占时 3分44秒（8.8%）。 死亡位置: 15.5分 x=82,y=174（死亡时）；26.6分 x=132,y=64（死亡前5秒）；36.1分 x=100,y=82（死亡时）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "high"
+        },
+        {
           "hero": "Earth Spirit",
           "hero_slug": "earth_spirit",
           "match_id": "8867246517",
@@ -259,6 +512,30 @@
           "priority": "high"
         },
         {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8887915708",
+          "file": "Luna_8887915708.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 1/1 次死亡，时间: 7.0分钟；每10分钟死亡 0.31。 死亡占时 0分31秒（1.6%）。 死亡位置: 7.0分 x=166,y=90（死亡前1秒）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Lifestealer",
+          "hero_slug": "life_stealer",
+          "match_id": "8886820485",
+          "file": "Lifestealer_8886820485.html",
+          "result": "win",
+          "source_focus": "死亡成本",
+          "review_evidence": "已定位 1/1 次死亡，时间: 13.0分钟；每10分钟死亡 0.26。 死亡占时 0分33秒（1.4%）。 死亡位置: 13.0分 x=176,y=104（死亡时）。",
+          "next_action": "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
+          "success_metric": "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+          "priority": "medium"
+        },
+        {
           "hero": "Anti-Mage",
           "hero_slug": "antimage",
           "match_id": "8866000193",
@@ -276,22 +553,35 @@
       "topic_id": "custom::死亡后目标损失",
       "focus": "死亡后目标损失",
       "page": "trend-custom-bac9d883f8.html",
-      "count": 13,
-      "finding_count": 13,
+      "count": 31,
+      "finding_count": 31,
       "priority": "high",
       "heroes": [
         "Anti-Mage",
+        "Beastmaster",
         "Chaos Knight",
         "Crystal Maiden",
         "Death Prophet",
         "Doom",
         "Dragon Knight",
         "Gyrocopter",
+        "Juggernaut",
         "Legion Commander",
+        "Lifestealer",
+        "Lone Druid",
+        "Luna",
+        "Lycan",
+        "Medusa",
         "Meepo",
         "Mirana",
+        "Muerta",
         "Pangolier",
-        "Rubick"
+        "Phantom Lancer",
+        "Rubick",
+        "Spectre",
+        "Sven",
+        "Terrorblade",
+        "Vengeful Spirit"
       ],
       "source_focuses": [
         "死亡后目标损失"
@@ -300,25 +590,49 @@
       "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
       "examples": [
         {
+          "hero": "Spectre",
+          "match_id": "8865282121",
+          "file": "Spectre_8865282121.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "match_id": "8886597479",
+          "file": "Vengeful_Spirit_8886597479.html",
+          "result": "lose"
+        },
+        {
           "hero": "Legion Commander",
           "match_id": "8870219537",
           "file": "Legion_Commander_8870219537.html",
           "result": "lose"
-        },
-        {
-          "hero": "Dragon Knight",
-          "match_id": "8867124876",
-          "file": "Dragon_Knight_8867124876.html",
-          "result": "lose"
-        },
-        {
-          "hero": "Dragon Knight",
-          "match_id": "8870145903",
-          "file": "Dragon_Knight_8870145903.html",
-          "result": "lose"
         }
       ],
       "findings": [
+        {
+          "hero": "Spectre",
+          "hero_slug": "spectre",
+          "match_id": "8865282121",
+          "file": "Spectre_8865282121.html",
+          "result": "lose",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 11.9分死亡 → 12.5分失去中路一塔（39秒）；41.1分死亡 → 42.0分失去中路二塔（53秒）；47.6分死亡 → 48.5分失去上路高地塔（57秒）；47.6分死亡 → 48.6分失去上路远程兵营（63秒）；47.6分死亡 → 48.7分失去上路近战兵营（70秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "hero_slug": "vengefulspirit",
+          "match_id": "8886597479",
+          "file": "Vengeful_Spirit_8886597479.html",
+          "result": "lose",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 14.4分死亡 → 15.0分失去中路一塔（38秒）；23.8分死亡 → 24.9分失去中路高地塔（70秒）；23.8分死亡 → 25.1分失去中路远程兵营（78秒）；23.8分死亡 → 25.2分失去中路近战兵营（89秒）；26.0分死亡 → 26.1分失去下路高地塔（10秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
         {
           "hero": "Legion Commander",
           "hero_slug": "legion_commander",
@@ -351,6 +665,18 @@
           "result": "lose",
           "source_focus": "死亡后目标损失",
           "review_evidence": "死亡后90秒内失去目标: 24.1分死亡 → 24.4分失去上路二塔（15秒）；24.1分死亡 → 25.6分失去中路二塔（90秒）；26.4分死亡 → 27.3分失去下路高地塔（53秒）；26.4分死亡 → 27.8分失去肉山（83秒）；30.3分死亡 → 31.1分失去下路远程兵营（52秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "hero_slug": "vengefulspirit",
+          "match_id": "8886726575",
+          "file": "Vengeful_Spirit_8886726575.html",
+          "result": "lose",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 31.6分死亡 → 32.8分失去上路二塔（71秒）；40.7分死亡 → 40.9分失去上路近战兵营（10秒）；40.7分死亡 → 41.8分失去中路近战兵营（66秒）；40.7分死亡 → 42.0分失去中路远程兵营（77秒）；45.5分死亡 → 46.0分失去基地塔（27秒）。",
           "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
           "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
           "priority": "high"
@@ -392,6 +718,66 @@
           "priority": "high"
         },
         {
+          "hero": "Phantom Lancer",
+          "hero_slug": "phantom_lancer",
+          "match_id": "8865400792",
+          "file": "Phantom_Lancer_8865400792.html",
+          "result": "lose",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 23.1分死亡 → 23.4分失去中路二塔（15秒）；27.1分死亡 → 28.4分失去上路二塔（76秒）；33.2分死亡 → 34.0分失去上路高地塔（50秒）；33.2分死亡 → 34.1分失去上路远程兵营（56秒）；33.2分死亡 → 34.2分失去上路近战兵营（60秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8888423924",
+          "file": "Luna_8888423924.html",
+          "result": "lose",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 8.2分死亡 → 9.4分失去下路一塔（77秒）；22.2分死亡 → 22.8分失去上路二塔（33秒）；26.2分死亡 → 26.8分失去中路高地塔（35秒）；26.2分死亡 → 27.1分失去中路近战兵营（57秒）；26.2分死亡 → 27.2分失去中路远程兵营（60秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8888275562",
+          "file": "Luna_8888275562.html",
+          "result": "lose",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 23.6分死亡 → 24.1分失去中路二塔（34秒）；23.6分死亡 → 24.9分失去中路高地塔（78秒）；37.4分死亡 → 37.7分失去下路高地塔（22秒）；37.4分死亡 → 37.9分失去下路近战兵营（32秒）；37.4分死亡 → 38.0分失去下路远程兵营（37秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Beastmaster",
+          "hero_slug": "beastmaster",
+          "match_id": "8886509552",
+          "file": "Beastmaster_8886509552.html",
+          "result": "lose",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 22.9分死亡 → 23.3分失去上路一塔（23秒）；26.3分死亡 → 27.8分失去下路一塔（89秒）；32.8分死亡 → 33.3分失去中路二塔（29秒）；32.8分死亡 → 33.8分失去中路高地塔（60秒）；34.2分死亡 → 34.4分失去中路远程兵营（7秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Lycan",
+          "hero_slug": "lycan",
+          "match_id": "8886472792",
+          "file": "Lycan_8886472792.html",
+          "result": "lose",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 27.1分死亡 → 27.4分失去中路一塔（17秒）；32.5分死亡 → 33.5分失去中路二塔（54秒）；32.5分死亡 → 33.7分失去上路一塔（71秒）；43.5分死亡 → 43.8分失去上路二塔（18秒）；43.5分死亡 → 44.1分失去上路高地塔（40秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕高地防守的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
+        {
           "hero": "Death Prophet",
           "hero_slug": "death_prophet",
           "match_id": "8870188563",
@@ -399,6 +785,30 @@
           "result": "lose",
           "source_focus": "死亡后目标损失",
           "review_evidence": "死亡后90秒内失去目标: 22.2分死亡 → 22.6分失去中路二塔（23秒）；22.2分死亡 → 23.4分失去下路二塔（74秒）；25.3分死亡 → 25.7分失去下路高地塔（24秒）；25.3分死亡 → 25.8分失去下路远程兵营（30秒）；25.3分死亡 → 26.0分失去下路近战兵营（42秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Terrorblade",
+          "hero_slug": "terrorblade",
+          "match_id": "8865456213",
+          "file": "Terrorblade_8865456213.html",
+          "result": "lose",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 23.0分死亡 → 23.5分失去上路二塔（31秒）；32.7分死亡 → 33.0分失去中路远程兵营（17秒）；38.7分死亡 → 39.0分失去基地塔（15秒）；38.7分死亡 → 39.2分失去基地塔（28秒）；38.7分死亡 → 39.3分失去遗迹（36秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Sven",
+          "hero_slug": "sven",
+          "match_id": "8887053523",
+          "file": "Sven_8887053523.html",
+          "result": "lose",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 55.5分死亡 → 55.8分失去下路远程兵营（19秒）；55.5分死亡 → 56.0分失去下路近战兵营（27秒）；55.5分死亡 → 56.5分失去基地塔（61秒）；55.5分死亡 → 56.8分失去基地塔（74秒）；56.5分死亡 → 56.5分失去基地塔（3秒）。",
           "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
           "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
           "priority": "high"
@@ -424,6 +834,18 @@
           "source_focus": "死亡后目标损失",
           "review_evidence": "死亡后90秒内失去目标: 32.2分死亡 → 32.4分失去上路一塔（7秒）；32.2分死亡 → 33.2分失去肉山（56秒）；32.2分死亡 → 33.2分失去不朽盾（56秒）；37.6分死亡 → 38.2分失去下路高地塔（33秒）；37.6分死亡 → 38.3分失去下路远程兵营（40秒）。",
           "next_action": "下一局执行「目标前90秒生存规则」，把围绕基地防守的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Lone Druid",
+          "hero_slug": "lone_druid",
+          "match_id": "8886894610",
+          "file": "Lone_Druid_8886894610.html",
+          "result": "win",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 11.1分死亡 → 12.4分失去上路一塔（76秒）；24.7分死亡 → 25.4分失去下路二塔（41秒）；26.8分死亡 → 27.7分失去上路二塔（55秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕下路二塔攻防的死亡/目标损失窗口清零。",
           "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
           "priority": "high"
         },
@@ -464,6 +886,18 @@
           "priority": "high"
         },
         {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8891116798",
+          "file": "Luna_8891116798.html",
+          "result": "win",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 27.7分死亡 → 28.5分失去中路一塔（48秒）；27.7分死亡 → 28.9分失去中路二塔（74秒）；32.4分死亡 → 32.9分失去下路二塔（32秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕下路二塔攻防的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "high"
+        },
+        {
           "hero": "Crystal Maiden",
           "hero_slug": "crystal_maiden",
           "match_id": "8866935458",
@@ -474,6 +908,78 @@
           "next_action": "下一局执行「目标前90秒生存规则」，把围绕中路一塔攻防的死亡/目标损失窗口清零。",
           "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
           "priority": "medium"
+        },
+        {
+          "hero": "Juggernaut",
+          "hero_slug": "juggernaut",
+          "match_id": "8887946837",
+          "file": "Juggernaut_8887946837.html",
+          "result": "win",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 28.2分死亡 → 29.6分失去肉山（84秒）；28.2分死亡 → 29.6分失去不朽盾（85秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕肉山争夺的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Phantom Lancer",
+          "hero_slug": "phantom_lancer",
+          "match_id": "8865424980",
+          "file": "Phantom_Lancer_8865424980.html",
+          "result": "win",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 39.5分死亡 → 40.2分失去中路一塔（42秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕中路一塔攻防的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Muerta",
+          "hero_slug": "muerta",
+          "match_id": "8865330563",
+          "file": "Muerta_8865330563.html",
+          "result": "win",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 23.4分死亡 → 24.3分失去上路一塔（55秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕上路一塔攻防的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Medusa",
+          "hero_slug": "medusa",
+          "match_id": "8888484031",
+          "file": "Medusa_8888484031.html",
+          "result": "win",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 17.7分死亡 → 18.5分失去上路一塔（45秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕上路一塔攻防的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Sven",
+          "hero_slug": "sven",
+          "match_id": "8886548527",
+          "file": "Sven_8886548527.html",
+          "result": "win",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 15.5分死亡 → 15.7分失去上路一塔（13秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕上路一塔攻防的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Lifestealer",
+          "hero_slug": "life_stealer",
+          "match_id": "8886820485",
+          "file": "Lifestealer_8886820485.html",
+          "result": "win",
+          "source_focus": "死亡后目标损失",
+          "review_evidence": "死亡后90秒内失去目标: 13.0分死亡 → 13.8分失去上路一塔（44秒）。",
+          "next_action": "下一局执行「目标前90秒生存规则」，把围绕上路一塔攻防的死亡/目标损失窗口清零。",
+          "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
+          "priority": "medium"
         }
       ]
     },
@@ -481,11 +987,12 @@
       "topic_id": "custom::重复死亡坐标",
       "focus": "重复死亡坐标",
       "page": "trend-custom-97ad93fe24.html",
-      "count": 13,
-      "finding_count": 13,
+      "count": 21,
+      "finding_count": 21,
       "priority": "high",
       "heroes": [
         "Anti-Mage",
+        "Beastmaster",
         "Chaos Knight",
         "Crystal Maiden",
         "Dark Seer",
@@ -495,8 +1002,13 @@
         "Dragon Knight",
         "Earth Spirit",
         "Legion Commander",
+        "Luna",
+        "Lycan",
         "Mirana",
-        "Pangolier"
+        "Muerta",
+        "Pangolier",
+        "Terrorblade",
+        "Wraith King"
       ],
       "source_focuses": [
         "重复死亡坐标"
@@ -585,6 +1097,18 @@
           "priority": "high"
         },
         {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8888275562",
+          "file": "Luna_8888275562.html",
+          "result": "lose",
+          "source_focus": "重复死亡坐标",
+          "review_evidence": "重复死亡坐标簇: 5.7、8.5分重复死亡坐标簇，中心x=168.0,y=86.0，样本2次；40.4、40.6分重复死亡坐标簇，中心x=91.0,y=78.0，样本2次。",
+          "next_action": "下一局把重复死亡坐标簇从2个压到最多1个；每个重复点赛前写一条撤退规则。",
+          "success_metric": "重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。",
+          "priority": "high"
+        },
+        {
           "hero": "Dawnbreaker",
           "hero_slug": "dawnbreaker",
           "match_id": "8866682981",
@@ -609,6 +1133,42 @@
           "priority": "high"
         },
         {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8888423924",
+          "file": "Luna_8888423924.html",
+          "result": "lose",
+          "source_focus": "重复死亡坐标",
+          "review_evidence": "重复死亡坐标簇: 24.6、26.2分重复死亡坐标簇，中心x=166.0,y=144.0，样本2次。",
+          "next_action": "下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。",
+          "success_metric": "重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Beastmaster",
+          "hero_slug": "beastmaster",
+          "match_id": "8886509552",
+          "file": "Beastmaster_8886509552.html",
+          "result": "lose",
+          "source_focus": "重复死亡坐标",
+          "review_evidence": "重复死亡坐标簇: 12.7、22.9分重复死亡坐标簇，中心x=144.0,y=76.0，样本2次。",
+          "next_action": "下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。",
+          "success_metric": "重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Lycan",
+          "hero_slug": "lycan",
+          "match_id": "8886472792",
+          "file": "Lycan_8886472792.html",
+          "result": "lose",
+          "source_focus": "重复死亡坐标",
+          "review_evidence": "重复死亡坐标簇: 9.4、13.2分重复死亡坐标簇，中心x=101.0,y=174.0，样本2次。",
+          "next_action": "下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。",
+          "success_metric": "重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。",
+          "priority": "medium"
+        },
+        {
           "hero": "Death Prophet",
           "hero_slug": "death_prophet",
           "match_id": "8870188563",
@@ -616,6 +1176,18 @@
           "result": "lose",
           "source_focus": "重复死亡坐标",
           "review_evidence": "重复死亡坐标簇: 22.2、25.3、30.3分重复死亡坐标簇，中心x=170.0,y=160.0，样本3次。",
+          "next_action": "下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。",
+          "success_metric": "重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Terrorblade",
+          "hero_slug": "terrorblade",
+          "match_id": "8865456213",
+          "file": "Terrorblade_8865456213.html",
+          "result": "lose",
+          "source_focus": "重复死亡坐标",
+          "review_evidence": "重复死亡坐标簇: 23.0、29.2分重复死亡坐标簇，中心x=101.0,y=108.0，样本2次。",
           "next_action": "下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。",
           "success_metric": "重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。",
           "priority": "medium"
@@ -657,6 +1229,42 @@
           "priority": "medium"
         },
         {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8889354445",
+          "file": "Luna_8889354445.html",
+          "result": "win",
+          "source_focus": "重复死亡坐标",
+          "review_evidence": "重复死亡坐标簇: 6.8、9.2分重复死亡坐标簇，中心x=84.0,y=165.0，样本2次。",
+          "next_action": "下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。",
+          "success_metric": "重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Wraith King",
+          "hero_slug": "skeleton_king",
+          "match_id": "8886651872",
+          "file": "Wraith_King_8886651872.html",
+          "result": "win",
+          "source_focus": "重复死亡坐标",
+          "review_evidence": "重复死亡坐标簇: 3.9、6.5、16.9分重复死亡坐标簇，中心x=82.7,y=158.7，样本3次。",
+          "next_action": "下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。",
+          "success_metric": "重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Muerta",
+          "hero_slug": "muerta",
+          "match_id": "8865330563",
+          "file": "Muerta_8865330563.html",
+          "result": "win",
+          "source_focus": "重复死亡坐标",
+          "review_evidence": "重复死亡坐标簇: 3.9、11.2、16.1分重复死亡坐标簇，中心x=171.3,y=82.7，样本3次。",
+          "next_action": "下一局把重复死亡坐标簇从1个压到最多1个；每个重复点赛前写一条撤退规则。",
+          "success_metric": "重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。",
+          "priority": "medium"
+        },
+        {
           "hero": "Earth Spirit",
           "hero_slug": "earth_spirit",
           "match_id": "8867246517",
@@ -686,17 +1294,25 @@
       "topic_id": "custom::死亡前后资源变化",
       "focus": "死亡前后资源变化",
       "page": "trend-custom-0568eadc6b.html",
-      "count": 8,
-      "finding_count": 8,
+      "count": 17,
+      "finding_count": 17,
       "priority": "high",
       "heroes": [
+        "Beastmaster",
         "Chaos Knight",
         "Dawnbreaker",
         "Death Prophet",
         "Doom",
         "Dragon Knight",
+        "Juggernaut",
         "Legion Commander",
-        "Mirana"
+        "Luna",
+        "Lycan",
+        "Medusa",
+        "Mirana",
+        "Phantom Assassin",
+        "Terrorblade",
+        "Wraith King"
       ],
       "source_focuses": [
         "死亡前后资源变化"
@@ -773,6 +1389,30 @@
           "priority": "high"
         },
         {
+          "hero": "Beastmaster",
+          "hero_slug": "beastmaster",
+          "match_id": "8886509552",
+          "file": "Beastmaster_8886509552.html",
+          "result": "lose",
+          "source_focus": "死亡前后资源变化",
+          "review_evidence": "死亡前后资源下降窗口: 12.7分死亡前后：补刀/分 9.7→6.0（-3.7），平均GPM 576.7→466.7（-110.0）（9-12分钟→13-16分钟）；20.9分死亡前后：补刀/分 11.0→4.0（-7.0），平均GPM 789.3→416.7（-372.6）（17-20分钟→21-24分钟）；32.8分死亡前后：补刀/分 10.0→0.0（-10.0），平均GPM 711.0→200.0（-511.0）（29-32分钟→33-35分钟）。",
+          "next_action": "下一局把死亡前后资源明显下降窗口从3个压到最多1个。",
+          "success_metric": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Lycan",
+          "hero_slug": "lycan",
+          "match_id": "8886472792",
+          "file": "Lycan_8886472792.html",
+          "result": "lose",
+          "source_focus": "死亡前后资源变化",
+          "review_evidence": "死亡前后资源下降窗口: 13.2分死亡前后：补刀/分 11.3→3.7（-7.6），平均GPM 601.3→394.3（-207.0）（10-13分钟→14-17分钟）；32.5分死亡前后：补刀/分 10.0→2.0（-8.0），平均GPM 733.3→529.0（-204.3）（29-32分钟→33-36分钟）；43.5分死亡前后：补刀/分 3.0→0.0（-3.0），平均GPM 759.7→100.0（-659.7）（40-43分钟→44-45分钟）。",
+          "next_action": "下一局把死亡前后资源明显下降窗口从3个压到最多1个。",
+          "success_metric": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
+          "priority": "high"
+        },
+        {
           "hero": "Death Prophet",
           "hero_slug": "death_prophet",
           "match_id": "8870188563",
@@ -809,6 +1449,42 @@
           "priority": "high"
         },
         {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8891116798",
+          "file": "Luna_8891116798.html",
+          "result": "win",
+          "source_focus": "死亡前后资源变化",
+          "review_evidence": "死亡前后资源下降窗口: 19.4分死亡前后：补刀/分 21.7→15.7（-6.0），平均GPM 986.7→1051.7（+65.0）（16-19分钟→20-23分钟）；27.7分死亡前后：补刀/分 18.3→12.7（-5.6），平均GPM 1461.0→796.0（-665.0）（24-27分钟→28-31分钟）。",
+          "next_action": "下一局把死亡前后资源明显下降窗口从2个压到最多1个。",
+          "success_metric": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Juggernaut",
+          "hero_slug": "juggernaut",
+          "match_id": "8887946837",
+          "file": "Juggernaut_8887946837.html",
+          "result": "win",
+          "source_focus": "死亡前后资源变化",
+          "review_evidence": "死亡前后资源下降窗口: 20.4分死亡前后：补刀/分 21.3→12.3（-9.0），平均GPM 997.7→815.3（-182.4）（17-20分钟→21-24分钟）；28.2分死亡前后：补刀/分 17.7→9.7（-8.0），平均GPM 925.0→536.3（-388.7）（25-28分钟→29-32分钟）。",
+          "next_action": "下一局把死亡前后资源明显下降窗口从2个压到最多1个。",
+          "success_metric": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Terrorblade",
+          "hero_slug": "terrorblade",
+          "match_id": "8865456213",
+          "file": "Terrorblade_8865456213.html",
+          "result": "lose",
+          "source_focus": "死亡前后资源变化",
+          "review_evidence": "死亡前后资源下降窗口: 23.0分死亡前后：补刀/分 12.3→4.7（-7.6），平均GPM 581.0→350.3（-230.7）（20-23分钟→23-26分钟）。",
+          "next_action": "下一局把死亡前后资源明显下降窗口从1个压到最多1个。",
+          "success_metric": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
+          "priority": "medium"
+        },
+        {
           "hero": "Mirana",
           "hero_slug": "mirana",
           "match_id": "8867002237",
@@ -819,6 +1495,549 @@
           "next_action": "下一局把死亡前后资源明显下降窗口从1个压到最多1个。",
           "success_metric": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
           "priority": "medium"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8889354445",
+          "file": "Luna_8889354445.html",
+          "result": "win",
+          "source_focus": "死亡前后资源变化",
+          "review_evidence": "死亡前后资源下降窗口: 34.7分死亡前后：补刀/分 27.3→10.3（-17.0），平均GPM 1474.3→784.3（-690.0）（31-34分钟→35-38分钟）。",
+          "next_action": "下一局把死亡前后资源明显下降窗口从1个压到最多1个。",
+          "success_metric": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Wraith King",
+          "hero_slug": "skeleton_king",
+          "match_id": "8886651872",
+          "file": "Wraith_King_8886651872.html",
+          "result": "win",
+          "source_focus": "死亡前后资源变化",
+          "review_evidence": "死亡前后资源下降窗口: 16.9分死亡前后：补刀/分 14.7→11.0（-3.7），平均GPM 601.7→654.3（+52.6）（13-16分钟→17-20分钟）。",
+          "next_action": "下一局把死亡前后资源明显下降窗口从1个压到最多1个。",
+          "success_metric": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Phantom Assassin",
+          "hero_slug": "phantom_assassin",
+          "match_id": "8889651971",
+          "file": "Phantom_Assassin_8889651971.html",
+          "result": "win",
+          "source_focus": "死亡前后资源变化",
+          "review_evidence": "死亡前后资源下降窗口: 23.6分死亡前后：补刀/分 11.7→7.7（-4.0），平均GPM 593.7→642.0（+48.3）（20-23分钟→24-27分钟）。",
+          "next_action": "下一局把死亡前后资源明显下降窗口从1个压到最多1个。",
+          "success_metric": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Medusa",
+          "hero_slug": "medusa",
+          "match_id": "8888484031",
+          "file": "Medusa_8888484031.html",
+          "result": "win",
+          "source_focus": "死亡前后资源变化",
+          "review_evidence": "死亡前后资源下降窗口: 27.4分死亡前后：补刀/分 22.7→16.3（-6.4），平均GPM 1015.7→817.0（-198.7）（24-27分钟→28-31分钟）。",
+          "next_action": "下一局把死亡前后资源明显下降窗口从1个压到最多1个。",
+          "success_metric": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "topic_id": "custom::死亡打断资源",
+      "focus": "死亡打断资源",
+      "page": "trend-custom-c37af761b7.html",
+      "count": 17,
+      "finding_count": 17,
+      "priority": "high",
+      "heroes": [
+        "Gyrocopter",
+        "Lone Druid",
+        "Luna",
+        "Medusa",
+        "Meepo",
+        "Muerta",
+        "Phantom Assassin",
+        "Phantom Lancer",
+        "Spectre",
+        "Sven",
+        "Vengeful Spirit"
+      ],
+      "source_focuses": [
+        "死亡打断资源"
+      ],
+      "next_action": "下一局把死亡重叠低效率窗口从4次压到0；死亡后3分钟先恢复一波安全资源。",
+      "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+      "examples": [
+        {
+          "hero": "Spectre",
+          "match_id": "8865282121",
+          "file": "Spectre_8865282121.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "match_id": "8886597479",
+          "file": "Vengeful_Spirit_8886597479.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "match_id": "8886726575",
+          "file": "Vengeful_Spirit_8886726575.html",
+          "result": "lose"
+        }
+      ],
+      "findings": [
+        {
+          "hero": "Spectre",
+          "hero_slug": "spectre",
+          "match_id": "8865282121",
+          "file": "Spectre_8865282121.html",
+          "result": "lose",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 8-11分钟含 8.4分死亡、10.8分死亡；低效率窗口 38-40分钟含 38.3分死亡；低效率窗口 41-43分钟含 41.1分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从4次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "hero_slug": "vengefulspirit",
+          "match_id": "8886597479",
+          "file": "Vengeful_Spirit_8886597479.html",
+          "result": "lose",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 5-7分钟含 5.8分死亡；低效率窗口 8-10分钟含 8.2分死亡、9.2分死亡；低效率窗口 26-30分钟含 26.0分死亡、27.7分死亡、29.3分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从6次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "hero_slug": "vengefulspirit",
+          "match_id": "8886726575",
+          "file": "Vengeful_Spirit_8886726575.html",
+          "result": "lose",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 3-5分钟含 3.2分死亡、4.6分死亡；低效率窗口 7-11分钟含 7.9分死亡、10.2分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从4次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Meepo",
+          "hero_slug": "meepo",
+          "match_id": "8865878802",
+          "file": "Meepo_8865878802.html",
+          "result": "lose",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 53-55分钟含 53.4分死亡；低效率窗口 58-60分钟含 58.9分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从2次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Phantom Lancer",
+          "hero_slug": "phantom_lancer",
+          "match_id": "8865400792",
+          "file": "Phantom_Lancer_8865400792.html",
+          "result": "lose",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 26-28分钟含 27.1分死亡；低效率窗口 33-36分钟含 33.2分死亡、34.6分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从3次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8888423924",
+          "file": "Luna_8888423924.html",
+          "result": "lose",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 25-27分钟含 26.2分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从1次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8888275562",
+          "file": "Luna_8888275562.html",
+          "result": "lose",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 23-25分钟含 23.6分死亡；低效率窗口 37-39分钟含 37.4分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从2次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Sven",
+          "hero_slug": "sven",
+          "match_id": "8887053523",
+          "file": "Sven_8887053523.html",
+          "result": "lose",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 28-30分钟含 28.2分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从1次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Gyrocopter",
+          "hero_slug": "gyrocopter",
+          "match_id": "8866888706",
+          "file": "Gyrocopter_8866888706.html",
+          "result": "lose",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 32-34分钟含 32.2分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从1次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8891064472",
+          "file": "Luna_8891064472.html",
+          "result": "lose",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 0-3分钟含 0.9分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从1次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Lone Druid",
+          "hero_slug": "lone_druid",
+          "match_id": "8886894610",
+          "file": "Lone_Druid_8886894610.html",
+          "result": "win",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 3-5分钟含 4.0分死亡；低效率窗口 24-26分钟含 24.7分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从2次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8891116798",
+          "file": "Luna_8891116798.html",
+          "result": "win",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 32-34分钟含 32.4分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从1次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Phantom Lancer",
+          "hero_slug": "phantom_lancer",
+          "match_id": "8865424980",
+          "file": "Phantom_Lancer_8865424980.html",
+          "result": "win",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 36-38分钟含 36.6分死亡；低效率窗口 39-41分钟含 39.5分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从2次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Muerta",
+          "hero_slug": "muerta",
+          "match_id": "8865330563",
+          "file": "Muerta_8865330563.html",
+          "result": "win",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 0-4分钟含 3.9分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从1次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Phantom Assassin",
+          "hero_slug": "phantom_assassin",
+          "match_id": "8889651971",
+          "file": "Phantom_Assassin_8889651971.html",
+          "result": "win",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 2-5分钟含 2.8分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从1次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Medusa",
+          "hero_slug": "medusa",
+          "match_id": "8888484031",
+          "file": "Medusa_8888484031.html",
+          "result": "win",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 3-5分钟含 4.2分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从1次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        },
+        {
+          "hero": "Sven",
+          "hero_slug": "sven",
+          "match_id": "8886548527",
+          "file": "Sven_8886548527.html",
+          "result": "win",
+          "source_focus": "死亡打断资源",
+          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 35-38分钟含 36.1分死亡。",
+          "next_action": "下一局把死亡重叠低效率窗口从1次压到0；死亡后3分钟先恢复一波安全资源。",
+          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "topic_id": "early_resource",
+      "focus": "前10分钟资源",
+      "page": "trend-early-resource.html",
+      "count": 16,
+      "finding_count": 16,
+      "priority": "high",
+      "heroes": [
+        "Anti-Mage",
+        "Gyrocopter",
+        "Juggernaut",
+        "Lone Druid",
+        "Luna",
+        "Medusa",
+        "Muerta",
+        "Phantom Assassin",
+        "Phantom Lancer",
+        "Spectre",
+        "Sven",
+        "Terrorblade",
+        "Vengeful Spirit",
+        "Wraith King"
+      ],
+      "source_focuses": [
+        "前10分钟资源"
+      ],
+      "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟45补。",
+      "success_metric": "10分钟补刀>=45；前10分钟低效率窗口=0。",
+      "examples": [
+        {
+          "hero": "Spectre",
+          "match_id": "8865282121",
+          "file": "Spectre_8865282121.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "match_id": "8886597479",
+          "file": "Vengeful_Spirit_8886597479.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "match_id": "8886726575",
+          "file": "Vengeful_Spirit_8886726575.html",
+          "result": "lose"
+        }
+      ],
+      "findings": [
+        {
+          "hero": "Spectre",
+          "hero_slug": "spectre",
+          "match_id": "8865282121",
+          "file": "Spectre_8865282121.html",
+          "result": "lose",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 40，前10分钟低效率窗口 2 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟45补。",
+          "success_metric": "10分钟补刀>=45；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "hero_slug": "vengefulspirit",
+          "match_id": "8886597479",
+          "file": "Vengeful_Spirit_8886597479.html",
+          "result": "lose",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 27，前10分钟低效率窗口 3 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟32补。",
+          "success_metric": "10分钟补刀>=32；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "hero_slug": "vengefulspirit",
+          "match_id": "8886726575",
+          "file": "Vengeful_Spirit_8886726575.html",
+          "result": "lose",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 45，前10分钟低效率窗口 2 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟50补。",
+          "success_metric": "10分钟补刀>=50；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Terrorblade",
+          "hero_slug": "terrorblade",
+          "match_id": "8865456213",
+          "file": "Terrorblade_8865456213.html",
+          "result": "lose",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 43，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟48补。",
+          "success_metric": "10分钟补刀>=48；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Gyrocopter",
+          "hero_slug": "gyrocopter",
+          "match_id": "8866888706",
+          "file": "Gyrocopter_8866888706.html",
+          "result": "lose",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 66，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟66补。",
+          "success_metric": "10分钟补刀>=66；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8891064472",
+          "file": "Luna_8891064472.html",
+          "result": "lose",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 46，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟51补。",
+          "success_metric": "10分钟补刀>=51；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Lone Druid",
+          "hero_slug": "lone_druid",
+          "match_id": "8886894610",
+          "file": "Lone_Druid_8886894610.html",
+          "result": "win",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 49，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟54补。",
+          "success_metric": "10分钟补刀>=54；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Juggernaut",
+          "hero_slug": "juggernaut",
+          "match_id": "8887946837",
+          "file": "Juggernaut_8887946837.html",
+          "result": "win",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 52，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟57补。",
+          "success_metric": "10分钟补刀>=57；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Wraith King",
+          "hero_slug": "skeleton_king",
+          "match_id": "8886651872",
+          "file": "Wraith_King_8886651872.html",
+          "result": "win",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 51，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟56补。",
+          "success_metric": "10分钟补刀>=56；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Phantom Lancer",
+          "hero_slug": "phantom_lancer",
+          "match_id": "8865424980",
+          "file": "Phantom_Lancer_8865424980.html",
+          "result": "win",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 54，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟59补。",
+          "success_metric": "10分钟补刀>=59；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Muerta",
+          "hero_slug": "muerta",
+          "match_id": "8865330563",
+          "file": "Muerta_8865330563.html",
+          "result": "win",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 59，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟60补。",
+          "success_metric": "10分钟补刀>=60；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Phantom Assassin",
+          "hero_slug": "phantom_assassin",
+          "match_id": "8889651971",
+          "file": "Phantom_Assassin_8889651971.html",
+          "result": "win",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 54，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟59补。",
+          "success_metric": "10分钟补刀>=59；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Medusa",
+          "hero_slug": "medusa",
+          "match_id": "8888484031",
+          "file": "Medusa_8888484031.html",
+          "result": "win",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 61，前10分钟低效率窗口 2 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟61补。",
+          "success_metric": "10分钟补刀>=61；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Sven",
+          "hero_slug": "sven",
+          "match_id": "8886548527",
+          "file": "Sven_8886548527.html",
+          "result": "win",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 84，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟84补。",
+          "success_metric": "10分钟补刀>=84；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8887915708",
+          "file": "Luna_8887915708.html",
+          "result": "win",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 55，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟60补。",
+          "success_metric": "10分钟补刀>=60；前10分钟低效率窗口=0。",
+          "priority": "high"
+        },
+        {
+          "hero": "Anti-Mage",
+          "hero_slug": "antimage",
+          "match_id": "8866000193",
+          "file": "Anti-Mage_8866000193.html",
+          "result": "win",
+          "source_focus": "前10分钟资源",
+          "review_evidence": "10分钟补刀 55，前10分钟低效率窗口 1 个。",
+          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟60补。",
+          "success_metric": "10分钟补刀>=60；前10分钟低效率窗口=0。",
+          "priority": "high"
         }
       ]
     },
@@ -826,13 +2045,16 @@
       "topic_id": "close_game",
       "focus": "终结比赛",
       "page": "trend-close-game.html",
-      "count": 3,
-      "finding_count": 3,
+      "count": 6,
+      "finding_count": 6,
       "priority": "high",
       "heroes": [
         "Anti-Mage",
         "Dragon Knight",
-        "Meepo"
+        "Meepo",
+        "Spectre",
+        "Sven",
+        "Vengeful Spirit"
       ],
       "source_focuses": [
         "终结比赛"
@@ -841,25 +2063,37 @@
       "success_metric": "强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
       "examples": [
         {
+          "hero": "Spectre",
+          "match_id": "8865282121",
+          "file": "Spectre_8865282121.html",
+          "result": "lose"
+        },
+        {
           "hero": "Dragon Knight",
           "match_id": "8867124876",
           "file": "Dragon_Knight_8867124876.html",
           "result": "lose"
         },
         {
-          "hero": "Anti-Mage",
-          "match_id": "8866174845",
-          "file": "Anti-Mage_8866174845.html",
-          "result": "lose"
-        },
-        {
-          "hero": "Meepo",
-          "match_id": "8865878802",
-          "file": "Meepo_8865878802.html",
+          "hero": "Vengeful Spirit",
+          "match_id": "8886726575",
+          "file": "Vengeful_Spirit_8886726575.html",
           "result": "lose"
         }
       ],
       "findings": [
+        {
+          "hero": "Spectre",
+          "hero_slug": "spectre",
+          "match_id": "8865282121",
+          "file": "Spectre_8865282121.html",
+          "result": "lose",
+          "source_focus": "终结比赛",
+          "review_evidence": "失败局时长 66.3 分钟，GPM 652。",
+          "next_action": "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
+          "success_metric": "强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
+          "priority": "high"
+        },
         {
           "hero": "Dragon Knight",
           "hero_slug": "dragon_knight",
@@ -868,6 +2102,18 @@
           "result": "lose",
           "source_focus": "终结比赛",
           "review_evidence": "失败局时长 63.8 分钟，GPM 727。",
+          "next_action": "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
+          "success_metric": "强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
+          "priority": "high"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "hero_slug": "vengefulspirit",
+          "match_id": "8886726575",
+          "file": "Vengeful_Spirit_8886726575.html",
+          "result": "lose",
+          "source_focus": "终结比赛",
+          "review_evidence": "失败局时长 46.1 分钟，GPM 678。",
           "next_action": "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
           "success_metric": "强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
           "priority": "high"
@@ -895,119 +2141,74 @@
           "next_action": "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
           "success_metric": "强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
           "priority": "high"
-        }
-      ]
-    },
-    {
-      "topic_id": "early_resource",
-      "focus": "前10分钟资源",
-      "page": "trend-early-resource.html",
-      "count": 2,
-      "finding_count": 2,
-      "priority": "high",
-      "heroes": [
-        "Anti-Mage",
-        "Gyrocopter"
-      ],
-      "source_focuses": [
-        "前10分钟资源"
-      ],
-      "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟66补。",
-      "success_metric": "10分钟补刀>=66；前10分钟低效率窗口=0。",
-      "examples": [
-        {
-          "hero": "Gyrocopter",
-          "match_id": "8866888706",
-          "file": "Gyrocopter_8866888706.html",
-          "result": "lose"
         },
         {
-          "hero": "Anti-Mage",
-          "match_id": "8866000193",
-          "file": "Anti-Mage_8866000193.html",
-          "result": "win"
-        }
-      ],
-      "findings": [
-        {
-          "hero": "Gyrocopter",
-          "hero_slug": "gyrocopter",
-          "match_id": "8866888706",
-          "file": "Gyrocopter_8866888706.html",
+          "hero": "Sven",
+          "hero_slug": "sven",
+          "match_id": "8887053523",
+          "file": "Sven_8887053523.html",
           "result": "lose",
-          "source_focus": "前10分钟资源",
-          "review_evidence": "10分钟补刀 66，前10分钟低效率窗口 1 个。",
-          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟66补。",
-          "success_metric": "10分钟补刀>=66；前10分钟低效率窗口=0。",
-          "priority": "high"
-        },
-        {
-          "hero": "Anti-Mage",
-          "hero_slug": "antimage",
-          "match_id": "8866000193",
-          "file": "Anti-Mage_8866000193.html",
-          "result": "win",
-          "source_focus": "前10分钟资源",
-          "review_evidence": "10分钟补刀 55，前10分钟低效率窗口 1 个。",
-          "next_action": "下一局先把前10分钟低效率窗口清零，再冲10分钟60补。",
-          "success_metric": "10分钟补刀>=60；前10分钟低效率窗口=0。",
+          "source_focus": "终结比赛",
+          "review_evidence": "失败局时长 57.0 分钟，GPM 752。",
+          "next_action": "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
+          "success_metric": "强势装后2分钟参战>=1或推塔伤害>=300；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
           "priority": "high"
         }
       ]
     },
     {
-      "topic_id": "custom::死亡打断资源",
-      "focus": "死亡打断资源",
-      "page": "trend-custom-c37af761b7.html",
+      "topic_id": "custom::死亡后恢复",
+      "focus": "死亡后恢复",
+      "page": "trend-custom-5f0c9d60ff.html",
       "count": 2,
       "finding_count": 2,
       "priority": "high",
       "heroes": [
-        "Gyrocopter",
-        "Meepo"
+        "Beastmaster",
+        "Phantom Lancer"
       ],
       "source_focuses": [
-        "死亡打断资源"
+        "死亡后恢复"
       ],
-      "next_action": "下一局把死亡重叠低效率窗口从2次压到0；死亡后3分钟先恢复一波安全资源。",
-      "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+      "next_action": "下一局把死亡后恢复不足窗口从2个压到0；每次复活先完成一波资源恢复。",
+      "success_metric": "死亡后3分钟补刀>=6或平均GPM>=300；恢复不足窗口=0。",
       "examples": [
         {
-          "hero": "Meepo",
-          "match_id": "8865878802",
-          "file": "Meepo_8865878802.html",
+          "hero": "Phantom Lancer",
+          "match_id": "8865400792",
+          "file": "Phantom_Lancer_8865400792.html",
           "result": "lose"
         },
         {
-          "hero": "Gyrocopter",
-          "match_id": "8866888706",
-          "file": "Gyrocopter_8866888706.html",
+          "hero": "Beastmaster",
+          "match_id": "8886509552",
+          "file": "Beastmaster_8886509552.html",
           "result": "lose"
         }
       ],
       "findings": [
         {
-          "hero": "Meepo",
-          "hero_slug": "meepo",
-          "match_id": "8865878802",
-          "file": "Meepo_8865878802.html",
+          "hero": "Phantom Lancer",
+          "hero_slug": "phantom_lancer",
+          "match_id": "8865400792",
+          "file": "Phantom_Lancer_8865400792.html",
           "result": "lose",
-          "source_focus": "死亡打断资源",
-          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 53-55分钟含 53.4分死亡；低效率窗口 58-60分钟含 58.9分死亡。",
-          "next_action": "下一局把死亡重叠低效率窗口从2次压到0；死亡后3分钟先恢复一波安全资源。",
-          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "source_focus": "死亡后恢复",
+          "review_evidence": "死亡后恢复不足: 33.2分后33-36分钟 4补/160.0平均GPM；33.2分死亡前后：补刀/分 11.7→0.5（-11.2），平均GPM 605.7→120.5（-485.2）；34.6分后34-36分钟 1补/120.5平均GPM；34.6分死亡前后：补刀/分 12.0→0.0（-12.0），平均GPM 619.3→100.0（-519.3）。",
+          "next_action": "下一局把死亡后恢复不足窗口从2个压到0；每次复活先完成一波资源恢复。",
+          "success_metric": "死亡后3分钟补刀>=6或平均GPM>=300；恢复不足窗口=0。",
           "priority": "high"
         },
         {
-          "hero": "Gyrocopter",
-          "hero_slug": "gyrocopter",
-          "match_id": "8866888706",
-          "file": "Gyrocopter_8866888706.html",
+          "hero": "Beastmaster",
+          "hero_slug": "beastmaster",
+          "match_id": "8886509552",
+          "file": "Beastmaster_8886509552.html",
           "result": "lose",
-          "source_focus": "死亡打断资源",
-          "review_evidence": "死亡与低效率窗口重叠: 低效率窗口 32-34分钟含 32.2分死亡。",
-          "next_action": "下一局把死亡重叠低效率窗口从1次压到0；死亡后3分钟先恢复一波安全资源。",
-          "success_metric": "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+          "source_focus": "死亡后恢复",
+          "review_evidence": "死亡后恢复不足: 34.2分后34-35分钟 0补/200.0平均GPM。",
+          "next_action": "下一局把死亡后恢复不足窗口从1个压到0；每次复活先完成一波资源恢复。",
+          "success_metric": "死亡后3分钟补刀>=6或平均GPM>=300；恢复不足窗口=0。",
           "priority": "high"
         }
       ]
@@ -1016,8 +2217,8 @@
       "topic_id": "item_conversion",
       "focus": "装备后转化",
       "page": "trend-item-conversion.html",
-      "count": 10,
-      "finding_count": 10,
+      "count": 15,
+      "finding_count": 15,
       "priority": "medium",
       "heroes": [
         "Chaos Knight",
@@ -1026,10 +2227,14 @@
         "Death Prophet",
         "Doom",
         "Dragon Knight",
+        "Juggernaut",
         "Legion Commander",
+        "Luna",
         "Mirana",
         "Pangolier",
-        "Rubick"
+        "Phantom Assassin",
+        "Rubick",
+        "Wraith King"
       ],
       "source_focuses": [
         "装备后转化"
@@ -1118,6 +2323,18 @@
           "priority": "medium"
         },
         {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8891064472",
+          "file": "Luna_8891064472.html",
+          "result": "lose",
+          "source_focus": "装备后转化",
+          "review_evidence": "Manta Style 18.8分钟；Butterfly 29.6分钟；Blink Dagger 29.7分钟；Black King Bar 34.4分钟",
+          "next_action": "下一局 Black King Bar、Aghanim's Shard 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
+          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
+          "priority": "medium"
+        },
+        {
           "hero": "Pangolier",
           "hero_slug": "pangolier",
           "match_id": "8869892215",
@@ -1166,6 +2383,54 @@
           "priority": "medium"
         },
         {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8889354445",
+          "file": "Luna_8889354445.html",
+          "result": "win",
+          "source_focus": "装备后转化",
+          "review_evidence": "Manta Style 17.9分钟；Butterfly 25.0分钟；Black King Bar 29.4分钟；Aghanim's Shard 35.9分钟",
+          "next_action": "下一局 Manta Style、Black King Bar、Aghanim's Shard 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
+          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Juggernaut",
+          "hero_slug": "juggernaut",
+          "match_id": "8887946837",
+          "file": "Juggernaut_8887946837.html",
+          "result": "win",
+          "source_focus": "装备后转化",
+          "review_evidence": "Battle Fury 13.7分钟；Manta Style 19.2分钟；Butterfly 27.2分钟；Blink Dagger 31.3分钟",
+          "next_action": "下一局 Manta Style、Butterfly、Blink Dagger 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
+          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Wraith King",
+          "hero_slug": "skeleton_king",
+          "match_id": "8886651872",
+          "file": "Wraith_King_8886651872.html",
+          "result": "win",
+          "source_focus": "装备后转化",
+          "review_evidence": "Hand of Midas 10.7分钟；Blink Dagger 20.6分钟；Aghanim's Shard 27.1分钟；Abyssal Blade 32.8分钟",
+          "next_action": "下一局 Blink Dagger 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
+          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Phantom Assassin",
+          "hero_slug": "phantom_assassin",
+          "match_id": "8889651971",
+          "file": "Phantom_Assassin_8889651971.html",
+          "result": "win",
+          "source_focus": "装备后转化",
+          "review_evidence": "Battle Fury 15.4分钟；Black King Bar 26.5分钟；Aghanim's Shard 34.3分钟；Monkey King Bar 40.7分钟",
+          "next_action": "下一局 Black King Bar、Aghanim's Shard、Aghanim's Scepter 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
+          "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
+          "priority": "medium"
+        },
+        {
           "hero": "Dark Seer",
           "hero_slug": "dark_seer",
           "match_id": "8866655915",
@@ -1175,6 +2440,208 @@
           "review_evidence": "Mekansm 15.8分钟；Guardian Greaves 16.7分钟；Aghanim's Scepter 21.2分钟；Blink Dagger 23.1分钟",
           "next_action": "下一局 Mekansm、Guardian Greaves、Aghanim's Shard 成型后立刻执行预设动作，避免装备完成后的空转窗口。",
           "success_metric": "刷钱装后5分钟补刀>=40或平均GPM>=600；强势装后2分钟参战>=1或推塔伤害>=300。",
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "topic_id": "resource_continuity",
+      "focus": "中后期资源连续性",
+      "page": "trend-resource-continuity.html",
+      "count": 13,
+      "finding_count": 13,
+      "priority": "medium",
+      "heroes": [
+        "Anti-Mage",
+        "Gyrocopter",
+        "Lone Druid",
+        "Luna",
+        "Meepo",
+        "Phantom Lancer",
+        "Spectre",
+        "Sven",
+        "Vengeful Spirit"
+      ],
+      "source_focuses": [
+        "中后期资源连续性"
+      ],
+      "next_action": "下一局10分钟后把低效率窗口从3个压到最多1个；集合前先推出一条安全线。",
+      "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+      "examples": [
+        {
+          "hero": "Spectre",
+          "match_id": "8865282121",
+          "file": "Spectre_8865282121.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "match_id": "8886597479",
+          "file": "Vengeful_Spirit_8886597479.html",
+          "result": "lose"
+        },
+        {
+          "hero": "Anti-Mage",
+          "match_id": "8866174845",
+          "file": "Anti-Mage_8866174845.html",
+          "result": "lose"
+        }
+      ],
+      "findings": [
+        {
+          "hero": "Spectre",
+          "hero_slug": "spectre",
+          "match_id": "8865282121",
+          "file": "Spectre_8865282121.html",
+          "result": "lose",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 38-40分钟 1.5补/分钟；41-43分钟 1.5补/分钟；44-46分钟 2.0补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从3个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Vengeful Spirit",
+          "hero_slug": "vengefulspirit",
+          "match_id": "8886597479",
+          "file": "Vengeful_Spirit_8886597479.html",
+          "result": "lose",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 26-30分钟 2.5补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从1个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Anti-Mage",
+          "hero_slug": "antimage",
+          "match_id": "8866174845",
+          "file": "Anti-Mage_8866174845.html",
+          "result": "lose",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 59-61分钟 1.5补/分钟；68-70分钟 3.5补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从2个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Meepo",
+          "hero_slug": "meepo",
+          "match_id": "8865878802",
+          "file": "Meepo_8865878802.html",
+          "result": "lose",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 53-55分钟 0.0补/分钟；58-60分钟 0.0补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从2个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Phantom Lancer",
+          "hero_slug": "phantom_lancer",
+          "match_id": "8865400792",
+          "file": "Phantom_Lancer_8865400792.html",
+          "result": "lose",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 26-28分钟 2.0补/分钟；33-36分钟 1.3补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从2个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8888423924",
+          "file": "Luna_8888423924.html",
+          "result": "lose",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 25-27分钟 0.5补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从1个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8888275562",
+          "file": "Luna_8888275562.html",
+          "result": "lose",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 23-25分钟 2.5补/分钟；37-39分钟 0.5补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从2个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Sven",
+          "hero_slug": "sven",
+          "match_id": "8887053523",
+          "file": "Sven_8887053523.html",
+          "result": "lose",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 28-30分钟 1.0补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从1个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Gyrocopter",
+          "hero_slug": "gyrocopter",
+          "match_id": "8866888706",
+          "file": "Gyrocopter_8866888706.html",
+          "result": "lose",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 32-34分钟 0.5补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从1个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Lone Druid",
+          "hero_slug": "lone_druid",
+          "match_id": "8886894610",
+          "file": "Lone_Druid_8886894610.html",
+          "result": "win",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 24-26分钟 3.0补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从1个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8891116798",
+          "file": "Luna_8891116798.html",
+          "result": "win",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 32-34分钟 2.0补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从1个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Phantom Lancer",
+          "hero_slug": "phantom_lancer",
+          "match_id": "8865424980",
+          "file": "Phantom_Lancer_8865424980.html",
+          "result": "win",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 36-38分钟 2.0补/分钟；39-41分钟 2.0补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从2个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "priority": "medium"
+        },
+        {
+          "hero": "Sven",
+          "hero_slug": "sven",
+          "match_id": "8886548527",
+          "file": "Sven_8886548527.html",
+          "result": "win",
+          "source_focus": "中后期资源连续性",
+          "review_evidence": "中后期低效率窗口: 35-38分钟 1.0补/分钟。",
+          "next_action": "下一局10分钟后把低效率窗口从1个压到最多1个；集合前先推出一条安全线。",
+          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
           "priority": "medium"
         }
       ]
@@ -1269,77 +2736,77 @@
       ]
     },
     {
-      "topic_id": "resource_continuity",
-      "focus": "中后期资源连续性",
-      "page": "trend-resource-continuity.html",
-      "count": 3,
-      "finding_count": 3,
+      "topic_id": "custom::地图影响力",
+      "focus": "地图影响力",
+      "page": "trend-custom-76ae7efa18.html",
+      "count": 1,
+      "finding_count": 1,
       "priority": "medium",
       "heroes": [
-        "Anti-Mage",
-        "Gyrocopter",
-        "Meepo"
+        "Lone Druid"
       ],
       "source_focuses": [
-        "中后期资源连续性"
+        "地图影响力"
       ],
-      "next_action": "下一局10分钟后把低效率窗口从2个压到最多1个；集合前先推出一条安全线。",
-      "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+      "next_action": "下一局每条刷钱路线都要顺路覆盖一座塔、一条高价值兵线或一次支援入口。",
+      "success_metric": "参战率>=40%；关键装备后2分钟至少完成一次参战或推塔动作。",
       "examples": [
         {
-          "hero": "Anti-Mage",
-          "match_id": "8866174845",
-          "file": "Anti-Mage_8866174845.html",
-          "result": "lose"
-        },
+          "hero": "Lone Druid",
+          "match_id": "8889758913",
+          "file": "Lone_Druid_8889758913.html",
+          "result": "win"
+        }
+      ],
+      "findings": [
         {
-          "hero": "Meepo",
-          "match_id": "8865878802",
-          "file": "Meepo_8865878802.html",
-          "result": "lose"
-        },
+          "hero": "Lone Druid",
+          "hero_slug": "lone_druid",
+          "match_id": "8889758913",
+          "file": "Lone_Druid_8889758913.html",
+          "result": "win",
+          "source_focus": "地图影响力",
+          "review_evidence": "OpenDota参战率 36%。",
+          "next_action": "下一局每条刷钱路线都要顺路覆盖一座塔、一条高价值兵线或一次支援入口。",
+          "success_metric": "参战率>=40%；关键装备后2分钟至少完成一次参战或推塔动作。",
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "topic_id": "custom::英雄样本短板",
+      "focus": "英雄样本短板",
+      "page": "trend-custom-696a4d63aa.html",
+      "count": 1,
+      "finding_count": 1,
+      "priority": "medium",
+      "heroes": [
+        "Luna"
+      ],
+      "source_focuses": [
+        "英雄样本短板"
+      ],
+      "next_action": "下一局优先把 击杀/分钟 从本局第4百分位往上抬。",
+      "success_metric": "下一份报告该主短板百分位高于本局；低于第30百分位的指标数量减少。",
+      "examples": [
         {
-          "hero": "Gyrocopter",
-          "match_id": "8866888706",
-          "file": "Gyrocopter_8866888706.html",
+          "hero": "Luna",
+          "match_id": "8891064472",
+          "file": "Luna_8891064472.html",
           "result": "lose"
         }
       ],
       "findings": [
         {
-          "hero": "Anti-Mage",
-          "hero_slug": "antimage",
-          "match_id": "8866174845",
-          "file": "Anti-Mage_8866174845.html",
+          "hero": "Luna",
+          "hero_slug": "luna",
+          "match_id": "8891064472",
+          "file": "Luna_8891064472.html",
           "result": "lose",
-          "source_focus": "中后期资源连续性",
-          "review_evidence": "中后期低效率窗口: 59-61分钟 1.5补/分钟；68-70分钟 3.5补/分钟。",
-          "next_action": "下一局10分钟后把低效率窗口从2个压到最多1个；集合前先推出一条安全线。",
-          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
-          "priority": "medium"
-        },
-        {
-          "hero": "Meepo",
-          "hero_slug": "meepo",
-          "match_id": "8865878802",
-          "file": "Meepo_8865878802.html",
-          "result": "lose",
-          "source_focus": "中后期资源连续性",
-          "review_evidence": "中后期低效率窗口: 53-55分钟 0.0补/分钟；58-60分钟 0.0补/分钟。",
-          "next_action": "下一局10分钟后把低效率窗口从2个压到最多1个；集合前先推出一条安全线。",
-          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
-          "priority": "medium"
-        },
-        {
-          "hero": "Gyrocopter",
-          "hero_slug": "gyrocopter",
-          "match_id": "8866888706",
-          "file": "Gyrocopter_8866888706.html",
-          "result": "lose",
-          "source_focus": "中后期资源连续性",
-          "review_evidence": "中后期低效率窗口: 32-34分钟 0.5补/分钟。",
-          "next_action": "下一局10分钟后把低效率窗口从1个压到最多1个；集合前先推出一条安全线。",
-          "success_metric": "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+          "source_focus": "英雄样本短板",
+          "review_evidence": "OpenDota同英雄样本低位指标: 击杀/分钟 第4百分位；英雄伤害/分钟 第13百分位；推塔伤害 第17百分位。",
+          "next_action": "下一局优先把 击杀/分钟 从本局第4百分位往上抬。",
+          "success_metric": "下一份报告该主短板百分位高于本局；低于第30百分位的指标数量减少。",
           "priority": "medium"
         }
       ]
