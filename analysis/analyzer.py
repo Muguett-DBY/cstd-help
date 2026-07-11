@@ -2390,6 +2390,8 @@ def _build_review_findings(result):
             f"{w.get('start_minute')}-{w.get('end_minute')}分钟 {w.get('avg_lh')}补/分钟"
             for w in late_low_windows[:3]
         )
+        late_window_target = "0个" if len(late_low_windows) == 1 else "最多1个"
+        late_window_metric = "=0" if len(late_low_windows) == 1 else "不超过1个"
         findings.append(_finding(
             "medium",
             "resource_continuity",
@@ -2397,8 +2399,8 @@ def _build_review_findings(result):
             "核心位中后期长时间无补刀通常意味着死亡、被迫集合、兵线未推出或地图区域丢失。",
             "下一局中后期每次集合前先推至少一条安全线；若队伍不开雾/不控盾，优先保持两路兵线压力。",
             "系统已标记这些异常分钟，优先和死亡、购买、击杀事件时间点交叉核对。",
-            f"下一局10分钟后把低效率窗口从{len(late_low_windows)}个压到最多1个；集合前先推出一条安全线。",
-            "10分钟后低效率窗口不超过1个；单个低效率窗口不超过2分钟。",
+            f"下一局10分钟后把低效率窗口从{len(late_low_windows)}个压到{late_window_target}；集合前先推出一条安全线。",
+            f"10分钟后低效率窗口{late_window_metric}；单个低效率窗口不超过2分钟。",
         ))
 
     overlap_windows = timeline.get("death_overlap_windows") or []
@@ -2552,6 +2554,8 @@ def _build_review_findings(result):
             for cluster in position_clusters[:3]
             if cluster.get("evidence_label")
         )
+        position_cluster_target = "0个" if len(position_clusters) == 1 else "最多1个"
+        position_cluster_metric = "=0" if len(position_clusters) == 1 else "不超过1个"
         findings.append(_finding(
             "high" if len(position_clusters) >= 2 else "medium",
             "death_position_pattern",
@@ -2559,8 +2563,8 @@ def _build_review_findings(result):
             "同一 raw 坐标附近重复死亡，说明至少有一个高风险坐标场景在反复出现。",
             "下一局每次接近这些重复坐标对应的高风险区域前，先满足三个条件：队友能接应、敌方关键控制已露头、自己有明确撤退路线；任一条件缺失就先退回安全资源点。",
             "系统只按 STRATZ raw x/y 距离聚类，不转换成地图区域名；报告保留原始坐标和分钟，不把入口、线口、目标区或高低坡作为结论。",
-            f"下一局把重复死亡坐标簇从{len(position_clusters)}个压到最多1个；每个重复点赛前写一条撤退规则。",
-            "重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。",
+            f"下一局把重复死亡坐标簇从{len(position_clusters)}个压到{position_cluster_target}；每个重复点赛前写一条撤退规则。",
+            f"重复死亡坐标簇{position_cluster_metric}；每个重复点都有一条赛前撤退规则。",
         ))
 
     resource_delta_windows = timeline.get("death_resource_deltas") or []
@@ -2574,6 +2578,8 @@ def _build_review_findings(result):
             for window in dropped_resource_windows[:4]
             if window.get("evidence_label")
         )
+        resource_drop_target = "0个" if len(dropped_resource_windows) == 1 else "最多1个"
+        resource_drop_metric = "=0" if len(dropped_resource_windows) == 1 else "不超过1个"
         findings.append(_finding(
             "high" if len(dropped_resource_windows) >= 2 else "medium",
             "death_resource_delta",
@@ -2581,8 +2587,8 @@ def _build_review_findings(result):
             "死亡相邻阶段的补刀或经济节奏明显下滑，会让一次阵亡继续影响下一段刷钱、守塔或控图节奏。",
             "下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。",
             "系统只比较死亡前后真实分钟数组，不判断死亡原因；报告只把这些窗口列为资源恢复验收点，不把复活路径、TP落点或无视野进入作为结论。",
-            f"下一局把死亡前后资源明显下降窗口从{len(dropped_resource_windows)}个压到最多1个。",
-            "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
+            f"下一局把死亡前后资源明显下降窗口从{len(dropped_resource_windows)}个压到{resource_drop_target}。",
+            f"死亡前后资源明显下降窗口{resource_drop_metric}；复活后3分钟完成一波安全线或近区野区资源。",
         ))
 
     if role_id == "support":
