@@ -41,6 +41,30 @@ class BuildPagesSiteTests(unittest.TestCase):
 
         self.assertEqual(issues, ["index.html -> missing-report.html"])
 
+    def test_refresh_workflow_has_evidence_gates_scoped_commit_and_direct_deploy(self):
+        workflow_path = pages_site.ROOT / ".github" / "workflows" / "refresh-reports.yml"
+        self.assertTrue(workflow_path.exists(), "scheduled report refresh workflow is missing")
+        workflow = workflow_path.read_text(encoding="utf-8")
+
+        self.assertIn("schedule:", workflow)
+        self.assertIn("workflow_dispatch:", workflow)
+        self.assertIn("contents: write", workflow)
+        self.assertIn("cancel-in-progress: false", workflow)
+        self.assertIn("STRATZ_API_KEY: ${{ secrets.STRATZ_API_KEY }}", workflow)
+        self.assertIn("python scripts/refresh_public_reports.py", workflow)
+        self.assertIn('python -m unittest discover -s tests -p "test*.py"', workflow)
+        self.assertIn("python -m compileall -q .", workflow)
+        self.assertIn("python scripts/check_public_site.py", workflow)
+        self.assertIn("git add -- public", workflow)
+        self.assertNotIn("git add .", workflow)
+        self.assertIn("git push origin HEAD:main", workflow)
+        self.assertNotIn("--force", workflow)
+        self.assertNotIn("rebase", workflow.lower())
+        self.assertRegex(
+            workflow,
+            r"pages deploy public\s+--project-name cstd-help\s+--branch main",
+        )
+
     def test_static_site_checker_rejects_timestamped_public_report_filename(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
@@ -1754,6 +1778,123 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertIn("Anti-Mage", latest_html)
         self.assertIn("Anti-Mage_8866000193.html", latest_html)
         self.assertIn("终结比赛", latest_html)
+
+    def test_report_parser_recovers_embedded_and_rendered_source_fetches(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "source_fetches": {
+                "stratz_fetched_at": "2026-07-11T09:52:00Z",
+                "opendota_fetched_at": "2026-07-11T09:53:00Z",
+            },
+        }
+        with tempfile.TemporaryDirectory() as source:
+            embedded = self._write_report(source, metadata)
+            embedded_report = pages_site._parse_report(embedded)
+
+            rendered_metadata = dict(metadata)
+            rendered_metadata.pop("source_fetches")
+            rendered = self._write_report(
+                source,
+                rendered_metadata,
+                filename="Doom_8867002240_20260711_095400.html",
+            )
+            rendered.write_text(
+                rendered.read_text(encoding="utf-8").replace(
+                    "</body>",
+                    '<details class="report-source-provenance" data-report-source-provenance '
+                    'data-stratz-fetched-at="2026-07-11T09:54:00Z" '
+                    'data-opendota-fetched-at="2026-07-11T09:55:00Z"></details></body>',
+                ),
+                encoding="utf-8",
+            )
+            rendered_report = pages_site._parse_report(rendered)
+
+        self.assertEqual(
+            {key: embedded_report["source_fetches"][key] for key in metadata["source_fetches"]},
+            metadata["source_fetches"],
+        )
+        self.assertEqual(rendered_report["source_fetches"]["stratz_fetched_at"], "2026-07-11T09:54:00Z")
+        self.assertEqual(rendered_report["source_fetches"]["opendota_fetched_at"], "2026-07-11T09:55:00Z")
+
+    def test_build_pages_site_preserves_embedded_source_fetches_without_database(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "source_fetches": {
+                "stratz_fetched_at": "2026-07-11T09:52:00Z",
+                "opendota_fetched_at": "2026-07-11T09:53:00Z",
+            },
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            self._write_report(source, metadata)
+            pages_site.build_pages_site(source, public_dir=public)
+            manifest = json.loads((Path(public) / "site-manifest.json").read_text(encoding="utf-8"))
+            report_html = (Path(public) / "Mirana_8867002237.html").read_text(encoding="utf-8")
+
+        self.assertEqual(
+            {
+                key: manifest["latest_match"]["source_fetches"][key]
+                for key in metadata["source_fetches"]
+            },
+            metadata["source_fetches"],
+        )
+        self.assertEqual(manifest["source_freshness"]["complete_source_timestamp_report_count"], 1)
+        self.assertIn('data-stratz-fetched-at="2026-07-11T09:52:00Z"', report_html)
+        self.assertIn('data-opendota-fetched-at="2026-07-11T09:53:00Z"', report_html)
+
+    def test_build_pages_site_preserves_legacy_rendered_source_fetches_without_database(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            path = self._write_report(source, metadata)
+            path.write_text(
+                path.read_text(encoding="utf-8").replace(
+                    "</body>",
+                    '<div class="report-context-deck" data-report-context-deck>'
+                    '<details class="report-source-provenance" data-report-source-provenance '
+                    'data-stratz-fetched-at="2026-07-11T09:52:00Z" '
+                    'data-opendota-fetched-at="2026-07-11T09:53:00Z"></details>'
+                    "</div></body>",
+                ),
+                encoding="utf-8",
+            )
+            pages_site.build_pages_site(source, public_dir=public)
+            manifest = json.loads((Path(public) / "site-manifest.json").read_text(encoding="utf-8"))
+            report_html = (Path(public) / "Mirana_8867002237.html").read_text(encoding="utf-8")
+
+        self.assertEqual(
+            manifest["latest_match"]["source_fetches"]["stratz_fetched_at"],
+            "2026-07-11T09:52:00Z",
+        )
+        self.assertEqual(
+            manifest["latest_match"]["source_fetches"]["opendota_fetched_at"],
+            "2026-07-11T09:53:00Z",
+        )
+        self.assertIn('data-stratz-fetched-at="2026-07-11T09:52:00Z"', report_html)
+        self.assertIn('data-opendota-fetched-at="2026-07-11T09:53:00Z"', report_html)
+
+    def test_report_navigation_injection_is_idempotent_for_published_reports(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "ended_at": "2026-06-26T10:23:19Z",
+        }
+        with tempfile.TemporaryDirectory() as source:
+            path = self._write_report(source, metadata, filename="Mirana_8867002237.html")
+            reports = [pages_site._parse_report(path)]
+            pages_site._inject_report_navigation(Path(source), reports)
+            pages_site._inject_report_navigation(Path(source), reports)
+            report_html = path.read_text(encoding="utf-8")
+
+        self.assertEqual(report_html.count('data-report-context-deck'), 1)
+        self.assertEqual(report_html.count('class="report-neighbors"'), 1)
 
     def test_build_pages_site_injects_report_evidence_completeness_summary(self):
         metadata = {
