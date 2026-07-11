@@ -2,43 +2,43 @@
   "schema_version": 1,
   "source": "generated_public_reports",
   "player_id": "173776719",
-  "report_count": 18,
-  "finding_count": 76,
-  "topic_count": 10,
-  "high_priority_report_count": 17,
-  "known_result_count": 18,
-  "wins": 9,
-  "losses": 9,
-  "death_review_workbench_report_count": 18,
-  "death_recovery_window_report_count": 18,
-  "death_coordinate_map_report_count": 18,
-  "complete_death_review_report_count": 18,
+  "report_count": 42,
+  "finding_count": 184,
+  "topic_count": 13,
+  "high_priority_report_count": 35,
+  "known_result_count": 42,
+  "wins": 22,
+  "losses": 20,
+  "death_review_workbench_report_count": 41,
+  "death_recovery_window_report_count": 41,
+  "death_coordinate_map_report_count": 41,
+  "complete_death_review_report_count": 42,
   "quality_gate": {
     "status": "pass",
-    "decision_snapshot_report_count": 18,
-    "trend_context_report_count": 18,
-    "evidence_source_report_count": 18,
+    "decision_snapshot_report_count": 42,
+    "trend_context_report_count": 42,
+    "evidence_source_report_count": 42,
     "manual_review_language_hit_count": 0,
-    "complete_quality_report_count": 18
+    "complete_quality_report_count": 42
   },
   "source_freshness": {
     "status": "tracked",
     "basis": "embedded_report_timestamp+sqlite_fetched_at",
-    "report_timestamp_count": 18,
-    "stratz_fetch_timestamp_report_count": 18,
-    "opendota_fetch_timestamp_report_count": 18,
-    "complete_source_timestamp_report_count": 18,
+    "report_timestamp_count": 42,
+    "stratz_fetch_timestamp_report_count": 42,
+    "opendota_fetch_timestamp_report_count": 42,
+    "complete_source_timestamp_report_count": 42,
     "latest_report_generated_at": "2026-07-11T20:53:27",
     "oldest_report_generated_at": "2026-07-09T05:02:06",
-    "latest_external_fetch_at": "2026-07-01T11:13:55Z",
+    "latest_external_fetch_at": "2026-07-11T18:01:54Z",
     "oldest_external_fetch_at": "2026-06-26T12:31:07Z",
     "limitation": "公开页展示的是已缓存证据的抓取时间；Cloudflare Pages 发布不会重新访问 STRATZ/OpenDota。"
   },
   "evidence_field_audit": {
-    "status": "partial",
+    "status": "untracked",
     "basis": "sqlite_cached_stratz_opendota_json",
-    "report_count": 18,
-    "payload_match_count": 18,
+    "report_count": 42,
+    "payload_match_count": 0,
     "field_count": 8,
     "complete_field_count": 7,
     "partial_field_count": 1,
@@ -49,9 +49,9 @@
         "label": "分钟经济/补刀曲线",
         "source": "STRATZ stats 或 OpenDota lh_t/gold_t/xp_t",
         "supports": "10分钟补刀、低效率窗口、阶段资源连续性",
-        "coverage_count": 18,
+        "coverage_count": 42,
         "coverage_ratio": 1.0,
-        "complete_report_count": 18,
+        "complete_report_count": 42,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -61,9 +61,9 @@
         "label": "死亡事件时间线",
         "source": "STRATZ deathEvents 或 OpenDota teamfights/deaths_log",
         "supports": "死亡成本、死亡后恢复窗口、目标损失",
-        "coverage_count": 18,
+        "coverage_count": 42,
         "coverage_ratio": 1.0,
-        "complete_report_count": 18,
+        "complete_report_count": 42,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -73,9 +73,9 @@
         "label": "装备购买时间线",
         "source": "STRATZ purchaseEvents 或 OpenDota purchase_log",
         "supports": "关键装备时机、装备后转化",
-        "coverage_count": 18,
+        "coverage_count": 42,
         "coverage_ratio": 1.0,
-        "complete_report_count": 18,
+        "complete_report_count": 42,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -85,9 +85,9 @@
         "label": "位置采样",
         "source": "STRATZ playerUpdatePositionEvents 或 OpenDota teamfight deaths_pos",
         "supports": "死亡位置、重复危险区域、撤退边界",
-        "coverage_count": 18,
+        "coverage_count": 42,
         "coverage_ratio": 1.0,
-        "complete_report_count": 17,
+        "complete_report_count": 41,
         "partial_report_count": 1,
         "missing_report_count": 0,
         "status": "partial"
@@ -97,9 +97,9 @@
         "label": "击杀/助攻参战",
         "source": "STRATZ kill/assistEvents 或 OpenDota kills_log/teamfights",
         "supports": "参战窗口、输出转目标、团战参与",
-        "coverage_count": 18,
+        "coverage_count": 42,
         "coverage_ratio": 1.0,
-        "complete_report_count": 18,
+        "complete_report_count": 42,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -109,9 +109,9 @@
         "label": "地图目标事件",
         "source": "OpenDota objectives",
         "supports": "推塔、肉山、死亡后目标损失",
-        "coverage_count": 18,
+        "coverage_count": 42,
         "coverage_ratio": 1.0,
-        "complete_report_count": 18,
+        "complete_report_count": 42,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -121,9 +121,9 @@
         "label": "视野事件",
         "source": "OpenDota obs/sen log",
         "supports": "辅助视野、控图与排眼",
-        "coverage_count": 18,
+        "coverage_count": 42,
         "coverage_ratio": 1.0,
-        "complete_report_count": 18,
+        "complete_report_count": 42,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -133,9 +133,9 @@
         "label": "英雄样本百分位",
         "source": "OpenDota benchmarks",
         "supports": "同英雄样本对比、低百分位训练项",
-        "coverage_count": 18,
+        "coverage_count": 42,
         "coverage_ratio": 1.0,
-        "complete_report_count": 18,
+        "complete_report_count": 42,
         "partial_report_count": 0,
         "missing_report_count": 0,
         "status": "complete"
@@ -144,6 +144,177 @@
     "limitation": "字段覆盖来自报告证据明细和本地缓存 JSON；部分字段只按已覆盖范围使用，不扩大归因。"
   },
   "report_sources": [
+    {
+      "file": "Luna_8891116798.html",
+      "match_id": "8891116798",
+      "report_generated_at": "2026-07-11T18:01:56",
+      "stratz_fetched_at": "2026-07-11T18:01:33Z",
+      "opendota_fetched_at": "2026-07-11T18:01:18Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:33Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:18Z"
+    },
+    {
+      "file": "Luna_8891064472.html",
+      "match_id": "8891064472",
+      "report_generated_at": "2026-07-11T18:01:56",
+      "stratz_fetched_at": "2026-07-11T18:01:34Z",
+      "opendota_fetched_at": "2026-07-11T18:01:18Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:34Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:18Z"
+    },
+    {
+      "file": "Lone_Druid_8889758913.html",
+      "match_id": "8889758913",
+      "report_generated_at": "2026-07-11T18:01:56",
+      "stratz_fetched_at": "2026-07-11T18:01:35Z",
+      "opendota_fetched_at": "2026-07-11T18:01:19Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:35Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:19Z"
+    },
+    {
+      "file": "Phantom_Assassin_8889651971.html",
+      "match_id": "8889651971",
+      "report_generated_at": "2026-07-11T18:01:56",
+      "stratz_fetched_at": "2026-07-11T18:01:36Z",
+      "opendota_fetched_at": "2026-07-11T18:01:20Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:36Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:20Z"
+    },
+    {
+      "file": "Luna_8889354445.html",
+      "match_id": "8889354445",
+      "report_generated_at": "2026-07-11T18:01:56",
+      "stratz_fetched_at": "2026-07-11T18:01:37Z",
+      "opendota_fetched_at": "2026-07-11T18:01:21Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:37Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:21Z"
+    },
+    {
+      "file": "Medusa_8888484031.html",
+      "match_id": "8888484031",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:38Z",
+      "opendota_fetched_at": "2026-07-11T18:01:21Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:38Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:21Z"
+    },
+    {
+      "file": "Luna_8888423924.html",
+      "match_id": "8888423924",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:39Z",
+      "opendota_fetched_at": "2026-07-11T18:01:22Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:39Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:22Z"
+    },
+    {
+      "file": "Luna_8888275562.html",
+      "match_id": "8888275562",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:40Z",
+      "opendota_fetched_at": "2026-07-11T18:01:22Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:40Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:22Z"
+    },
+    {
+      "file": "Juggernaut_8887946837.html",
+      "match_id": "8887946837",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:40Z",
+      "opendota_fetched_at": "2026-07-11T18:01:23Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:40Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:23Z"
+    },
+    {
+      "file": "Luna_8887915708.html",
+      "match_id": "8887915708",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:41Z",
+      "opendota_fetched_at": "2026-07-11T18:01:24Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:41Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:24Z"
+    },
+    {
+      "file": "Sven_8887053523.html",
+      "match_id": "8887053523",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:42Z",
+      "opendota_fetched_at": "2026-07-11T18:01:24Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:42Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:24Z"
+    },
+    {
+      "file": "Lone_Druid_8886894610.html",
+      "match_id": "8886894610",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:43Z",
+      "opendota_fetched_at": "2026-07-11T18:01:24Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:43Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:24Z"
+    },
+    {
+      "file": "Lifestealer_8886820485.html",
+      "match_id": "8886820485",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:43Z",
+      "opendota_fetched_at": "2026-07-11T18:01:25Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:43Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:25Z"
+    },
+    {
+      "file": "Vengeful_Spirit_8886726575.html",
+      "match_id": "8886726575",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:45Z",
+      "opendota_fetched_at": "2026-07-11T18:01:25Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:45Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:25Z"
+    },
+    {
+      "file": "Wraith_King_8886651872.html",
+      "match_id": "8886651872",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:46Z",
+      "opendota_fetched_at": "2026-07-11T18:01:26Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:46Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:26Z"
+    },
+    {
+      "file": "Vengeful_Spirit_8886597479.html",
+      "match_id": "8886597479",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:47Z",
+      "opendota_fetched_at": "2026-07-11T18:01:26Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:47Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:26Z"
+    },
+    {
+      "file": "Sven_8886548527.html",
+      "match_id": "8886548527",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:48Z",
+      "opendota_fetched_at": "2026-07-11T18:01:27Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:48Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:27Z"
+    },
+    {
+      "file": "Beastmaster_8886509552.html",
+      "match_id": "8886509552",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:48Z",
+      "opendota_fetched_at": "2026-07-11T18:01:27Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:48Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:27Z"
+    },
+    {
+      "file": "Lycan_8886472792.html",
+      "match_id": "8886472792",
+      "report_generated_at": "2026-07-11T18:01:57",
+      "stratz_fetched_at": "2026-07-11T18:01:49Z",
+      "opendota_fetched_at": "2026-07-11T18:01:28Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:49Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:28Z"
+    },
     {
       "file": "Legion_Commander_8870219537.html",
       "match_id": "8870219537",
@@ -305,70 +476,122 @@
       "opendota_fetched_at": "2026-06-26T12:35:16Z",
       "latest_external_fetch_at": "2026-07-01T11:13:55Z",
       "oldest_external_fetch_at": "2026-06-26T12:35:16Z"
+    },
+    {
+      "file": "Terrorblade_8865456213.html",
+      "match_id": "8865456213",
+      "report_generated_at": "2026-07-11T18:01:58",
+      "stratz_fetched_at": "2026-07-11T18:01:50Z",
+      "opendota_fetched_at": "2026-07-11T18:01:29Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:50Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:29Z"
+    },
+    {
+      "file": "Phantom_Lancer_8865424980.html",
+      "match_id": "8865424980",
+      "report_generated_at": "2026-07-11T18:01:58",
+      "stratz_fetched_at": "2026-07-11T18:01:51Z",
+      "opendota_fetched_at": "2026-07-11T18:01:29Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:51Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:29Z"
+    },
+    {
+      "file": "Phantom_Lancer_8865400792.html",
+      "match_id": "8865400792",
+      "report_generated_at": "2026-07-11T18:01:58",
+      "stratz_fetched_at": "2026-07-11T18:01:52Z",
+      "opendota_fetched_at": "2026-07-11T18:01:29Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:52Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:29Z"
+    },
+    {
+      "file": "Muerta_8865330563.html",
+      "match_id": "8865330563",
+      "report_generated_at": "2026-07-11T18:01:58",
+      "stratz_fetched_at": "2026-07-11T18:01:53Z",
+      "opendota_fetched_at": "2026-07-11T18:01:30Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:53Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:30Z"
+    },
+    {
+      "file": "Spectre_8865282121.html",
+      "match_id": "8865282121",
+      "report_generated_at": "2026-07-11T18:01:58",
+      "stratz_fetched_at": "2026-07-11T18:01:54Z",
+      "opendota_fetched_at": "2026-07-11T18:01:31Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:54Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:31Z"
     }
   ],
   "latest_match": {
-    "hero": "Legion Commander",
-    "match_id": "8870219537",
-    "file": "Legion_Commander_8870219537.html",
-    "report_generated_at": "2026-07-11T20:53:26",
+    "hero": "Luna",
+    "match_id": "8891116798",
+    "file": "Luna_8891116798.html",
+    "report_generated_at": "2026-07-11T18:01:56",
     "source_fetches": {
-      "stratz_fetched_at": "2026-07-01T11:12:34Z",
-      "opendota_fetched_at": "2026-06-28T05:56:30Z",
-      "latest_external_fetch_at": "2026-07-01T11:12:34Z",
-      "oldest_external_fetch_at": "2026-06-28T05:56:30Z"
+      "stratz_fetched_at": "2026-07-11T18:01:33Z",
+      "opendota_fetched_at": "2026-07-11T18:01:18Z",
+      "latest_external_fetch_at": "2026-07-11T18:01:33Z",
+      "oldest_external_fetch_at": "2026-07-11T18:01:18Z"
     },
-    "ended_at": "2026-06-28T03:26:38Z",
-    "result": "lose",
-    "review_focus": "高优先级 · 死亡后目标损失"
+    "ended_at": "2026-07-11T09:46:37Z",
+    "result": "win",
+    "review_focus": "中优先级 · 中后期资源连续性"
   },
   "topics": [
     {
       "topic_id": "death_cost",
       "focus": "死亡成本",
       "page": "trend-death-cost.html",
-      "match_count": 18,
-      "finding_count": 18
+      "match_count": 40,
+      "finding_count": 40
     },
     {
       "topic_id": "custom::死亡后目标损失",
       "focus": "死亡后目标损失",
       "page": "trend-custom-bac9d883f8.html",
-      "match_count": 13,
-      "finding_count": 13
+      "match_count": 31,
+      "finding_count": 31
     },
     {
       "topic_id": "custom::重复死亡坐标",
       "focus": "重复死亡坐标",
       "page": "trend-custom-97ad93fe24.html",
-      "match_count": 13,
-      "finding_count": 13
+      "match_count": 21,
+      "finding_count": 21
     },
     {
       "topic_id": "custom::死亡前后资源变化",
       "focus": "死亡前后资源变化",
       "page": "trend-custom-0568eadc6b.html",
-      "match_count": 8,
-      "finding_count": 8
-    },
-    {
-      "topic_id": "close_game",
-      "focus": "终结比赛",
-      "page": "trend-close-game.html",
-      "match_count": 3,
-      "finding_count": 3
-    },
-    {
-      "topic_id": "early_resource",
-      "focus": "前10分钟资源",
-      "page": "trend-early-resource.html",
-      "match_count": 2,
-      "finding_count": 2
+      "match_count": 17,
+      "finding_count": 17
     },
     {
       "topic_id": "custom::死亡打断资源",
       "focus": "死亡打断资源",
       "page": "trend-custom-c37af761b7.html",
+      "match_count": 17,
+      "finding_count": 17
+    },
+    {
+      "topic_id": "early_resource",
+      "focus": "前10分钟资源",
+      "page": "trend-early-resource.html",
+      "match_count": 16,
+      "finding_count": 16
+    },
+    {
+      "topic_id": "close_game",
+      "focus": "终结比赛",
+      "page": "trend-close-game.html",
+      "match_count": 6,
+      "finding_count": 6
+    },
+    {
+      "topic_id": "custom::死亡后恢复",
+      "focus": "死亡后恢复",
+      "page": "trend-custom-5f0c9d60ff.html",
       "match_count": 2,
       "finding_count": 2
     },
@@ -376,8 +599,15 @@
       "topic_id": "item_conversion",
       "focus": "装备后转化",
       "page": "trend-item-conversion.html",
-      "match_count": 10,
-      "finding_count": 10
+      "match_count": 15,
+      "finding_count": 15
+    },
+    {
+      "topic_id": "resource_continuity",
+      "focus": "中后期资源连续性",
+      "page": "trend-resource-continuity.html",
+      "match_count": 13,
+      "finding_count": 13
     },
     {
       "topic_id": "vision_control",
@@ -387,11 +617,18 @@
       "finding_count": 4
     },
     {
-      "topic_id": "resource_continuity",
-      "focus": "中后期资源连续性",
-      "page": "trend-resource-continuity.html",
-      "match_count": 3,
-      "finding_count": 3
+      "topic_id": "custom::地图影响力",
+      "focus": "地图影响力",
+      "page": "trend-custom-76ae7efa18.html",
+      "match_count": 1,
+      "finding_count": 1
+    },
+    {
+      "topic_id": "custom::英雄样本短板",
+      "focus": "英雄样本短板",
+      "page": "trend-custom-696a4d63aa.html",
+      "match_count": 1,
+      "finding_count": 1
     }
   ]
 }
