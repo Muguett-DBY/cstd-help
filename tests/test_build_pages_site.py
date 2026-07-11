@@ -40,6 +40,21 @@ class BuildPagesSiteTests(unittest.TestCase):
 
         self.assertEqual(issues, ["index.html -> missing-report.html"])
 
+    def test_static_site_checker_rejects_timestamped_public_report_filename(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            timestamped = public_path / "Mirana_8867002237_20260711_091500.html"
+            timestamped.write_text("<html></html>", encoding="utf-8")
+            (public_path / "_redirects").write_text("", encoding="utf-8")
+
+            finder = getattr(check_public_site, "_find_report_url_stability_issues", lambda *_: [])
+            issues = finder(public_path)
+
+        self.assertEqual(
+            issues,
+            ["Mirana_8867002237_20260711_091500.html -> report filename is not canonical"],
+        )
+
     def test_static_site_checker_detects_broken_anchor_links(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
@@ -415,7 +430,7 @@ class BuildPagesSiteTests(unittest.TestCase):
     def test_static_site_checker_detects_missing_or_mismatched_report_source_provenance(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
-            (public_path / "Mirana_8867002237_20260626_224839.html").write_text(
+            (public_path / "Mirana_8867002237.html").write_text(
                 '<html><body><div class="report-context-deck" data-report-context-deck>'
                 '<details class="report-source-provenance" '
                 'data-report-source-provenance data-match-id="8867009999" '
@@ -427,7 +442,7 @@ class BuildPagesSiteTests(unittest.TestCase):
                 '</details></div></body></html>',
                 encoding="utf-8",
             )
-            (public_path / "Doom_8867002240_20260627_090000.html").write_text(
+            (public_path / "Doom_8867002240.html").write_text(
                 "<html><body>下一局行动清单</body></html>",
                 encoding="utf-8",
             )
@@ -436,7 +451,7 @@ class BuildPagesSiteTests(unittest.TestCase):
                     {
                         "report_sources": [
                             {
-                                "file": "Mirana_8867002237_20260626_224839.html",
+                                "file": "Mirana_8867002237.html",
                                 "match_id": "8867002237",
                                 "report_generated_at": "2026-06-26T22:48:39",
                                 "stratz_fetched_at": "2026-06-26T22:20:00Z",
@@ -455,8 +470,8 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(
             issues,
             [
-                "Doom_8867002240_20260627_090000.html -> missing report source provenance",
-                "Mirana_8867002237_20260626_224839.html -> source provenance match id 8867009999 does not match filename 8867002237",
+                "Doom_8867002240.html -> missing report source provenance",
+                "Mirana_8867002237.html -> source provenance match id 8867009999 does not match filename 8867002237",
             ],
         )
 
@@ -795,6 +810,88 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(parsed["next_action"], "下一局前10分钟低效率窗口=0。")
         self.assertEqual(parsed["success_metric"], "10分钟补刀>=35。")
         self.assertEqual(parsed["review_priority"], "high")
+
+    def test_build_pages_site_uses_stable_report_url_and_preserves_generation_time(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            first_source = self._write_report(
+                source,
+                metadata,
+                filename="Mirana_8867002237_20260626_224839.html",
+            )
+
+            pages_site.build_pages_site(source, public_dir=public)
+
+            public_path = Path(public)
+            canonical = public_path / "Mirana_8867002237.html"
+            self.assertTrue(canonical.exists())
+            self.assertFalse((public_path / first_source.name).exists())
+            first_manifest = json.loads((public_path / "site-manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(first_manifest["latest_match"]["file"], canonical.name)
+            self.assertEqual(first_manifest["latest_match"]["report_generated_at"], "2026-06-26T22:48:39")
+
+            first_source.unlink()
+            self._write_report(
+                source,
+                metadata,
+                filename="Mirana_8867002237_20260711_091500.html",
+            )
+            pages_site.build_pages_site(source, public_dir=public)
+
+            report_files = sorted(
+                path.name
+                for path in public_path.glob("*.html")
+                if check_public_site._is_report_page(path)
+            )
+            second_manifest = json.loads((public_path / "site-manifest.json").read_text(encoding="utf-8"))
+            canonical_html = canonical.read_text(encoding="utf-8")
+            index_html = (public_path / "index.html").read_text(encoding="utf-8")
+
+        self.assertEqual(report_files, ["Mirana_8867002237.html"])
+        self.assertEqual(second_manifest["latest_match"]["file"], "Mirana_8867002237.html")
+        self.assertEqual(second_manifest["latest_match"]["report_generated_at"], "2026-07-11T09:15:00")
+        self.assertIn('href="Mirana_8867002237.html"', index_html)
+        self.assertIn('data-report-generated-at="2026-07-11T09:15:00"', canonical_html)
+
+    def test_build_pages_site_redirects_current_timestamped_public_url_to_canonical_route(self):
+        metadata = {
+            "match_id": 8867002237,
+            "hero": {"id": 9, "name": "Mirana", "slug": "mirana"},
+            "is_win": False,
+            "ended_at": "2026-06-26T10:23:19Z",
+            "duration_seconds": 2894,
+            "kda": {"kills": 13, "deaths": 5, "assists": 21},
+            "score": {"team": 43, "enemy": 39},
+            "allies": [{"name": "Mirana", "slug": "mirana"}],
+            "enemies": [{"name": "Axe", "slug": "axe"}],
+        }
+        old_name = "Mirana_8867002237_20260709_050208.html"
+        with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as public:
+            self._write_report(source, metadata, filename="Mirana_8867002237_20260711_091500.html")
+            self._write_report(public, metadata, filename=old_name)
+
+            pages_site.build_pages_site(source, public_dir=public)
+
+            redirects_path = Path(public) / "_redirects"
+            self.assertTrue(redirects_path.exists())
+            redirects = redirects_path.read_text(encoding="utf-8").splitlines()
+            finder = getattr(check_public_site, "_find_report_url_stability_issues", lambda *_: [])
+            stability_issues = finder(public)
+
+        self.assertIn(f"/{old_name} /Mirana_8867002237 301", redirects)
+        self.assertIn(f"/{Path(old_name).stem} /Mirana_8867002237 301", redirects)
+        self.assertEqual(stability_issues, [])
+        self.assertIn("_redirects", check_public_site.REQUIRED_SUPPORT_FILES)
 
     def test_parse_report_keeps_all_structured_findings_for_trends(self):
         metadata = {
@@ -1141,8 +1238,8 @@ class BuildPagesSiteTests(unittest.TestCase):
             manifest = json.loads((Path(public) / "site-manifest.json").read_text(encoding="utf-8"))
             index_html = (Path(public) / "index.html").read_text(encoding="utf-8")
             plan_html = (Path(public) / "practice-plan.html").read_text(encoding="utf-8")
-            mirana_html = (Path(public) / "Mirana_8867002237_20260626_224839.html").read_text(encoding="utf-8")
-            doom_html = (Path(public) / "Doom_8867002240_20260627_090000.html").read_text(encoding="utf-8")
+            mirana_html = (Path(public) / "Mirana_8867002237.html").read_text(encoding="utf-8")
+            doom_html = (Path(public) / "Doom_8867002240.html").read_text(encoding="utf-8")
 
         self.assertEqual(manifest["schema_version"], 1)
         self.assertEqual(manifest["report_count"], 2)
@@ -1164,7 +1261,7 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(manifest["latest_match"]["report_generated_at"], "2026-06-27T09:00:00")
         self.assertEqual(manifest["latest_match"]["source_fetches"]["stratz_fetched_at"], "2026-06-27T08:55:00Z")
         self.assertEqual(manifest["source_freshness"]["status"], "tracked")
-        self.assertEqual(manifest["source_freshness"]["basis"], "report_filename_timestamp+sqlite_fetched_at")
+        self.assertEqual(manifest["source_freshness"]["basis"], "embedded_report_timestamp+sqlite_fetched_at")
         self.assertEqual(manifest["source_freshness"]["report_timestamp_count"], 2)
         self.assertEqual(manifest["source_freshness"]["stratz_fetch_timestamp_report_count"], 2)
         self.assertEqual(manifest["source_freshness"]["opendota_fetch_timestamp_report_count"], 2)
@@ -1482,7 +1579,7 @@ class BuildPagesSiteTests(unittest.TestCase):
                     any(line != line.rstrip() for line in lines),
                     f"{filename} contains trailing whitespace",
                 )
-            report_data = (Path(public) / report_path.name).read_bytes()
+            report_data = (Path(public) / "Mirana_8867002237.html").read_bytes()
             self.assertNotIn(b"\r\n", report_data, f"{report_path.name} should be written with LF newlines")
 
     def test_build_pages_site_upgrades_legacy_item_slots_to_names(self):
@@ -1508,7 +1605,7 @@ class BuildPagesSiteTests(unittest.TestCase):
             report_path.write_text(text.replace("</body>", legacy_items + "</body>"), encoding="utf-8")
 
             pages_site.build_pages_site(source, public_dir=public)
-            report_html = (Path(public) / report_path.name).read_text(encoding="utf-8")
+            report_html = (Path(public) / "Mirana_8867002237.html").read_text(encoding="utf-8")
 
         self.assertNotIn("Item #1856", report_html)
         self.assertNotIn("Item #214", report_html)
@@ -1538,14 +1635,14 @@ class BuildPagesSiteTests(unittest.TestCase):
             self._write_report(source, older, filename="Anti-Mage_8866000193_20260625_160037.html", focus="终结比赛")
 
             pages_site.build_pages_site(source, public_dir=public)
-            latest = Path(public) / "Mirana_8867002237_20260626_224839.html"
+            latest = Path(public) / "Mirana_8867002237.html"
             latest_html = latest.read_text(encoding="utf-8")
 
         self.assertIn("相邻比赛", latest_html)
         self.assertIn('class="report-context-deck"', latest_html)
         self.assertIn("下一局（更早）", latest_html)
         self.assertIn("Anti-Mage", latest_html)
-        self.assertIn("Anti-Mage_8866000193_20260625_160037.html", latest_html)
+        self.assertIn("Anti-Mage_8866000193.html", latest_html)
         self.assertIn("终结比赛", latest_html)
 
     def test_build_pages_site_injects_report_evidence_completeness_summary(self):
@@ -1586,7 +1683,7 @@ class BuildPagesSiteTests(unittest.TestCase):
             report_path.write_text(text.replace("</body>", evidence_sources + "</body>"), encoding="utf-8")
 
             pages_site.build_pages_site(source, public_dir=public)
-            report_html = (Path(public) / report_path.name).read_text(encoding="utf-8")
+            report_html = (Path(public) / "Mirana_8867002237.html").read_text(encoding="utf-8")
 
         self.assertIn('data-report-evidence-completeness', report_html)
         self.assertIn('data-evidence-total="3"', report_html)
@@ -1637,7 +1734,7 @@ class BuildPagesSiteTests(unittest.TestCase):
                 )
 
             pages_site.build_pages_site(source, public_dir=public)
-            report_html = (Path(public) / first.name).read_text(encoding="utf-8")
+            report_html = (Path(public) / "Mirana_8867002237.html").read_text(encoding="utf-8")
 
         self.assertIn("近期同类问题", report_html)
         self.assertIn("最近 2 场中 2 场出现", report_html)
@@ -1674,7 +1771,7 @@ class BuildPagesSiteTests(unittest.TestCase):
             path.write_text(text.replace('<div class="finding-card high">', sections + '<div class="finding-card high">'), encoding="utf-8")
 
             pages_site.build_pages_site(source, public_dir=public)
-            report_html = (Path(public) / path.name).read_text(encoding="utf-8")
+            report_html = (Path(public) / "Mirana_8867002237.html").read_text(encoding="utf-8")
 
         self.assertIn('class="skip-link"', report_html)
         self.assertIn('aria-label="报告章节"', report_html)

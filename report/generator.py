@@ -31,7 +31,10 @@ def generate_report(match_analysis, ai_analysis, summary=None):
             match_date = "结束时间未知"
     else:
         match_date = "结束时间未知"
-    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    generated_now = datetime.now()
+    generated_at = generated_now.strftime("%Y-%m-%d %H:%M:%S")
+    report_metadata = dict(match_metadata)
+    report_metadata["report_generated_at"] = generated_now.strftime("%Y-%m-%dT%H:%M:%S")
 
     hero_name = match_analysis.get("hero_name", "Unknown")
     match_id = match_analysis.get("match_id", "N/A")
@@ -79,13 +82,13 @@ def generate_report(match_analysis, ai_analysis, summary=None):
         ai_analysis=ai_analysis,
         summary=summary,
         generated_at=generated_at,
-        report_metadata_json=json.dumps(match_metadata, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/"),
+        report_metadata_json=json.dumps(report_metadata, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/"),
     )
     html = "\n".join(line.rstrip() for line in html.splitlines()) + "\n"
 
     safe_match_id = str(match_id).replace("/", "_").replace("\\", "_").replace(":", "_")
     safe_hero = hero_name.replace(" ", "_").replace("'", "").replace("/", "_").replace("\\", "_")
-    filename = f"{safe_hero}_{safe_match_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+    filename = f"{safe_hero}_{safe_match_id}_{generated_now.strftime('%Y%m%d_%H%M%S')}.html"
     filepath = os.path.join(REPORT_DIR, filename)
 
     with open(filepath, "w", encoding="utf-8") as f:
