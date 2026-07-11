@@ -28,6 +28,26 @@ class BuildPagesSiteTests(unittest.TestCase):
         )
         return path
 
+    def test_legacy_noop_coaching_targets_are_upgraded(self):
+        legacy_html = (
+            "下一局10分钟后把低效率窗口从1个压到最多1个；"
+            "10分钟后低效率窗口不超过1个；"
+            "下一局把重复死亡坐标簇从1个压到最多1个；"
+            "重复死亡坐标簇不超过1个；"
+            "下一局把死亡前后资源明显下降窗口从1个压到最多1个。"
+            "死亡前后资源明显下降窗口不超过1个。"
+        )
+
+        upgraded = pages_site._upgrade_legacy_noop_targets(legacy_html)
+
+        self.assertIn("低效率窗口从1个压到0个", upgraded)
+        self.assertIn("10分钟后低效率窗口=0", upgraded)
+        self.assertIn("重复死亡坐标簇从1个压到0个", upgraded)
+        self.assertIn("重复死亡坐标簇=0", upgraded)
+        self.assertIn("资源明显下降窗口从1个压到0个", upgraded)
+        self.assertIn("资源明显下降窗口=0", upgraded)
+        self.assertNotIn("从1个压到最多1个", upgraded)
+
     def test_static_site_checker_detects_missing_local_links(self):
         with tempfile.TemporaryDirectory() as public:
             public_path = Path(public)
