@@ -45,6 +45,10 @@ REQUIRED_DEATH_REVIEW_REPORT_TEXT = [
     "死亡后恢复窗口",
     "timeline-phase-cards",
 ]
+ZERO_DEATH_REVIEW_REPORT_TEXT = [
+    "death-review-summary",
+    "timeline-phase-cards",
+]
 REQUIRED_DEATH_REVIEW_MANIFEST_FIELDS = [
     "death_review_workbench_report_count",
     "death_recovery_window_report_count",
@@ -427,7 +431,10 @@ def _find_death_review_coverage_issues(public_dir=PUBLIC_DIR):
     issues = []
     for report in _report_pages(public_dir):
         text = report.read_text(encoding="utf-8")
-        missing = [item for item in REQUIRED_DEATH_REVIEW_REPORT_TEXT if item not in text]
+        parsed = _parse_report(report)
+        deaths = (parsed.get("kda") or {}).get("deaths")
+        required = ZERO_DEATH_REVIEW_REPORT_TEXT if deaths == 0 else REQUIRED_DEATH_REVIEW_REPORT_TEXT
+        missing = [item for item in required if item not in text]
         if missing:
             issues.append(f"{report.name} -> missing death review coverage: {', '.join(missing)}")
 

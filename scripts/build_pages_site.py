@@ -920,7 +920,18 @@ def _parse_report(path):
         "has_death_recovery_windows": "死亡后恢复窗口" in report_text,
         "has_death_coordinate_map": 'class="death-coordinate-map"' in report_text,
     }
-    death_evidence["has_complete_death_review"] = all(death_evidence.values())
+    death_evidence["is_not_applicable"] = kda.get("deaths") == 0
+    death_evidence["has_complete_death_review"] = (
+        death_evidence["is_not_applicable"]
+        or all(
+            death_evidence[key]
+            for key in (
+                "has_death_review_workbench",
+                "has_death_recovery_windows",
+                "has_death_coordinate_map",
+            )
+        )
+    )
     quality_evidence = {
         "has_decision_snapshot": 'id="decision-snapshot"' in report_text and "上分决策卡" in report_text,
         "has_trend_context": 'class="report-trend-context"' in report_text and "近期同类问题" in report_text,
@@ -1812,7 +1823,7 @@ def _render_coverage_panel(manifest):
             <div class="coverage-stat"><strong>{html.escape(str(manifest.get('death_review_workbench_report_count') or 0))} 局</strong><span>死亡复盘面板</span></div>
             <div class="coverage-stat"><strong>{html.escape(str(manifest.get('death_recovery_window_report_count') or 0))} 局</strong><span>恢复窗口</span></div>
             <div class="coverage-stat"><strong>{html.escape(str(manifest.get('death_coordinate_map_report_count') or 0))} 局</strong><span>坐标图</span></div>
-            <div class="coverage-stat"><strong>{html.escape(str(manifest.get('complete_death_review_report_count') or 0))} 局</strong><span>完整死亡复盘</span></div>
+            <div class="coverage-stat"><strong>{html.escape(str(manifest.get('complete_death_review_report_count') or 0))} 局</strong><span>死亡复盘闭环（含0死亡）</span></div>
         </div>
         <div class="quality-gate-panel" data-quality-gate-panel aria-label="复盘质量门禁">
             <div class="quality-gate-head">
