@@ -734,10 +734,12 @@ def _find_evidence_field_audit_issues(public_dir=PUBLIC_DIR):
             f"partial {audit.get('partial_field_count')}, missing {audit.get('missing_field_count')}"
         )
     elif audit.get("partial_field_count"):
+        report_count_keys = ("complete_report_count", "partial_report_count", "missing_report_count")
         fields_needing_counts = [
             str(field.get("key") or "unknown")
             for field in fields
-            if field.get("status") == "partial" and int(field.get("partial_report_count") or 0) <= 0
+            if field.get("status") == "partial"
+            and not all(key in field for key in report_count_keys)
         ]
         if fields_needing_counts:
             issues.append(

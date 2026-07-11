@@ -518,6 +518,44 @@ class BuildPagesSiteTests(unittest.TestCase):
 
         self.assertEqual(issues, [])
 
+    def test_static_site_checker_accepts_mixed_complete_and_missing_evidence_reports(self):
+        with tempfile.TemporaryDirectory() as public:
+            public_path = Path(public)
+            panel = '<html><body><section data-evidence-field-audit-panel>实证字段覆盖</section></body></html>'
+            (public_path / "index.html").write_text(panel, encoding="utf-8")
+            (public_path / "practice-plan.html").write_text(panel, encoding="utf-8")
+            audit = {
+                "status": "partial",
+                "basis": "fixture",
+                "report_count": 2,
+                "payload_match_count": 2,
+                "field_count": 1,
+                "complete_field_count": 0,
+                "partial_field_count": 1,
+                "missing_field_count": 0,
+                "fields": [{
+                    "key": "objective_events",
+                    "label": "地图目标事件",
+                    "source": "fixture",
+                    "supports": "推塔与肉山",
+                    "coverage_count": 1,
+                    "coverage_ratio": 0.5,
+                    "complete_report_count": 1,
+                    "partial_report_count": 0,
+                    "missing_report_count": 1,
+                    "status": "partial",
+                }],
+                "limitation": "字段覆盖来自报告证据明细；部分字段按已覆盖范围使用。",
+            }
+            (public_path / "site-manifest.json").write_text(
+                json.dumps({"report_count": 2, "evidence_field_audit": audit}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            issues = check_public_site._find_evidence_field_audit_issues(public_path)
+
+        self.assertEqual(issues, [])
+
     def test_evidence_field_audit_counts_opendota_teamfight_death_positions(self):
         reports = [{
             "match_id": "8867002237",

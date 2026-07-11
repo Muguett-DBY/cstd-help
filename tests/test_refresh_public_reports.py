@@ -97,7 +97,7 @@ def _detail(match_id, parsed=True):
     }
 
 
-def _analysis(match_data, timeline_status="available", valid_findings=True):
+def _analysis(match_data, timeline_status="available", valid_findings=True, missing_evidence=False):
     findings = [{
         "priority": "high",
         "category": "early_resource",
@@ -113,11 +113,18 @@ def _analysis(match_data, timeline_status="available", valid_findings=True):
         "hero_name": "Mirana",
         "is_win": True,
         "data_quality": {
-            "evidence_sources": [{
-                "id": "timeline",
-                "status": timeline_status,
-                "source": "OpenDota解析日志",
-            }],
+            "evidence_sources": [
+                {
+                    "id": "timeline",
+                    "status": timeline_status,
+                    "source": "OpenDota解析日志",
+                },
+                {
+                    "id": "objectives",
+                    "status": "missing" if missing_evidence else "available",
+                    "source": "OpenDota目标事件" if not missing_evidence else "未获取",
+                },
+            ],
         },
         "review_findings": findings,
     }
@@ -317,6 +324,13 @@ class RefreshPublicReportsTests(unittest.TestCase):
         self.assertTrue(module.analysis_is_publishable(_analysis({"match_id": 1}, "partial")))
         self.assertFalse(module.analysis_is_publishable(_analysis({"match_id": 1}, "missing")))
         self.assertFalse(module.analysis_is_publishable(_analysis({"match_id": 1}, "available", False)))
+
+    def test_publishability_defers_reports_with_missing_evidence_classes(self):
+        module = self._module()
+
+        analysis = _analysis({"match_id": 1}, missing_evidence=True)
+
+        self.assertFalse(module.analysis_is_publishable(analysis))
 
 
 if __name__ == "__main__":
