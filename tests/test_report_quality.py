@@ -867,6 +867,34 @@ class ReportQualityTests(unittest.TestCase):
         self.assertTrue(all(window["start_minute"] >= 10 for window in result["timeline"]["low_efficiency_windows"]))
         self.assertNotIn("lane_farm", {finding["category"] for finding in result["review_findings"]})
 
+    def test_single_late_low_efficiency_window_requires_zero_target(self):
+        match = self._base_match()
+        match["duration"] = 1200
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "lane": "SAFE_LANE",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [6] * 10 + [2, 2] + [6] * 8,
+                    "goldPerMinute": [500] * 20,
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        finding = next(
+            item for item in result["review_findings"]
+            if item["category"] == "resource_continuity"
+        )
+
+        self.assertIn("从1个压到0个", finding["training_goal"])
+        self.assertIn("低效率窗口=0", finding["success_metric"])
+        self.assertNotIn("从1个压到最多1个", finding["training_goal"])
+
     def test_opendota_vision_profile_routes_supports_away_from_core_farm_goals(self):
         match = self._base_match()
         match["hero_id"] = 5
@@ -1841,6 +1869,9 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("平均GPM 500.0→650.0（+150.0）", finding["evidence"])
         self.assertIn("复活后", finding["action"])
         self.assertIn("不判断死亡原因", finding["replay_check"])
+        self.assertIn("从1个压到0个", finding["training_goal"])
+        self.assertIn("下降窗口=0", finding["success_metric"])
+        self.assertNotIn("从1个压到最多1个", finding["training_goal"])
 
     def test_generated_report_shows_death_resource_deltas(self):
         from report.generator import generate_report
@@ -2156,6 +2187,9 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("重复死亡坐标簇", finding["evidence"])
         self.assertIn("7.0、9.0分", finding["evidence"])
         self.assertIn("不转换成地图区域名", finding["replay_check"])
+        self.assertIn("从1个压到0个", finding["training_goal"])
+        self.assertIn("重复死亡坐标簇=0", finding["success_metric"])
+        self.assertNotIn("从1个压到最多1个", finding["training_goal"])
         joined = " ".join([
             finding["why_it_matters"],
             finding["action"],
