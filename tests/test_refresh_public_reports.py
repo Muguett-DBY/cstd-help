@@ -187,6 +187,7 @@ class RefreshPublicReportsTests(unittest.TestCase):
         )
         generated_sources = []
         build_sources = []
+        workbench_builds = []
 
         def fake_analyze(match_data, **_kwargs):
             return _analysis(match_data)
@@ -214,6 +215,7 @@ class RefreshPublicReportsTests(unittest.TestCase):
                 ai_fn=lambda *_args: "coach",
                 report_fn=fake_report,
                 build_fn=fake_build,
+                workbench_build_fn=lambda **kwargs: workbench_builds.append(kwargs),
             )
 
         self.assertEqual(client.recent_args, (ACCOUNT_ID, 20, 7))
@@ -226,6 +228,8 @@ class RefreshPublicReportsTests(unittest.TestCase):
         self.assertIn(f"Mirana_{existing_id}.html", build_sources)
         self.assertIn(f"Mirana_{new_id}_20260711_100000.html", build_sources)
         self.assertEqual(generated_sources[0]["opendota_fetched_at"][-1], "Z")
+        self.assertEqual(len(workbench_builds), 1)
+        self.assertEqual(Path(workbench_builds[0]["public_dir"]), Path(public))
 
     def test_refresh_batches_parse_requests_waits_once_and_refetches(self):
         module = self._module()
@@ -253,6 +257,7 @@ class RefreshPublicReportsTests(unittest.TestCase):
                     Path(output_dir, f"Mirana_{analysis['match_id']}_20260711_100000.html")
                 ),
                 build_fn=lambda *_args, **_kwargs: None,
+                workbench_build_fn=lambda **_kwargs: None,
                 sleep_fn=waits.append,
             )
 
@@ -291,6 +296,7 @@ class RefreshPublicReportsTests(unittest.TestCase):
                 ai_fn=lambda *_args: "coach",
                 report_fn=lambda *_args, **_kwargs: self.fail("deferred report must not render"),
                 build_fn=lambda *_args, **_kwargs: built.append(True),
+                workbench_build_fn=lambda **_kwargs: built.append("workbench"),
             )
 
         self.assertEqual(result.deferred, 2)
@@ -312,6 +318,7 @@ class RefreshPublicReportsTests(unittest.TestCase):
                 use_d2pt=False,
                 analyze_fn=lambda *_args, **_kwargs: self.fail("existing match must not be analyzed"),
                 build_fn=lambda *_args, **_kwargs: self.fail("no-change refresh must not build"),
+                workbench_build_fn=lambda **_kwargs: self.fail("no-change refresh must not build workbench"),
             )
 
         self.assertEqual(result.missing, 0)

@@ -808,6 +808,7 @@ def _build_opendota_performance_context(opendota_player, duration_seconds=0, dea
 def _event_source_label(source):
     labels = {
         "opendota_parsed_logs": "OpenDota解析日志",
+        "opendota_opponent_kill_logs": "OpenDota对手击杀日志交叉核对",
         "opendota_death_positions": "OpenDota团战死亡坐标",
         "opendota_objectives": "OpenDota目标事件",
         "opendota_teamfights": "OpenDota团战事件",
@@ -1305,7 +1306,14 @@ KEY_ITEM_NAMES = {
     "Scythe of Vyse",
     "Shiva's Guard",
 }
-FARM_ACCELERATION_ITEM_NAMES = {"Battle Fury", "Hand of Midas", "Maelstrom", "Mjollnir", "Radiance"}
+FARM_ACCELERATION_ITEM_NAMES = {
+    "Battle Fury",
+    "Hand of Midas",
+    "Maelstrom",
+    "Manta Style",
+    "Mjollnir",
+    "Radiance",
+}
 
 PRIORITY_LABELS = {
     "high": "高优先级",
@@ -1368,6 +1376,42 @@ def _extract_deaths_from_teamfights(opendota_data, opendota_player):
                 "time": event_time,
                 "minute": round(event_time / 60, 1),
                 "source": "opendota_teamfights",
+            })
+    return sorted(deaths, key=lambda item: item["time"])
+
+
+def _extract_deaths_from_opponent_kill_logs(opendota_data, opendota_player):
+    if not isinstance(opendota_data, dict) or not isinstance(opendota_player, dict):
+        return []
+    hero_id = opendota_player.get("hero_id")
+    if not isinstance(hero_id, int):
+        return []
+    hero_slug = get_hero_info(hero_id).get("slug")
+    if not hero_slug:
+        return []
+    target_key = f"npc_dota_hero_{hero_slug}"
+    target_index = opendota_player.get("_player_index")
+    deaths = []
+    for player_index, killer in enumerate(opendota_data.get("players") or []):
+        if not isinstance(killer, dict) or player_index == target_index:
+            continue
+        killer_hero_id = killer.get("hero_id")
+        for event in killer.get("kills_log") or []:
+            if not isinstance(event, dict) or event.get("key") != target_key:
+                continue
+            event_time = event.get("time")
+            if not isinstance(event_time, (int, float)):
+                continue
+            deaths.append({
+                "time": event_time,
+                "minute": round(event_time / 60, 1),
+                "source": "opendota_opponent_kill_logs",
+                "killer_hero_id": killer_hero_id,
+                "killer_hero_name": (
+                    get_hero_name(killer_hero_id)
+                    if isinstance(killer_hero_id, int)
+                    else None
+                ),
             })
     return sorted(deaths, key=lambda item: item["time"])
 
@@ -1599,6 +1643,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
 
     opendota_purchases = []
     opendota_deaths = []
+    opendota_opponent_kill_deaths = []
     opendota_teamfight_deaths = []
     opendota_kills = []
     opendota_assists = []
@@ -1612,6 +1657,10 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     if opendota_player:
         opendota_purchases = _normalize_opendota_purchase_events(opendota_player.get("purchase_log"))
         opendota_deaths = _normalize_opendota_timed_events(opendota_player.get("death_log"))
+        opendota_opponent_kill_deaths = _extract_deaths_from_opponent_kill_logs(
+            opendota_data,
+            opendota_player,
+        )
         opendota_teamfight_deaths = _extract_deaths_from_teamfights(opendota_data, opendota_player)
         opendota_kills = _normalize_opendota_timed_events(opendota_player.get("kills_log"))
         opendota_assists = _normalize_opendota_timed_events(
@@ -1638,6 +1687,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
 
     death_candidates = [
         (valve_replay_deaths, "valve_replay", 3),
+        (opendota_opponent_kill_deaths, "opendota_opponent_kill_logs", 3),
         (opendota_deaths, "opendota_parsed_logs", 2),
         (stratz_deaths, "stratz_playback", 1),
         (opendota_teamfight_deaths, "opendota_teamfights", 0),
@@ -1728,7 +1778,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         "death_count_expected": expected_deaths,
         "death_count_observed": observed_deaths,
         "death_count_missing": missing_deaths,
-        "death_timeline_complete": missing_deaths == 0,
+        "death_timeline_complete": observed_deaths == expected_deaths,
         "death_position_count": death_position_count,
         "death_map_points": death_map_points,
         "death_position_clusters": death_position_clusters,
@@ -2500,13 +2550,15 @@ def _build_review_findings(result):
             if item.get("position_label")
         ]
         if death_position_labels:
-            evidence += " 死亡位置: " + "；".join(death_position_labels[:6]) + "。"
+            evidence += f" 死亡坐标覆盖 {len(death_position_labels)}/{len(death_events)} 次。"
         if missing_note:
             evidence += f" {missing_note}"
         cluster_labels = _death_cluster_labels(events["deaths"])
+        if cluster_labels:
+            evidence += " 连续死亡簇: " + "、".join(cluster_labels[:4]) + "。"
         replay_check = "系统已定位的死亡分钟优先检查装备冷却、队友距离、敌方控制威胁和撤退路线。"
         if death_position_labels:
-            replay_check += " 位置采样: " + "；".join(death_position_labels[:6]) + "；优先确认是否在无视野高坡、带线深处或队友脱节位置。"
+            replay_check += " 原始坐标明细保留在死亡事件与坐标图，不生成地图区域名。"
         death_action = "下一局每次带线或参团前先判断敌方关键控制、己方TP支援、撤退路线和买活/盾时间。"
         if cluster_labels:
             replay_check += " 连续死亡簇: " + "、".join(cluster_labels[:4]) + "。"
@@ -2624,13 +2676,17 @@ def _build_review_findings(result):
         key_purchases = events.get("key_purchases") or []
         evidence = "；".join(f"{item['item_name']} {item['minute']}分钟" for item in key_purchases[:4])
         post_windows = events.get("post_item_windows") or []
+        has_low_farm = False
+        has_low_conversion = False
         if key_purchases and post_windows:
             post_summary = "；".join(item.get("summary", "") for item in post_windows[:4] if item.get("summary"))
             goal_details = _item_window_goal_details(post_windows)
             check_parts = [f"系统已计算关键装备后的对应窗口: {post_summary}"]
             if goal_details["low_farm"]:
+                has_low_farm = True
                 check_parts.append("低刷钱窗口: " + "；".join(goal_details["low_farm"][:3]))
             if goal_details["low_conversion"]:
+                has_low_conversion = True
                 check_parts.append("低转化窗口: " + "；".join(goal_details["low_conversion"][:3]))
             replay_check = "；".join(check_parts) + "。"
             low_names = "、".join(goal_details["low_names"][:3])
@@ -2650,9 +2706,21 @@ def _build_review_findings(result):
                 action = "下一局保命装或团队装完成后2分钟内完成一次守塔、做视野、反开或跟核心推进。"
                 success_metric = "关键装后2分钟至少出现1次参战、推塔或视野事件；观察+岗哨总数不下降。"
             else:
-                why = "刷钱装要转成连续资源增长，强势装要转成参战、推塔、控盾或逼高，否则经济只停留在面板上。"
-                action = "下一局刷钱装完成后保持5分钟不断线刷线野；强势装完成后2分钟内明确一个地图动作：控盾、推塔、逼高、入侵或带线牵制。"
-                success_metric = f"{FARM_ACCELERATION_SUCCESS_METRIC}；{MAP_CONVERSION_SUCCESS_METRIC}。"
+                low_names = "、".join(goal_details.get("low_names", [])[:3]) if post_windows else "关键装备"
+                if has_low_farm and not has_low_conversion:
+                    why = "刷钱装后的真实资源窗口偏低，会直接推迟下一件装备和下一次可控地图窗口。"
+                    action = "下一局刷钱装完成后5分钟保持线野连续；集合前先收安全线，除非队伍已经形成明确的塔、盾或高胜率击杀窗口。"
+                    training_goal = f"下一局 {low_names} 成型后5分钟只验收资源增长，不用参战数代替刷钱效率。"
+                    success_metric = f"{FARM_ACCELERATION_SUCCESS_METRIC}。"
+                elif has_low_conversion and not has_low_farm:
+                    why = "强势装完成后的真实参战和建筑伤害都偏低，装备窗口没有形成可记录的地图动作。"
+                    action = "下一局强势装完成后2分钟内明确一个地图动作：控盾、推塔、逼高、入侵或带线牵制。"
+                    training_goal = f"下一局 {low_names} 成型后2分钟内完成一次可记录地图动作。"
+                    success_metric = f"{MAP_CONVERSION_SUCCESS_METRIC}。"
+                else:
+                    why = "刷钱装要转成连续资源增长，强势装要转成参战、推塔、控盾或逼高，否则经济只停留在面板上。"
+                    action = "下一局刷钱装完成后保持5分钟不断线刷线野；强势装完成后2分钟内明确一个地图动作：控盾、推塔、逼高、入侵或带线牵制。"
+                    success_metric = f"{FARM_ACCELERATION_SUCCESS_METRIC}；{MAP_CONVERSION_SUCCESS_METRIC}。"
             findings.append(_finding(
                 "medium",
                 "item_timing",
@@ -2691,33 +2759,6 @@ def _build_review_findings(result):
             "参战率>=40%；关键装备后2分钟至少完成一次参战或推塔动作。",
         ))
 
-    if not result.get("is_win") and result.get("duration_min", 0) >= 45 and farm.get("gpm", 0) >= 600:
-        key_purchases = (events.get("key_purchases") or [])[:4]
-        late_deaths = [item for item in events.get("deaths", []) if item.get("minute", 0) >= 25]
-        tower_windows = (timeline.get("tower_windows") or [])[:3]
-        check_parts = []
-        if key_purchases:
-            check_parts.append("关键装备: " + "、".join(f"{item.get('item_name')} {item.get('minute')}分钟" for item in key_purchases))
-        if late_deaths:
-            check_parts.append("25分钟后死亡: " + "、".join(f"{item.get('minute')}分" for item in late_deaths[:6]))
-        if tower_windows:
-            check_parts.append("推塔窗口: " + "、".join(f"{item.get('label')} {item.get('total')}" for item in tower_windows))
-        replay_check = (
-            "系统已定位终结相关证据窗口：" + "；".join(check_parts) + "。"
-            if check_parts else
-            "系统只能确认高经济长局失利，公共数据源未提供足够目标事件窗口。"
-        )
-        findings.insert(0, _finding(
-            "high",
-            "closing",
-            f"失败局时长 {result.get('duration_min', 0)} 分钟，GPM {farm.get('gpm', 0)}。",
-            "高经济长局失利的问题不在打钱总量，而是关键装备窗口没有稳定转成盾、高地或关键买活差。",
-            "下一局关键装备成型后主动呼叫控盾/逼塔；若无法上高，至少压两路线并逼敌方回防。",
-            replay_check,
-            "下一局第三件关键装后30秒内做一次明确指令：控盾、逼塔或双线压制；无法上高时持续压两路线。",
-            f"{MAP_CONVERSION_SUCCESS_METRIC}；25分钟后死亡不超过2次；45分钟后低效率窗口不超过1个。",
-        ))
-
     if benchmark_finding:
         findings.append(benchmark_finding)
 
@@ -2732,7 +2773,7 @@ def _build_review_findings(result):
             "下一局继续围绕前10分钟资源、关键装备后转化、死亡成本三项复查。",
             "下一份报告三项都有事件证据，且没有新增高优先级问题。",
         ))
-    return findings[:5]
+    return findings[:8]
 
 
 def _item_detail(item_id):
@@ -2742,6 +2783,7 @@ def _item_detail(item_id):
     return {
         "id": item_id,
         "name": name or f"Item #{item_id}",
+        "slug": info.get("name"),
         "cost": info.get("cost"),
         "category": info.get("category"),
     }
@@ -2896,9 +2938,12 @@ def _evidence_coverage_score(evidence_sources):
     return round(total / len(evidence_sources))
 
 
-def _evidence_coverage_limitations(evidence_sources):
+def _evidence_coverage_limitations(evidence_sources, explained_ids=None):
+    explained_ids = set(explained_ids or ())
     limitations = []
     for item in evidence_sources or []:
+        if item.get("id") in explained_ids:
+            continue
         status = item.get("status")
         label = item.get("label") or item.get("id") or "证据"
         coverage = item.get("coverage") or "覆盖未记录"
@@ -3017,7 +3062,12 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
 
     evidence_sources = _build_evidence_sources(result)
     score = min(score, _evidence_coverage_score(evidence_sources))
-    limitations.extend(_evidence_coverage_limitations(evidence_sources))
+    explained_ids = {"timeline", "purchases", "fight_events", "objectives"}
+    if expected_deaths > observed_deaths:
+        explained_ids.add("deaths")
+    if role_profile.get("id") == "support" and not has_vision_log:
+        explained_ids.add("vision_events")
+    limitations.extend(_evidence_coverage_limitations(evidence_sources, explained_ids))
 
     return {
         "score": min(score, 100),

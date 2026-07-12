@@ -21,6 +21,7 @@ from api.stratz import StratzClient
 from config import ACCOUNT_ID
 from report.generator import generate_report
 from scripts.build_pages_site import CANONICAL_REPORT_NAME_RE, build_pages_site
+from scripts.build_workbench_site import build_workbench_site
 
 
 PUBLIC_DIR = ROOT / "public"
@@ -144,6 +145,7 @@ def refresh_public_reports(
     ai_fn=analyze_with_ai,
     report_fn=generate_report,
     build_fn=build_pages_site,
+    workbench_build_fn=build_workbench_site,
     d2pt_fn=get_hero_build,
     sleep_fn=time.sleep,
 ):
@@ -277,6 +279,7 @@ def refresh_public_reports(
 
         if report_files:
             build_fn(source_dir, public_dir=public_dir)
+            workbench_build_fn(public_dir=public_dir, report_dir=public_dir)
 
     result.generated = len(report_files)
     result.changed = bool(report_files)

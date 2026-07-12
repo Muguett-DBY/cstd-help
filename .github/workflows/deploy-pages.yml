@@ -1,4 +1,4 @@
-name: Deploy Cloudflare Pages
+name: Deploy Cloudflare App
 
 on:
   push:
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -27,26 +27,29 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run unit tests
-        run: python -m unittest discover -s tests -p "test*.py"
-
-      - name: Compile Python sources
-        run: python -m compileall -q .
-
-      - name: Validate static Pages site
-        run: python scripts/check_public_site.py
+          python-version: "3.13"
 
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version: "24"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Install locked dependencies
+        run: uv sync --locked --python 3.13 --group cli
+
+      - name: Run unit tests
+        run: uv run --no-sync python -m unittest discover -s tests -p "test*.py"
+
+      - name: Compile Python sources
+        run: uv run --no-sync python -m compileall -q analysis api db report scripts worker main.py worker_entry.py
+
+      - name: Validate static Pages site
+        run: uv run --no-sync python scripts/check_public_site.py
 
       - name: Validate deployment credentials
         env:
@@ -56,8 +59,16 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN is not configured"; exit 1; }
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID is not configured"; exit 1; }
 
+      - name: Build and deploy review Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          uv run --no-sync python scripts/build_worker_bundle.py
+          uv run pywrangler deploy
+
       - name: Deploy to Cloudflare Pages
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler@4.105.0 pages deploy public --project-name cstd-help --branch main --commit-hash "$GITHUB_SHA" --commit-message "$GITHUB_SHA"
+        run: npx wrangler@4.110.0 pages deploy public --config wrangler.pages.toml --project-name cstd-help --branch main --commit-hash "$GITHUB_SHA" --commit-message "$GITHUB_SHA"
