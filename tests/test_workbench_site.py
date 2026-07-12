@@ -159,7 +159,10 @@ class WorkbenchSiteTests(unittest.TestCase):
             self.assertIn('integrity="sha384-', page)
             self.assertIn('crossorigin="anonymous"', page)
         self.assertIn("Content-Security-Policy:", self.headers)
-        self.assertIn("script-src 'self' https://unpkg.com", self.headers)
+        self.assertIn(
+            "script-src 'self' https://unpkg.com https://static.cloudflareinsights.com;",
+            self.headers,
+        )
         self.assertIn("frame-ancestors 'none'", self.headers)
         self.assertIn("X-Content-Type-Options: nosniff", self.headers)
         self.assertNotIn("/*.html", self.headers)
