@@ -1,5 +1,5 @@
 /
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self'; img-src 'self' data: https://cdn.cloudflare.steamstatic.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data: https://cdn.cloudflare.steamstatic.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests
   Cross-Origin-Opener-Policy: same-origin
   Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=(), usb=()
   Referrer-Policy: strict-origin-when-cross-origin
@@ -7,7 +7,7 @@
   X-Frame-Options: DENY
 
 /index.html
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self'; img-src 'self' data: https://cdn.cloudflare.steamstatic.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data: https://cdn.cloudflare.steamstatic.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests
   Cross-Origin-Opener-Policy: same-origin
   Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=(), usb=()
   Referrer-Policy: strict-origin-when-cross-origin
@@ -15,7 +15,7 @@
   X-Frame-Options: DENY
 
 /match.html
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com; style-src 'self'; img-src 'self' data: https://cdn.cloudflare.steamstatic.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://unpkg.com https://static.cloudflareinsights.com; style-src 'self'; img-src 'self' data: https://cdn.cloudflare.steamstatic.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests
   Cross-Origin-Opener-Policy: same-origin
   Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=(), usb=()
   Referrer-Policy: strict-origin-when-cross-origin
