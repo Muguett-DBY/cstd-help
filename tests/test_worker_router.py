@@ -144,12 +144,13 @@ class WorkerDeploymentContractTests(unittest.TestCase):
         self.assertIn("enabled = true", config)
         self.assertIn("head_sampling_rate = 1", config)
 
-    def test_pages_config_is_explicitly_isolated_from_worker_config(self):
-        pages_config = (ROOT / "wrangler.pages.toml").read_text(encoding="utf-8")
+    def test_pages_deploy_does_not_use_unsupported_custom_config_path(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
+        deploy_line = next(line for line in workflow.splitlines() if "wrangler@4.110.0 pages deploy" in line)
 
-        self.assertIn('pages_build_output_dir = "public"', pages_config)
-        self.assertIn("--config wrangler.pages.toml", workflow)
+        self.assertNotIn("--config", deploy_line)
+        self.assertIn('pages deploy "$GITHUB_WORKSPACE/public"', deploy_line)
+        self.assertIn('--cwd "$RUNNER_TEMP"', deploy_line)
 
     def test_main_deploy_publishes_worker_before_pages(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
@@ -157,8 +158,8 @@ class WorkerDeploymentContractTests(unittest.TestCase):
         self.assertIn("astral-sh/setup-uv@", workflow)
         self.assertIn("uv sync --locked", workflow)
         self.assertIn("pywrangler deploy", workflow)
-        self.assertIn("pages deploy public", workflow)
-        self.assertLess(workflow.index("pywrangler deploy"), workflow.index("pages deploy public"))
+        self.assertIn("pages deploy", workflow)
+        self.assertLess(workflow.index("pywrangler deploy"), workflow.index("pages deploy"))
 
     def test_worker_entry_wires_runtime_adapters_without_secret_values(self):
         entry = (ROOT / "worker_entry.py").read_text(encoding="utf-8")
