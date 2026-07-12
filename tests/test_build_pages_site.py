@@ -61,29 +61,29 @@ class BuildPagesSiteTests(unittest.TestCase):
 
         self.assertEqual(issues, ["index.html -> missing-report.html"])
 
-    def test_refresh_workflow_has_evidence_gates_scoped_commit_and_direct_deploy(self):
+    def test_refresh_workflow_is_manual_with_evidence_gates_and_scoped_commit(self):
         workflow_path = pages_site.ROOT / ".github" / "workflows" / "refresh-reports.yml"
-        self.assertTrue(workflow_path.exists(), "scheduled report refresh workflow is missing")
+        self.assertTrue(workflow_path.exists(), "manual report refresh workflow is missing")
         workflow = workflow_path.read_text(encoding="utf-8")
 
-        self.assertIn("schedule:", workflow)
+        self.assertNotIn("schedule:", workflow)
         self.assertIn("workflow_dispatch:", workflow)
         self.assertIn("contents: write", workflow)
         self.assertIn("cancel-in-progress: false", workflow)
         self.assertIn("STRATZ_API_KEY: ${{ secrets.STRATZ_API_KEY }}", workflow)
         self.assertIn("python scripts/refresh_public_reports.py", workflow)
         self.assertIn('python -m unittest discover -s tests -p "test*.py"', workflow)
-        self.assertIn("python -m compileall -q .", workflow)
+        self.assertIn(
+            "uv run --no-sync python -m compileall -q analysis api db report scripts worker main.py worker_entry.py",
+            workflow,
+        )
         self.assertIn("python scripts/check_public_site.py", workflow)
         self.assertIn("git add -- public", workflow)
         self.assertNotIn("git add .", workflow)
         self.assertIn("git push origin HEAD:main", workflow)
         self.assertNotIn("--force", workflow)
         self.assertNotIn("rebase", workflow.lower())
-        self.assertRegex(
-            workflow,
-            r"pages deploy public\s+--project-name cstd-help\s+--branch main",
-        )
+        self.assertNotIn("pages deploy public", workflow)
 
     def test_static_site_checker_rejects_timestamped_public_report_filename(self):
         with tempfile.TemporaryDirectory() as public:
@@ -340,7 +340,6 @@ class BuildPagesSiteTests(unittest.TestCase):
             [
                 "Legion_Commander_8870219537.html -> missing death review coverage: "
                 "death-review-workbench, death-review-summary, 死亡后恢复窗口, timeline-phase-cards",
-                "index.html -> missing death review coverage panel",
                 "site-manifest.json -> missing death review coverage fields: "
                 "death_review_workbench_report_count, death_recovery_window_report_count, "
                 "death_coordinate_map_report_count, complete_death_review_report_count",
@@ -409,10 +408,7 @@ class BuildPagesSiteTests(unittest.TestCase):
 
         self.assertEqual(
             issues,
-            [
-                "index.html -> missing quality gate panel",
-                "site-manifest.json -> missing quality gate summary",
-            ],
+            ["site-manifest.json -> missing quality gate summary"],
         )
 
     def test_static_site_checker_detects_missing_source_freshness_summary(self):
@@ -434,10 +430,7 @@ class BuildPagesSiteTests(unittest.TestCase):
 
         self.assertEqual(
             issues,
-            [
-                "index.html -> missing source freshness panel",
-                "site-manifest.json -> missing source freshness summary",
-            ],
+            ["site-manifest.json -> missing source freshness summary"],
         )
 
     def test_static_site_checker_detects_missing_evidence_field_audit(self):
@@ -456,7 +449,6 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(
             issues,
             [
-                "index.html -> missing evidence field audit panel",
                 "practice-plan.html -> missing evidence field audit panel",
                 "site-manifest.json -> missing evidence field audit summary",
             ],
@@ -652,7 +644,6 @@ class BuildPagesSiteTests(unittest.TestCase):
         self.assertEqual(
             issues,
             [
-                "index.html -> missing evidence command bar",
                 "practice-plan.html -> missing evidence command bar",
             ],
         )

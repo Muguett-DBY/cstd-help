@@ -1,7 +1,7 @@
-import json
 import requests
 import time
 from config import OPENDOTA_BASE_URL, ACCOUNT_ID
+from api.normalization import normalize_player_match
 
 
 class OpenDotaClient:
@@ -118,50 +118,7 @@ class OpenDotaClient:
 
     def parse_match_for_player(self, raw_match, account_id=None):
         aid = account_id or ACCOUNT_ID
-        if not raw_match:
-            return None
-
-        player = self.find_player(raw_match, aid)
-        if not player:
-            return None
-
-        items = [player.get(f"item_{i}", 0) or 0 for i in range(6)]
-        ability_upgrades = player.get("ability_upgrades") or player.get("ability_upgrades_arr") or []
-
-        return {
-            "match_id": raw_match.get("match_id"),
-            "duration": raw_match.get("duration"),
-            "radiant_win": 1 if raw_match.get("radiant_win") else 0,
-            "start_time": raw_match.get("start_time"),
-            "game_mode": raw_match.get("game_mode"),
-            "lobby_type": raw_match.get("lobby_type"),
-            "radiant_score": raw_match.get("radiant_score"),
-            "dire_score": raw_match.get("dire_score"),
-            "account_id": aid,
-            "hero_id": player.get("hero_id"),
-            "player_slot": player.get("player_slot"),
-            "is_radiant": 1 if player.get("player_slot", 0) < 128 else 0,
-            "kills": player.get("kills"),
-            "deaths": player.get("deaths"),
-            "assists": player.get("assists"),
-            "gold_per_min": player.get("gold_per_min"),
-            "xp_per_min": player.get("xp_per_min"),
-            "hero_damage": player.get("hero_damage"),
-            "tower_damage": player.get("tower_damage"),
-            "hero_healing": player.get("hero_healing"),
-            "last_hits": player.get("last_hits"),
-            "denies": player.get("denies"),
-            "level": player.get("level"),
-            "gold": player.get("gold"),
-            "net_worth": player.get("net_worth"),
-            "item_0": items[0],
-            "item_1": items[1],
-            "item_2": items[2],
-            "item_3": items[3],
-            "item_4": items[4],
-            "item_5": items[5],
-            "ability_upgrades": json.dumps(ability_upgrades) if ability_upgrades else None,
-        }
+        return normalize_player_match(raw_match, aid)
 
 
 if __name__ == "__main__":

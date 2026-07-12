@@ -8,7 +8,13 @@ from pathlib import Path
 
 import analysis.ai_analyst as ai_analyst
 from analysis.ai_analyst import _build_analysis_prompt, _generate_fallback_analysis, _is_ai_response_safe
-from analysis.analyzer import _item_detail, analyze_match, get_hero_name
+from analysis.analyzer import (
+    _build_post_item_windows,
+    _build_review_findings,
+    _item_detail,
+    analyze_match,
+    get_hero_name,
+)
 import db.schema as schema
 
 
@@ -70,6 +76,52 @@ class ReportQualityTests(unittest.TestCase):
 
         for item_id, item_name in expected.items():
             self.assertEqual(_item_detail(item_id)["name"], item_name)
+
+    def test_high_gpm_long_loss_does_not_invent_missing_push_conversion(self):
+        findings = _build_review_findings({
+            "is_win": False,
+            "duration_min": 52.8,
+            "farm": {"gpm": 1030, "last_hits": 727},
+            "derived": {"lh_per_min": 13.77, "deaths_per_10_min": 1.7},
+            "role_profile": {"id": "pos1", "lane_farm_sensitive": True},
+            "timeline": {
+                "available": True,
+                "ten_min_last_hits": 56,
+                "low_efficiency_windows": [],
+                "tower_windows": [{"label": "推塔窗口 45-50分钟", "total": 11607}],
+            },
+            "events": {
+                "deaths": [],
+                "purchases": [],
+                "objectives": [],
+                "has_objective_log": False,
+            },
+            "kda": {"deaths": 0},
+        })
+
+        self.assertNotIn("closing", [item["category"] for item in findings])
+
+    def test_manta_uses_five_minute_farm_window_not_two_minute_fight_window(self):
+        windows = _build_post_item_windows(
+            {
+                "key_purchases": [{
+                    "item_name": "Manta Style",
+                    "time": 600,
+                    "minute": 10.0,
+                }],
+                "kills": [],
+                "assists": [],
+            },
+            {
+                "last_hits_by_minute": [5] * 30,
+                "gold_by_minute": [650] * 30,
+                "tower_damage_by_minute": [0] * 30,
+            },
+        )
+
+        self.assertEqual(windows[0]["window_type"], "farm_acceleration")
+        self.assertEqual(windows[0]["lh_gain"], 25)
+        self.assertEqual(windows[0]["avg_gpm"], 650.0)
 
     def test_analysis_builds_real_match_metadata_from_opendota(self):
         match = self._base_match()
@@ -649,6 +701,21 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("不要编造", prompt)
         self.assertIn("缺少10分钟补刀/经济时间线", prompt)
 
+    def test_data_quality_does_not_repeat_specific_gaps_as_generic_coverage_gaps(self):
+        limitations = analyze_match(self._base_match())["data_quality"]["limitations"]
+
+        self.assertTrue(any("缺少10分钟补刀/经济时间线" in item for item in limitations))
+        self.assertTrue(any("缺少购买时间线" in item for item in limitations))
+        self.assertTrue(any("缺少团战/击杀日志" in item for item in limitations))
+        self.assertTrue(any("缺少地图目标事件" in item for item in limitations))
+        for duplicate in (
+            "分钟时间线缺失",
+            "购买时间缺失",
+            "击杀/助攻事件缺失",
+            "地图目标事件缺失",
+        ):
+            self.assertFalse(any(duplicate in item for item in limitations), duplicate)
+
     def test_fallback_analysis_uses_limitations_and_priority_actions(self):
         analysis = analyze_match(self._base_match())
         text = _generate_fallback_analysis(analysis, "Anti-Mage", True)
@@ -1047,8 +1114,10 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(second_death["position_sample_age_seconds"], 30)
         self.assertIn("stratz_position_samples", result["data_quality"]["available"])
         death_finding = next(f for f in result["review_findings"] if f["category"] == "death_review")
-        self.assertIn("死亡位置", death_finding["evidence"])
-        self.assertIn("x=122,y=140", death_finding["replay_check"])
+        self.assertIn("死亡坐标覆盖 2/2 次", death_finding["evidence"])
+        self.assertIn("坐标明细保留在死亡事件", death_finding["replay_check"])
+        self.assertNotIn("x=122,y=140", death_finding["evidence"])
+        self.assertNotIn("x=122,y=140", death_finding["replay_check"])
 
     def test_data_quality_lists_granular_evidence_sources_and_coverage(self):
         match = self._base_match()
@@ -1144,7 +1213,8 @@ class ReportQualityTests(unittest.TestCase):
             " ".join(result["data_quality"]["limitations"]),
         )
         death_finding = next(f for f in result["review_findings"] if f["category"] == "death_review")
-        self.assertIn("x=120,y=140", death_finding["evidence"])
+        self.assertIn("死亡坐标覆盖 1/2 次", death_finding["evidence"])
+        self.assertNotIn("x=120,y=140", death_finding["evidence"])
 
     def test_unlocated_deaths_keep_source_backed_context(self):
         match = self._base_match()
@@ -1408,11 +1478,11 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(farm_window["lh_gain"], 45)
         self.assertEqual(farm_window["avg_gpm"], 676.0)
 
-        power_window = result["events"]["post_item_windows"][1]
-        self.assertEqual(power_window["item_name"], "Manta Style")
-        self.assertEqual(power_window["window_type"], "map_conversion")
-        self.assertEqual(power_window["kills_or_assists"], 2)
-        self.assertEqual(power_window["tower_damage"], 250)
+        manta_window = result["events"]["post_item_windows"][1]
+        self.assertEqual(manta_window["item_name"], "Manta Style")
+        self.assertEqual(manta_window["window_type"], "farm_acceleration")
+        self.assertEqual(manta_window["lh_gain"], 34)
+        self.assertEqual(manta_window["avg_gpm"], 690.0)
 
         self.assertNotIn("item_timing", {f["category"] for f in result["review_findings"]})
 
@@ -1454,10 +1524,12 @@ class ReportQualityTests(unittest.TestCase):
         result = analyze_match(match, stratz_data=stratz_data)
 
         item_finding = next(f for f in result["review_findings"] if f["category"] == "item_timing")
-        self.assertIn("低转化窗口: Manta Style后2分钟参战0次/推塔0", item_finding["replay_check"])
+        self.assertIn("低刷钱窗口:", item_finding["replay_check"])
+        self.assertIn("Manta Style后5分钟30补/430.0GPM", item_finding["replay_check"])
         self.assertIn("Manta Style", item_finding["training_goal"])
-        self.assertIn("强势装后2分钟", item_finding["success_metric"])
-        self.assertIn("参战>=1或推塔伤害>=300", item_finding["success_metric"])
+        self.assertIn("刷钱装后5分钟", item_finding["success_metric"])
+        self.assertIn("补刀>=40或平均GPM>=600", item_finding["success_metric"])
+        self.assertNotIn("强势装后2分钟", item_finding["success_metric"])
 
     def test_purchase_timeline_without_key_items_is_data_quality_not_main_issue(self):
         match = self._base_match()
@@ -2492,6 +2564,49 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(result["events"]["deaths"][0]["minute"], 15.8)
         self.assertEqual(result["events"]["deaths"][0]["source"], "opendota_teamfights")
         self.assertIn("fight_log", result["data_quality"]["available"])
+
+    def test_opponent_kill_logs_reconstruct_complete_personal_death_timeline(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        match["player_slot"] = 1
+        opendota_data = {
+            "players": [
+                {
+                    "account_id": 173776719,
+                    "hero_id": 1,
+                    "player_slot": 1,
+                },
+                {
+                    "account_id": 2,
+                    "hero_id": 2,
+                    "player_slot": 128,
+                    "kills_log": [
+                        {"time": 420, "key": "npc_dota_hero_antimage"},
+                    ],
+                },
+                {
+                    "account_id": 3,
+                    "hero_id": 3,
+                    "player_slot": 129,
+                    "kills_log": [
+                        {"time": 930, "key": "npc_dota_hero_antimage"},
+                    ],
+                },
+            ],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+
+        deaths = result["events"]["deaths"]
+        self.assertEqual([item["minute"] for item in deaths], [7.0, 15.5])
+        self.assertEqual([item["killer_hero_id"] for item in deaths], [2, 3])
+        self.assertTrue(all(item["source"] == "opendota_opponent_kill_logs" for item in deaths))
+        self.assertEqual(result["events"]["death_coverage_label"], "已定位 2/2 次死亡")
+        self.assertTrue(result["events"]["death_timeline_complete"])
+        self.assertFalse(any(
+            "死亡时间线不完整" in item
+            for item in result["data_quality"]["limitations"]
+        ))
 
     def test_stratz_death_events_fill_opendota_death_log_gap(self):
         match = self._base_match()

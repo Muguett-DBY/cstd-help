@@ -142,6 +142,7 @@ FORBIDDEN_MANUAL_REVIEW_LANGUAGE = [
 ]
 SUPPORT_HTML_PAGES = frozenset({
     "index.html",
+    "match.html",
     "practice-plan.html",
     "match-brief.html",
 })
@@ -155,7 +156,12 @@ REQUIRED_SUPPORT_FILES = frozenset({
     "_redirects",
     "review-trends.json",
     "site-manifest.json",
+    "matches.json",
     "static/style.css",
+    "static/workbench.css",
+    "static/shared.js",
+    "static/history.js",
+    "static/match.js",
 })
 CANONICAL_REPORT_FILENAME_RE = re.compile(r"^(?P<hero>.+)_(?P<match_id>\d{8,})\.html$")
 LEGACY_REPORT_REDIRECT_RE = re.compile(
@@ -342,7 +348,11 @@ def _find_local_link_issues(public_dir=PUBLIC_DIR):
             target = _strip_link_suffix(raw_link)
             if not target:
                 continue
-            target_path = (page.parent / target).resolve()
+            target_path = (
+                public_dir / target.lstrip("/")
+                if target.startswith("/")
+                else page.parent / target
+            ).resolve()
             try:
                 target_path.relative_to(public_dir.resolve())
             except ValueError:
@@ -438,10 +448,6 @@ def _find_death_review_coverage_issues(public_dir=PUBLIC_DIR):
         if missing:
             issues.append(f"{report.name} -> missing death review coverage: {', '.join(missing)}")
 
-    index_path = public_dir / "index.html"
-    if index_path.exists() and "死亡复盘覆盖" not in index_path.read_text(encoding="utf-8"):
-        issues.append("index.html -> missing death review coverage panel")
-
     manifest_path = public_dir / "site-manifest.json"
     if manifest_path.exists():
         try:
@@ -504,12 +510,6 @@ def _report_quality_evidence(report):
 def _find_quality_gate_issues(public_dir=PUBLIC_DIR):
     public_dir = Path(public_dir)
     issues = []
-    index_path = public_dir / "index.html"
-    if index_path.exists():
-        index_text = index_path.read_text(encoding="utf-8")
-        if "复盘质量门禁" not in index_text or "data-quality-gate-panel" not in index_text:
-            issues.append("index.html -> missing quality gate panel")
-
     manifest_path = public_dir / "site-manifest.json"
     if not manifest_path.exists():
         return issues
@@ -576,7 +576,7 @@ def _find_quality_gate_issues(public_dir=PUBLIC_DIR):
 def _find_source_freshness_issues(public_dir=PUBLIC_DIR):
     public_dir = Path(public_dir)
     issues = []
-    for page_name in ("index.html", "practice-plan.html"):
+    for page_name in ("practice-plan.html",):
         page_path = public_dir / page_name
         if not page_path.exists():
             continue
@@ -644,7 +644,7 @@ def _find_source_freshness_issues(public_dir=PUBLIC_DIR):
 def _find_evidence_field_audit_issues(public_dir=PUBLIC_DIR):
     public_dir = Path(public_dir)
     issues = []
-    for page_name in ("index.html", "practice-plan.html"):
+    for page_name in ("practice-plan.html",):
         page_path = public_dir / page_name
         if not page_path.exists():
             continue
@@ -760,7 +760,7 @@ def _find_evidence_command_bar_issues(public_dir=PUBLIC_DIR):
         "evidence-command-link",
         'href="#evidence-field-audit"',
     )
-    for page_name in ("index.html", "practice-plan.html"):
+    for page_name in ("practice-plan.html",):
         page_path = public_dir / page_name
         if not page_path.exists():
             continue
@@ -1073,6 +1073,8 @@ def main():
             raise SystemExit(f"public/{name} is missing")
 
     index_path = required_paths["index.html"]
+    match_path = required_paths["match.html"]
+    matches_path = required_paths["matches.json"]
     practice_path = required_paths["practice-plan.html"]
     brief_path = required_paths["match-brief.html"]
     practice_text_path = required_paths["practice-plan.txt"]
@@ -1189,32 +1191,53 @@ def main():
         raise SystemExit(f"public report text quality issues: {preview}")
 
     index_html = index_path.read_text(encoding="utf-8")
-    if "Dota 2 天梯复盘报告" not in index_html:
-        if "Dota 2 天梯复盘历史" not in index_html:
-            raise SystemExit("index page has the wrong title")
+    match_html = match_path.read_text(encoding="utf-8")
+    history_js = required_paths["static/history.js"].read_text(encoding="utf-8")
+    match_js = required_paths["static/match.js"].read_text(encoding="utf-8")
     for required in (
-        "比赛历史",
-        "筛选比赛",
-        "match-search",
-        "data-filter-result",
-        "data-filter-priority",
-        "data-clear-filters",
-        "URLSearchParams",
-        "data-empty-state",
-        "没有匹配的比赛",
-        "practice-plan.html",
-        "match-brief.html",
-        "优先复盘",
-        "最近反复问题",
-        "我方阵容",
-        "敌方阵容",
-        "data-ended-at",
-        "复盘数据覆盖",
-        "data-coverage-panel",
-        "site-manifest.json",
+        "最近 10 局",
+        "data-refresh-matches",
+        "data-match-list",
+        "aria-live=\"polite\"",
     ):
         if required not in index_html:
-            raise SystemExit(f"index page is missing required match-history content: {required}")
+            raise SystemExit(f"index page is missing required workbench content: {required}")
+    for forbidden in ("43 份复盘", "189 条问题", "证据覆盖总览", "CI 质量门禁"):
+        if forbidden in index_html:
+            raise SystemExit(f"index page restored a legacy dashboard marker: {forbidden}")
+    if "setInterval(" in index_html + history_js:
+        raise SystemExit("match history must not refresh automatically")
+    if history_js.count("/api/matches/refresh") != 1 or 'method: "POST"' not in history_js:
+        raise SystemExit("match refresh must be owned by the explicit refresh handler")
+    if 'apiFetch("/api/matches"' not in history_js or 'fetch("/matches.json"' not in history_js:
+        raise SystemExit("initial match history must read API cache and static seed only")
+
+    for required in (
+        "data-factual-detail",
+        "data-generate-review",
+        "data-review-output",
+        "下一局行动清单",
+        "时间线诊断",
+        "死亡 / 装备事件",
+        "本局主要问题证据",
+    ):
+        if required not in match_html:
+            raise SystemExit(f"match page is missing required review content: {required}")
+    if 'method: "POST"' not in match_js or "addEventListener(\"click\", generateReview)" not in match_js:
+        raise SystemExit("review generation must be owned by the explicit analysis button")
+    if "document.title = `${heroName}" not in match_js or "heroHeading.textContent = `${heroName}" not in match_js:
+        raise SystemExit("match title and heading must start with the played hero")
+
+    try:
+        match_seed = json.loads(matches_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"public/matches.json is invalid JSON: {exc}") from exc
+    seed_matches = match_seed.get("matches") if isinstance(match_seed, dict) else None
+    if match_seed.get("account_id") != 173776719 or not isinstance(seed_matches, list) or len(seed_matches) != 10:
+        raise SystemExit("public/matches.json must contain exactly 10 matches for account 173776719")
+    seed_ids = [match.get("match_id") for match in seed_matches if isinstance(match, dict)]
+    if len(seed_ids) != len(set(seed_ids)):
+        raise SystemExit("public/matches.json contains duplicate match IDs")
 
     try:
         trend_payload = json.loads(trends_path.read_text(encoding="utf-8"))
@@ -1336,8 +1359,8 @@ def main():
 
     for trend in trends:
         page_name = trend["page"]
-        if f'href="{page_name}"' not in index_html or f'href="{page_name}"' not in practice_html:
-            raise SystemExit(f"topic evidence page is not linked from dashboard and practice plan: {page_name}")
+        if f'href="{page_name}"' not in practice_html:
+            raise SystemExit(f"topic evidence page is not linked from practice plan: {page_name}")
         topic_html = (PUBLIC_DIR / page_name).read_text(encoding="utf-8")
         for required in (
             "完整证据",

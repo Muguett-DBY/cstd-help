@@ -1,0 +1,99 @@
+name: Fetch On-Demand Review Evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      match_id:
+        description: Recent ranked match ID
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dota-evidence-${{ inputs.match_id }}
+  cancel-in-progress: false
+
+jobs:
+  fetch-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MATCH_ID: ${{ inputs.match_id }}
+      KV_NAMESPACE_ID: 37577b67ad5f47b2a0e03b4d5a5ee929
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Install locked dependencies
+        run: uv sync --locked --python 3.13 --group cli
+
+      - name: Fetch complete evidence
+        id: evidence
+        continue-on-error: true
+        env:
+          STRATZ_API_KEY: ${{ secrets.STRATZ_API_KEY }}
+          EVIDENCE_PATH: ${{ runner.temp }}/review-evidence.json
+          STATUS_PATH: ${{ runner.temp }}/review-evidence-status.json
+        run: >-
+          uv run --no-sync python scripts/fetch_review_evidence.py
+          --match-id "$MATCH_ID"
+          --evidence-output "$EVIDENCE_PATH"
+          --status-output "$STATUS_PATH"
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Validate KV credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          EVIDENCE_PATH: ${{ runner.temp }}/review-evidence.json
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+
+      - name: Publish complete evidence
+        if: steps.evidence.outcome == 'success'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          STATUS_PATH: ${{ runner.temp }}/review-evidence-status.json
+        run: >-
+          npx wrangler@4.110.0 kv key put
+          "review-evidence:v1:$MATCH_ID"
+          --path "$EVIDENCE_PATH"
+          --namespace-id "$KV_NAMESPACE_ID"
+          --ttl 15552000
+          --remote
+
+      - name: Publish evidence status
+        if: always()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: >-
+          npx wrangler@4.110.0 kv key put
+          "review-evidence-status:v1:$MATCH_ID"
+          --path "$STATUS_PATH"
+          --namespace-id "$KV_NAMESPACE_ID"
+          --ttl 86400
+          --remote
+
+      - name: Fail incomplete evidence job
+        if: steps.evidence.outcome != 'success'
+        run: exit 1

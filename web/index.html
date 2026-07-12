@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#202426">
+    <meta name="description" content="玩家 173776719 的 Dota 2 天梯复盘工作台">
+    <title>最近 10 局｜Dota 2 天梯复盘</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://cdn.cloudflare.steamstatic.com">
+    <link rel="stylesheet" href="/static/workbench.css">
+    <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="module" src="/static/history.js"></script>
+</head>
+<body data-page="history">
+    <a class="skip-link" href="#main-content">跳到比赛列表</a>
+    <header class="app-header">
+        <a class="brand" href="/" aria-label="Dota 2 天梯复盘首页">
+            <span class="brand-mark" aria-hidden="true">D2</span>
+            <span class="brand-copy"><strong>天梯复盘</strong><small>玩家 #173776719</small></span>
+        </a>
+        <span class="header-state" data-header-state><span aria-hidden="true"></span>缓存就绪</span>
+    </header>
+
+    <main id="main-content" class="page-shell">
+        <section class="page-command" aria-labelledby="history-title">
+            <div>
+                <p class="eyebrow">PERSONAL MATCH DESK</p>
+                <h1 id="history-title">最近 10 局</h1>
+                <p class="sync-line" data-sync-time>正在读取缓存…</p>
+            </div>
+            <button class="command-button" type="button" data-refresh-matches aria-describedby="refresh-status">
+                <i data-lucide="refresh-cw" aria-hidden="true"></i>
+                <span>刷新比赛</span>
+            </button>
+        </section>
+
+        <div id="refresh-status" class="operation-status" role="status" aria-live="polite" data-refresh-status></div>
+
+        <section class="summary-strip" aria-label="最近比赛概览">
+            <div><span>场次</span><strong data-summary-count>—</strong></div>
+            <div><span>胜负</span><strong data-summary-record>—</strong></div>
+            <div><span>胜率</span><strong data-summary-rate>—</strong></div>
+            <div><span>最近英雄</span><strong data-summary-hero>—</strong></div>
+        </section>
+
+        <section class="match-section" aria-labelledby="match-list-title">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">RANKED HISTORY</p>
+                    <h2 id="match-list-title">比赛记录</h2>
+                </div>
+                <span class="section-count" data-list-count>0 / 10</span>
+            </div>
+            <div class="match-list-header" aria-hidden="true">
+                <span>英雄 / 比赛</span><span>结果</span><span>结束时间</span><span>时长</span><span>K / D / A</span><span>段位</span><span></span>
+            </div>
+            <div class="match-list" data-match-list aria-busy="true">
+                <div class="list-loading" data-list-loading>
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer"><span>数据：OpenDota / STRATZ</span><span>证据驱动复盘</span></footer>
+</body>
+</html>

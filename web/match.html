@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#202426">
+    <meta name="description" content="玩家 173776719 的 Dota 2 单局天梯复盘">
+    <title>比赛复盘｜Dota 2</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://cdn.cloudflare.steamstatic.com">
+    <link rel="stylesheet" href="/static/workbench.css">
+    <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="module" src="/static/match.js"></script>
+</head>
+<body data-page="match">
+    <a class="skip-link" href="#main-content">跳到比赛详情</a>
+    <header class="app-header">
+        <a class="brand" href="/" aria-label="返回最近 10 局">
+            <span class="brand-mark" aria-hidden="true">D2</span>
+            <span class="brand-copy"><strong>天梯复盘</strong><small>玩家 #173776719</small></span>
+        </a>
+        <a class="back-link" href="/"><i data-lucide="arrow-left" aria-hidden="true"></i><span>最近 10 局</span></a>
+    </header>
+
+    <main id="main-content" class="match-page">
+        <div class="operation-status match-status" role="status" aria-live="polite" data-page-status>正在读取比赛事实…</div>
+
+        <section class="match-hero-band" data-factual-detail aria-labelledby="match-heading">
+            <div class="hero-portrait-wrap" data-hero-portrait><span class="portrait-placeholder"></span></div>
+            <div class="match-identity">
+                <p class="eyebrow">MATCH REVIEW</p>
+                <h1 id="match-heading" data-hero-heading>比赛复盘</h1>
+                <div class="match-identity-meta">
+                    <span data-result-badge>读取中</span>
+                    <span data-match-id>—</span>
+                    <time data-ended-at>—</time>
+                </div>
+            </div>
+            <button class="command-button analyze-button" type="button" data-generate-review disabled>
+                <i data-lucide="sparkles" aria-hidden="true"></i>
+                <span>生成 AI 复盘</span>
+            </button>
+        </section>
+
+        <section class="fact-strip" aria-label="本局核心数据" data-fact-strip></section>
+
+        <section class="detail-band" aria-labelledby="lineup-title">
+            <div class="section-heading"><div><p class="eyebrow">LINEUPS</p><h2 id="lineup-title">双方阵容</h2></div><span data-score>—</span></div>
+            <div class="lineup-grid" data-participants></div>
+        </section>
+
+        <section class="detail-band" aria-labelledby="items-title">
+            <div class="section-heading"><div><p class="eyebrow">FINAL BUILD</p><h2 id="items-title">最终装备</h2></div></div>
+            <div class="final-items" data-final-items><span class="muted-copy">正在读取…</span></div>
+        </section>
+
+        <section class="review-output" data-review-output hidden aria-labelledby="review-title">
+            <header class="review-head">
+                <div><p class="eyebrow">COACH REVIEW</p><h2 id="review-title">AI 教练复盘</h2></div>
+                <span class="review-mode" data-review-mode>证据引擎</span>
+            </header>
+
+            <div class="coach-conclusion" data-coach-conclusion></div>
+
+            <section class="review-band" aria-labelledby="actions-title">
+                <div class="section-heading"><div><p class="eyebrow">NEXT MATCH</p><h3 id="actions-title">下一局行动清单</h3></div></div>
+                <div class="action-list" data-actions></div>
+            </section>
+
+            <section class="review-band" aria-labelledby="timeline-title">
+                <div class="section-heading"><div><p class="eyebrow">TIMELINE</p><h3 id="timeline-title">时间线诊断</h3></div></div>
+                <div data-timeline></div>
+            </section>
+
+            <section class="review-band" aria-labelledby="events-title">
+                <div class="section-heading"><div><p class="eyebrow">EVENTS</p><h3 id="events-title">死亡 / 装备事件</h3></div></div>
+                <div class="event-columns" data-events></div>
+            </section>
+
+            <section class="review-band" aria-labelledby="findings-title">
+                <div class="section-heading"><div><p class="eyebrow">EVIDENCE</p><h3 id="findings-title">本局主要问题证据</h3></div></div>
+                <div class="finding-list" data-findings></div>
+            </section>
+
+            <details class="data-limits" data-limits>
+                <summary><i data-lucide="database" aria-hidden="true"></i><span>数据覆盖</span><strong data-limit-count>0</strong></summary>
+                <div data-limit-list></div>
+            </details>
+        </section>
+    </main>
+
+    <footer class="app-footer"><span>比赛事实与建议分层展示</span><span>玩家 #173776719</span></footer>
+</body>
+</html>

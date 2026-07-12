@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "account_id": 173776719,
+  "source": "static_seed",
+  "stale": true,
+  "refreshed_at": "2026-07-11T18:01:56",
+  "matches": [
+    {
+      "match_id": 8891116798,
+      "account_id": 173776719,
+      "hero": {
+        "id": 48,
+        "name": "Luna",
+        "slug": "luna"
+      },
+      "side": null,
+      "is_win": true,
+      "ended_at": "2026-07-11T09:46:37Z",
+      "duration_seconds": 2727,
+      "kda": {
+        "kills": 13,
+        "deaths": 4,
+        "assists": 11
+      },
+      "rank_tier": null,
+      "lane": null,
+      "lane_role": null,
+      "is_ranked": true,
+      "legacy_report": "Luna_8891116798.html"
+    },
+    {
+      "match_id": 8891064472,
+      "account_id": 173776719,
+      "hero": {
+        "id": 48,
+        "name": "Luna",
+        "slug": "luna"
+      },
+      "side": null,
+      "is_win": false,
+      "ended_at": "2026-07-11T08:53:33Z",
+      "duration_seconds": 2212,
+      "kda": {
+        "kills": 1,
+        "deaths": 3,
+        "assists": 5
+      },
+      "rank_tier": null,
+      "lane": null,
+      "lane_role": null,
+      "is_ranked": true,
+      "legacy_report": "Luna_8891064472.html"
+    },
+    {
+      "match_id": 8889758913,
+      "account_id": 173776719,
+      "hero": {
+        "id": 80,
+        "name": "Lone Druid",
+        "slug": "lone_druid"
+      },
+      "side": null,
+      "is_win": true,
+      "ended_at": "2026-07-10T13:57:02Z",
+      "duration_seconds": 3006,
+      "kda": {
+        "kills": 11,
+        "deaths": 0,
+        "assists": 10
+      },
+      "rank_tier": null,
+      "lane": null,
+      "lane_role": null,
+      "is_ranked": true,
+      "legacy_report": "Lone_Druid_8889758913.html"
+    },
+    {
+      "match_id": 8889651971,
+      "account_id": 173776719,
+      "hero": {
+        "id": 44,
+        "name": "Phantom Assassin",
+        "slug": "phantom_assassin"
+      },
+      "side": null,
+      "is_win": true,
+      "ended_at": "2026-07-10T12:48:45Z",
+      "duration_seconds": 3230,
+      "kda": {
+        "kills": 12,
+        "deaths": 3,
+        "assists": 13
+      },
+      "rank_tier": null,
+      "lane": null,
+      "lane_role": null,
+      "is_ranked": true,
+      "legacy_report": "Phantom_Assassin_8889651971.html"
+    },
+    {
+      "match_id": 8889354445,
+      "account_id": 173776719,
+      "hero": {
+        "id": 48,
+        "name": "Luna",
+        "slug": "luna"
+      },
+      "side": null,
+      "is_win": true,
+      "ended_at": "2026-07-10T07:48:26Z",
+      "duration_seconds": 2776,
+      "kda": {
+        "kills": 10,
+        "deaths": 4,
+        "assists": 13
+      },
+      "rank_tier": null,
+      "lane": null,
+      "lane_role": null,
+      "is_ranked": true,
+      "legacy_report": "Luna_8889354445.html"
+    },
+    {
+      "match_id": 8888484031,
+      "account_id": 173776719,
+      "hero": {
+        "id": 94,
+        "name": "Medusa",
+        "slug": "medusa"
+      },
+      "side": null,
+      "is_win": true,
+      "ended_at": "2026-07-09T16:02:17Z",
+      "duration_seconds": 2710,
+      "kda": {
+        "kills": 12,
+        "deaths": 3,
+        "assists": 18
+      },
+      "rank_tier": null,
+      "lane": null,
+      "lane_role": null,
+      "is_ranked": true,
+      "legacy_report": "Medusa_8888484031.html"
+    },
+    {
+      "match_id": 8888423924,
+      "account_id": 173776719,
+      "hero": {
+        "id": 48,
+        "name": "Luna",
+        "slug": "luna"
+      },
+      "side": null,
+      "is_win": false,
+      "ended_at": "2026-07-09T15:10:34Z",
+      "duration_seconds": 1859,
+      "kda": {
+        "kills": 13,
+        "deaths": 7,
+        "assists": 4
+      },
+      "rank_tier": null,
+      "lane": null,
+      "lane_role": null,
+      "is_ranked": true,
+      "legacy_report": "Luna_8888423924.html"
+    },
+    {
+      "match_id": 8888275562,
+      "account_id": 173776719,
+      "hero": {
+        "id": 48,
+        "name": "Luna",
+        "slug": "luna"
+      },
+      "side": null,
+      "is_win": false,
+      "ended_at": "2026-07-09T13:52:15Z",
+      "duration_seconds": 2493,
+      "kda": {
+        "kills": 9,
+        "deaths": 7,
+        "assists": 6
+      },
+      "rank_tier": null,
+      "lane": null,
+      "lane_role": null,
+      "is_ranked": true,
+      "legacy_report": "Luna_8888275562.html"
+    },
+    {
+      "match_id": 8887946837,
+      "account_id": 173776719,
+      "hero": {
+        "id": 8,
+        "name": "Juggernaut",
+        "slug": "juggernaut"
+      },
+      "side": null,
+      "is_win": true,
+      "ended_at": "2026-07-09T08:50:52Z",
+      "duration_seconds": 2671,
+      "kda": {
+        "kills": 15,
+        "deaths": 4,
+        "assists": 12
+      },
+      "rank_tier": null,
+      "lane": null,
+      "lane_role": null,
+      "is_ranked": true,
+      "legacy_report": "Juggernaut_8887946837.html"
+    },
+    {
+      "match_id": 8887915708,
+      "account_id": 173776719,
+      "hero": {
+        "id": 48,
+        "name": "Luna",
+        "slug": "luna"
+      },
+      "side": null,
+      "is_win": true,
+      "ended_at": "2026-07-09T07:57:13Z",
+      "duration_seconds": 1933,
+      "kda": {
+        "kills": 17,
+        "deaths": 1,
+        "assists": 12
+      },
+      "rank_tier": null,
+      "lane": null,
+      "lane_role": null,
+      "is_ranked": true,
+      "legacy_report": "Luna_8887915708.html"
+    }
+  ]
+}
