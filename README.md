@@ -81,7 +81,7 @@ Browser acceptance must cover desktop and mobile widths, an initial cache-only p
 
 Pushes to `main` run `.github/workflows/deploy-pages.yml`. The workflow tests the full project, builds and deploys the Worker, then deploys `public/` to Cloudflare Pages project `cstd-help`.
 
-`.github/workflows/on-demand-match-refresh.yml` has only `workflow_dispatch`; it writes the latest 10 matches and all 10 factual details to KV. `.github/workflows/on-demand-review.yml` is also dispatch-only and writes complete STRATZ/OpenDota evidence for one selected recent match. `.github/workflows/refresh-reports.yml` is a manual-only legacy archive maintenance workflow and has no schedule.
+`.github/workflows/on-demand-match-refresh.yml` has only `workflow_dispatch`; it writes the latest 10 matches and all 10 factual details to KV. `.github/workflows/on-demand-review.yml` is also dispatch-only and writes complete STRATZ/OpenDota evidence for one selected recent match. A newly finished match can still be parsing upstream, so the evidence job requests an OpenDota parse and retries only transient availability or completeness failures six times at 20-second intervals; it never publishes partial evidence. `.github/workflows/refresh-reports.yml` is a manual-only legacy archive maintenance workflow and has no schedule.
 
 GitHub Actions secrets:
 

@@ -12,7 +12,7 @@ import {
     numberLabel,
     refreshIcons,
     resultMeta,
-} from "/static/shared.js?v=3b1ba64e2f15";
+} from "/static/shared.js?v=60b55d2f55b2";
 
 const matchId = getMatchId();
 const pageStatus = document.querySelector("[data-page-status]");
@@ -20,7 +20,7 @@ const analyzeButton = document.querySelector("[data-generate-review]");
 const reviewOutput = document.querySelector("[data-review-output]");
 const heroHeading = document.querySelector("[data-hero-heading]");
 const state = { detail: null, reviewStatus: null, review: null };
-const MAX_REVIEW_POLL_ATTEMPTS = 30;
+const MAX_REVIEW_POLL_ATTEMPTS = 60;
 
 function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));

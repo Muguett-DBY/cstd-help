@@ -1,6 +1,7 @@
 import argparse
 import json
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,9 +18,19 @@ from config import ACCOUNT_ID, STRATZ_API_KEY
 
 
 class EvidenceJobError(RuntimeError):
-    def __init__(self, code):
+    def __init__(self, code, details=None):
         super().__init__(code)
         self.code = code
+        self.details = dict(details or {})
+
+
+TRANSIENT_EVIDENCE_ERRORS = {
+    "OPENDOTA_DETAIL_UNAVAILABLE",
+    "STRATZ_UNAVAILABLE",
+    "INCOMPLETE_EVIDENCE",
+}
+DEFAULT_EVIDENCE_ATTEMPTS = 6
+DEFAULT_RETRY_SECONDS = 20
 
 
 def _utc_iso(value=None):
@@ -63,7 +74,7 @@ def run_evidence_job(
         raise EvidenceJobError("ANALYSIS_FAILED")
     gaps = review_evidence_gaps(analysis)
     if gaps:
-        raise EvidenceJobError("INCOMPLETE_EVIDENCE")
+        raise EvidenceJobError("INCOMPLETE_EVIDENCE", {"blocking_gaps": gaps})
 
     analysis = dict(analysis)
     analysis["match_id"] = match_id
@@ -74,6 +85,58 @@ def run_evidence_job(
         "source": "github_actions_stratz",
         "analysis": analysis,
     }
+
+
+def run_evidence_job_with_retry(
+    match_id,
+    *,
+    account_id=ACCOUNT_ID,
+    opendota_client=None,
+    stratz_client=None,
+    analyze_fn=analyze_match,
+    now=None,
+    attempts=DEFAULT_EVIDENCE_ATTEMPTS,
+    retry_seconds=DEFAULT_RETRY_SECONDS,
+    sleep_fn=time.sleep,
+):
+    opendota_client = opendota_client or OpenDotaClient()
+    stratz_client = stratz_client or StratzClient()
+    attempt_limit = max(1, int(attempts))
+    wait_seconds = max(0, int(retry_seconds))
+    parse_requested = False
+
+    for attempt in range(1, attempt_limit + 1):
+        try:
+            return run_evidence_job(
+                match_id,
+                account_id=account_id,
+                opendota_client=opendota_client,
+                stratz_client=stratz_client,
+                analyze_fn=analyze_fn,
+                now=now,
+            )
+        except EvidenceJobError as exc:
+            is_transient = exc.code in TRANSIENT_EVIDENCE_ERRORS
+            if exc.code == "INCOMPLETE_EVIDENCE" and not parse_requested:
+                request_parse = getattr(opendota_client, "request_parse", None)
+                if callable(request_parse):
+                    try:
+                        request_parse(match_id)
+                    except Exception:
+                        pass
+                parse_requested = True
+            if not is_transient or attempt >= attempt_limit:
+                raise
+
+            gaps = ",".join(exc.details.get("blocking_gaps") or [])
+            suffix = f" ({gaps})" if gaps else ""
+            print(
+                f"Evidence attempt {attempt}/{attempt_limit} returned {exc.code}{suffix}; "
+                f"retrying in {wait_seconds}s"
+            )
+            sleep_fn(wait_seconds)
+
+    raise EvidenceJobError("INCOMPLETE_EVIDENCE")
 
 
 def _write_json(path, payload):
@@ -90,6 +153,8 @@ def main(argv=None):
     parser.add_argument("--match-id", required=True, type=int)
     parser.add_argument("--evidence-output", required=True)
     parser.add_argument("--status-output", required=True)
+    parser.add_argument("--attempts", type=int, default=DEFAULT_EVIDENCE_ATTEMPTS)
+    parser.add_argument("--retry-seconds", type=int, default=DEFAULT_RETRY_SECONDS)
     args = parser.parse_args(argv)
     Path(args.evidence_output).unlink(missing_ok=True)
     status = {
@@ -101,11 +166,16 @@ def main(argv=None):
     try:
         if not STRATZ_API_KEY:
             raise EvidenceJobError("STRATZ_SECRET_MISSING")
-        payload = run_evidence_job(args.match_id)
+        payload = run_evidence_job_with_retry(
+            args.match_id,
+            attempts=args.attempts,
+            retry_seconds=args.retry_seconds,
+        )
         _write_json(args.evidence_output, payload)
         status["status"] = "ready"
     except EvidenceJobError as exc:
         status.update({"status": "failed", "error_code": exc.code})
+        status.update(exc.details)
         print(f"Evidence job failed: {exc.code}")
         exit_code = 1
     except Exception as exc:
