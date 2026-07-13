@@ -7,6 +7,7 @@ from analysis.formula_engine import (
     build_formula_review,
 )
 from analysis.evidence_contract import (
+    EVIDENCE_SCHEMA_VERSION,
     evidence_cache_key,
     evidence_payload_is_ready,
     evidence_status_key,
@@ -102,7 +103,7 @@ class ReviewService:
         return f"review:v{REVIEW_SCHEMA_VERSION}:{int(match_id)}"
 
     def parse_state_key(self, match_id):
-        return f"parse:v2:{int(match_id)}"
+        return f"parse:v3:evidence-v{EVIDENCE_SCHEMA_VERSION}:{int(match_id)}"
 
     def evidence_key(self, match_id):
         return evidence_cache_key(match_id)
