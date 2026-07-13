@@ -1,8 +1,8 @@
 from copy import deepcopy
 
 
-REVIEW_SCHEMA_VERSION = 8
-FORMULA_VERSION = 3
+REVIEW_SCHEMA_VERSION = 9
+FORMULA_VERSION = 4
 
 
 _PRIORITY_POINTS = {"high": 50, "medium": 30, "low": 15}
