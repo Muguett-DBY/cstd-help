@@ -109,7 +109,9 @@ class WorkbenchSiteTests(unittest.TestCase):
             "renderParticipants",
             "renderFinalItems",
             "renderActions",
+            "renderFormulaScores",
             "renderPerformanceContext",
+            "renderExtendedMetrics",
             "renderTimeline",
             "renderEvents",
             "renderDeathCoordinateMap",
@@ -120,7 +122,7 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertIn("只展示原始坐标，不生成地图区域名", self.match_js)
         self.assertIn(".death-coordinate-plot", self.css)
         self.assertIn(
-            "renderFindings(coach.review_points || analysis.review_findings || [])",
+            "renderFindings(guidance.review_points || analysis.review_findings || [])",
             self.match_js,
         )
         self.assertIn(
@@ -135,10 +137,13 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertIn("timeline.tower_windows", self.match_js)
         self.assertIn("输出高峰", self.match_js)
         self.assertIn("推塔高峰", self.match_js)
-        self.assertIn("data_quality?.evidence_sources", self.match_js)
-        self.assertIn("证据来源与覆盖", self.match_js)
+        self.assertIn("data_quality?.field_ledger", self.match_js)
+        self.assertIn("字段覆盖账本", self.match_js)
         self.assertIn("limitsPanel.open = list.length > 0", self.match_js)
         self.assertIn("表现上下文", self.match_html)
+        self.assertIn("公式评分", self.match_html)
+        self.assertIn("扩展比赛数据", self.match_html)
+        self.assertNotIn("AI", self.match_html + self.match_js)
         self.assertIn("const MAX_REVIEW_POLL_ATTEMPTS = 30", self.match_js)
 
     def test_responsive_accessible_styles_cover_mobile_and_focus(self):

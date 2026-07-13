@@ -22,7 +22,7 @@
         <div class="report-section-nav-track">
             <span class="report-section-nav-label">本局复盘</span>
             {% if review_findings %}<a class="report-section-link" href="#decision-snapshot" data-report-section-link>决策卡</a>{% endif %}
-            {% if ai_analysis %}<a class="report-section-link" href="#coach-summary" data-report-section-link>教练结论</a>{% endif %}
+            {% if guidance %}<a class="report-section-link" href="#formula-summary" data-report-section-link>公式结论</a>{% endif %}
             {% if review_findings %}<a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>{% endif %}
             <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
             {% if performance_context and performance_context.available %}<a class="report-section-link" href="#performance-context" data-report-section-link>表现画像</a>{% endif %}
@@ -112,11 +112,34 @@
     </section>
     {% endif %}
 
-    {% if ai_analysis %}
-    <div class="section priority-section" id="coach-summary">
-        <div class="section-header">&#129504; 教练总结</div>
+    {% if guidance %}
+    <div class="section priority-section" id="formula-summary">
+        <div class="section-header">数据公式复盘</div>
         <div class="section-body">
-            <div class="coach-analysis">{{ ai_analysis }}</div>
+            <div class="coach-analysis">
+                <h3>最重要结论</h3>
+                <p>{{ guidance.conclusion }}</p>
+                {% if guidance.overall_score is not none %}
+                <p><strong>综合执行分：</strong>{{ guidance.overall_score }}/100</p>
+                {% endif %}
+            </div>
+            {% if guidance.scorecards %}
+            <div class="formula-score-grid">
+                {% for card in guidance.scorecards %}
+                <article class="formula-score-card {{ card.status }}">
+                    <header><strong>{{ card.label }}</strong><b>{{ card.score }}/100</b></header>
+                    <p>{{ card.interpretation }}</p>
+                    <code>{{ card.equation }}</code>
+                    <ul>
+                        {% for input in card.inputs %}
+                        <li>{{ input.label }}：{{ input.value }}{{ input.unit }} · {{ input.source }}</li>
+                        {% endfor %}
+                    </ul>
+                    <small>{{ card.threshold }}</small>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endif %}

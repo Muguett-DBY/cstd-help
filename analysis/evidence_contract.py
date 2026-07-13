@@ -1,9 +1,13 @@
-EVIDENCE_SCHEMA_VERSION = 2
+EVIDENCE_SCHEMA_VERSION = 3
 EVIDENCE_TTL_SECONDS = 60 * 60 * 24 * 180
 EVIDENCE_STATUS_TTL_SECONDS = 60 * 60 * 24
 
 
 def review_evidence_gaps(analysis):
+    data_quality = (analysis or {}).get("data_quality") or {}
+    if isinstance(data_quality.get("blocking_gaps"), list):
+        return list(dict.fromkeys(str(item) for item in data_quality["blocking_gaps"] if item))
+
     timeline = (analysis or {}).get("timeline") or {}
     events = (analysis or {}).get("events") or {}
     gaps = []

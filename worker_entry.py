@@ -9,7 +9,6 @@ from worker.cloudflare_adapters import (
     CloudflareDotaGateway,
     GitHubEvidenceGateway,
     GitHubMatchRefreshGateway,
-    WorkersAIGateway,
 )
 from worker.router import route_request
 from worker.service import ReviewService
@@ -21,7 +20,6 @@ class Default(WorkerEntrypoint):
         cache = CloudflareCache(self.env.REVIEW_CACHE)
         dota = CloudflareDotaGateway()
         analyzer = AnalyzerGateway()
-        ai = WorkersAIGateway(self.env.AI, self.env.AI_MODEL)
         evidence = GitHubEvidenceGateway(
             token=getattr(self.env, "GITHUB_DISPATCH_TOKEN", ""),
             repository=self.env.GITHUB_REPOSITORY,
@@ -39,7 +37,6 @@ class Default(WorkerEntrypoint):
             cache,
             dota,
             analyzer=analyzer,
-            ai_gateway=ai,
             evidence_gateway=evidence,
             match_refresh_gateway=match_refresh,
         )

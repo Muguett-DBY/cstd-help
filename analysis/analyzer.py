@@ -4,6 +4,8 @@ import os
 import time
 from datetime import datetime, timezone
 
+from analysis.formula_engine import build_formula_diagnostics
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RULES_DIR = os.path.join(BASE_DIR, "analysis", "rules")
 
@@ -160,6 +162,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         "hero_id": match_data.get("hero_id"),
         "is_win": match_data.get("radiant_win") == 1 and match_data.get("is_radiant") == 1 or
                   match_data.get("radiant_win") == 0 and match_data.get("is_radiant") == 0,
+        "duration_seconds": duration,
         "duration_min": round(duration_min, 1),
         "context": context,
         "data_quality": {},
@@ -170,6 +173,8 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         "role_profile": {},
         "opendota_benchmarks": {},
         "performance_context": {},
+        "extended_metrics": {},
+        "formula_diagnostics": {},
         "kda": {},
         "farm": {},
         "items": {},
@@ -227,6 +232,8 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         opendota_player=opendota_player,
         opendota_data=opendota_data,
         expected_deaths=deaths,
+        expected_kills=kills,
+        expected_assists=assists,
     )
     result["events"]["death_objective_windows"] = _build_death_objective_windows(result["events"])
     result["events"]["death_objective_summary"] = _summarize_death_objective_windows(
@@ -251,6 +258,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         death_count=deaths,
         role_profile=result["role_profile"],
     )
+    result["extended_metrics"] = _build_extended_metrics(opendota_player)
 
     benchmarks = _load_json("benchmarks.json")
     role = _benchmark_role(context)
@@ -274,6 +282,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
 
     result["data_quality"] = _build_data_quality(match_data, stratz_data, stratz_player, result, opendota_data=opendota_data)
     result["review_findings"] = _build_review_findings(result)
+    result["formula_diagnostics"] = build_formula_diagnostics(result)
     _generate_suggestions(result)
 
     return result
@@ -809,6 +818,87 @@ def _build_opendota_performance_context(opendota_player, duration_seconds=0, dea
     }
 
 
+def _numeric_total(values):
+    if not isinstance(values, dict):
+        return 0
+    return round(sum(
+        float(value)
+        for value in values.values()
+        if isinstance(value, (int, float)) and not isinstance(value, bool)
+    ), 2)
+
+
+def _top_usage(values, limit=8):
+    if not isinstance(values, dict):
+        return []
+    rows = [
+        {"name": str(name), "count": value}
+        for name, value in values.items()
+        if isinstance(value, (int, float)) and not isinstance(value, bool)
+    ]
+    rows.sort(key=lambda item: (-item["count"], item["name"]))
+    return rows[:limit]
+
+
+def _build_extended_metrics(opendota_player):
+    player = opendota_player or {}
+    damage_taken = player.get("damage_taken") if isinstance(player.get("damage_taken"), dict) else {}
+    hero_damage_taken = {
+        name: value
+        for name, value in damage_taken.items()
+        if str(name).startswith("npc_dota_hero_")
+    }
+    observed_fields = [
+        field for field in (
+            "actions_per_min", "stuns", "damage_taken", "obs_placed", "sen_placed",
+            "observer_kills", "sentry_kills", "camps_stacked", "rune_pickups",
+            "courier_kills", "tower_kills", "roshan_kills", "buyback_count",
+            "buyback_log", "gold_spent", "total_gold", "item_uses", "ability_uses",
+        )
+        if field in player and player.get(field) is not None
+    ]
+    return {
+        "available": bool(observed_fields),
+        "source": "OpenDota解析后的玩家扩展字段",
+        "observed_fields": observed_fields,
+        "combat": {
+            "stuns_seconds": player.get("stuns"),
+            "total_damage_taken": _numeric_total(damage_taken),
+            "hero_damage_taken": _numeric_total(hero_damage_taken),
+            "hero_damage_taken_by_source": _top_usage(hero_damage_taken),
+            "max_hero_hit": player.get("max_hero_hit"),
+            "hero_healing": player.get("hero_healing"),
+        },
+        "economy": {
+            "gold_spent": player.get("gold_spent"),
+            "total_gold": player.get("total_gold"),
+            "buyback_count": player.get("buyback_count"),
+            "buyback_log": list(player.get("buyback_log") or []),
+        },
+        "vision": {
+            "observer_placed": player.get("obs_placed"),
+            "sentry_placed": player.get("sen_placed"),
+            "observer_destroyed": player.get("observer_kills"),
+            "sentry_destroyed": player.get("sentry_kills"),
+        },
+        "activity": {
+            "actions_per_min": player.get("actions_per_min"),
+            "camps_stacked": player.get("camps_stacked"),
+            "rune_pickups": player.get("rune_pickups"),
+            "courier_kills": player.get("courier_kills"),
+            "pings": player.get("pings"),
+        },
+        "objectives": {
+            "tower_kills": player.get("tower_kills"),
+            "roshan_kills": player.get("roshan_kills"),
+        },
+        "usage": {
+            "top_item_uses": _top_usage(player.get("item_uses")),
+            "top_ability_uses": _top_usage(player.get("ability_uses")),
+        },
+    }
+
+
 def _event_source_label(source):
     labels = {
         "opendota_parsed_logs": "OpenDota解析日志",
@@ -911,6 +1001,7 @@ def _build_timeline(match_data, stratz_player, duration_min, opendota_player=Non
         "tower_windows": _top_windows(normalized["towerDamagePerMinute"], "推塔窗口"),
         "last_hits_by_minute": lh_by_min,
         "gold_by_minute": normalized["goldPerMinute"],
+        "experience_by_minute": normalized["experiencePerMinute"],
         "hero_damage_by_minute": normalized["heroDamagePerMinute"],
         "tower_damage_by_minute": normalized["towerDamagePerMinute"],
     }
@@ -1636,8 +1727,53 @@ def _summarize_death_objective_windows(windows):
     }
 
 
-def _build_events(stratz_player, opendota_player=None, opendota_data=None, expected_deaths=0):
+def _select_complete_event_log(candidates, expected_count=0):
+    available = [candidate for candidate in candidates if candidate[0]]
+    if not available:
+        return [], None
+    expected = int(expected_count or 0)
+    events, source, _priority = max(
+        available,
+        key=lambda candidate: (
+            bool(expected and len(candidate[0]) == expected),
+            min(len(candidate[0]), expected or len(candidate[0])),
+            candidate[2],
+        ),
+    )
+    return events, source
+
+
+def _build_events(
+    stratz_player,
+    opendota_player=None,
+    opendota_data=None,
+    expected_deaths=0,
+    expected_kills=0,
+    expected_assists=0,
+):
     playback = (stratz_player or {}).get("playbackData") or {}
+    purchase_payload_available = (
+        isinstance((opendota_player or {}).get("purchase_log"), list)
+        or isinstance(playback.get("purchaseEvents"), list)
+    )
+    fight_payload_available = any(
+        isinstance(value, list)
+        for value in (
+            (opendota_player or {}).get("kills_log"),
+            (opendota_player or {}).get("assists_log"),
+            (opendota_player or {}).get("assist_log"),
+            playback.get("killEvents"),
+            playback.get("assistEvents"),
+        )
+    )
+    vision_event_payload_available = (
+        isinstance((opendota_player or {}).get("obs_log"), list)
+        and isinstance((opendota_player or {}).get("sen_log"), list)
+    )
+    objective_payload_available = (
+        isinstance(opendota_data, dict)
+        and isinstance(opendota_data.get("objectives"), list)
+    )
     stratz_purchases = _normalize_timed_events(playback.get("purchaseEvents"), item_events=True, source="stratz")
     stratz_deaths = _normalize_timed_events(playback.get("deathEvents"), source="stratz")
     stratz_kills = _normalize_timed_events(playback.get("killEvents"), source="stratz")
@@ -1680,7 +1816,7 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
 
     source_parts = set()
     objectives = _normalize_opendota_objectives(opendota_data, opendota_player)
-    if objectives:
+    if objective_payload_available:
         source_parts.add("opendota_objectives")
 
     purchases = opendota_purchases or stratz_purchases
@@ -1727,23 +1863,25 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
     if death_position_count:
         source_parts.update(position_sources)
 
-    kills = opendota_kills or stratz_kills
-    kill_source = None
-    if opendota_kills:
-        kill_source = "opendota_parsed_logs"
-        source_parts.add("opendota_parsed_logs")
-    elif stratz_kills:
-        kill_source = "stratz_playback"
-        source_parts.add("stratz_playback")
+    kills, kill_source = _select_complete_event_log(
+        (
+            (opendota_kills, "opendota_parsed_logs", 2),
+            (stratz_kills, "stratz_playback", 1),
+        ),
+        expected_kills,
+    )
+    if kill_source:
+        source_parts.add(kill_source)
 
-    assists = opendota_assists or stratz_assists
-    assist_source = None
-    if opendota_assists:
-        assist_source = "opendota_parsed_logs"
-        source_parts.add("opendota_parsed_logs")
-    elif stratz_assists:
-        assist_source = "stratz_playback"
-        source_parts.add("stratz_playback")
+    assists, assist_source = _select_complete_event_log(
+        (
+            (opendota_assists, "opendota_parsed_logs", 2),
+            (stratz_assists, "stratz_playback", 1),
+        ),
+        expected_assists,
+    )
+    if assist_source:
+        source_parts.add(assist_source)
 
     vision_events = opendota_observer_wards + opendota_sentry_wards
     has_vision_log = bool(vision_events) or bool(vision_summary.get("available"))
@@ -1763,8 +1901,34 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         "total": len(objectives),
     }
     expected_deaths = int(expected_deaths or 0)
+    expected_kills = int(expected_kills or 0)
+    expected_assists = int(expected_assists or 0)
     observed_deaths = len(deaths)
     missing_deaths = max(expected_deaths - observed_deaths, 0)
+    timed_kills = len(kills)
+    timed_assists = len(assists)
+    expected_fights = expected_kills + expected_assists
+    matched_timed_fights = (
+        min(timed_kills, expected_kills) + min(timed_assists, expected_assists)
+    )
+    fight_timing_coverage_pct = (
+        round(matched_timed_fights / expected_fights * 100)
+        if expected_fights else 100
+    )
+    fight_timing_complete = (
+        timed_kills == expected_kills and timed_assists == expected_assists
+    )
+    if fight_timing_complete:
+        fight_timing_coverage_label = (
+            f"击杀时间 {timed_kills}/{expected_kills}；"
+            f"助攻时间 {timed_assists}/{expected_assists}；事件计数与记分板一致"
+        )
+    else:
+        fight_timing_coverage_label = (
+            f"事件源记录击杀{timed_kills}条（记分板{expected_kills}）、"
+            f"助攻{timed_assists}条（记分板{expected_assists}）；"
+            f"可匹配覆盖{fight_timing_coverage_pct}%，计数口径不一致"
+        )
     if expected_deaths:
         death_coverage_label = f"已定位 {observed_deaths}/{expected_deaths} 次死亡"
     elif observed_deaths:
@@ -1798,17 +1962,28 @@ def _build_events(stratz_player, opendota_player=None, opendota_data=None, expec
         ),
         "kills": kills,
         "assists": assists,
+        "kill_count_expected": expected_kills,
+        "assist_count_expected": expected_assists,
+        "kill_timing_count": timed_kills,
+        "assist_timing_count": timed_assists,
+        "fight_timing_complete": fight_timing_complete,
+        "fight_timing_coverage_pct": fight_timing_coverage_pct,
+        "fight_timing_coverage_label": fight_timing_coverage_label,
         "observer_wards": opendota_observer_wards,
         "sentry_wards": opendota_sentry_wards,
         "vision_events": sorted(vision_events, key=lambda item: item["time"]),
         "vision_summary": vision_summary,
-        "objective_source": "opendota_objectives" if objectives else None,
+        "objective_source": "opendota_objectives" if objective_payload_available else None,
         "objectives": objectives,
         "objective_summary": objective_summary,
-        "has_objective_log": bool(objectives),
+        "has_objective_log": objective_payload_available,
+        "has_objective_payload": objective_payload_available,
         "has_purchase_timeline": bool(purchases),
+        "has_purchase_payload": purchase_payload_available,
         "has_fight_log": bool(deaths or kills or assists),
+        "has_fight_payload": fight_payload_available,
         "has_vision_log": has_vision_log,
+        "has_vision_event_payload": vision_event_payload_available,
         "missing": {
             "purchases": not bool(purchases),
             "deaths": not bool(deaths),
@@ -2806,6 +2981,245 @@ def _benchmark_role(context):
     return "carry"
 
 
+def _field_ledger_item(
+    identifier,
+    label,
+    source,
+    *,
+    required,
+    applicable=True,
+    expected_fields=None,
+    present_fields=None,
+    coverage_pct=None,
+    weight=1,
+    details=None,
+):
+    expected = list(expected_fields or [])
+    present = list(present_fields or [])
+    if not applicable:
+        status = "not_applicable"
+        coverage = 100
+        missing = []
+    else:
+        if coverage_pct is None:
+            coverage = round(len(present) / len(expected) * 100) if expected else 0
+        else:
+            coverage = round(max(0, min(100, coverage_pct)))
+        status = "available" if coverage == 100 else "missing" if coverage == 0 else "partial"
+        missing = [field for field in expected if field not in set(present)]
+    coverage_label = (
+        "本局不适用"
+        if status == "not_applicable"
+        else f"{len(present)}/{len(expected)}个字段，覆盖{coverage}%"
+        if expected
+        else f"覆盖{coverage}%"
+    )
+    item = {
+        "id": identifier,
+        "label": label,
+        "source": source,
+        "required": bool(required),
+        "applicable": bool(applicable),
+        "status": status,
+        "coverage_pct": coverage,
+        "coverage": coverage_label,
+        "expected_fields": expected,
+        "present_fields": present,
+        "missing_fields": missing,
+        "weight": weight,
+    }
+    item.update(details or {})
+    return item
+
+
+def _build_field_ledger(result, match_data, stratz_player=None, opendota_data=None):
+    timeline = result.get("timeline") or {}
+    events = result.get("events") or {}
+    context = result.get("context") or {}
+    performance = result.get("performance_context") or {}
+    extended = result.get("extended_metrics") or {}
+    role_id = (result.get("role_profile") or {}).get("id") or "unknown"
+    deaths_expected = int((result.get("kda") or {}).get("deaths") or 0)
+    kills_assists_expected = int((result.get("kda") or {}).get("kills") or 0) + int(
+        (result.get("kda") or {}).get("assists") or 0
+    )
+
+    core_fields = (
+        "kills", "deaths", "assists", "gold_per_min", "xp_per_min", "last_hits",
+        "denies", "hero_damage", "tower_damage", "hero_healing", "net_worth", "level",
+    )
+    core_present = [field for field in core_fields if field in match_data and match_data.get(field) is not None]
+
+    players = (opendota_data or {}).get("players")
+    participant_count = len(players) if isinstance(players, list) else 0
+    participant_expected = [f"player_{index + 1}" for index in range(10)]
+    participant_present = [f"player_{index + 1}" for index in range(min(participant_count, 10))]
+
+    role_fields = ("position", "lane", "role")
+    role_present = [field for field in role_fields if (stratz_player or {}).get(field) is not None]
+
+    benchmark_metrics = {
+        item.get("id")
+        for item in (result.get("opendota_benchmarks") or {}).get("metrics") or []
+        if isinstance(item, dict)
+    }
+    benchmark_expected = (
+        "gold_per_min", "xp_per_min", "last_hits_per_min",
+        "hero_damage_per_min", "tower_damage",
+    )
+    benchmark_present = [field for field in benchmark_expected if field in benchmark_metrics]
+
+    performance_fields = (
+        "lane_efficiency_pct", "teamfight_participation_pct",
+        "dead_time_seconds", "buyback_count",
+    )
+    performance_present = [field for field in performance_fields if performance.get(field) is not None]
+
+    extended_expected = (
+        "actions_per_min", "stuns", "damage_taken", "obs_placed", "sen_placed",
+        "observer_kills", "sentry_kills", "camps_stacked", "rune_pickups",
+        "courier_kills", "tower_kills", "roshan_kills", "buyback_count",
+        "item_uses", "ability_uses",
+    )
+    extended_observed = set(extended.get("observed_fields") or [])
+    extended_present = [field for field in extended_expected if field in extended_observed]
+
+    death_observed = int(events.get("death_count_observed") or 0)
+    death_position_count = int(events.get("death_position_count") or 0)
+    fight_observed = len(events.get("kills") or []) + len(events.get("assists") or [])
+    minute_count = int(timeline.get("duration_minutes_observed") or 0)
+    # Minute arrays cover completed minutes; the final partial minute is not missing data.
+    duration_seconds = int(result.get("duration_seconds") or 0)
+    duration_target = max(
+        1,
+        duration_seconds // 60 if duration_seconds else int(result.get("duration_min") or 0),
+    )
+
+    return [
+        _field_ledger_item(
+            "core_stats", "比赛核心数据", "OpenDota比赛详情",
+            required=True, expected_fields=core_fields, present_fields=core_present, weight=3,
+        ),
+        _field_ledger_item(
+            "participants", "十人对局数据", "OpenDota比赛详情",
+            required=True, expected_fields=participant_expected, present_fields=participant_present,
+            coverage_pct=participant_count / 10 * 100, weight=2,
+        ),
+        _field_ledger_item(
+            "role_position", "位置与分路", "STRATZ玩家详情",
+            required=True, expected_fields=role_fields, present_fields=role_present, weight=2,
+        ),
+        _field_ledger_item(
+            "ability_build", "技能加点", "STRATZ/OpenDota",
+            required=True, expected_fields=["ability_upgrades"],
+            present_fields=["ability_upgrades"] if (result.get("skills") or {}).get("upgrades") else [],
+        ),
+        _field_ledger_item(
+            "final_items", "最终装备", "OpenDota比赛详情",
+            required=True, expected_fields=["final_items"],
+            present_fields=["final_items"] if (result.get("items") or {}).get("final_items") else [],
+        ),
+        _field_ledger_item(
+            "minute_lh", "分钟补刀", timeline.get("source_label") or "未返回",
+            required=True, expected_fields=["last_hits_by_minute"],
+            present_fields=["last_hits_by_minute"] if timeline.get("last_hits_by_minute") else [],
+            coverage_pct=min(100, minute_count / duration_target * 100), weight=2,
+        ),
+        _field_ledger_item(
+            "minute_gold", "分钟经济", timeline.get("source_label") or "未返回",
+            required=True, expected_fields=["gold_by_minute"],
+            present_fields=["gold_by_minute"] if timeline.get("gold_by_minute") else [],
+            coverage_pct=min(100, len(timeline.get("gold_by_minute") or []) / duration_target * 100), weight=2,
+        ),
+        _field_ledger_item(
+            "minute_xp", "分钟经验", timeline.get("source_label") or "未返回",
+            required=True, expected_fields=["experience_by_minute"],
+            present_fields=["experience_by_minute"] if timeline.get("experience_by_minute") else [],
+            coverage_pct=min(100, len(timeline.get("experience_by_minute") or []) / duration_target * 100), weight=2,
+        ),
+        _field_ledger_item(
+            "minute_damage", "分钟英雄/建筑伤害", timeline.get("source_label") or "未返回",
+            required=True, expected_fields=["hero_damage_by_minute", "tower_damage_by_minute"],
+            present_fields=[
+                field for field in ("hero_damage_by_minute", "tower_damage_by_minute")
+                if timeline.get(field)
+            ], weight=2,
+        ),
+        _field_ledger_item(
+            "purchases", "购买时间", _event_source_label(events.get("purchase_source")),
+            required=True, expected_fields=["purchase_events"],
+            present_fields=["purchase_events"] if events.get("has_purchase_payload") and events.get("purchases") else [],
+            weight=2,
+        ),
+        _field_ledger_item(
+            "deaths", "死亡时间", "STRATZ/OpenDota死亡事件",
+            required=deaths_expected > 0, applicable=deaths_expected > 0,
+            expected_fields=[f"death_{index + 1}" for index in range(deaths_expected)],
+            present_fields=[f"death_{index + 1}" for index in range(min(death_observed, deaths_expected))],
+            coverage_pct=(death_observed / deaths_expected * 100) if deaths_expected else 100,
+            weight=3,
+        ),
+        _field_ledger_item(
+            "death_positions", "死亡坐标", "STRATZ位置采样/OpenDota团战坐标",
+            required=deaths_expected > 0, applicable=deaths_expected > 0,
+            expected_fields=[f"death_position_{index + 1}" for index in range(deaths_expected)],
+            present_fields=[f"death_position_{index + 1}" for index in range(min(death_position_count, deaths_expected))],
+            coverage_pct=(death_position_count / deaths_expected * 100) if deaths_expected else 100,
+            weight=2,
+        ),
+        _field_ledger_item(
+            "fight_events", "个人击杀/助攻时间", _event_source_label(events.get("fight_source")),
+            required=kills_assists_expected > 0, applicable=kills_assists_expected > 0,
+            expected_fields=["scoreboard_kills", "scoreboard_assists", "timed_fight_events"],
+            present_fields=[
+                "scoreboard_kills",
+                "scoreboard_assists",
+                *(["timed_fight_events"] if fight_observed else []),
+            ],
+            weight=2,
+            details={
+                "aggregate_expected_count": kills_assists_expected,
+                "timed_event_count": fight_observed,
+                "timing_coverage_pct": events.get("fight_timing_coverage_pct"),
+                "timing_complete": events.get("fight_timing_complete"),
+            },
+        ),
+        _field_ledger_item(
+            "objectives", "地图目标事件", "OpenDota objectives",
+            required=True, expected_fields=["objectives_payload"],
+            present_fields=["objectives_payload"] if events.get("has_objective_payload") else [],
+            weight=2,
+        ),
+        _field_ledger_item(
+            "vision_events", "视野事件", "OpenDota obs_log/sen_log",
+            required=role_id == "support", expected_fields=["obs_log", "sen_log"],
+            present_fields=["obs_log", "sen_log"] if events.get("has_vision_event_payload") else [],
+            weight=2,
+        ),
+        _field_ledger_item(
+            "hero_benchmarks", "同英雄样本百分位", "OpenDota benchmarks",
+            required=True, expected_fields=benchmark_expected, present_fields=benchmark_present, weight=2,
+        ),
+        _field_ledger_item(
+            "performance_context", "对线/参战/死亡占时", "OpenDota玩家汇总",
+            required=True, expected_fields=performance_fields, present_fields=performance_present, weight=2,
+        ),
+        _field_ledger_item(
+            "extended_metrics", "扩展战斗/经济/活动数据", "OpenDota解析字段",
+            required=True, expected_fields=extended_expected, present_fields=extended_present, weight=2,
+        ),
+    ]
+
+
+def _field_ledger_score(field_ledger):
+    required = [item for item in field_ledger if item.get("required") and item.get("applicable")]
+    total_weight = sum(item.get("weight", 1) for item in required)
+    if not required or total_weight <= 0:
+        return 0
+    weighted = sum(item.get("coverage_pct", 0) * item.get("weight", 1) for item in required)
+    return round(weighted / total_weight)
+
+
 def _build_evidence_sources(result):
     timeline = result.get("timeline") or {}
     events = result.get("events") or {}
@@ -2899,15 +3313,22 @@ def _build_evidence_sources(result):
             "id": "fight_events",
             "label": "击杀/助攻事件",
             "source": _event_source_label(events.get("fight_source")),
-            "coverage": f"{fight_count}条个人击杀/助攻事件" if fight_count else "未获取个人击杀/助攻事件",
+            "coverage": (
+                events.get("fight_timing_coverage_label")
+                if fight_count else "未获取个人击杀/助攻事件"
+            ),
             "status": "available" if fight_count else "missing",
         },
         {
             "id": "objectives",
             "label": "地图目标事件",
             "source": _event_source_label(events.get("objective_source")),
-            "coverage": f"{objective_count}条塔、兵营、肉山、盾或折磨者事件" if objective_count else "未获取地图目标事件",
-            "status": "available" if objective_count else "missing",
+            "coverage": (
+                f"{objective_count}条塔、兵营、肉山、盾或折磨者事件"
+                if objective_count else "字段已返回，本局0条地图目标事件"
+                if events.get("has_objective_log") else "未获取地图目标事件"
+            ),
+            "status": "available" if events.get("has_objective_log") else "missing",
         },
         {
             "id": "vision_events",
@@ -3059,6 +3480,17 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
     if expected_deaths > observed_deaths:
         limitations.append(f"死亡时间线不完整：公共数据源定位{observed_deaths}/{expected_deaths}次死亡")
 
+    if (
+        ((result.get("kda") or {}).get("kills", 0) or 0)
+        + ((result.get("kda") or {}).get("assists", 0) or 0)
+        and not events.get("fight_timing_complete")
+    ):
+        limitations.append(
+            "击杀/助攻事件时间覆盖："
+            f"{events.get('fight_timing_coverage_label') or '事件源未返回完整时间'}；"
+            "记分板K/A汇总仍为权威总数，窗口公式只使用真实带时间事件，不补造时间点"
+        )
+
     if role_profile.get("id") == "support" and not has_vision_log:
         limitations.append("辅助位缺少视野事件，不能精确评价插眼/排眼质量")
 
@@ -3068,19 +3500,53 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
         limitations.append(f"OpenDota抓取状态: {warning}")
 
     evidence_sources = _build_evidence_sources(result)
-    score = min(score, _evidence_coverage_score(evidence_sources))
+    field_ledger = _build_field_ledger(
+        result,
+        match_data,
+        stratz_player=stratz_player,
+        opendota_data=opendota_data,
+    )
+    blocking_gaps = [
+        item["id"]
+        for item in field_ledger
+        if item.get("required") and item.get("applicable") and item.get("status") != "available"
+    ]
+    score = _field_ledger_score(field_ledger)
     explained_ids = {"timeline", "purchases", "fight_events", "objectives"}
     if expected_deaths > observed_deaths:
         explained_ids.add("deaths")
     if role_profile.get("id") == "support" and not has_vision_log:
         explained_ids.add("vision_events")
     limitations.extend(_evidence_coverage_limitations(evidence_sources, explained_ids))
+    existing_limits = set(limitations)
+    for item in field_ledger:
+        if item["id"] not in blocking_gaps:
+            continue
+        message = (
+            f"{item['label']}覆盖不足：{item['coverage']}；"
+            f"缺少{', '.join(item['missing_fields']) or '部分返回值'}"
+        )
+        if message not in existing_limits:
+            limitations.append(message)
+            existing_limits.add(message)
+
+    required_items = [item for item in field_ledger if item.get("required") and item.get("applicable")]
+    required_complete = sum(item.get("status") == "available" for item in required_items)
 
     return {
         "score": min(score, 100),
         "available": available,
         "limitations": limitations,
         "evidence_sources": evidence_sources,
+        "field_ledger": field_ledger,
+        "blocking_gaps": blocking_gaps,
+        "required_complete": not blocking_gaps,
+        "coverage_summary": {
+            "required_complete": required_complete,
+            "required_total": len(required_items),
+            "all_available": sum(item.get("status") in {"available", "not_applicable"} for item in field_ledger),
+            "all_total": len(field_ledger),
+        },
     }
 
 

@@ -1,0 +1,219 @@
+import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _analysis_fixture():
+    return {
+        "duration_min": 40,
+        "role_profile": {"id": "pos1", "label": "1号位"},
+        "timeline": {
+            "available": True,
+            "ten_min_last_hits": 52,
+            "last_hits_by_minute": [5] * 40,
+            "gold_by_minute": [500] * 40,
+            "experience_by_minute": [600] * 40,
+            "low_efficiency_windows": [{"start_minute": 20, "end_minute": 23}],
+            "death_resource_deltas": [{
+                "death_time": 1440,
+                "minute": 24.0,
+                "lh_per_min_delta": -3.0,
+                "avg_gpm_delta": -200.0,
+            }],
+        },
+        "events": {
+            "deaths": [{"minute": 24.0}, {"minute": 31.0}],
+            "death_objective_windows": [{"death_minute": 24.0, "outcome": "lost"}],
+            "post_item_windows": [{"classification": "low_conversion"}],
+        },
+        "performance_context": {
+            "lane_efficiency_pct": 68,
+            "teamfight_participation_pct": 54,
+            "dead_time_share_pct": 11.5,
+        },
+        "opendota_benchmarks": {
+            "metrics": [
+                {"id": "gold_per_min", "percentile": 72},
+                {"id": "xp_per_min", "percentile": 65},
+                {"id": "last_hits_per_min", "percentile": 74},
+                {"id": "hero_damage_per_min", "percentile": 58},
+                {"id": "tower_damage", "percentile": 61},
+            ],
+        },
+        "extended_metrics": {
+            "available": True,
+            "combat": {"stuns_seconds": 8.4, "hero_damage_taken": 22000},
+            "activity": {"actions_per_min": 278, "camps_stacked": 1},
+            "objectives": {"tower_kills": 2, "roshan_kills": 0},
+        },
+        "data_quality": {"score": 100, "limitations": []},
+        "review_findings": [
+            {
+                "priority": "medium",
+                "category": "item_timing",
+                "category_label": "装备后转化",
+                "evidence": "关键装备后2分钟没有参战或推塔事件。",
+                "why_it_matters": "强势期没有转成地图收益。",
+                "action": "下一局关键装备完成后2分钟内推塔或参战。",
+                "replay_check": "系统检查真实购买、参战和推塔事件。",
+                "training_goal": "关键装备后立刻执行地图动作。",
+                "success_metric": "关键装备后2分钟内至少1次参战或推塔。",
+            },
+            {
+                "priority": "high",
+                "category": "death_objective_window",
+                "category_label": "死亡目标成本",
+                "evidence": "24.0分死亡后90秒内丢失1个地图目标。",
+                "why_it_matters": "死亡直接让出目标窗口。",
+                "action": "下一局目标前90秒避免无收益死亡。",
+                "replay_check": "系统检查真实死亡和目标事件。",
+                "training_goal": "目标前死亡降为0次。",
+                "success_metric": "目标前90秒死亡=0。",
+            },
+        ],
+    }
+
+
+class FormulaEngineTests(unittest.TestCase):
+    def _engine(self):
+        try:
+            from analysis.formula_engine import build_formula_review
+        except ImportError as exc:
+            self.fail(f"deterministic formula engine is missing: {exc}")
+        return build_formula_review
+
+    def test_formula_review_is_repeatable_and_exposes_equations(self):
+        build_formula_review = self._engine()
+        analysis = _analysis_fixture()
+
+        first = build_formula_review(analysis)
+        second = build_formula_review(analysis)
+
+        self.assertEqual(first, second)
+        self.assertEqual(first["analysis_mode"], "deterministic_formula")
+        self.assertGreaterEqual(len(first["scorecards"]), 4)
+        for card in first["scorecards"]:
+            self.assertIn("formula_id", card)
+            self.assertIn("equation", card)
+            self.assertTrue(card["inputs"])
+            self.assertGreaterEqual(card["score"], 0)
+            self.assertLessEqual(card["score"], 100)
+
+    def test_formula_ranking_prioritizes_measured_death_objective_cost(self):
+        review = self._engine()(_analysis_fixture())
+
+        self.assertEqual(review["review_points"][0]["category"], "death_objective_window")
+        self.assertGreater(review["review_points"][0]["formula_score"], review["review_points"][1]["formula_score"])
+        self.assertEqual(
+            review["next_actions"][0]["action"],
+            "下一局目标前90秒避免无收益死亡。",
+        )
+
+    def test_missing_inputs_are_omitted_instead_of_estimated(self):
+        analysis = _analysis_fixture()
+        analysis["performance_context"] = {}
+        analysis["opendota_benchmarks"] = {"metrics": []}
+
+        review = self._engine()(analysis)
+
+        self.assertTrue(review["unscored_dimensions"])
+        serialized = str(review)
+        self.assertNotIn("estimated", serialized.lower())
+        self.assertNotIn("推断", serialized)
+
+    def test_survival_score_counts_unique_objective_deaths_and_real_resource_drops(self):
+        analysis = _analysis_fixture()
+        analysis["events"]["death_objective_windows"] = [
+            {"death_time": 1440, "objective_kind": "tower"},
+            {"death_time": 1440, "objective_kind": "barracks"},
+        ]
+
+        review = self._engine()(analysis)
+        survival = next(card for card in review["scorecards"] if card["id"] == "survival")
+        inputs = {item["id"]: item["value"] for item in survival["inputs"]}
+
+        self.assertEqual(inputs["death_objective_losses"], 1)
+        self.assertEqual(inputs["death_resource_drops"], 1)
+        self.assertIn("1x12", survival["equation"])
+        self.assertIn("1x8", survival["equation"])
+
+    def test_action_selection_suppresses_death_overlapped_farm_and_raw_coordinate_drills(self):
+        analysis = _analysis_fixture()
+        analysis["events"]["deaths"] = [{"minute": 21.0}]
+        analysis["review_findings"].extend([
+            {
+                "priority": "medium",
+                "category": "resource_continuity",
+                "category_label": "资源连续性",
+                "evidence": "20-23分钟低效率窗口。",
+                "why_it_matters": "资源下降。",
+                "action": "下一局保持资源路线。",
+                "replay_check": "系统检查分钟数组。",
+                "training_goal": "减少低效率窗口。",
+                "success_metric": "低效率窗口=0。",
+            },
+            {
+                "priority": "high",
+                "category": "death_position_pattern",
+                "category_label": "重复死亡坐标",
+                "evidence": "两个raw坐标簇。",
+                "why_it_matters": "重复死亡。",
+                "action": "下一局避开这些raw坐标。",
+                "replay_check": "系统检查坐标。",
+                "training_goal": "减少坐标簇。",
+                "success_metric": "坐标簇<=1。",
+            },
+        ])
+
+        review = self._engine()(analysis)
+        categories = [item["category"] for item in review["review_points"]]
+
+        self.assertNotIn("resource_continuity", categories)
+        self.assertNotIn("death_position_pattern", categories)
+
+    def test_action_selection_does_not_fill_quota_with_duplicate_dimensions(self):
+        analysis = _analysis_fixture()
+        analysis["review_findings"] = []
+        for category in ("death_resource_overlap", "death_resource_delta"):
+            analysis["review_findings"].append({
+                "priority": "high",
+                "category": category,
+                "category_label": "死亡资源下降",
+                "evidence": "死亡后资源下降。",
+                "why_it_matters": "复活后恢复变慢。",
+                "action": "复活后先收安全资源。",
+                "replay_check": "系统检查真实资源数组。",
+                "training_goal": "减少死亡后资源下降。",
+                "success_metric": "死亡后资源下降窗口<=1。",
+            })
+
+        review = self._engine()(analysis)
+        categories = [item["category"] for item in review["review_points"]]
+
+        self.assertFalse(
+            {"death_resource_overlap", "death_resource_delta"}.issubset(categories)
+        )
+
+    def test_runtime_sources_have_no_model_configuration_or_gateway(self):
+        paths = [
+            ROOT / "config.py",
+            ROOT / "wrangler.toml",
+            ROOT / "worker_entry.py",
+            ROOT / "worker" / "service.py",
+            ROOT / "worker" / "cloudflare_adapters.py",
+            ROOT / "main.py",
+            ROOT / "web" / "match.html",
+            ROOT / "web" / "static" / "match.js",
+        ]
+        forbidden = ("AI_MODEL", "WorkersAIGateway", "ai_gateway", "OPENCODE_AI", "生成 AI", "AI 教练")
+
+        for path in paths:
+            content = path.read_text(encoding="utf-8")
+            for marker in forbidden:
+                self.assertNotIn(marker, content, f"{path.name} still contains {marker}")
+
+
+if __name__ == "__main__":
+    unittest.main()

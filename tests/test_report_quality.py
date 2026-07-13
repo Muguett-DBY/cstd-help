@@ -6,8 +6,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import analysis.ai_analyst as ai_analyst
-from analysis.ai_analyst import _build_analysis_prompt, _generate_fallback_analysis, _is_ai_response_safe
 from analysis.analyzer import (
     _build_post_item_windows,
     _build_review_findings,
@@ -15,7 +13,12 @@ from analysis.analyzer import (
     analyze_match,
     get_hero_name,
 )
+from analysis.formula_engine import build_formula_review
 import db.schema as schema
+
+
+def _generate_fallback_analysis(analysis, *_args):
+    return build_formula_review(analysis)
 
 
 class ReportQualityTests(unittest.TestCase):
@@ -498,9 +501,9 @@ class ReportQualityTests(unittest.TestCase):
         self.assertNotIn("说明", map_finding["why_it_matters"])
         self.assertNotIn("空走", lane_finding["action"])
         self.assertIn("死亡占时 7分00秒（20.0%）", death_finding["evidence"])
-        prompt = _build_analysis_prompt(result, "Anti-Mage", True)
-        self.assertIn("OpenDota 对局画像", prompt)
-        self.assertIn('"teamfight_participation_pct": 36', prompt)
+        review = build_formula_review(result)
+        conversion = next(card for card in review["scorecards"] if card["id"] == "conversion")
+        self.assertTrue(any(item["id"] == "teamfight_participation_pct" for item in conversion["inputs"]))
 
     def test_generated_report_shows_opendota_performance_context(self):
         from report.generator import generate_report
@@ -576,10 +579,10 @@ class ReportQualityTests(unittest.TestCase):
         generator.REPORT_DIR = old_report_dir
 
         self.assertIn('id="decision-snapshot"', html)
-        self.assertIn('id="coach-summary"', html)
+        self.assertIn('id="formula-summary"', html)
         decision_index = html.index('id="decision-snapshot"')
-        coach_index = html.index('id="coach-summary"')
-        self.assertLess(decision_index, coach_index)
+        formula_index = html.index('id="formula-summary"')
+        self.assertLess(decision_index, formula_index)
         self.assertIn("上分决策卡", html)
         self.assertIn("本局最该修", html)
         self.assertIn(top_finding["category_label"], html)
@@ -712,16 +715,13 @@ class ReportQualityTests(unittest.TestCase):
         self.assertLess(result["data_quality"]["score"], 60)
         self.assertIn("死亡时间", " ".join(result["data_quality"]["limitations"]))
 
-    def test_prompt_is_evidence_driven_and_names_data_gaps(self):
+    def test_formula_review_names_missing_dimensions_without_estimating(self):
         analysis = analyze_match(self._base_match())
-        prompt = _build_analysis_prompt(analysis, "Anti-Mage", True)
+        review = build_formula_review(analysis)
 
-        self.assertIn("数据完整性", prompt)
-        self.assertIn("LH/min", prompt)
-        self.assertIn("伤害/分钟", prompt)
-        self.assertIn("最终装备", prompt)
-        self.assertIn("不要编造", prompt)
-        self.assertIn("缺少10分钟补刀/经济时间线", prompt)
+        self.assertTrue(review["unscored_dimensions"])
+        self.assertTrue(all("未计算也未估算" in item["reason"] for item in review["unscored_dimensions"]))
+        self.assertIn("minute_lh", analysis["data_quality"]["blocking_gaps"])
 
     def test_data_quality_does_not_repeat_specific_gaps_as_generic_coverage_gaps(self):
         limitations = analyze_match(self._base_match())["data_quality"]["limitations"]
@@ -738,24 +738,44 @@ class ReportQualityTests(unittest.TestCase):
         ):
             self.assertFalse(any(duplicate in item for item in limitations), duplicate)
 
-    def test_fallback_analysis_uses_limitations_and_priority_actions(self):
+    def test_formula_review_keeps_limitations_out_of_priority_actions(self):
         analysis = analyze_match(self._base_match())
-        text = _generate_fallback_analysis(analysis, "Anti-Mage", True)
+        review = build_formula_review(analysis)
 
-        self.assertIn("数据完整度", text)
-        self.assertIn("下一局只盯这几件事", text)
-        self.assertIn("LH/min", text)
-        self.assertNotIn("整体表现不错，继续保持", text)
+        self.assertEqual(review["analysis_mode"], "deterministic_formula")
+        self.assertEqual(review["next_actions"], [])
+        self.assertEqual(review["data_limits"], analysis["data_quality"]["limitations"])
 
-    def test_fallback_analysis_does_not_call_high_death_game_survivable(self):
-        analysis = analyze_match(self._base_match())
-        text = _generate_fallback_analysis(analysis, "Anti-Mage", True)
+    def test_formula_review_prioritizes_high_death_cost(self):
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [5] * 35,
+                    "goldPerMinute": [500] * 35,
+                    "experiencePerMinute": [600] * 35,
+                    "heroDamagePerMinute": [300] * 35,
+                    "towerDamagePerMinute": [50] * 35,
+                },
+                "playbackData": {
+                    "deathEvents": [
+                        {"time": minute * 60}
+                        for minute in (5, 10, 15, 20, 25, 30)
+                    ],
+                },
+            }],
+        }
+        analysis = analyze_match(self._base_match(), stratz_data=stratz_data)
+        review = build_formula_review(analysis)
 
-        self.assertIn("当前最影响胜负的是死亡成本", text)
-        self.assertNotIn("核心指标没有暴露单点崩盘", text)
-        self.assertNotIn("生存能力强", text)
+        self.assertTrue(review["review_points"][0]["category"].startswith("death"))
+        self.assertIn("死亡", review["conclusion"])
 
-    def test_fallback_analysis_names_top_finding_instead_of_generic_summary(self):
+    def test_formula_review_names_top_finding_instead_of_generic_summary(self):
         match = self._base_match()
         match.update({
             "kills": 12,
@@ -786,11 +806,13 @@ class ReportQualityTests(unittest.TestCase):
             }],
         }
         analysis = analyze_match(match, stratz_data=stratz_data)
-        text = _generate_fallback_analysis(analysis, "Beastmaster", True)
+        review = build_formula_review(analysis)
 
-        self.assertIn("本局优先复盘死亡成本", text)
-        self.assertNotIn("核心指标没有暴露单点崩盘", text)
-        self.assertNotIn("生存能力强", text)
+        self.assertTrue(review["review_points"][0]["category"].startswith("death"))
+        self.assertEqual(review["review_points"][0]["evidence"], next(
+            item["evidence"] for item in analysis["review_findings"]
+            if item["category"] == review["review_points"][0]["category"]
+        ))
 
     def test_saved_stratz_detail_round_trips_as_json(self):
         old_db_path = schema.DB_PATH
@@ -2110,7 +2132,7 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("flex-wrap: wrap;", mobile_styles)
         self.assertIn("overflow-x: visible;", mobile_styles)
 
-    def test_review_findings_are_structured_and_prompt_is_limited_to_them(self):
+    def test_review_findings_are_structured_and_formula_review_is_limited_to_them(self):
         analysis = analyze_match(self._base_match())
 
         self.assertTrue(analysis["review_findings"])
@@ -2119,10 +2141,13 @@ class ReportQualityTests(unittest.TestCase):
                 self.assertIn(key, finding)
                 self.assertTrue(finding[key])
 
-        prompt = _build_analysis_prompt(analysis, "Anti-Mage", True)
-        self.assertIn("review_findings", prompt)
-        self.assertIn("不得新增未在 review_findings 出现的问题", prompt)
-        self.assertNotIn("职业选手平均", prompt)
+        review = build_formula_review(analysis)
+        source_categories = {item["category"] for item in analysis["review_findings"]}
+        self.assertTrue(all(item["category"] in source_categories for item in review["review_points"]))
+        for point in review["review_points"]:
+            source = next(item for item in analysis["review_findings"] if item["category"] == point["category"])
+            self.assertEqual(point["evidence"], source["evidence"])
+            self.assertEqual(point["action"], source["action"])
 
     def test_report_template_contains_new_coaching_sections(self):
         from report.generator import generate_report
@@ -2154,9 +2179,9 @@ class ReportQualityTests(unittest.TestCase):
             with open(path, "r", encoding="utf-8") as f:
                 html = f.read()
 
-            for text in ["下一局行动清单", "时间线诊断", "死亡/装备事件", "本局主要问题证据", "数据缺口", "教练总结"]:
+            for text in ["下一局行动清单", "时间线诊断", "死亡/装备事件", "本局主要问题证据", "数据缺口", "数据公式复盘"]:
                 self.assertIn(text, html)
-            for text in ["下一局量化目标", "训练目标", "验收标准"]:
+            for text in ["下一局量化目标", "训练目标", "验收标准", "综合执行分"]:
                 self.assertIn(text, html)
             for text in [
                 'class="skip-link"',
@@ -2745,32 +2770,25 @@ class ReportQualityTests(unittest.TestCase):
 
     def test_missing_event_data_names_public_data_gap_not_user_manual_review(self):
         analysis = analyze_match(self._base_match())
-        text = _generate_fallback_analysis(analysis, "Anti-Mage", True)
+        text = str(build_formula_review(analysis))
 
-        self.assertIn("公共数据源", text)
         self.assertNotIn("人工回看", text)
         self.assertNotIn("人工查看", text)
 
-    def test_ai_response_with_inference_or_manual_replay_language_is_rejected(self):
+    def test_formula_review_contains_no_inference_or_manual_review_language(self):
         analysis = analyze_match(self._base_match())
-        unsafe = "基于860 GPM推测你方经济领先，你需要优先回放这些时间点并回顾站位。"
-        safe = "本局最重要结论：证据来自 review_findings。系统检查已定位 2/2 次死亡。"
+        text = str(build_formula_review(analysis))
 
-        self.assertFalse(_is_ai_response_safe(unsafe, analysis))
-        self.assertTrue(_is_ai_response_safe(safe, analysis))
+        for marker in ("推测", "猜测", "人工回看", "手动检查"):
+            self.assertNotIn(marker, text)
 
-    def test_ai_analysis_defaults_to_deterministic_fallback(self):
+    def test_formula_review_is_always_deterministic(self):
         analysis = analyze_match(self._base_match())
-        old_value = ai_analyst.ENABLE_FREEFORM_AI
-        try:
-            ai_analyst.ENABLE_FREEFORM_AI = False
-            text = ai_analyst.analyze_with_ai(analysis, "Anti-Mage", True)
-        finally:
-            ai_analyst.ENABLE_FREEFORM_AI = old_value
+        first = build_formula_review(analysis)
+        second = build_formula_review(analysis)
 
-        self.assertIn("下一局只盯这几件事", text)
-        self.assertNotIn("推测", text)
-        self.assertNotIn("回放", text)
+        self.assertEqual(first, second)
+        self.assertEqual(first["analysis_mode"], "deterministic_formula")
 
     def test_saved_opendota_detail_round_trips_as_json(self):
         old_db_path = schema.DB_PATH

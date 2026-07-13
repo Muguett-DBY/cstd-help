@@ -7,7 +7,7 @@ DEFAULT_DESTINATION = ROOT / ".worker-build"
 
 ROOT_FILES = ("worker_entry.py",)
 PACKAGE_FILES = {
-    "analysis": ("__init__.py", "analyzer.py", "coach_contract.py", "evidence_contract.py"),
+    "analysis": ("__init__.py", "analyzer.py", "formula_engine.py", "evidence_contract.py"),
     "api": ("__init__.py", "normalization.py"),
 }
 

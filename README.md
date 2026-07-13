@@ -1,14 +1,14 @@
-# Dota 2 Personal Review Workbench
+# Dota 2 Deterministic Review Workbench
 
 玩家 `173776719` 的个人 Dota 2 天梯复盘工作台。线上地址：[dota.custard.top](https://dota.custard.top)。
 
 产品行为是刻意按需的：
 
 - 首页只读取缓存并显示最近 10 局；只有点击“刷新比赛”才启动 OpenDota 同步任务。
-- 进入单局时只读取比赛事实和已有复盘状态；只有点击“生成 AI 复盘”才启动分析。
-- 点击分析后优先由按需工作流获取 STRATZ + OpenDota 完整证据；远端失败或 90 秒无结果时自动降级到 OpenDota，并明确展示仍存在的数据缺口。
-- 建议必须来自实际可用的分钟级与事件级证据；降级报告不会把缺失字段写成事实，也不会生成猜测性建议。
-- AI 只排序确定性分析引擎给出的 findings，不能新增问题、数字或行动项。
+- 进入单局时只读取比赛事实和已有复盘状态；只有点击“生成数据复盘”才启动证据抓取和公式计算。
+- 点击分析后由按需工作流获取 STRATZ + OpenDota 完整证据，包括分钟经济/经验/补刀、购买、死亡、击杀助攻、位置、目标、视野、十人数据和同英雄百分位。
+- 必需字段存在缺口时，后端只继续请求解析或证据任务，不发布、不缓存建议，也不使用估算值补齐。
+- 所有结论、排序和下一局行动均由版本化确定性公式生成。项目没有大模型调用、模型绑定、Prompt 或概率式文本生成路径。
 
 ## Architecture
 
@@ -21,8 +21,8 @@ Browser
   `-- POST /api/reviews/:id -----------------> Worker
           |-- no current evidence -----------> fixed GitHub Actions workflow
           |                                     -> STRATZ + OpenDota -> versioned KV evidence
-          |-- complete evidence in KV -------> deterministic analyzer -> Workers AI ranking
-          `-- workflow failed/timed out -----> bounded OpenDota fallback -> explicit data gaps
+          |-- complete evidence in KV -------> deterministic analyzer -> formula score/ranking
+          `-- required field missing --------> parse/evidence retry; no review is published
 ```
 
 Cloudflare Pages serves `public/`. The Python Worker serves `dota.custard.top/api/*`. GitHub Actions performs both OpenDota cache refreshes and STRATZ evidence fetches because the upstream services rate-limit or block Cloudflare Worker egress. The browser never receives a service token.
@@ -40,7 +40,7 @@ The repository also retains historical static reports as an archive. They are no
 | `GET` | `/api/reviews/:id/status` | Read existing review status; never starts analysis |
 | `POST` | `/api/reviews/:id` | Return cached review or start evidence acquisition and analysis |
 
-Refresh requests have a server-side cooldown and processing-state deduplication. The browser polls cache status with `GET`; it never starts a second job automatically. Review polling also deduplicates STRATZ and OpenDota parse requests, waits at most 90 seconds for remote evidence and at most 30 additional seconds for OpenDota parsing before publishing an evidence-bounded fallback. Refresh and evidence jobs are restricted to the configured repository, workflows, branch, fixed player account, and current latest-10 match IDs.
+Refresh requests have a server-side cooldown and processing-state deduplication. The browser polls cache status with `GET`; it never starts a second job automatically. Review polling deduplicates STRATZ and OpenDota requests and publishes only after the role-aware field ledger has no blocking gaps. Refresh and evidence jobs are restricted to the configured repository, workflows, branch, fixed player account, and current latest-10 match IDs.
 
 ## Local Development
 
@@ -69,12 +69,13 @@ python -m uv run --no-sync python -m compileall -q analysis api db report script
 python -m uv run --no-sync python scripts/build_workbench_site.py
 python -m uv run --no-sync python scripts/check_public_site.py
 python -m uv run --no-sync python scripts/build_worker_bundle.py
+python -m uv run --no-sync python scripts/audit_recent_evidence.py --account-id 173776719 --limit 10
 $env:UV_CACHE_DIR = Join-Path $PWD ".uv-cache"
 $env:UV_PYTHON_INSTALL_DIR = Join-Path $PWD ".uv-python"
 python -m uv tool run --from uv uv run pywrangler deploy --dry-run
 ```
 
-Browser acceptance must cover desktop and mobile widths, an initial cache-only page load, one explicit refresh request, a match page with no initial review request, and one click-triggered evidence review.
+Browser acceptance must cover desktop and mobile widths, an initial cache-only page load, one explicit refresh request, a match page with no initial review request, and one click-triggered deterministic data review.
 
 ## Deployment
 

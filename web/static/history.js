@@ -88,7 +88,7 @@ function applyPayload(payload, fallback = false) {
     state.source = fallback ? "seed" : (payload?.source || "cache");
     renderMatchList(payload?.matches || []);
     syncTime.textContent = state.refreshedAt
-        ? `上次同步 ${formatLocalTime(state.refreshedAt, true)}${fallback ? " · 本地种子" : ""}`
+        ? `上次同步 ${formatLocalTime(state.refreshedAt, true)}`
         : "尚未同步比赛";
     headerState.innerHTML = `<span aria-hidden="true"></span>${fallback ? "离线缓存" : "缓存就绪"}`;
 }

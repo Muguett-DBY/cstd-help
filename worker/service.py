@@ -1,13 +1,10 @@
 import logging
 from datetime import datetime, timezone
 
-from analysis.coach_contract import (
-    ANALYSIS_SCHEMA_VERSION,
-    actionable_findings,
-    build_coach_payload,
-    deterministic_coach,
-    rank_coach_from_ai,
-    select_coaching_findings,
+from analysis.formula_engine import (
+    FORMULA_VERSION,
+    REVIEW_SCHEMA_VERSION,
+    build_formula_review,
 )
 from analysis.evidence_contract import (
     evidence_cache_key,
@@ -38,9 +35,9 @@ MATCH_REFRESH_RETRY_AFTER_SECONDS = 3
 REVIEW_TTL_SECONDS = 60 * 60 * 24 * 180
 PARSE_STATE_TTL_SECONDS = 60 * 60 * 6
 PARSE_REQUEST_COOLDOWN_SECONDS = 60 * 30
+EVIDENCE_REQUEST_COOLDOWN_SECONDS = 60 * 5
 REVIEW_RETRY_AFTER_SECONDS = 5
 REMOTE_EVIDENCE_WAIT_SECONDS = 90
-PARSE_FALLBACK_WAIT_SECONDS = 30
 
 
 def _utc_iso(value):
@@ -78,7 +75,6 @@ class ReviewService:
         cache,
         dota_gateway,
         analyzer=None,
-        ai_gateway=None,
         evidence_gateway=None,
         match_refresh_gateway=None,
         prefer_remote_evidence=True,
@@ -87,7 +83,6 @@ class ReviewService:
         self.cache = cache
         self.dota = dota_gateway
         self.analyzer = analyzer
-        self.ai = ai_gateway
         self.evidence_gateway = evidence_gateway
         self.match_refresh_gateway = match_refresh_gateway
         self.prefer_remote_evidence = bool(prefer_remote_evidence)
@@ -104,7 +99,7 @@ class ReviewService:
         return f"match-refresh-status:v1:{self.account_id}"
 
     def review_key(self, match_id):
-        return f"review:v{ANALYSIS_SCHEMA_VERSION}:{int(match_id)}"
+        return f"review:v{REVIEW_SCHEMA_VERSION}:{int(match_id)}"
 
     def parse_state_key(self, match_id):
         return f"parse:v2:{int(match_id)}"
@@ -333,21 +328,23 @@ class ReviewService:
                 "match_id": match_id,
                 "exists": False,
                 "generated_at": None,
-                "ai_status": None,
-                "schema_version": ANALYSIS_SCHEMA_VERSION,
+                "analysis_mode": "deterministic_formula",
+                "formula_version": FORMULA_VERSION,
+                "schema_version": REVIEW_SCHEMA_VERSION,
             }
         return {
             "match_id": match_id,
             "exists": True,
             "generated_at": cached.get("generated_at"),
-            "ai_status": cached.get("ai_status"),
-            "schema_version": ANALYSIS_SCHEMA_VERSION,
+            "analysis_mode": cached.get("analysis_mode") or "deterministic_formula",
+            "formula_version": cached.get("formula_version") or FORMULA_VERSION,
+            "schema_version": REVIEW_SCHEMA_VERSION,
         }
 
     async def generate_review(self, match_id, now=None):
         match_id = int(match_id)
         now = now or datetime.now(timezone.utc)
-        summary = await self._require_recent_match(match_id)
+        await self._require_recent_match(match_id)
         cache_key = self.review_key(match_id)
         cached = await self.cache.get_json(cache_key)
         ready_evidence = None
@@ -361,7 +358,9 @@ class ReviewService:
         if (
             isinstance(cached, dict)
             and isinstance(cached.get("analysis"), dict)
-            and cached.get("ai_status") == "generated"
+            and isinstance(cached.get("guidance"), dict)
+            and cached.get("analysis_mode") == "deterministic_formula"
+            and cached.get("schema_version") == REVIEW_SCHEMA_VERSION
         ):
             if ready_evidence is None:
                 result = dict(cached)
@@ -421,70 +420,37 @@ class ReviewService:
                     parse_state = await self._request_parse_once(match_id, now, parse_state)
                     if not self.prefer_remote_evidence:
                         parse_state = await self._request_evidence_once(match_id, now, parse_state)
-                    parse_requested_at = _parse_utc(parse_state.get("requested_at"))
-                    parse_age = (
-                        (now.astimezone(timezone.utc) - parse_requested_at).total_seconds()
-                        if parse_requested_at is not None else 0
-                    )
-                    should_wait_for_parse = (
-                        not self.prefer_remote_evidence
-                        or parse_age < PARSE_FALLBACK_WAIT_SECONDS
-                    )
-                    if should_wait_for_parse:
-                        return {
-                            "status": "processing",
-                            "match_id": match_id,
-                            "retry_after_seconds": REVIEW_RETRY_AFTER_SECONDS,
-                            "evidence_gaps": evidence_gaps,
-                            "parse_requested": bool(parse_state.get("requested_at")),
-                            "evidence_job_requested": bool(parse_state.get("evidence_requested_at")),
-                            "generated": False,
-                        }
-                evidence_source = "opendota_partial" if evidence_gaps else "opendota_parsed"
+                    return {
+                        "status": "processing",
+                        "match_id": match_id,
+                        "retry_after_seconds": REVIEW_RETRY_AFTER_SECONDS,
+                        "evidence_gaps": evidence_gaps,
+                        "parse_requested": bool(parse_state.get("requested_at")),
+                        "evidence_job_requested": bool(parse_state.get("evidence_requested_at")),
+                        "generated": False,
+                    }
+                evidence_source = "opendota_parsed"
 
             analysis = dict(analysis)
-            analysis["review_findings"] = select_coaching_findings(analysis)
 
-        fallback = deterministic_coach(analysis)
-        coach = fallback
-        ai_status = "fallback"
-        ai_error_code = None
-        if self.ai is not None:
-            evidence_package = build_coach_payload(
-                analysis,
-                analysis.get("hero_name") or summary.get("hero", {}).get("name") or "未知英雄",
-                bool(
-                    analysis.get("is_win")
-                    if analysis.get("is_win") is not None
-                    else (analysis.get("match_metadata") or {}).get("is_win")
-                ),
-            )
-            try:
-                candidate = await self.ai.generate(evidence_package)
-                coach = rank_coach_from_ai(candidate, analysis)
-                ai_status = "generated"
-            except Exception as exc:
-                ai_error_code = (
-                    "AI_OUTPUT_REJECTED"
-                    if exc.__class__.__name__ == "CoachValidationError"
-                    else "AI_CALL_FAILED"
-                )
-                print(
-                    f"AI coach fallback [{ai_error_code}]: {type(exc).__name__}: {exc}"
-                )
-                coach = fallback
-                ai_status = "fallback"
+        guidance = build_formula_review(analysis)
+        analysis["formula_diagnostics"] = {
+            "formula_version": guidance["formula_version"],
+            "overall_score": guidance["overall_score"],
+            "scorecards": guidance["scorecards"],
+            "unscored_dimensions": guidance["unscored_dimensions"],
+        }
 
         payload = {
             "match_id": match_id,
-            "schema_version": ANALYSIS_SCHEMA_VERSION,
+            "schema_version": REVIEW_SCHEMA_VERSION,
             "generated_at": _utc_iso(now),
             "cached": False,
-            "ai_status": ai_status,
-            "ai_error_code": ai_error_code,
+            "analysis_mode": "deterministic_formula",
+            "formula_version": FORMULA_VERSION,
             "evidence_source": evidence_source,
             "analysis": analysis,
-            "coach": coach,
+            "guidance": guidance,
         }
         await self.cache.put_json(cache_key, payload, expiration_ttl=REVIEW_TTL_SECONDS)
         return payload
@@ -509,6 +475,9 @@ class ReviewService:
             )
 
         if status_is_current and status_value == "failed":
+            if request_age is not None and request_age >= EVIDENCE_REQUEST_COOLDOWN_SECONDS:
+                state = await self._request_evidence_once(match_id, now, state)
+                return bool(state.get("evidence_dispatch_accepted")), state
             return False, state
         if requested_at is not None and request_age is not None:
             if request_age < REMOTE_EVIDENCE_WAIT_SECONDS:
@@ -549,7 +518,7 @@ class ReviewService:
         requested_at = _parse_utc(state.get("evidence_requested_at"))
         if requested_at:
             elapsed = (now.astimezone(timezone.utc) - requested_at).total_seconds()
-            if elapsed < PARSE_REQUEST_COOLDOWN_SECONDS:
+            if elapsed < EVIDENCE_REQUEST_COOLDOWN_SECONDS:
                 return state
 
         accepted = False

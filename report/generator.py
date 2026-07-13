@@ -11,7 +11,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = BASE_DIR
 
 
-def generate_report(match_analysis, ai_analysis, summary=None, output_dir=None, source_fetches=None):
+def generate_report(match_analysis, guidance, summary=None, output_dir=None, source_fetches=None):
     target_dir = os.fspath(output_dir or REPORT_DIR)
     os.makedirs(target_dir, exist_ok=True)
 
@@ -83,7 +83,7 @@ def generate_report(match_analysis, ai_analysis, summary=None, output_dir=None, 
         issues=issues,
         suggestions=suggestions,
         d2pt=d2pt,
-        ai_analysis=ai_analysis,
+        guidance=guidance,
         summary=summary,
         generated_at=generated_at,
         report_metadata_json=json.dumps(report_metadata, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/"),
