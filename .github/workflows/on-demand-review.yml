@@ -52,6 +52,8 @@ jobs:
           --match-id "$MATCH_ID"
           --evidence-output "$EVIDENCE_PATH"
           --status-output "$STATUS_PATH"
+          --attempts 6
+          --retry-seconds 20
 
       - name: Set up Node
         uses: actions/setup-node@v6

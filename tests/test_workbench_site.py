@@ -146,7 +146,7 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertIn("公式评分", self.match_html)
         self.assertIn("扩展比赛数据", self.match_html)
         self.assertNotIn("AI", self.match_html + self.match_js)
-        self.assertIn("const MAX_REVIEW_POLL_ATTEMPTS = 30", self.match_js)
+        self.assertIn("const MAX_REVIEW_POLL_ATTEMPTS = 60", self.match_js)
 
     def test_responsive_accessible_styles_cover_mobile_and_focus(self):
         self.assertIn("@media (max-width: 720px)", self.css)
