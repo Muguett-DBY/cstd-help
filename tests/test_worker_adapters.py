@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from worker.cloudflare_adapters import (
     CloudflareDotaGateway,
     GitHubEvidenceGateway,
+    GitHubMatchRefreshGateway,
     WorkersAIGateway,
     parse_ai_output,
 )
@@ -111,6 +112,26 @@ class CloudflareAdapterTests(unittest.IsolatedAsyncioTestCase):
             json.loads(options["body"]),
             {"ref": "main", "inputs": {"match_id": "8892808420"}},
         )
+
+    async def test_github_match_refresh_dispatch_has_no_user_control_inputs(self):
+        fetcher = FakeFetcher([FakeResponse({}, status=204)])
+        gateway = GitHubMatchRefreshGateway(
+            fetcher=fetcher,
+            token="test-token",
+            repository="Muguett-DBY/cstd-help",
+            workflow="on-demand-match-refresh.yml",
+            ref="main",
+        )
+
+        result = await gateway.dispatch()
+
+        self.assertTrue(result["accepted"])
+        url, options = fetcher.calls[0]
+        self.assertEqual(
+            url,
+            "https://api.github.com/repos/Muguett-DBY/cstd-help/actions/workflows/on-demand-match-refresh.yml/dispatches",
+        )
+        self.assertEqual(json.loads(options["body"]), {"ref": "main"})
 
     async def test_workers_ai_receives_structured_findings(self):
         output = {"finding_order": [0]}

@@ -17,6 +17,8 @@ const matchList = document.querySelector("[data-match-list]");
 const listCount = document.querySelector("[data-list-count]");
 const headerState = document.querySelector("[data-header-state]");
 const state = { matches: [], refreshedAt: null, source: "cache" };
+const REFRESH_POLL_INTERVAL_MS = 3000;
+const REFRESH_POLL_ATTEMPTS = 40;
 
 function setOperation(message, tone = "neutral") {
     refreshStatus.textContent = message || "";
@@ -123,13 +125,48 @@ async function loadCachedMatches() {
     }
 }
 
+function wait(milliseconds) {
+    return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+async function waitForMatchRefresh(previousRefreshedAt) {
+    for (let attempt = 0; attempt < REFRESH_POLL_ATTEMPTS; attempt += 1) {
+        await wait(REFRESH_POLL_INTERVAL_MS);
+        const payload = await apiFetch("/api/matches", { method: "GET", timeout: 15000 });
+        const refreshStatus = payload?.refresh_status || {};
+        if (refreshStatus.status === "failed") {
+            throw new Error("最新比赛同步失败，请再次点击刷新。");
+        }
+        const hasMatches = Array.isArray(payload?.matches) && payload.matches.length > 0;
+        const hasNewTimestamp = Boolean(
+            payload?.refreshed_at && payload.refreshed_at !== previousRefreshedAt,
+        );
+        if (hasMatches && !payload?.refreshing && hasNewTimestamp) {
+            return payload;
+        }
+    }
+    throw new Error("最新比赛仍在同步，请稍后再次点击刷新。");
+}
+
 async function refreshMatches() {
     setBusy(true);
     setOperation("正在同步最新天梯比赛…", "loading");
     try {
         const payload = await apiFetch("/api/matches/refresh", { method: "POST", timeout: 45000 });
-        applyPayload(payload, false);
-        setOperation(payload.rate_limited ? "刚刚已经同步，当前列表未变化。" : `已同步 ${payload.matches?.length || 0} 场比赛。`, "success");
+        if (payload?.refreshing) {
+            setOperation("同步任务已启动，正在获取比赛与完整对阵…", "loading");
+            const refreshed = await waitForMatchRefresh(state.refreshedAt);
+            applyPayload(refreshed, false);
+            setOperation(`已同步 ${refreshed.matches?.length || 0} 场比赛及对阵详情。`, "success");
+        } else {
+            applyPayload(payload, false);
+            setOperation(
+                payload.rate_limited
+                    ? "刚刚已经同步，当前列表未变化。"
+                    : `已同步 ${payload.matches?.length || 0} 场比赛。`,
+                "success",
+            );
+        }
     } catch (error) {
         setOperation(error.message, "error");
     } finally {

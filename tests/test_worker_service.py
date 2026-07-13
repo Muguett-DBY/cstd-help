@@ -207,6 +207,15 @@ class FakeDotaGateway:
         return {"job": {"jobId": 987654321}}
 
 
+class FakeMatchRefreshGateway:
+    def __init__(self):
+        self.calls = 0
+
+    async def dispatch(self):
+        self.calls += 1
+        return {"accepted": True}
+
+
 def _recent_match(match_id, *, lobby_type=7, hero_id=48):
     return {
         "match_id": match_id,
@@ -277,6 +286,59 @@ class ReviewServiceMatchTests(unittest.IsolatedAsyncioTestCase):
         await self.service.refresh_matches(self.now + timedelta(seconds=61))
 
         self.assertEqual(self.dota.recent_calls, 2)
+
+    async def test_refresh_dispatches_cache_job_without_edge_opendota_fetch(self):
+        gateway = FakeMatchRefreshGateway()
+        service = ReviewService(
+            ACCOUNT_ID,
+            self.cache,
+            self.dota,
+            match_refresh_gateway=gateway,
+        )
+
+        result = await service.refresh_matches(self.now)
+
+        self.assertTrue(result["refreshing"])
+        self.assertEqual(result["source"], "cache")
+        self.assertEqual(result["matches"], [])
+        self.assertEqual(gateway.calls, 1)
+        self.assertEqual(self.dota.recent_calls, 0)
+        self.assertEqual(
+            self.cache.values[service.match_refresh_status_key]["status"],
+            "processing",
+        )
+
+    async def test_refresh_does_not_dispatch_duplicate_processing_job(self):
+        gateway = FakeMatchRefreshGateway()
+        service = ReviewService(
+            ACCOUNT_ID,
+            self.cache,
+            self.dota,
+            match_refresh_gateway=gateway,
+        )
+
+        first = await service.refresh_matches(self.now)
+        second = await service.refresh_matches(self.now + timedelta(seconds=30))
+
+        self.assertTrue(first["refreshing"])
+        self.assertTrue(second["refreshing"])
+        self.assertTrue(second["rate_limited"])
+        self.assertEqual(gateway.calls, 1)
+        self.assertEqual(self.dota.recent_calls, 0)
+
+    async def test_refresh_logs_sanitized_upstream_failure_before_returning_service_error(self):
+        class FailingDotaGateway(FakeDotaGateway):
+            async def recent_ranked_matches(self, account_id, limit):
+                raise RuntimeError("upstream returned HTTP 403")
+
+        self.service.dota = FailingDotaGateway()
+
+        with self.assertLogs("worker.service", level="WARNING") as captured:
+            with self.assertRaises(ServiceError) as raised:
+                await self.service.refresh_matches(self.now)
+
+        self.assertEqual(raised.exception.code, "UPSTREAM_UNAVAILABLE")
+        self.assertIn("RuntimeError: upstream returned HTTP 403", captured.output[0])
 
     async def test_match_detail_rejects_id_outside_cached_personal_list(self):
         await self.service.refresh_matches(self.now)

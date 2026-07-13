@@ -47,7 +47,8 @@ async def route_request(method, path, service):
         if path == "/api/matches/refresh":
             if method != "POST":
                 return _error(405, "METHOD_NOT_ALLOWED", "刷新比赛列表必须由按钮发起。")
-            return ApiResponse(200, await service.refresh_matches())
+            payload = await service.refresh_matches()
+            return ApiResponse(202 if payload.get("refreshing") else 200, payload)
 
         match = MATCH_DETAIL_RE.fullmatch(path)
         if match:

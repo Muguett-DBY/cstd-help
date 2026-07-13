@@ -70,6 +70,16 @@ class WorkerRouterTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status, 200)
         self.assertEqual(self.service.calls, [("refresh_matches", None)])
 
+    async def test_refresh_job_uses_accepted_status(self):
+        self.service.results["refresh_matches"] = {
+            "refreshing": True,
+            "retry_after_seconds": 3,
+        }
+
+        response = await route_request("POST", "/api/matches/refresh", self.service)
+
+        self.assertEqual(response.status, 202)
+
     async def test_match_detail_route_parses_numeric_id(self):
         response = await route_request("GET", "/api/matches/8891116798", self.service)
 
@@ -137,6 +147,7 @@ class WorkerDeploymentContractTests(unittest.TestCase):
         )
         self.assertIn('ACCOUNT_ID = "173776719"', config)
         self.assertIn('AI_MODEL = "@cf/openai/gpt-oss-120b"', config)
+        self.assertIn('GITHUB_MATCH_REFRESH_WORKFLOW = "on-demand-match-refresh.yml"', config)
         self.assertIn('binding = "AI"', config)
         self.assertIn('binding = "REVIEW_CACHE"', config)
         self.assertIn('pattern = "dota.custard.top/api/*"', config)
@@ -160,6 +171,17 @@ class WorkerDeploymentContractTests(unittest.TestCase):
         self.assertIn("pywrangler deploy", workflow)
         self.assertIn("pages deploy", workflow)
         self.assertLess(workflow.index("pywrangler deploy"), workflow.index("pages deploy"))
+
+    def test_match_refresh_workflow_is_manual_and_writes_list_and_details_to_kv(self):
+        path = ROOT / ".github" / "workflows" / "on-demand-match-refresh.yml"
+        self.assertTrue(path.is_file())
+        workflow = path.read_text(encoding="utf-8")
+
+        self.assertIn("workflow_dispatch:", workflow)
+        self.assertNotIn("schedule:", workflow)
+        self.assertIn("scripts/fetch_match_cache.py", workflow)
+        self.assertIn("kv bulk put", workflow)
+        self.assertIn('"match-refresh-status:v1:173776719"', workflow)
 
     def test_worker_entry_wires_runtime_adapters_without_secret_values(self):
         entry = (ROOT / "worker_entry.py").read_text(encoding="utf-8")

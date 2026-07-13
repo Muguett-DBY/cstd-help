@@ -237,7 +237,7 @@ class CloudflareDotaGateway:
                 target["playbackData"] = source["playbackData"]
 
 
-class GitHubEvidenceGateway:
+class _GitHubWorkflowGateway:
     def __init__(self, fetcher=None, token="", repository="", workflow="", ref="main"):
         self.fetcher = fetcher
         self.token = str(token or "").strip()
@@ -245,11 +245,11 @@ class GitHubEvidenceGateway:
         self.workflow = str(workflow or "").strip()
         self.ref = str(ref or "main").strip()
 
-    async def dispatch(self, match_id):
+    async def _dispatch(self, inputs=None):
         if not self.token:
             raise RuntimeError("GitHub dispatch token is unavailable")
         if not self.repository or not self.workflow or not self.ref:
-            raise RuntimeError("GitHub evidence workflow is not configured")
+            raise RuntimeError("GitHub workflow is not configured")
         fetcher = self.fetcher
         if fetcher is None:
             from workers import fetch
@@ -258,6 +258,9 @@ class GitHubEvidenceGateway:
             f"{GITHUB_API_URL}/repos/{self.repository}/actions/workflows/"
             f"{self.workflow}/dispatches"
         )
+        payload = {"ref": self.ref}
+        if inputs:
+            payload["inputs"] = inputs
         response = await fetcher(
             url,
             method="POST",
@@ -268,15 +271,22 @@ class GitHubEvidenceGateway:
                 "User-Agent": "cstd-help-worker",
                 "X-GitHub-Api-Version": "2022-11-28",
             },
-            body=json.dumps({
-                "ref": self.ref,
-                "inputs": {"match_id": str(int(match_id))},
-            }),
+            body=json.dumps(payload),
         )
         status = int(getattr(response, "status", 0) or 0)
         if status != 204:
             raise RuntimeError(f"GitHub workflow dispatch returned HTTP {status}")
         return {"accepted": True}
+
+
+class GitHubEvidenceGateway(_GitHubWorkflowGateway):
+    async def dispatch(self, match_id):
+        return await self._dispatch({"match_id": str(int(match_id))})
+
+
+class GitHubMatchRefreshGateway(_GitHubWorkflowGateway):
+    async def dispatch(self):
+        return await self._dispatch()
 
 
 class AnalyzerGateway:
