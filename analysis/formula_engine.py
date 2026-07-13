@@ -1,8 +1,8 @@
 from copy import deepcopy
 
 
-REVIEW_SCHEMA_VERSION = 5
-FORMULA_VERSION = 1
+REVIEW_SCHEMA_VERSION = 6
+FORMULA_VERSION = 2
 
 
 _PRIORITY_POINTS = {"high": 50, "medium": 30, "low": 15}
@@ -310,9 +310,27 @@ def build_formula_diagnostics(analysis):
         _clamp(sum(card["score"] * card["weight"] for card in scorecards) / total_weight)
         if total_weight else None
     )
+    overall_terms = " + ".join(
+        f"{card['weight']:g}x{card['label']}({card['score']:.1f})"
+        for card in scorecards
+    )
+    overall_equation = f"({overall_terms}) / {total_weight:g}" if total_weight else ""
+    overall_inputs = [
+        {
+            "id": card["id"],
+            "label": card["label"],
+            "value": card["score"],
+            "unit": "分",
+            "weight": card["weight"],
+            "source": card["formula_id"],
+        }
+        for card in scorecards
+    ]
     return {
         "formula_version": FORMULA_VERSION,
         "overall_score": overall,
+        "overall_equation": overall_equation,
+        "overall_inputs": overall_inputs,
         "scorecards": scorecards,
         "unscored_dimensions": unscored,
     }
@@ -357,21 +375,31 @@ def _finding_magnitude(category, analysis):
             default=0,
         )
         impact = min(35, unique_deaths * 6 + severity)
-        return impact, unique_deaths, "min(35,6x关联死亡数+最高目标级别权重)"
+        return impact, [
+            _input("linked_objective_deaths", "关联目标损失的死亡", unique_deaths, "死亡+目标事件", "次"),
+            _input("objective_severity_weight", "最高目标级别权重", severity, "确定性目标权重", "分"),
+        ], "min(35,6x关联死亡数+最高目标级别权重)"
     if category in {"death_recovery", "death_resource_delta", "death_resource_overlap"}:
         count = sum(
             1 for item in timeline.get("death_resource_deltas") or []
             if _is_meaningful_resource_drop(item)
         )
-        return min(35, count * 8), count, "8x死亡资源下降窗口数"
+        return min(35, count * 8), [
+            _input("death_resource_drop_windows", "死亡资源下降窗口", count, "分钟数组+死亡事件", "个"),
+        ], "8x死亡资源下降窗口数"
     if category == "death_review":
         dead_share = _number(performance.get("dead_time_share_pct")) or 0
         count = len(events.get("deaths") or [])
         magnitude = min(35, dead_share * 0.8 + count * 1.8)
-        return magnitude, round(dead_share * 0.8 + count * 1.8, 1), "min(35,0.8x死亡占时%+1.8x死亡数)"
+        return magnitude, [
+            _input("dead_time_share_pct", "死亡占时", dead_share, "OpenDota", "%"),
+            _input("timed_death_count", "有时间戳死亡", count, "死亡事件", "次"),
+        ], "min(35,0.8x死亡占时%+1.8x死亡数)"
     if category == "death_position_pattern":
         count = len(events.get("death_position_clusters") or [])
-        return min(35, count * 7), count, "7x重复死亡坐标簇数"
+        return min(35, count * 7), [
+            _input("death_position_clusters", "重复死亡坐标簇", count, "死亡坐标事件", "个"),
+        ], "7x重复死亡坐标簇数"
     if category == "item_timing":
         windows = events.get("post_item_windows") or []
         low_count = sum(
@@ -379,7 +407,9 @@ def _finding_magnitude(category, analysis):
             if item.get("classification") in {"low_conversion", "low_farm"}
             or item.get("low_conversion") or item.get("low_farm")
         )
-        return min(35, max(1, low_count) * 10), low_count, "10x低转化窗口数"
+        return min(35, max(1, low_count) * 10), [
+            _input("low_conversion_item_windows", "低转化装备窗口", low_count, "购买+团战+建筑事件", "个"),
+        ], "10xmax(1,低转化窗口数)"
     if category == "lane_farm":
         lane = _number(performance.get("lane_efficiency_pct"))
         low_count = len([
@@ -387,7 +417,10 @@ def _finding_magnitude(category, analysis):
             if (item.get("start_minute") or 0) < 10
         ])
         gap = max(0, 70 - lane) if lane is not None else 0
-        return min(35, gap * 0.8 + low_count * 6), round(gap, 1), "0.8x(70-对线效率)+6x前10分钟低效窗口"
+        return min(35, gap * 0.8 + low_count * 6), [
+            _input("lane_efficiency_gap", "距70%训练阈值", round(gap, 1), "OpenDota+系统规则", "个百分点"),
+            _input("early_low_efficiency_windows", "前10分钟低效窗口", low_count, "分钟数组", "个"),
+        ], "0.8x(70-对线效率)+6x前10分钟低效窗口"
     if category == "resource_continuity":
         windows = timeline.get("low_efficiency_windows") or []
         death_minutes = [
@@ -405,12 +438,18 @@ def _finding_magnitude(category, analysis):
             )
         ]
         count = len(uncovered)
-        return min(35, count * 7), count, "7x非死亡重叠低效率窗口数"
+        return min(35, count * 7), [
+            _input("non_death_low_efficiency_windows", "非死亡重叠低效率窗口", count, "分钟数组+死亡事件", "个"),
+        ], "7x非死亡重叠低效率窗口数"
     if category == "map_impact":
         participation = _number(performance.get("teamfight_participation_pct"))
         gap = max(0, 50 - participation) if participation is not None else 0
-        return min(35, gap), round(gap, 1), "max(0,50-参战率)"
-    return 5, 1, "固定可验证问题权重"
+        return min(35, gap), [
+            _input("teamfight_participation_gap", "距50%参战训练阈值", round(gap, 1), "OpenDota+系统规则", "个百分点"),
+        ], "max(0,50-参战率)"
+    return 5, [
+        _input("verified_rule_trigger", "已触发可验证规则", 1, "确定性发现规则", "条"),
+    ], "固定可验证问题权重"
 
 
 def actionable_findings(analysis):
@@ -463,7 +502,7 @@ def score_review_findings(analysis):
         finding = deepcopy(source)
         category = finding.get("category") or "other"
         priority_points = _PRIORITY_POINTS.get(finding.get("priority"), 20)
-        magnitude_points, magnitude_value, magnitude_equation = _finding_magnitude(category, analysis)
+        magnitude_points, magnitude_inputs, magnitude_equation = _finding_magnitude(category, analysis)
         formula_score = _clamp(priority_points + magnitude_points + confidence_points)
         finding.update({
             "formula_score": formula_score,
@@ -471,7 +510,8 @@ def score_review_findings(analysis):
             "formula": f"min(100, 优先级{priority_points} + 幅度{magnitude_points:g} + 证据完整度{confidence_points:g})",
             "formula_inputs": [
                 _input("priority_points", "规则优先级", priority_points, "确定性发现规则", "分"),
-                _input("magnitude", magnitude_equation, magnitude_value, "比赛事件/分钟数组", ""),
+                *magnitude_inputs,
+                _input("impact_points", f"影响幅度：{magnitude_equation}", magnitude_points, "确定性幅度公式", "分"),
                 _input("evidence_completeness", "证据完整度", quality or 0, "字段覆盖账本", "%"),
             ],
             "dimension": _finding_dimension(category),
@@ -539,6 +579,8 @@ def build_formula_review(analysis):
         "analysis_mode": "deterministic_formula",
         "formula_version": FORMULA_VERSION,
         "overall_score": diagnostics["overall_score"],
+        "overall_equation": diagnostics["overall_equation"],
+        "overall_inputs": diagnostics["overall_inputs"],
         "scorecards": diagnostics["scorecards"],
         "unscored_dimensions": diagnostics["unscored_dimensions"],
         "conclusion": conclusion,

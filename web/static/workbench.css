@@ -1002,6 +1002,17 @@ h4 {
     font-size: 11px;
 }
 
+.formula-overall > code {
+    grid-column: 1 / -1;
+    max-width: 100%;
+    padding-top: 8px;
+    overflow-wrap: anywhere;
+    color: #d9e8e2;
+    border-top: 1px solid #485052;
+    font: 10px Consolas, "SFMono-Regular", monospace;
+    white-space: normal;
+}
+
 .formula-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1097,10 +1108,16 @@ h4 {
 }
 
 .formula-card > footer {
+    display: grid;
+    gap: 3px;
     padding-top: 9px;
     color: var(--muted);
     border-top: 1px solid var(--line);
     font-size: 9px;
+}
+
+.formula-card > footer strong {
+    color: var(--ink);
 }
 
 .unscored-list {

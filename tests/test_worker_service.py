@@ -253,6 +253,15 @@ class ReviewServiceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(first["schema_version"], REVIEW_SCHEMA_VERSION)
         self.assertEqual(first["formula_version"], FORMULA_VERSION)
         self.assertEqual(first["guidance"]["analysis_mode"], "deterministic_formula")
+        self.assertTrue(first["guidance"]["overall_equation"])
+        self.assertEqual(
+            first["analysis"]["formula_diagnostics"]["overall_equation"],
+            first["guidance"]["overall_equation"],
+        )
+        self.assertEqual(
+            len(first["guidance"]["overall_inputs"]),
+            len(first["guidance"]["scorecards"]),
+        )
         self.assertEqual(first["guidance"]["next_actions"][0]["category"], "resource_continuity")
         self.assertFalse(first["cached"])
         self.assertTrue(second["cached"])

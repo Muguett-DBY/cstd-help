@@ -4,7 +4,7 @@ import os
 import time
 from datetime import datetime, timezone
 
-from analysis.formula_engine import build_formula_diagnostics
+from analysis.formula_engine import build_formula_diagnostics, select_formula_findings
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RULES_DIR = os.path.join(BASE_DIR, "analysis", "rules")
@@ -3639,70 +3639,15 @@ def _compare_with_d2pt(result, d2pt_data):
 
 
 def _generate_suggestions(result):
-    if result.get("review_findings"):
-        result["suggestions"] = [
-            {
-                "priority": finding.get("priority", "low"),
-                "category": finding.get("category", "review"),
-                "message": finding.get("action", ""),
-            }
-            for finding in result["review_findings"]
-        ]
-        return
-
-    farm = result["farm"]
-    duration = result["duration_min"]
-    derived = result.get("derived", {})
-    comparison = result.get("comparison", {})
-
-    if duration >= 10:
-        expected_lh = int(duration * 5.5)
-        actual_lh = farm["last_hits"]
-        lh_rating = (comparison.get("last_hits") or {}).get("rating")
-        if actual_lh < expected_lh * 0.8 or lh_rating in ("poor", "average"):
-            result["suggestions"].append({
-                "priority": "high",
-                "category": "farm",
-                "message": f"补刀效率需要优先复盘: {duration}分钟{actual_lh}正补，LH/min {derived.get('lh_per_min', 0)}。先看前10分钟漏刀、拉野和刷野路线。",
-            })
-
-    if duration >= 25 and farm["hero_damage"] > 0:
-        damage_per_min = derived.get("hero_damage_per_min", 0)
-        if damage_per_min < 350:
-            result["suggestions"].append({
-                "priority": "medium",
-                "category": "fight_impact",
-                "message": f"英雄伤害/分钟为{damage_per_min}，偏低。复盘关键装备成型后是否及时逼塔、打盾或切入后排。",
-            })
-
-    if result["kda"]["kda_ratio"] < 2 or derived.get("deaths_per_10_min", 0) >= 1.8:
-        result["suggestions"].append({
-            "priority": "high",
-            "category": "survival",
-            "message": f"死亡成本偏高: KDA {result['kda']['kda_ratio']}，每10分钟死亡{derived.get('deaths_per_10_min', 0)}次。复盘每次死亡前30秒的小地图信息、TP/闪烁退路和敌方关键控制。",
-        })
-
-    kill_participation = derived.get("kill_participation_pct")
-    if kill_participation is not None and duration >= 20 and kill_participation < 35:
-        result["suggestions"].append({
-            "priority": "medium",
-            "category": "map_impact",
-            "message": f"参战率约{kill_participation}%，偏低。确认刷钱路线是否能顺路压塔、控盾或支援队友，而不是只堆个人经济。",
-        })
-
-    if not result.get("is_win") and duration >= 45 and farm.get("gpm", 0) >= 600:
-        result["suggestions"].append({
-            "priority": "high",
-            "category": "closing",
-            "message": "高经济长局失利，优先复盘关键装备窗口：关键装备后是否控盾、带线牵制后逼高、以及买活时间内的团战选择。",
-        })
-
-    if not result.get("suggestions"):
-        result["suggestions"].append({
-            "priority": "low",
-            "category": "review_focus",
-            "message": "核心数据没有暴露明显短板。下一步应等事件解析后检查三件事：前10分钟对线资源、第一件关键装备时机、每次死亡前30秒的视野和站位。",
-        })
+    result["suggestions"] = [
+        {
+            "priority": finding.get("priority", "low"),
+            "category": finding.get("category", "review"),
+            "message": finding.get("action", ""),
+            "formula_score": finding.get("formula_score"),
+        }
+        for finding in select_formula_findings(result)
+    ]
 
 
 def generate_match_summary(analyses):
