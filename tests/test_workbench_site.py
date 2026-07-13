@@ -109,6 +109,7 @@ class WorkbenchSiteTests(unittest.TestCase):
             "renderParticipants",
             "renderFinalItems",
             "renderActions",
+            "renderPerformanceContext",
             "renderTimeline",
             "renderEvents",
             "renderDeathCoordinateMap",
@@ -126,6 +127,19 @@ class WorkbenchSiteTests(unittest.TestCase):
             "finding.title || finding.category_label || finding.category",
             self.match_js,
         )
+        self.assertIn("analysis.performance_context", self.match_js)
+        self.assertIn("analysis.opendota_benchmarks", self.match_js)
+        self.assertIn("benchmarkRawLabel", self.match_js)
+        self.assertIn("maximumFractionDigits: 2", self.match_js)
+        self.assertIn("timeline.damage_windows", self.match_js)
+        self.assertIn("timeline.tower_windows", self.match_js)
+        self.assertIn("输出高峰", self.match_js)
+        self.assertIn("推塔高峰", self.match_js)
+        self.assertIn("data_quality?.evidence_sources", self.match_js)
+        self.assertIn("证据来源与覆盖", self.match_js)
+        self.assertIn("limitsPanel.open = list.length > 0", self.match_js)
+        self.assertIn("表现上下文", self.match_html)
+        self.assertIn("const MAX_REVIEW_POLL_ATTEMPTS = 30", self.match_js)
 
     def test_responsive_accessible_styles_cover_mobile_and_focus(self):
         self.assertIn("@media (max-width: 720px)", self.css)
@@ -133,6 +147,7 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertRegex(self.css, r"min-height:\s*44px")
         self.assertIn("overflow-x: hidden", self.css)
         self.assertNotIn("letter-spacing: -", self.css)
+        self.assertNotRegex(self.css, r"font-size:[^;]*vw")
 
     def test_primary_pages_do_not_restore_legacy_coverage_dashboard(self):
         primary = self.index_html + self.match_html

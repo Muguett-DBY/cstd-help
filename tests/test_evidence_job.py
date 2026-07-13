@@ -7,6 +7,7 @@ from unittest import mock
 
 from scripts import fetch_review_evidence
 from scripts.fetch_review_evidence import EvidenceJobError, run_evidence_job
+from analysis.evidence_contract import EVIDENCE_SCHEMA_VERSION
 
 
 ACCOUNT_ID = 173776719
@@ -66,7 +67,7 @@ class EvidenceJobTests(unittest.TestCase):
             now=datetime(2026, 7, 12, 20, 0, tzinfo=timezone.utc),
         )
 
-        self.assertEqual(result["schema_version"], 1)
+        self.assertEqual(result["schema_version"], EVIDENCE_SCHEMA_VERSION)
         self.assertEqual(result["match_id"], MATCH_ID)
         self.assertEqual(result["source"], "github_actions_stratz")
         self.assertEqual(result["analysis"]["hero_name"], "Luna")
