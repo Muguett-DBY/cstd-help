@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 
-REVIEW_SCHEMA_VERSION = 6
+REVIEW_SCHEMA_VERSION = 7
 FORMULA_VERSION = 2
 
 
@@ -562,6 +562,7 @@ def build_formula_review(analysis):
         next_actions.append({
             "category": finding.get("category"),
             "title": finding.get("category_label") or finding.get("category"),
+            "priority": finding.get("priority"),
             "action": finding.get("action"),
             "training_goal": finding.get("training_goal"),
             "success_metric": finding.get("success_metric"),

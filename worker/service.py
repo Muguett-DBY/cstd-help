@@ -434,6 +434,15 @@ class ReviewService:
             analysis = dict(analysis)
 
         guidance = build_formula_review(analysis)
+        analysis["suggestions"] = [
+            {
+                "priority": action.get("priority", "low"),
+                "category": action.get("category", "review"),
+                "message": action.get("action", ""),
+                "formula_score": action.get("formula_score"),
+            }
+            for action in guidance["next_actions"]
+        ]
         analysis["formula_diagnostics"] = {
             "formula_version": guidance["formula_version"],
             "overall_score": guidance["overall_score"],

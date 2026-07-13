@@ -269,19 +269,32 @@ class ReviewServiceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.dota.detail_calls, [MATCH_ID])
 
     async def test_ready_remote_evidence_avoids_detail_refetch(self):
+        analysis = _analysis_fixture()
+        analysis["suggestions"] = [{
+            "category": "stale_legacy",
+            "message": "旧证据缓存中的未筛选建议",
+        }]
         await self.cache.put_json(
             self.service.evidence_key(MATCH_ID),
             {
                 "schema_version": EVIDENCE_SCHEMA_VERSION,
                 "match_id": MATCH_ID,
                 "source": "github_actions_stratz",
-                "analysis": _analysis_fixture(),
+                "analysis": analysis,
             },
         )
 
         result = await self.service.generate_review(MATCH_ID, self.now)
 
         self.assertEqual(result["evidence_source"], "github_actions_stratz")
+        self.assertEqual(
+            [item["category"] for item in result["analysis"]["suggestions"]],
+            [item["category"] for item in result["guidance"]["next_actions"]],
+        )
+        self.assertNotIn(
+            "stale_legacy",
+            [item["category"] for item in result["analysis"]["suggestions"]],
+        )
         self.assertEqual(self.analyzer.calls, 0)
         self.assertEqual(self.dota.detail_calls, [])
 
