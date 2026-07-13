@@ -1,8 +1,8 @@
 from copy import deepcopy
 
 
-REVIEW_SCHEMA_VERSION = 7
-FORMULA_VERSION = 2
+REVIEW_SCHEMA_VERSION = 8
+FORMULA_VERSION = 3
 
 
 _PRIORITY_POINTS = {"high": 50, "medium": 30, "low": 15}
@@ -368,17 +368,27 @@ def _finding_magnitude(category, analysis):
             for item in windows
             if item.get("death_time") is not None or item.get("death_minute") is not None
         })
-        severity = max(
-            ({"ancient": 14, "barracks": 10, "roshan": 8, "aegis": 8, "tower": 6}.get(
-                item.get("objective_kind"), 4
-            ) for item in windows),
-            default=0,
-        )
+        drill = events.get("death_objective_drill") or {}
+        severity = _number(drill.get("focus_severity_points"))
+        if severity is None:
+            severity = max(
+                ({"ancient": 14, "barracks": 10, "roshan": 8, "aegis": 8, "tower": 6}.get(
+                    item.get("objective_kind"), 4
+                ) for item in windows),
+                default=0,
+            )
+            severity_label = "最高目标级别权重"
+            severity_source = "确定性目标权重"
+            magnitude_equation = "min(35,6x关联死亡数+最高目标级别权重)"
+        else:
+            severity_label = "最高同一死亡窗口累计目标权重"
+            severity_source = "目标窗口聚合规则"
+            magnitude_equation = "min(35,6x关联死亡数+累计目标权重)"
         impact = min(35, unique_deaths * 6 + severity)
         return impact, [
             _input("linked_objective_deaths", "关联目标损失的死亡", unique_deaths, "死亡+目标事件", "次"),
-            _input("objective_severity_weight", "最高目标级别权重", severity, "确定性目标权重", "分"),
-        ], "min(35,6x关联死亡数+最高目标级别权重)"
+            _input("objective_severity_weight", severity_label, severity, severity_source, "分"),
+        ], magnitude_equation
     if category in {"death_recovery", "death_resource_delta", "death_resource_overlap"}:
         count = sum(
             1 for item in timeline.get("death_resource_deltas") or []
@@ -443,10 +453,10 @@ def _finding_magnitude(category, analysis):
         ], "7x非死亡重叠低效率窗口数"
     if category == "map_impact":
         participation = _number(performance.get("teamfight_participation_pct"))
-        gap = max(0, 50 - participation) if participation is not None else 0
+        gap = max(0, 40 - participation) if participation is not None else 0
         return min(35, gap), [
-            _input("teamfight_participation_gap", "距50%参战训练阈值", round(gap, 1), "OpenDota+系统规则", "个百分点"),
-        ], "max(0,50-参战率)"
+            _input("teamfight_participation_gap", "距40%参战训练阈值", round(gap, 1), "OpenDota+系统规则", "个百分点"),
+        ], "max(0,40-参战率)"
     return 5, [
         _input("verified_rule_trigger", "已触发可验证规则", 1, "确定性发现规则", "条"),
     ], "固定可验证问题权重"
@@ -507,7 +517,11 @@ def score_review_findings(analysis):
         finding.update({
             "formula_score": formula_score,
             "formula_id": f"dota_review_v{FORMULA_VERSION}.finding_priority",
-            "formula": f"min(100, 优先级{priority_points} + 幅度{magnitude_points:g} + 证据完整度{confidence_points:g})",
+            "formula": (
+                f"min(100, 优先级{priority_points} + "
+                f"幅度{magnitude_points:g}[{magnitude_equation}] + "
+                f"证据完整度{confidence_points:g})"
+            ),
             "formula_inputs": [
                 _input("priority_points", "规则优先级", priority_points, "确定性发现规则", "分"),
                 *magnitude_inputs,

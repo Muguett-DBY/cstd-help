@@ -1646,17 +1646,23 @@ def _build_death_objective_windows(events, max_after_seconds=90):
     return sorted(windows, key=lambda item: (item["death_time"], item["objective_time"]))
 
 
+_DEATH_OBJECTIVE_KIND_WEIGHTS = {
+    "ancient": 6,
+    "barracks": 5,
+    "roshan": 4,
+    "aegis": 4,
+    "tower": 3,
+    "tormentor": 2,
+}
+
+
+def _death_objective_kind_weight(window):
+    return _DEATH_OBJECTIVE_KIND_WEIGHTS.get(window.get("objective_kind"), 1)
+
+
 def _death_objective_focus_score(window):
-    kind_weights = {
-        "ancient": 6,
-        "barracks": 5,
-        "roshan": 4,
-        "aegis": 4,
-        "tower": 3,
-        "tormentor": 2,
-    }
     return (
-        kind_weights.get(window.get("objective_kind"), 1),
+        _death_objective_kind_weight(window),
         -int(window.get("elapsed_seconds") or 999),
     )
 
@@ -1681,14 +1687,51 @@ def _objective_drill_focus_label(display_label):
 def _build_death_objective_drill(windows):
     if not windows:
         return None
-    focus = max(windows, key=_death_objective_focus_score)
+
+    windows_by_death = {}
+    for index, window in enumerate(windows):
+        death_time = window.get("death_time")
+        group_key = ("time", death_time) if death_time is not None else ("row", index)
+        windows_by_death.setdefault(group_key, []).append(window)
+
+    def group_score(group):
+        elapsed_values = [
+            int(item.get("elapsed_seconds"))
+            for item in group
+            if isinstance(item.get("elapsed_seconds"), (int, float))
+        ]
+        return (
+            sum(_death_objective_kind_weight(item) for item in group),
+            len(group),
+            -min(elapsed_values or [999]),
+        )
+
+    focus_windows = max(windows_by_death.values(), key=group_score)
+    focus_windows = sorted(
+        focus_windows,
+        key=lambda item: (
+            item.get("objective_time") is None,
+            item.get("objective_time") or 0,
+        ),
+    )
+    focus = max(focus_windows, key=_death_objective_focus_score)
     objective_label = _objective_drill_focus_label(focus.get("objective_display_label"))
-    evidence = focus.get("evidence_label") or ""
+    evidence = "；".join(
+        str(item.get("evidence_label"))
+        for item in focus_windows
+        if item.get("evidence_label")
+    )
     return {
         "title": "目标前90秒生存规则",
         "focus_objective": objective_label,
+        "focus_death_time": focus.get("death_time"),
+        "focus_death_minute": focus.get("death_minute"),
+        "focus_window_count": len(focus_windows),
+        "focus_severity_points": sum(
+            _death_objective_kind_weight(item) for item in focus_windows
+        ),
         "evidence": evidence,
-        "trigger": f"下一局每次准备处理{objective_label}或同级关键目标前90秒",
+        "trigger": f"下一局每次准备参与{objective_label}或同级关键目标前90秒",
         "rule": (
             "先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，"
             "改为清近线、守入口或明确对侧交换。"
@@ -2656,13 +2699,31 @@ def _build_review_findings(result):
 
     death_objective_windows = events.get("death_objective_windows") or []
     if death_objective_windows:
-        evidence = "；".join(
-            window.get("evidence_label")
-            for window in death_objective_windows[:5]
-            if window.get("evidence_label")
-        )
         unique_deaths = (events.get("death_objective_summary") or {}).get("unique_death_count", 0)
         drill = events.get("death_objective_drill") or {}
+        focus_evidence = drill.get("evidence")
+        if focus_evidence:
+            focus_count = int(drill.get("focus_window_count") or 1)
+            focus_minute = drill.get("focus_death_minute")
+            evidence = f"最高累计损失窗口（{focus_minute}分死亡，共{focus_count}个目标）：{focus_evidence}"
+            remaining_count = max(0, len(death_objective_windows) - focus_count)
+            if remaining_count:
+                focus_death_time = drill.get("focus_death_time")
+                other_labels = [
+                    window.get("evidence_label")
+                    for window in death_objective_windows
+                    if window.get("death_time") != focus_death_time and window.get("evidence_label")
+                ]
+                if remaining_count <= 2 and other_labels:
+                    evidence += f"；其他相邻窗口：{'；'.join(other_labels)}"
+                else:
+                    evidence += f"；本局另有{remaining_count}条死亡-目标90秒相邻记录"
+        else:
+            evidence = "；".join(
+                window.get("evidence_label")
+                for window in death_objective_windows[:5]
+                if window.get("evidence_label")
+            )
         action = (
             f"{drill.get('trigger')}：{drill.get('rule')}"
             if drill else

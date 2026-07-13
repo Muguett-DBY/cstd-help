@@ -120,6 +120,32 @@ class FormulaEngineTests(unittest.TestCase):
             "下一局目标前90秒避免无收益死亡。",
         )
 
+    def test_death_objective_priority_uses_cumulative_focus_window_weight(self):
+        analysis = _analysis_fixture()
+        analysis["events"]["death_objective_windows"] = [
+            {"death_time": 1620, "objective_kind": "barracks"},
+            {"death_time": 1620, "objective_kind": "barracks"},
+            {"death_time": 1620, "objective_kind": "tower"},
+            {"death_time": 1860, "objective_kind": "ancient"},
+        ]
+        analysis["events"]["death_objective_drill"] = {
+            "focus_severity_points": 13,
+        }
+
+        review = self._engine()(analysis)
+        point = next(
+            item for item in review["review_points"]
+            if item["category"] == "death_objective_window"
+        )
+        severity = next(
+            item for item in point["formula_inputs"]
+            if item["id"] == "objective_severity_weight"
+        )
+
+        self.assertEqual(severity["value"], 13)
+        self.assertIn("同一死亡窗口累计目标权重", severity["label"])
+        self.assertIn("累计目标权重", point["formula"])
+
     def test_missing_inputs_are_omitted_instead_of_estimated(self):
         analysis = _analysis_fixture()
         analysis["performance_context"] = {}
@@ -204,6 +230,32 @@ class FormulaEngineTests(unittest.TestCase):
         self.assertFalse(
             {"death_resource_overlap", "death_resource_delta"}.issubset(categories)
         )
+
+    def test_map_impact_priority_uses_same_40_percent_training_threshold(self):
+        analysis = _analysis_fixture()
+        analysis["performance_context"]["teamfight_participation_pct"] = 36
+        analysis["review_findings"] = [{
+            "priority": "medium",
+            "category": "map_impact",
+            "category_label": "地图影响力",
+            "evidence": "OpenDota参战率 36%。",
+            "why_it_matters": "低于40%训练阈值。",
+            "action": "下一局把路线接到地图目标。",
+            "replay_check": "系统检查OpenDota参战率。",
+            "training_goal": "提高可记录参战率。",
+            "success_metric": "参战率>=40%。",
+        }]
+
+        review = self._engine()(analysis)
+        point = review["review_points"][0]
+        gap = next(
+            item for item in point["formula_inputs"]
+            if item["id"] == "teamfight_participation_gap"
+        )
+
+        self.assertEqual(gap["value"], 4)
+        self.assertIn("max(0,40-参战率)", point["formula"])
+        self.assertEqual(point["formula_score"], 44.0)
 
     def test_runtime_sources_have_no_model_configuration_or_gateway(self):
         paths = [
