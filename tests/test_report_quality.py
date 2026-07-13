@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 from analysis.analyzer import (
+    _build_death_objective_drill,
     _build_post_item_windows,
     _build_review_findings,
     _item_detail,
@@ -271,6 +272,80 @@ class ReportQualityTests(unittest.TestCase):
         self.assertNotIn("单独深入次数", objective_findings[0]["success_metric"])
         self.assertIn("只自动验收死亡与目标事件的时间窗口", objective_findings[0]["replay_check"])
         self.assertIn("只标记事件先后", objective_findings[0]["replay_check"])
+
+    def test_death_objective_drill_prioritizes_cumulative_loss_window(self):
+        windows = [
+            {
+                "death_time": 1620,
+                "death_minute": 27.0,
+                "objective_time": 1637,
+                "objective_kind": "barracks",
+                "objective_display_label": "失去下路近战兵营",
+                "elapsed_seconds": 17,
+                "evidence_label": "27.0分死亡 → 27.3分失去下路近战兵营（17秒）",
+            },
+            {
+                "death_time": 1620,
+                "death_minute": 27.0,
+                "objective_time": 1642,
+                "objective_kind": "barracks",
+                "objective_display_label": "失去下路远程兵营",
+                "elapsed_seconds": 22,
+                "evidence_label": "27.0分死亡 → 27.4分失去下路远程兵营（22秒）",
+            },
+            {
+                "death_time": 1620,
+                "death_minute": 27.0,
+                "objective_time": 1662,
+                "objective_kind": "tower",
+                "objective_display_label": "失去中路高地塔",
+                "elapsed_seconds": 42,
+                "evidence_label": "27.0分死亡 → 27.7分失去中路高地塔（42秒）",
+            },
+            {
+                "death_time": 1860,
+                "death_minute": 31.0,
+                "objective_time": 1868,
+                "objective_kind": "ancient",
+                "objective_display_label": "失去遗迹",
+                "elapsed_seconds": 8,
+                "evidence_label": "31.0分死亡 → 31.1分失去遗迹（8秒）",
+            },
+        ]
+
+        drill = _build_death_objective_drill(windows)
+
+        self.assertEqual(drill["focus_objective"], "高地防守")
+        self.assertEqual(drill["focus_window_count"], 3)
+        self.assertEqual(drill["focus_death_minute"], 27.0)
+        self.assertIn("下路近战兵营", drill["evidence"])
+        self.assertIn("中路高地塔", drill["evidence"])
+        self.assertIn("准备参与高地防守", drill["trigger"])
+        self.assertNotIn("基地防守", drill["trigger"])
+
+        finding = next(
+            item for item in _build_review_findings({
+                "role_profile": {"id": "pos1"},
+                "timeline": {},
+                "events": {
+                    "deaths": [],
+                    "purchases": [],
+                    "death_objective_windows": windows,
+                    "death_objective_summary": {"unique_death_count": 2},
+                    "death_objective_drill": drill,
+                },
+                "kda": {"deaths": 0},
+            })
+            if item["category"] == "death_objective_window"
+        )
+        self.assertIn("最高累计损失窗口", finding["evidence"])
+        self.assertIn("共3个目标", finding["evidence"])
+        self.assertIn("下路远程兵营", finding["evidence"])
+        self.assertIn("其他相邻窗口", finding["evidence"])
+        self.assertLess(
+            finding["evidence"].index("下路近战兵营"),
+            finding["evidence"].index("31.1分失去遗迹"),
+        )
 
     def test_opendota_benchmarks_create_percentile_profile_and_findings(self):
         match = self._base_match()
