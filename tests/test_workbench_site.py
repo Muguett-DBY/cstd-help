@@ -148,6 +148,16 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertNotIn("AI", self.match_html + self.match_js)
         self.assertIn("const MAX_REVIEW_POLL_ATTEMPTS = 60", self.match_js)
 
+    def test_event_timeline_expands_when_key_purchases_are_empty(self):
+        self.assertIn(
+            'target.classList.toggle("single-column", purchases.length === 0)',
+            self.match_js,
+        )
+        self.assertRegex(
+            self.css,
+            r"\.event-columns\.single-column\s*\{[^}]*grid-template-columns:\s*1fr",
+        )
+
     def test_responsive_accessible_styles_cover_mobile_and_focus(self):
         self.assertIn("@media (max-width: 720px)", self.css)
         self.assertIn(":focus-visible", self.css)
