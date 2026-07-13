@@ -316,6 +316,30 @@ class ReviewServiceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.evidence.calls, [MATCH_ID])
         self.assertEqual(self.analyzer.calls, 0)
 
+    async def test_legacy_evidence_request_state_does_not_block_current_schema_dispatch(self):
+        service = ReviewService(
+            ACCOUNT_ID,
+            self.cache,
+            self.dota,
+            analyzer=self.analyzer,
+            evidence_gateway=self.evidence,
+            prefer_remote_evidence=True,
+        )
+        await self.cache.put_json(f"parse:v2:{MATCH_ID}", {
+            "match_id": MATCH_ID,
+            "evidence_requested_at": (self.now - timedelta(seconds=30)).isoformat(),
+            "evidence_dispatch_accepted": True,
+        })
+
+        result = await service.generate_review(MATCH_ID, self.now)
+
+        self.assertEqual(result["status"], "processing")
+        self.assertEqual(self.evidence.calls, [MATCH_ID])
+        self.assertEqual(
+            service.parse_state_key(MATCH_ID),
+            f"parse:v3:evidence-v{EVIDENCE_SCHEMA_VERSION}:{MATCH_ID}",
+        )
+
     async def test_incomplete_local_evidence_requests_parse_and_is_not_cached(self):
         self.analyzer.result = _analysis_fixture(complete=False)
 
