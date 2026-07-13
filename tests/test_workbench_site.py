@@ -158,6 +158,11 @@ class WorkbenchSiteTests(unittest.TestCase):
             r"\.event-columns\.single-column\s*\{[^}]*grid-template-columns:\s*1fr",
         )
 
+    def test_key_purchase_cards_show_cost_and_post_item_evidence(self):
+        self.assertIn("events?.post_item_windows || []", self.match_js)
+        self.assertIn("purchase.item_cost", self.match_js)
+        self.assertIn("postWindow?.summary", self.match_js)
+
     def test_responsive_accessible_styles_cover_mobile_and_focus(self):
         self.assertIn("@media (max-width: 720px)", self.css)
         self.assertIn(":focus-visible", self.css)

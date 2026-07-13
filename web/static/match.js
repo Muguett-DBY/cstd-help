@@ -309,8 +309,18 @@ function deathRow(death, index) {
     return `<li><span class="event-time">${minuteLabel(death.minute)}</span><div><strong>死亡 ${index + 1}${killer}</strong>${death.position_label ? `<small>${escapeHtml(death.position_label)}</small>` : ""}${contexts}</div></li>`;
 }
 
-function purchaseRow(purchase) {
-    return `<li><span class="event-time">${minuteLabel(purchase.minute)}</span><div><strong>${escapeHtml(purchase.item_name || `物品 #${purchase.item_id}`)}</strong><small>关键装备完成</small></div></li>`;
+function purchaseRow(purchase, postWindow) {
+    const cost = Number(purchase.item_cost);
+    const completion = Number.isFinite(cost) ? `${numberLabel(cost)} 金 · 关键装备完成` : "关键装备完成";
+    const evidence = postWindow?.summary ? `<small>${escapeHtml(postWindow.summary)}</small>` : "";
+    return `<li><span class="event-time">${minuteLabel(purchase.minute)}</span><div><strong>${escapeHtml(purchase.item_name || `物品 #${purchase.item_id}`)}</strong><small>${completion}</small>${evidence}</div></li>`;
+}
+
+function purchaseWindow(purchase, windows) {
+    return windows.find((window) => (
+        window.item_name === purchase.item_name
+        && Math.abs(Number(window.minute) - Number(purchase.minute)) < 0.11
+    ));
 }
 
 function coordinate(value, fallback = 0) {
@@ -352,10 +362,14 @@ function renderEvents(events) {
     const target = document.querySelector("[data-events]");
     const deaths = events?.deaths || [];
     const purchases = events?.key_purchases || [];
+    const postItemWindows = events?.post_item_windows || [];
+    const purchaseRows = purchases.map((purchase) => (
+        purchaseRow(purchase, purchaseWindow(purchase, postItemWindows))
+    )).join("");
     target.classList.toggle("single-column", purchases.length === 0);
     target.innerHTML = `
         <section class="event-group"><header><h4>死亡时间点</h4><span>${escapeHtml(events?.death_coverage_label || `${deaths.length} 次`)}</span></header><ol>${deaths.map(deathRow).join("") || "<li><div><strong>本局无死亡事件</strong></div></li>"}</ol></section>
-        <section class="event-group"><header><h4>关键装备</h4><span>${purchases.length} 件</span></header><ol>${purchases.map(purchaseRow).join("") || "<li><div><strong>未识别关键装备完成点</strong></div></li>"}</ol></section>
+        <section class="event-group"><header><h4>关键装备</h4><span>${purchases.length} 件</span></header><ol>${purchaseRows || "<li><div><strong>未识别关键装备完成点</strong></div></li>"}</ol></section>
         ${renderDeathCoordinateMap(events)}`;
 }
 
