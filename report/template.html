@@ -122,6 +122,9 @@
                 {% if guidance.overall_score is not none %}
                 <p><strong>综合执行分：</strong>{{ guidance.overall_score }}/100</p>
                 {% endif %}
+                {% if guidance.overall_equation %}
+                <code class="formula-overall-equation">{{ guidance.overall_equation }}</code>
+                {% endif %}
             </div>
             {% if guidance.scorecards %}
             <div class="formula-score-grid">
@@ -135,7 +138,7 @@
                         <li>{{ input.label }}：{{ input.value }}{{ input.unit }} · {{ input.source }}</li>
                         {% endfor %}
                     </ul>
-                    <small>{{ card.threshold }}</small>
+                    <small>分项权重 {{ (card.weight * 100)|round|int }}% · {{ card.threshold }}</small>
                 </article>
                 {% endfor %}
             </div>

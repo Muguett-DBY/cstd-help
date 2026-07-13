@@ -437,6 +437,8 @@ class ReviewService:
         analysis["formula_diagnostics"] = {
             "formula_version": guidance["formula_version"],
             "overall_score": guidance["overall_score"],
+            "overall_equation": guidance["overall_equation"],
+            "overall_inputs": guidance["overall_inputs"],
             "scorecards": guidance["scorecards"],
             "unscored_dimensions": guidance["unscored_dimensions"],
         }

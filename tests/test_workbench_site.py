@@ -139,6 +139,8 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertIn("推塔高峰", self.match_js)
         self.assertIn("data_quality?.field_ledger", self.match_js)
         self.assertIn("字段覆盖账本", self.match_js)
+        self.assertIn("guidance?.overall_equation", self.match_js)
+        self.assertIn("分项权重", self.match_js)
         self.assertIn("limitsPanel.open = list.length > 0", self.match_js)
         self.assertIn("表现上下文", self.match_html)
         self.assertIn("公式评分", self.match_html)

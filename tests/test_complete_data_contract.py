@@ -1,7 +1,8 @@
 import unittest
 
-from analysis.analyzer import analyze_match
+from analysis.analyzer import _generate_suggestions, analyze_match
 from analysis.evidence_contract import review_evidence_gaps
+from analysis.formula_engine import build_formula_review
 from api.normalization import normalize_match_participants, normalize_player_match
 
 
@@ -243,6 +244,40 @@ class CompleteDataContractTests(unittest.TestCase):
             "事件时间覆盖" in item
             for item in analysis["data_quality"]["limitations"]
         ))
+
+    def test_legacy_suggestion_field_reuses_formula_selected_actions(self):
+        match, stratz, opendota = _inputs()
+
+        analysis = analyze_match(match, stratz_data=stratz, opendota_data=opendota)
+        analysis["review_findings"].extend([
+            {
+                "priority": "high",
+                "category": "death_position_pattern",
+                "action": "不应发布坐标推断建议",
+            },
+            {
+                "priority": "medium",
+                "category": "map_impact",
+                "action": "参战训练项",
+            },
+            {
+                "priority": "low",
+                "category": "closing",
+                "action": "同维度次要训练项",
+            },
+        ])
+        _generate_suggestions(analysis)
+        review = build_formula_review(analysis)
+
+        self.assertEqual(
+            [item["category"] for item in analysis["suggestions"]],
+            [item["category"] for item in review["next_actions"]],
+        )
+        self.assertNotIn(
+            "death_position_pattern",
+            [item["category"] for item in analysis["suggestions"]],
+        )
+        self.assertTrue(all(item.get("formula_score") is not None for item in analysis["suggestions"]))
 
 
 if __name__ == "__main__":

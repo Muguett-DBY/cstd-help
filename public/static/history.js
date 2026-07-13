@@ -8,7 +8,7 @@ import {
     rankLabel,
     refreshIcons,
     resultMeta,
-} from "/static/shared.js?v=4d5bf8814d98";
+} from "/static/shared.js?v=3b1ba64e2f15";
 
 const refreshButton = document.querySelector("[data-refresh-matches]");
 const refreshStatus = document.querySelector("[data-refresh-status]");

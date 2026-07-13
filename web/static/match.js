@@ -167,17 +167,18 @@ function renderFormulaScores(guidance) {
     const scorecards = guidance?.scorecards || [];
     const unscored = guidance?.unscored_dimensions || [];
     const overall = Number(guidance?.overall_score);
+    const overallEquation = guidance?.overall_equation || "";
     const cards = scorecards.map((card) => `
         <article class="formula-card status-${escapeHtml(card.status || "normal")}">
             <header><div><span>${escapeHtml(card.formula_id || "确定性公式")}</span><h4>${escapeHtml(card.label || card.id)}</h4></div><strong>${numberLabel(card.score)}<small>/100</small></strong></header>
             <p>${escapeHtml(card.interpretation || "")}</p>
             <code>${escapeHtml(card.equation || "")}</code>
             <ul>${(card.inputs || []).map(formulaInputRow).join("")}</ul>
-            <footer>${escapeHtml(card.threshold || "")}</footer>
+            <footer><strong>分项权重 ${Number.isFinite(Number(card.weight)) ? `${numberLabel(Number(card.weight) * 100)}%` : "—"}</strong><span>${escapeHtml(card.threshold || "")}</span></footer>
         </article>`).join("");
     const unscoredRows = unscored.map((item) => `<li><strong>${escapeHtml(item.label || item.id)}</strong><span>${escapeHtml(item.reason || "未计算")}</span></li>`).join("");
     target.innerHTML = `
-        <div class="formula-overall"><span>综合执行分</span><strong>${Number.isFinite(overall) ? numberLabel(overall) : "—"}<small>/100</small></strong><p>只对已返回的真实字段按分项权重归一化。</p></div>
+        <div class="formula-overall"><span>综合执行分</span><strong>${Number.isFinite(overall) ? numberLabel(overall) : "—"}<small>/100</small></strong><p>只对已返回的真实字段按分项权重归一化。</p>${overallEquation ? `<code>${escapeHtml(overallEquation)}</code>` : ""}</div>
         <div class="formula-grid">${cards || '<p class="muted-copy">当前没有足够真实字段计算分项。</p>'}</div>
         ${unscoredRows ? `<details class="unscored-list"><summary>未计算分项 ${unscored.length}</summary><ul>${unscoredRows}</ul></details>` : ""}`;
 }

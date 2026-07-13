@@ -2181,8 +2181,9 @@ class ReportQualityTests(unittest.TestCase):
 
             for text in ["下一局行动清单", "时间线诊断", "死亡/装备事件", "本局主要问题证据", "数据缺口", "数据公式复盘"]:
                 self.assertIn(text, html)
-            for text in ["下一局量化目标", "训练目标", "验收标准", "综合执行分"]:
+            for text in ["下一局量化目标", "训练目标", "验收标准", "综合执行分", "分项权重"]:
                 self.assertIn(text, html)
+            self.assertIn('class="formula-overall-equation"', html)
             for text in [
                 'class="skip-link"',
                 'aria-label="报告章节"',

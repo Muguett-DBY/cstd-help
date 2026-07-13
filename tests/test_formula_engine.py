@@ -93,6 +93,8 @@ class FormulaEngineTests(unittest.TestCase):
 
         self.assertEqual(first, second)
         self.assertEqual(first["analysis_mode"], "deterministic_formula")
+        self.assertIn("overall_equation", first)
+        self.assertEqual(len(first["overall_inputs"]), len(first["scorecards"]))
         self.assertGreaterEqual(len(first["scorecards"]), 4)
         for card in first["scorecards"]:
             self.assertIn("formula_id", card)
@@ -106,6 +108,13 @@ class FormulaEngineTests(unittest.TestCase):
 
         self.assertEqual(review["review_points"][0]["category"], "death_objective_window")
         self.assertGreater(review["review_points"][0]["formula_score"], review["review_points"][1]["formula_score"])
+        input_ids = {
+            item["id"]
+            for item in review["review_points"][0]["formula_inputs"]
+        }
+        self.assertIn("linked_objective_deaths", input_ids)
+        self.assertIn("objective_severity_weight", input_ids)
+        self.assertIn("impact_points", input_ids)
         self.assertEqual(
             review["next_actions"][0]["action"],
             "下一局目标前90秒避免无收益死亡。",
