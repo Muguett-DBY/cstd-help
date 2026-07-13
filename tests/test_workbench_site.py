@@ -189,6 +189,16 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertIn("X-Content-Type-Options: nosniff", self.headers)
         self.assertNotIn("/*.html", self.headers)
 
+    def test_entry_assets_bypass_stale_browser_cache(self):
+        self.assertIn('href="/static/workbench.css?v=4"', self.index_html)
+        self.assertIn('href="/static/workbench.css?v=4"', self.match_html)
+        self.assertIn('src="/static/history.js?v=4"', self.index_html)
+        self.assertIn('src="/static/match.js?v=4"', self.match_html)
+        self.assertIn('from "/static/shared.js?v=4"', self.history_js)
+        self.assertIn('from "/static/shared.js?v=4"', self.match_js)
+        self.assertIn("/static/*", self.headers)
+        self.assertIn("Cache-Control: public, max-age=0, must-revalidate", self.headers)
+
     def test_builder_runs_as_direct_cli(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             result = subprocess.run(
