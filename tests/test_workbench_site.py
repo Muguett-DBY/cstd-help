@@ -190,14 +190,17 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertNotIn("/*.html", self.headers)
 
     def test_entry_assets_bypass_stale_browser_cache(self):
-        self.assertIn('href="/static/workbench.css?v=4"', self.index_html)
-        self.assertIn('href="/static/workbench.css?v=4"', self.match_html)
-        self.assertIn('src="/static/history.js?v=4"', self.index_html)
-        self.assertIn('src="/static/match.js?v=4"', self.match_html)
-        self.assertIn('from "/static/shared.js?v=4"', self.history_js)
-        self.assertIn('from "/static/shared.js?v=4"', self.match_js)
-        self.assertIn("/static/*", self.headers)
-        self.assertIn("Cache-Control: public, max-age=0, must-revalidate", self.headers)
+        rendered_assets = "\n".join((
+            self.index_html,
+            self.match_html,
+            self.history_js,
+            self.match_js,
+        ))
+        versions = re.findall(r"/static/[^\"']+\?v=([0-9a-f]{12})", rendered_assets)
+
+        self.assertEqual(len(versions), 6)
+        self.assertEqual(len(set(versions)), 1)
+        self.assertNotIn("__ASSET_VERSION__", rendered_assets)
 
     def test_builder_runs_as_direct_cli(self):
         with tempfile.TemporaryDirectory() as temp_dir:

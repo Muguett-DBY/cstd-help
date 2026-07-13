@@ -1,7 +1,8 @@
+import argparse
+import hashlib
 import json
 import shutil
 import sys
-import argparse
 from pathlib import Path
 
 
@@ -19,6 +20,30 @@ from scripts.build_pages_site import (
 
 WEB_DIR = ROOT / "web"
 PUBLIC_DIR = ROOT / "public"
+ASSET_VERSION_PLACEHOLDER = "__ASSET_VERSION__"
+VERSIONED_ASSET_PATHS = (
+    Path("static/workbench.css"),
+    Path("static/shared.js"),
+    Path("static/history.js"),
+    Path("static/match.js"),
+)
+
+
+def _asset_version(web_dir):
+    digest = hashlib.sha256()
+    for relative_path in VERSIONED_ASSET_PATHS:
+        digest.update(relative_path.as_posix().encode("ascii"))
+        digest.update((Path(web_dir) / relative_path).read_bytes())
+    return digest.hexdigest()[:12]
+
+
+def _write_versioned_text(source, destination, asset_version):
+    text = Path(source).read_text(encoding="utf-8")
+    destination.write_text(
+        text.replace(ASSET_VERSION_PLACEHOLDER, asset_version),
+        encoding="utf-8",
+        newline="",
+    )
 
 
 def _seed_match(report):
@@ -80,16 +105,29 @@ def build_workbench_site(public_dir=PUBLIC_DIR, web_dir=WEB_DIR, report_dir=None
     if missing:
         raise FileNotFoundError(f"Workbench source asset missing: {', '.join(missing)}")
 
+    asset_version = _asset_version(web_dir)
     public_dir.mkdir(parents=True, exist_ok=True)
     static_dir = public_dir / "static"
     static_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(web_dir / "index.html", public_dir / "index.html")
-    shutil.copy2(web_dir / "match.html", public_dir / "match.html")
+    _write_versioned_text(
+        web_dir / "index.html",
+        public_dir / "index.html",
+        asset_version,
+    )
+    _write_versioned_text(
+        web_dir / "match.html",
+        public_dir / "match.html",
+        asset_version,
+    )
     shutil.copy2(web_dir / "favicon.svg", public_dir / "favicon.svg")
     shutil.copy2(web_dir / "_headers", public_dir / "_headers")
     for source in (web_dir / "static").iterdir():
         if source.is_file():
-            shutil.copy2(source, static_dir / source.name)
+            destination = static_dir / source.name
+            if source.name in {"history.js", "match.js"}:
+                _write_versioned_text(source, destination, asset_version)
+            else:
+                shutil.copy2(source, destination)
 
     latest = reports[0] if reports else {}
     payload = {
