@@ -12,7 +12,7 @@ import {
     numberLabel,
     refreshIcons,
     resultMeta,
-} from "/static/shared.js?v=60b55d2f55b2";
+} from "/static/shared.js?v=901278cffe38";
 
 const matchId = getMatchId();
 const pageStatus = document.querySelector("[data-page-status]");
@@ -352,6 +352,7 @@ function renderEvents(events) {
     const target = document.querySelector("[data-events]");
     const deaths = events?.deaths || [];
     const purchases = events?.key_purchases || [];
+    target.classList.toggle("single-column", purchases.length === 0);
     target.innerHTML = `
         <section class="event-group"><header><h4>死亡时间点</h4><span>${escapeHtml(events?.death_coverage_label || `${deaths.length} 次`)}</span></header><ol>${deaths.map(deathRow).join("") || "<li><div><strong>本局无死亡事件</strong></div></li>"}</ol></section>
         <section class="event-group"><header><h4>关键装备</h4><span>${purchases.length} 件</span></header><ol>${purchases.map(purchaseRow).join("") || "<li><div><strong>未识别关键装备完成点</strong></div></li>"}</ol></section>
