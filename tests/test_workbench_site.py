@@ -162,6 +162,10 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertIn("events?.post_item_windows || []", self.match_js)
         self.assertIn("purchase.item_cost", self.match_js)
         self.assertIn("postWindow?.summary", self.match_js)
+        self.assertRegex(
+            self.css,
+            r"\.event-columns\s*\{[^}]*align-items:\s*start",
+        )
 
     def test_responsive_accessible_styles_cover_mobile_and_focus(self):
         self.assertIn("@media (max-width: 720px)", self.css)

@@ -12,7 +12,7 @@ import {
     numberLabel,
     refreshIcons,
     resultMeta,
-} from "/static/shared.js?v=b09dc59db818";
+} from "/static/shared.js?v=d8e6327f2c4e";
 
 const matchId = getMatchId();
 const pageStatus = document.querySelector("[data-page-status]");
