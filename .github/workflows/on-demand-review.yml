@@ -72,10 +72,10 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          STATUS_PATH: ${{ runner.temp }}/review-evidence-status.json
+          EVIDENCE_PATH: ${{ runner.temp }}/review-evidence.json
         run: >-
           npx wrangler@4.110.0 kv key put
-          "review-evidence:v1:$MATCH_ID"
+          "review-evidence:v2:$MATCH_ID"
           --path "$EVIDENCE_PATH"
           --namespace-id "$KV_NAMESPACE_ID"
           --ttl 15552000
@@ -86,9 +86,10 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          STATUS_PATH: ${{ runner.temp }}/review-evidence-status.json
         run: >-
           npx wrangler@4.110.0 kv key put
-          "review-evidence-status:v1:$MATCH_ID"
+          "review-evidence-status:v2:$MATCH_ID"
           --path "$STATUS_PATH"
           --namespace-id "$KV_NAMESPACE_ID"
           --ttl 86400

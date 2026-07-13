@@ -39,6 +39,8 @@ REVIEW_TTL_SECONDS = 60 * 60 * 24 * 180
 PARSE_STATE_TTL_SECONDS = 60 * 60 * 6
 PARSE_REQUEST_COOLDOWN_SECONDS = 60 * 30
 REVIEW_RETRY_AFTER_SECONDS = 5
+REMOTE_EVIDENCE_WAIT_SECONDS = 90
+PARSE_FALLBACK_WAIT_SECONDS = 30
 
 
 def _utc_iso(value):
@@ -79,6 +81,7 @@ class ReviewService:
         ai_gateway=None,
         evidence_gateway=None,
         match_refresh_gateway=None,
+        prefer_remote_evidence=True,
     ):
         self.account_id = int(account_id)
         self.cache = cache
@@ -87,6 +90,7 @@ class ReviewService:
         self.ai = ai_gateway
         self.evidence_gateway = evidence_gateway
         self.match_refresh_gateway = match_refresh_gateway
+        self.prefer_remote_evidence = bool(prefer_remote_evidence)
 
     @property
     def match_list_key(self):
@@ -103,7 +107,7 @@ class ReviewService:
         return f"review:v{ANALYSIS_SCHEMA_VERSION}:{int(match_id)}"
 
     def parse_state_key(self, match_id):
-        return f"parse:v1:{int(match_id)}"
+        return f"parse:v2:{int(match_id)}"
 
     def evidence_key(self, match_id):
         return evidence_cache_key(match_id)
@@ -346,29 +350,62 @@ class ReviewService:
         summary = await self._require_recent_match(match_id)
         cache_key = self.review_key(match_id)
         cached = await self.cache.get_json(cache_key)
+        ready_evidence = None
+        if (
+            isinstance(cached, dict)
+            and cached.get("evidence_source") != "github_actions_stratz"
+        ):
+            candidate = await self.cache.get_json(self.evidence_key(match_id))
+            if evidence_payload_is_ready(candidate, match_id):
+                ready_evidence = candidate
         if (
             isinstance(cached, dict)
             and isinstance(cached.get("analysis"), dict)
             and cached.get("ai_status") == "generated"
         ):
-            result = dict(cached)
-            result["cached"] = True
-            return result
+            if ready_evidence is None:
+                result = dict(cached)
+                result["cached"] = True
+                return result
+        if ready_evidence is not None:
+            cached = None
 
         if self.analyzer is None:
             raise ServiceError("ANALYZER_UNAVAILABLE", "复盘引擎暂时不可用。", 503)
         analysis = cached.get("analysis") if isinstance(cached, dict) else None
         evidence_source = cached.get("evidence_source") if isinstance(cached, dict) else None
         if not isinstance(analysis, dict):
-            evidence_payload = await self.cache.get_json(self.evidence_key(match_id))
+            evidence_payload = ready_evidence or await self.cache.get_json(
+                self.evidence_key(match_id)
+            )
             if evidence_payload_is_ready(evidence_payload, match_id):
                 analysis = evidence_payload["analysis"]
                 evidence_source = evidence_payload.get("source") or "github_actions_stratz"
             else:
                 parse_state = await self.cache.get_json(self.parse_state_key(match_id))
+                evidence_status = await self.cache.get_json(self.evidence_status_key(match_id))
+                if self.prefer_remote_evidence and self.evidence_gateway is not None:
+                    wait_for_evidence, parse_state = await self._prefer_remote_evidence(
+                        match_id,
+                        now,
+                        parse_state,
+                        evidence_status,
+                    )
+                    if wait_for_evidence:
+                        return {
+                            "status": "processing",
+                            "match_id": match_id,
+                            "retry_after_seconds": REVIEW_RETRY_AFTER_SECONDS,
+                            "evidence_gaps": ["stratz_enrichment"],
+                            "parse_requested": False,
+                            "evidence_job_requested": True,
+                            "generated": False,
+                        }
                 detail_payload = await self.get_match_detail(
                     match_id,
-                    force_refresh=isinstance(parse_state, dict),
+                    force_refresh=bool(
+                        isinstance(parse_state, dict) and parse_state.get("requested_at")
+                    ),
                 )
                 detail = detail_payload["detail"]
                 analysis = self.analyzer.analyze(
@@ -382,17 +419,28 @@ class ReviewService:
                 evidence_gaps = review_evidence_gaps(analysis)
                 if evidence_gaps:
                     parse_state = await self._request_parse_once(match_id, now, parse_state)
-                    parse_state = await self._request_evidence_once(match_id, now, parse_state)
-                    return {
-                        "status": "processing",
-                        "match_id": match_id,
-                        "retry_after_seconds": REVIEW_RETRY_AFTER_SECONDS,
-                        "evidence_gaps": evidence_gaps,
-                        "parse_requested": bool(parse_state.get("requested_at")),
-                        "evidence_job_requested": bool(parse_state.get("evidence_requested_at")),
-                        "generated": False,
-                    }
-                evidence_source = "opendota_parsed"
+                    if not self.prefer_remote_evidence:
+                        parse_state = await self._request_evidence_once(match_id, now, parse_state)
+                    parse_requested_at = _parse_utc(parse_state.get("requested_at"))
+                    parse_age = (
+                        (now.astimezone(timezone.utc) - parse_requested_at).total_seconds()
+                        if parse_requested_at is not None else 0
+                    )
+                    should_wait_for_parse = (
+                        not self.prefer_remote_evidence
+                        or parse_age < PARSE_FALLBACK_WAIT_SECONDS
+                    )
+                    if should_wait_for_parse:
+                        return {
+                            "status": "processing",
+                            "match_id": match_id,
+                            "retry_after_seconds": REVIEW_RETRY_AFTER_SECONDS,
+                            "evidence_gaps": evidence_gaps,
+                            "parse_requested": bool(parse_state.get("requested_at")),
+                            "evidence_job_requested": bool(parse_state.get("evidence_requested_at")),
+                            "generated": False,
+                        }
+                evidence_source = "opendota_partial" if evidence_gaps else "opendota_parsed"
 
             analysis = dict(analysis)
             analysis["review_findings"] = select_coaching_findings(analysis)
@@ -441,6 +489,35 @@ class ReviewService:
         await self.cache.put_json(cache_key, payload, expiration_ttl=REVIEW_TTL_SECONDS)
         return payload
 
+    async def _prefer_remote_evidence(self, match_id, now, parse_state=None, evidence_status=None):
+        state = dict(parse_state) if isinstance(parse_state, dict) else {}
+        requested_at = _parse_utc(state.get("evidence_requested_at"))
+        request_age = None
+        if requested_at is not None:
+            request_age = (now.astimezone(timezone.utc) - requested_at).total_seconds()
+
+        status_is_current = False
+        status_value = None
+        if isinstance(evidence_status, dict):
+            completed_at = _parse_utc(evidence_status.get("completed_at"))
+            status_value = evidence_status.get("status")
+            status_is_current = bool(
+                requested_at is not None
+                and completed_at is not None
+                and completed_at >= requested_at
+                and int(evidence_status.get("match_id") or 0) == int(match_id)
+            )
+
+        if status_is_current and status_value == "failed":
+            return False, state
+        if requested_at is not None and request_age is not None:
+            if request_age < REMOTE_EVIDENCE_WAIT_SECONDS:
+                return True, state
+            return False, state
+
+        state = await self._request_evidence_once(match_id, now, state)
+        return bool(state.get("evidence_dispatch_accepted")), state
+
     async def _request_parse_once(self, match_id, now, parse_state=None):
         state = dict(parse_state) if isinstance(parse_state, dict) else {}
         requested_at = _parse_utc(state.get("requested_at"))
@@ -455,11 +532,11 @@ class ReviewService:
                 job_payload = await self.dota.request_parse(match_id)
             except Exception:
                 job_payload = None
-        state = {
+        state.update({
             "match_id": int(match_id),
             "requested_at": _utc_iso(now),
             "job_id": _parse_job_id(job_payload),
-        }
+        })
         await self.cache.put_json(
             self.parse_state_key(match_id),
             state,

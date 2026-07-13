@@ -4,6 +4,7 @@ from tempfile import TemporaryDirectory
 import tomllib
 
 from scripts.build_worker_bundle import build_worker_bundle
+from analysis.evidence_contract import EVIDENCE_SCHEMA_VERSION
 from worker.contracts import ServiceError
 from worker.router import route_request
 
@@ -267,6 +268,12 @@ class WorkerDeploymentContractTests(unittest.TestCase):
         self.assertIn("STRATZ_API_KEY", workflow)
         self.assertIn("wrangler@4.110.0 kv key put", workflow)
         self.assertIn("37577b67ad5f47b2a0e03b4d5a5ee929", workflow)
+        self.assertIn(f'"review-evidence:v{EVIDENCE_SCHEMA_VERSION}:$MATCH_ID"', workflow)
+        self.assertIn(f'"review-evidence-status:v{EVIDENCE_SCHEMA_VERSION}:$MATCH_ID"', workflow)
+        publish_complete = workflow.split("- name: Publish complete evidence", 1)[1].split("- name:", 1)[0]
+        publish_status = workflow.split("- name: Publish evidence status", 1)[1].split("- name:", 1)[0]
+        self.assertIn("EVIDENCE_PATH: ${{ runner.temp }}/review-evidence.json", publish_complete)
+        self.assertIn("STATUS_PATH: ${{ runner.temp }}/review-evidence-status.json", publish_status)
 
 
 if __name__ == "__main__":

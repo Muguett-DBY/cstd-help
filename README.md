@@ -6,7 +6,8 @@
 
 - 首页只读取缓存并显示最近 10 局；只有点击“刷新比赛”才启动 OpenDota 同步任务。
 - 进入单局时只读取比赛事实和已有复盘状态；只有点击“生成 AI 复盘”才启动分析。
-- 建议必须来自分钟级与事件级证据。证据不完整时返回处理中状态，不生成猜测性建议。
+- 点击分析后优先由按需工作流获取 STRATZ + OpenDota 完整证据；远端失败或 90 秒无结果时自动降级到 OpenDota，并明确展示仍存在的数据缺口。
+- 建议必须来自实际可用的分钟级与事件级证据；降级报告不会把缺失字段写成事实，也不会生成猜测性建议。
 - AI 只排序确定性分析引擎给出的 findings，不能新增问题、数字或行动项。
 
 ## Architecture
@@ -18,10 +19,10 @@ Browser
   |                                              -> OpenDota latest 10 + full details -> KV
   |-- GET /api/matches/:id ------------------> Worker -> prewarmed KV detail
   `-- POST /api/reviews/:id -----------------> Worker
+          |-- no current evidence -----------> fixed GitHub Actions workflow
+          |                                     -> STRATZ + OpenDota -> versioned KV evidence
           |-- complete evidence in KV -------> deterministic analyzer -> Workers AI ranking
-          `-- missing event evidence --------> fixed GitHub Actions workflow
-                                                -> STRATZ + OpenDota
-                                                -> versioned evidence in KV
+          `-- workflow failed/timed out -----> bounded OpenDota fallback -> explicit data gaps
 ```
 
 Cloudflare Pages serves `public/`. The Python Worker serves `dota.custard.top/api/*`. GitHub Actions performs both OpenDota cache refreshes and STRATZ evidence fetches because the upstream services rate-limit or block Cloudflare Worker egress. The browser never receives a service token.
@@ -39,7 +40,7 @@ The repository also retains historical static reports as an archive. They are no
 | `GET` | `/api/reviews/:id/status` | Read existing review status; never starts analysis |
 | `POST` | `/api/reviews/:id` | Return cached review or start evidence acquisition and analysis |
 
-Refresh requests have a server-side cooldown and processing-state deduplication. The browser polls cache status with `GET`; it never starts a second job automatically. Refresh and evidence jobs are restricted to the configured repository, workflows, branch, fixed player account, and current latest-10 match IDs.
+Refresh requests have a server-side cooldown and processing-state deduplication. The browser polls cache status with `GET`; it never starts a second job automatically. Review polling also deduplicates STRATZ and OpenDota parse requests, waits at most 90 seconds for remote evidence and at most 30 additional seconds for OpenDota parsing before publishing an evidence-bounded fallback. Refresh and evidence jobs are restricted to the configured repository, workflows, branch, fixed player account, and current latest-10 match IDs.
 
 ## Local Development
 

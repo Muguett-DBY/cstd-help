@@ -20,7 +20,7 @@ const analyzeButton = document.querySelector("[data-generate-review]");
 const reviewOutput = document.querySelector("[data-review-output]");
 const heroHeading = document.querySelector("[data-hero-heading]");
 const state = { detail: null, reviewStatus: null, review: null };
-const MAX_REVIEW_POLL_ATTEMPTS = 24;
+const MAX_REVIEW_POLL_ATTEMPTS = 30;
 
 function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -152,6 +152,49 @@ function renderActions(actions) {
         </article>`).join("") || '<p class="muted-copy">本局没有形成可发布的行动项。</p>';
 }
 
+function benchmarkRawLabel(item) {
+    const value = Number(item?.raw);
+    if (!Number.isFinite(value)) return "—";
+    return value.toLocaleString("zh-CN", { maximumFractionDigits: 2 });
+}
+
+function renderPerformanceContext(analysis) {
+    const target = document.querySelector("[data-performance-context]");
+    const role = analysis.role_profile || {};
+    const performance = analysis.performance_context || {};
+    const benchmarks = analysis.opendota_benchmarks || {};
+    const focus = (role.focus || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+    const performanceRows = (performance.metrics || []).map((item) => `
+        <div class="context-metric status-${escapeHtml(item.status || "normal")}">
+            <dt>${escapeHtml(item.label || "指标")}</dt>
+            <dd><strong>${escapeHtml(item.value_label || "—")}</strong><small>${escapeHtml(item.detail || "")}</small></dd>
+        </div>`).join("");
+    const benchmarkRows = (benchmarks.metrics || []).map((item) => `
+        <div class="benchmark-row status-${escapeHtml(item.status || "normal")}">
+            <span>${escapeHtml(item.label || item.id || "指标")}</span>
+            <strong>${escapeHtml(item.percentile_label || "—")}</strong>
+            <small>本局 ${benchmarkRawLabel(item)}</small>
+        </div>`).join("");
+    const qualityScore = Number(analysis.data_quality?.score);
+    target.innerHTML = `
+        <div class="role-context-strip">
+            <div><span>本局位置</span><strong>${escapeHtml(role.label || "位置未识别")}</strong></div>
+            <div><span>证据完整度</span><strong>${Number.isFinite(qualityScore) ? `${qualityScore}/100` : "—"}</strong></div>
+            <div><span>分析重点</span><ul>${focus || "<li>按事件证据排序</li>"}</ul></div>
+        </div>
+        <div class="performance-context-grid">
+            <section><h4>本局执行指标</h4><dl>${performanceRows || '<p class="muted-copy">公共数据源未返回执行汇总。</p>'}</dl></section>
+            <section><h4>同英雄样本位置</h4><div class="benchmark-list">${benchmarkRows || '<p class="muted-copy">公共数据源未返回同英雄百分位。</p>'}</div></section>
+        </div>`;
+}
+
+function timelineImpactGroup(title, windows, metricLabel) {
+    if (!windows?.length) return "";
+    const rows = windows.map((window) => `
+        <li><span>${escapeHtml(window.label || `${window.start_minute}-${window.end_minute}分钟`)}</span><strong>${numberLabel(window.total)} ${metricLabel}</strong></li>`).join("");
+    return `<section><h4>${title}</h4><ol>${rows}</ol></section>`;
+}
+
 function renderTimeline(timeline) {
     const target = document.querySelector("[data-timeline]");
     if (!timeline?.available) {
@@ -166,6 +209,10 @@ function renderTimeline(timeline) {
         </div>`).join("");
     const lowWindows = (timeline.low_efficiency_windows || []).map((window) => `
         <li><i data-lucide="activity" aria-hidden="true"></i><span><strong>${escapeHtml(window.label || `${window.start_minute}-${window.end_minute} 分钟`)}</strong><small>${Number(window.avg_lh || 0).toFixed(1)} LH/min</small></span></li>`).join("");
+    const impactWindows = [
+        timelineImpactGroup("输出高峰", timeline.damage_windows, "英雄伤害"),
+        timelineImpactGroup("推塔高峰", timeline.tower_windows, "建筑伤害"),
+    ].filter(Boolean).join("");
     target.innerHTML = `
         <div class="timeline-keyfacts">
             <div><span>10 分钟补刀</span><strong>${numberLabel(timeline.ten_min_last_hits)}</strong></div>
@@ -173,6 +220,7 @@ function renderTimeline(timeline) {
             <div><span>时间线来源</span><strong>${escapeHtml(timeline.source_label || timeline.source || "已解析")}</strong></div>
         </div>
         <div class="phase-grid">${phases}</div>
+        ${impactWindows ? `<div class="timeline-impact-grid">${impactWindows}</div>` : ""}
         ${lowWindows ? `<div class="timeline-alerts"><h4>低效率窗口</h4><ul>${lowWindows}</ul></div>` : ""}`;
     refreshIcons();
 }
@@ -243,12 +291,28 @@ function renderFindings(findings) {
         </article>`).join("");
 }
 
-function renderDataLimits(limits) {
+function renderDataLimits(limits, sources) {
     const list = Array.isArray(limits) ? limits : [];
-    document.querySelector("[data-limit-count]").textContent = String(list.length);
-    document.querySelector("[data-limit-list]").innerHTML = list.length
-        ? `<ul>${list.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
-        : '<p>本局核心复盘字段覆盖完整。</p>';
+    const evidenceSources = Array.isArray(sources) ? sources : [];
+    const limitsPanel = document.querySelector("[data-limits]");
+    const complete = evidenceSources.filter((item) => item.status === "available").length;
+    const statusLabels = { available: "完整", partial: "部分", missing: "缺失" };
+    const sourceRows = evidenceSources.map((item) => `
+        <div class="evidence-source-row status-${escapeHtml(item.status || "missing")}">
+            <span><strong>${escapeHtml(item.label || item.id || "证据")}</strong><small>${escapeHtml(item.source || "来源未记录")}</small></span>
+            <span>${escapeHtml(item.coverage || "覆盖未记录")}</span>
+            <b>${statusLabels[item.status] || "未知"}</b>
+        </div>`).join("");
+    document.querySelector("[data-limit-label]").textContent = list.length ? "数据缺口与证据覆盖" : "证据来源与覆盖";
+    document.querySelector("[data-limit-count]").textContent = evidenceSources.length
+        ? `${complete}/${evidenceSources.length}`
+        : String(list.length);
+    document.querySelector("[data-limit-list]").innerHTML = `
+        <section class="evidence-coverage"><h4>证据来源与覆盖</h4>${sourceRows || '<p>未返回证据来源清单。</p>'}</section>
+        <section class="limitation-list"><h4>数据缺口</h4>${list.length
+            ? `<ul>${list.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+            : '<p>本局核心复盘字段覆盖完整。</p>'}</section>`;
+    limitsPanel.open = list.length > 0;
 }
 
 function renderReview(payload) {
@@ -258,10 +322,14 @@ function renderReview(payload) {
     document.querySelector("[data-review-mode]").textContent = payload.ai_status === "generated" ? "AI 证据排序" : "确定性证据引擎";
     document.querySelector("[data-coach-conclusion]").innerHTML = `<span>最重要结论</span><p>${escapeHtml(coach.conclusion || "本局没有形成可发布结论。")}</p>`;
     renderActions(coach.next_actions);
+    renderPerformanceContext(analysis);
     renderTimeline(analysis.timeline || {});
     renderEvents(analysis.events || {});
     renderFindings(coach.review_points || analysis.review_findings || []);
-    renderDataLimits(coach.data_limits || analysis.data_quality?.limitations || []);
+    renderDataLimits(
+        coach.data_limits || analysis.data_quality?.limitations || [],
+        analysis.data_quality?.evidence_sources || [],
+    );
     reviewOutput.hidden = false;
     setAnalysisButtonLabel();
     setPageStatus(payload.ai_status === "generated" ? "AI 已完成证据优先级排序。" : "已生成确定性教练建议。", "success");

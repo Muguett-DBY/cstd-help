@@ -9,6 +9,7 @@ from analysis.coach_contract import (
     select_coaching_findings,
     validate_coach_payload,
 )
+from analysis.evidence_contract import EVIDENCE_SCHEMA_VERSION
 from api.normalization import (
     normalize_match_participants,
     normalize_player_match,
@@ -618,6 +619,7 @@ class ReviewServiceGenerationTests(unittest.IsolatedAsyncioTestCase):
             analyzer=self.analyzer,
             ai_gateway=self.ai,
             evidence_gateway=self.evidence,
+            prefer_remote_evidence=False,
         )
 
     async def asyncSetUp(self):
@@ -639,6 +641,146 @@ class ReviewServiceGenerationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.dota.stratz_calls, [])
         self.assertFalse(result["cached"])
         self.assertEqual(result["ai_status"], "generated")
+
+    async def test_click_prefers_remote_stratz_evidence_even_when_opendota_is_complete(self):
+        service = ReviewService(
+            ACCOUNT_ID,
+            self.cache,
+            self.dota,
+            analyzer=self.analyzer,
+            ai_gateway=self.ai,
+            evidence_gateway=self.evidence,
+            prefer_remote_evidence=True,
+        )
+
+        first = await service.generate_review(8891116798, self.now)
+
+        self.assertEqual(first["status"], "processing")
+        self.assertEqual(first["evidence_gaps"], ["stratz_enrichment"])
+        self.assertEqual(self.evidence.calls, [8891116798])
+        self.assertEqual(self.analyzer.calls, 0)
+        self.assertEqual(self.ai.calls, 0)
+
+        await self.cache.put_json(
+            service.evidence_key(8891116798),
+            {
+                "schema_version": EVIDENCE_SCHEMA_VERSION,
+                "match_id": 8891116798,
+                "source": "github_actions_stratz",
+                "analysis": _analysis_fixture(),
+            },
+        )
+        second = await service.generate_review(
+            8891116798,
+            self.now + timedelta(seconds=5),
+        )
+
+        self.assertEqual(second["ai_status"], "generated")
+        self.assertEqual(second["evidence_source"], "github_actions_stratz")
+        self.assertEqual(self.analyzer.calls, 0)
+        self.assertEqual(self.ai.calls, 1)
+
+    async def test_failed_remote_enrichment_automatically_falls_back_to_opendota(self):
+        service = ReviewService(
+            ACCOUNT_ID,
+            self.cache,
+            self.dota,
+            analyzer=self.analyzer,
+            ai_gateway=self.ai,
+            evidence_gateway=self.evidence,
+            prefer_remote_evidence=True,
+        )
+        first = await service.generate_review(8891116798, self.now)
+        self.assertEqual(first["status"], "processing")
+        await self.cache.put_json(
+            service.evidence_status_key(8891116798),
+            {
+                "schema_version": EVIDENCE_SCHEMA_VERSION,
+                "match_id": 8891116798,
+                "status": "failed",
+                "completed_at": "2026-07-12T03:00:05Z",
+                "error_code": "STRATZ_UNAVAILABLE",
+            },
+        )
+
+        second = await service.generate_review(
+            8891116798,
+            self.now + timedelta(seconds=5),
+        )
+
+        self.assertEqual(second["ai_status"], "generated")
+        self.assertEqual(second["evidence_source"], "opendota_parsed")
+        self.assertEqual(self.analyzer.calls, 1)
+        self.assertEqual(self.ai.calls, 1)
+
+    async def test_remote_enrichment_timeout_falls_back_without_redispatch(self):
+        service = ReviewService(
+            ACCOUNT_ID,
+            self.cache,
+            self.dota,
+            analyzer=self.analyzer,
+            ai_gateway=self.ai,
+            evidence_gateway=self.evidence,
+            prefer_remote_evidence=True,
+        )
+        first = await service.generate_review(8891116798, self.now)
+        self.assertEqual(first["status"], "processing")
+
+        second = await service.generate_review(
+            8891116798,
+            self.now + timedelta(seconds=91),
+        )
+
+        self.assertEqual(second["ai_status"], "generated")
+        self.assertEqual(second["evidence_source"], "opendota_parsed")
+        self.assertEqual(self.evidence.calls, [8891116798])
+
+    async def test_incomplete_fallback_stops_polling_after_parse_wait(self):
+        incomplete = _analysis_fixture()
+        incomplete["timeline"] = {"available": False}
+        incomplete["events"] = {
+            "deaths": [],
+            "death_count_expected": 4,
+            "purchases": [],
+            "has_purchase_timeline": False,
+        }
+        self.analyzer.result = incomplete
+        service = ReviewService(
+            ACCOUNT_ID,
+            self.cache,
+            self.dota,
+            analyzer=self.analyzer,
+            ai_gateway=self.ai,
+            evidence_gateway=self.evidence,
+            prefer_remote_evidence=True,
+        )
+        first = await service.generate_review(8891116798, self.now)
+        self.assertEqual(first["status"], "processing")
+        await self.cache.put_json(
+            service.evidence_status_key(8891116798),
+            {
+                "schema_version": EVIDENCE_SCHEMA_VERSION,
+                "match_id": 8891116798,
+                "status": "failed",
+                "completed_at": "2026-07-12T03:00:05Z",
+                "error_code": "STRATZ_UNAVAILABLE",
+            },
+        )
+        second = await service.generate_review(
+            8891116798,
+            self.now + timedelta(seconds=5),
+        )
+        self.assertEqual(second["status"], "processing")
+
+        third = await service.generate_review(
+            8891116798,
+            self.now + timedelta(seconds=36),
+        )
+
+        self.assertNotEqual(third.get("status"), "processing")
+        self.assertEqual(third["evidence_source"], "opendota_partial")
+        self.assertEqual(self.evidence.calls, [8891116798])
+        self.assertEqual(self.dota.parse_calls, [8891116798])
 
     async def test_incomplete_evidence_requests_parse_and_skips_ai(self):
         incomplete = _analysis_fixture()
@@ -689,7 +831,7 @@ class ReviewServiceGenerationTests(unittest.IsolatedAsyncioTestCase):
         await self.cache.put_json(
             self.service.evidence_key(8891116798),
             {
-                "schema_version": 1,
+                "schema_version": EVIDENCE_SCHEMA_VERSION,
                 "match_id": 8891116798,
                 "source": "github_actions_stratz",
                 "analysis": _analysis_fixture(),
@@ -711,6 +853,54 @@ class ReviewServiceGenerationTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(result["cached"])
         self.assertEqual(self.analyzer.calls, 1)
         self.assertEqual(self.ai.calls, 1)
+
+    async def test_cached_opendota_review_upgrades_when_remote_evidence_arrives(self):
+        first = await self.service.generate_review(8891116798, self.now)
+        self.assertEqual(first["evidence_source"], "opendota_parsed")
+        await self.cache.put_json(
+            self.service.evidence_key(8891116798),
+            {
+                "schema_version": EVIDENCE_SCHEMA_VERSION,
+                "match_id": 8891116798,
+                "source": "github_actions_stratz",
+                "analysis": _analysis_fixture(),
+            },
+        )
+
+        upgraded = await self.service.generate_review(
+            8891116798,
+            self.now + timedelta(minutes=2),
+        )
+
+        self.assertFalse(upgraded["cached"])
+        self.assertEqual(upgraded["evidence_source"], "github_actions_stratz")
+        self.assertEqual(self.analyzer.calls, 1)
+        self.assertEqual(self.ai.calls, 2)
+
+    async def test_fallback_review_upgrades_when_remote_evidence_arrives(self):
+        self.ai.payload = {"finding_order": [1]}
+        first = await self.service.generate_review(8891116798, self.now)
+        self.assertEqual(first["ai_status"], "fallback")
+        await self.cache.put_json(
+            self.service.evidence_key(8891116798),
+            {
+                "schema_version": EVIDENCE_SCHEMA_VERSION,
+                "match_id": 8891116798,
+                "source": "github_actions_stratz",
+                "analysis": _analysis_fixture(),
+            },
+        )
+        self.ai.payload = _valid_ai_payload()
+
+        upgraded = await self.service.generate_review(
+            8891116798,
+            self.now + timedelta(minutes=2),
+        )
+
+        self.assertEqual(upgraded["ai_status"], "generated")
+        self.assertEqual(upgraded["evidence_source"], "github_actions_stratz")
+        self.assertEqual(self.analyzer.calls, 1)
+        self.assertEqual(self.ai.calls, 2)
 
     async def test_invalid_ai_output_uses_deterministic_fallback(self):
         self.ai.payload = {

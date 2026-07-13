@@ -678,6 +678,10 @@ def _build_opendota_benchmark_profile(opendota_player):
             continue
         pct = max(0.0, min(1.0, float(pct)))
         raw = item.get("raw")
+        if key == "hero_healing_per_min" and (
+            not isinstance(raw, (int, float)) or raw <= 0
+        ):
+            continue
         percentile = int(round(pct * 100))
         metrics.append({
             "id": key,
@@ -1613,8 +1617,11 @@ def _build_death_objective_drill(windows):
             },
         ],
         "training_goal": f"下一局执行「目标前90秒生存规则」，把围绕{objective_label}的死亡/目标损失窗口清零。",
-        "success_metric": "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0；目标前90秒死亡=0。",
-        "replay_check": f"系统证据窗口：{evidence}；只校验死亡前90秒是否满足接应、控制露头、撤退路线三项条件。",
+        "success_metric": "死亡后90秒内失去目标窗口=0；25分钟后死亡不超过2次。",
+        "replay_check": (
+            f"系统证据窗口：{evidence}；系统只自动验收死亡与目标事件的时间窗口。"
+            "队友接应、控制露头和撤退路线是下一局执行规则，不回写成已验证事实。"
+        ),
         "window_count": len(windows),
     }
 
@@ -2264,7 +2271,7 @@ def _default_success_metric(category):
         "death_resource_overlap": "死亡与低效率窗口重叠=0；死亡后3分钟内补回一波安全线或安全野区资源。",
         "death_recovery": "死亡后3分钟补刀>=6或平均GPM>=300；恢复不足窗口=0。",
         "death_resource_delta": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
-        "death_position_pattern": "重复死亡坐标簇不超过1个；每个重复点都有一条赛前撤退规则。",
+        "death_position_pattern": "重复死亡坐标簇不超过1个；同一坐标簇内重复死亡次数不超过1次。",
         "death_review": "每10分钟死亡不高于1.0；连续5分钟内死亡簇=0。",
         "item_timing": f"{FARM_ACCELERATION_SUCCESS_METRIC}；{MAP_CONVERSION_SUCCESS_METRIC}。",
         "map_impact": "参战率>=40%；关键装备后2分钟至少完成一次地图动作。",
@@ -2435,7 +2442,7 @@ def _build_review_findings(result):
         w for w in timeline.get("low_efficiency_windows", [])
         if w.get("start_minute", 0) >= 10
     ]
-    if late_low_windows and role_id in ("pos1", "pos2", "unknown"):
+    if late_low_windows and role_id in ("pos1", "pos2", "unknown", "unknown_lane"):
         evidence = "；".join(
             f"{w.get('start_minute')}-{w.get('end_minute')}分钟 {w.get('avg_lh')}补/分钟"
             for w in late_low_windows[:3]
@@ -2454,7 +2461,7 @@ def _build_review_findings(result):
         ))
 
     overlap_windows = timeline.get("death_overlap_windows") or []
-    if overlap_windows and role_id in ("pos1", "pos2", "unknown"):
+    if overlap_windows and role_id in ("pos1", "pos2", "unknown", "unknown_lane"):
         evidence = "；".join(
             window.get("evidence_label")
             for window in overlap_windows[:3]
@@ -2497,7 +2504,7 @@ def _build_review_findings(result):
             action,
             replay_check,
             drill.get("training_goal") or f"下一局把死亡后90秒内失去目标窗口从{len(death_objective_windows)}个压到0。",
-            drill.get("success_metric") or "死亡后90秒内失去目标窗口=0；目标前90秒单独深入次数=0。",
+            drill.get("success_metric") or "死亡后90秒内失去目标窗口=0；25分钟后死亡不超过2次。",
         ))
 
     recovery_windows = timeline.get("death_recovery_windows") or []
@@ -2616,7 +2623,7 @@ def _build_review_findings(result):
             "下一局每次接近这些重复坐标对应的高风险区域前，先满足三个条件：队友能接应、敌方关键控制已露头、自己有明确撤退路线；任一条件缺失就先退回安全资源点。",
             "系统只按 STRATZ raw x/y 距离聚类，不转换成地图区域名；报告保留原始坐标和分钟，不把入口、线口、目标区或高低坡作为结论。",
             f"下一局把重复死亡坐标簇从{len(position_clusters)}个压到{position_cluster_target}；每个重复点赛前写一条撤退规则。",
-            f"重复死亡坐标簇{position_cluster_metric}；每个重复点都有一条赛前撤退规则。",
+            f"重复死亡坐标簇{position_cluster_metric}；同一坐标簇内重复死亡次数不超过1次。",
         ))
 
     resource_delta_windows = timeline.get("death_resource_deltas") or []

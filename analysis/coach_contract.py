@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 
-ANALYSIS_SCHEMA_VERSION = 3
+ANALYSIS_SCHEMA_VERSION = 4
 FORBIDDEN_COACH_TERMS = (
     "人工",
     "手动",

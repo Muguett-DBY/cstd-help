@@ -265,6 +265,8 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("60秒", objective_findings[0]["evidence"])
         self.assertIn("目标前90秒生存规则", objective_findings[0]["training_goal"])
         self.assertIn("死亡后90秒内失去目标窗口=0", objective_findings[0]["success_metric"])
+        self.assertNotIn("单独深入次数", objective_findings[0]["success_metric"])
+        self.assertIn("只自动验收死亡与目标事件的时间窗口", objective_findings[0]["replay_check"])
         self.assertIn("只标记事件先后", objective_findings[0]["replay_check"])
 
     def test_opendota_benchmarks_create_percentile_profile_and_findings(self):
@@ -309,6 +311,26 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("英雄伤害/分钟 第18百分位", benchmark_findings[0]["evidence"])
         self.assertIn("补刀/分钟 第22百分位", benchmark_findings[0]["evidence"])
         self.assertIn("OpenDota英雄样本百分位", benchmark_findings[0]["replay_check"])
+
+    def test_zero_healing_percentile_is_not_presented_as_a_strength(self):
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "benchmarks": {
+                    "hero_healing_per_min": {"raw": 0, "pct": 0.96},
+                    "kills_per_min": {"raw": 0.45, "pct": 0.95},
+                },
+            }],
+        }
+
+        profile = analyze_match(match, opendota_data=opendota_data)["opendota_benchmarks"]
+        metric_ids = [item["id"] for item in profile["metrics"]]
+
+        self.assertNotIn("hero_healing_per_min", metric_ids)
+        self.assertIn("kills_per_min", metric_ids)
 
     def test_generated_report_shows_opendota_benchmark_percentiles(self):
         from report.generator import generate_report
@@ -961,6 +983,38 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("从1个压到0个", finding["training_goal"])
         self.assertIn("低效率窗口=0", finding["success_metric"])
         self.assertNotIn("从1个压到最多1个", finding["training_goal"])
+
+    def test_unknown_lane_core_profile_keeps_late_resource_findings(self):
+        findings = _build_review_findings({
+            "duration_min": 52.8,
+            "farm": {"last_hits": 727, "gpm": 1030},
+            "derived": {"lh_per_min": 13.77, "deaths_per_10_min": 1.7},
+            "role_profile": {
+                "id": "unknown_lane",
+                "label": "优势路（位置未细分）",
+                "lane_farm_sensitive": True,
+            },
+            "timeline": {
+                "available": True,
+                "ten_min_last_hits": 56,
+                "low_efficiency_windows": [{
+                    "label": "低效率窗口 48-50分钟",
+                    "start_minute": 48,
+                    "end_minute": 50,
+                    "avg_lh": 1.5,
+                }],
+                "death_overlap_windows": [{
+                    "evidence_label": "低效率窗口 48-50分钟含 48.2分死亡",
+                    "death_count": 1,
+                }],
+            },
+            "events": {"deaths": [], "purchases": []},
+            "kda": {"deaths": 0},
+        })
+
+        categories = {item["category"] for item in findings}
+        self.assertIn("resource_continuity", categories)
+        self.assertIn("death_resource_overlap", categories)
 
     def test_opendota_vision_profile_routes_supports_away_from_core_farm_goals(self):
         match = self._base_match()
@@ -2261,6 +2315,7 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("不转换成地图区域名", finding["replay_check"])
         self.assertIn("从1个压到0个", finding["training_goal"])
         self.assertIn("重复死亡坐标簇=0", finding["success_metric"])
+        self.assertNotIn("赛前撤退规则", finding["success_metric"])
         self.assertNotIn("从1个压到最多1个", finding["training_goal"])
         joined = " ".join([
             finding["why_it_matters"],
