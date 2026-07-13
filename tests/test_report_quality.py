@@ -1714,6 +1714,67 @@ class ReportQualityTests(unittest.TestCase):
             " ".join(result["data_quality"]["limitations"]),
         )
 
+    def test_opendota_metadata_recovers_final_major_item_timings_without_fallback_ids(self):
+        match = self._base_match()
+        match.update({
+            "hero_id": 11,
+            "item_0": 152,
+            "item_1": 63,
+            "item_2": 277,
+            "item_3": 236,
+            "item_4": 21,
+            "item_5": 596,
+        })
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 11,
+                "player_slot": 1,
+                "purchase_log": [
+                    {"time": 186, "key": "falcon_blade"},
+                    {"time": 365, "key": "power_treads"},
+                    {"time": 1013, "key": "yasha_and_kaya"},
+                    {"time": 1195, "key": "dragon_lance"},
+                    {"time": 1513, "key": "invis_sword"},
+                    {"time": 1514, "key": "invis_sword"},
+                    {"time": 1688, "key": "ogre_axe"},
+                ],
+                "lh_t": list(range(36)),
+                "gold_t": [minute * 500 for minute in range(36)],
+                "kills_log": [],
+                "assists_log": [],
+                "obs_log": [],
+                "sen_log": [],
+                "obs_placed": 0,
+                "sen_placed": 0,
+                "observer_kills": 0,
+                "sentry_kills": 0,
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        key_purchases = result["events"]["key_purchases"]
+
+        self.assertEqual(
+            [item["item_name"] for item in key_purchases],
+            ["Yasha and Kaya", "Dragon Lance", "Shadow Blade"],
+        )
+        self.assertEqual([item["item_id"] for item in key_purchases], [277, 236, 152])
+        self.assertEqual([item["item_cost"] for item in key_purchases], [4200, 1900, 3250])
+        self.assertEqual([item["time"] for item in key_purchases], [1013, 1195, 1513])
+        self.assertTrue(all(
+            item["selection_reason"] == "final_inventory_major_item"
+            for item in key_purchases
+        ))
+        self.assertEqual(
+            [item["item_name"] for item in result["events"]["post_item_windows"]],
+            ["Yasha and Kaya", "Dragon Lance", "Shadow Blade"],
+        )
+        self.assertNotIn(
+            "没有识别到关键装备完成点",
+            " ".join(result["data_quality"]["limitations"]),
+        )
+
     def test_support_utility_items_are_key_purchases(self):
         match = self._base_match()
         match["hero_id"] = 86

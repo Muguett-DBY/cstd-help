@@ -22,6 +22,7 @@ def _load_json(filename):
 HERO_ID_TO_NAME = {}
 HERO_NAME_TO_ID = {}
 HERO_ID_TO_SLUG = {}
+ITEM_METADATA_BY_KEY = None
 
 ITEM_FALLBACKS = {
     1: "Blink Dagger",
@@ -131,6 +132,29 @@ def get_hero_name(hero_id):
     return HERO_ID_TO_NAME.get(hero_id, f"Hero#{hero_id}")
 
 
+def _item_metadata_for_key(item_key):
+    global ITEM_METADATA_BY_KEY
+    if not isinstance(item_key, str) or not item_key:
+        return None
+    if ITEM_METADATA_BY_KEY is None:
+        ITEM_METADATA_BY_KEY = {}
+        items_db = _load_json("items.json")
+        for raw_id, info in items_db.items():
+            if not isinstance(info, dict) or not info.get("name"):
+                continue
+            try:
+                item_id = int(raw_id)
+            except (TypeError, ValueError):
+                continue
+            ITEM_METADATA_BY_KEY[info["name"]] = {
+                "id": item_id,
+                "name": info.get("display") or info["name"],
+                "cost": info.get("cost"),
+                "category": info.get("category"),
+            }
+    return ITEM_METADATA_BY_KEY.get(item_key)
+
+
 def get_hero_info(hero_id, display_name=None):
     _init_hero_maps()
     return {
@@ -231,6 +255,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         stratz_player,
         opendota_player=opendota_player,
         opendota_data=opendota_data,
+        final_item_ids=items,
         expected_deaths=deaths,
         expected_kills=kills,
         expected_assists=assists,
@@ -1023,8 +1048,11 @@ def _normalize_timed_events(events, item_events=False, source=None):
         item = {"time": event.get("time"), "minute": minute}
         if item_events:
             item_id = event.get("itemId") or event.get("item_id") or event.get("item")
+            item_detail = _item_detail(item_id) if item_id else {}
             item["item_id"] = item_id
-            item["item_name"] = _item_detail(item_id).get("name") if item_id else "Unknown"
+            item["item_name"] = item_detail.get("name") if item_id else "Unknown"
+            item["item_cost"] = item_detail.get("cost")
+            item["item_category"] = item_detail.get("category")
         if source:
             item["source"] = source
         normalized.append(item)
@@ -1040,14 +1068,27 @@ def _normalize_opendota_purchase_events(events):
         if minute is None:
             continue
         key = event.get("key")
-        item_id, item_name = ITEM_KEY_FALLBACKS.get(key, (None, None))
-        if item_name is None:
+        fallback = ITEM_KEY_FALLBACKS.get(key)
+        metadata = _item_metadata_for_key(key)
+        if fallback:
+            item_id, item_name = fallback
+            item_detail = _item_detail(item_id)
+        elif metadata:
+            item_id = metadata["id"]
+            item_name = metadata["name"]
+            item_detail = metadata
+        else:
+            item_id = None
             item_name = key.replace("_", " ").title() if isinstance(key, str) else "Unknown"
+            item_detail = {}
         normalized.append({
             "time": event.get("time"),
             "minute": minute,
+            "item_key": key,
             "item_id": item_id,
             "item_name": item_name,
+            "item_cost": item_detail.get("cost"),
+            "item_category": item_detail.get("category"),
             "source": "opendota",
         })
     return sorted(normalized, key=lambda item: item["time"])
@@ -1401,6 +1442,8 @@ KEY_ITEM_NAMES = {
     "Scythe of Vyse",
     "Shiva's Guard",
 }
+MAJOR_ITEM_MIN_COST = 1800
+NON_MAJOR_ITEM_CATEGORIES = {"component", "consumable"}
 FARM_ACCELERATION_ITEM_NAMES = {
     "Battle Fury",
     "Hand of Midas",
@@ -1434,16 +1477,35 @@ CATEGORY_LABELS = {
 }
 
 
-def _key_purchases(purchases):
+def _key_purchases(purchases, final_item_ids=None):
     result = []
     seen = set()
+    final_item_ids = {int(item_id) for item_id in final_item_ids or [] if item_id}
     for item in purchases:
         item_id = item.get("item_id")
         item_name = item.get("item_name")
-        if item_id in KEY_ITEM_IDS or item_name in KEY_ITEM_NAMES:
-            key = item_id or item_name
+        item_detail = _item_detail(item_id) if item_id else {}
+        item_cost = item.get("item_cost")
+        if not isinstance(item_cost, (int, float)):
+            item_cost = item_detail.get("cost")
+        item_category = item.get("item_category") or item_detail.get("category")
+        curated = item_id in KEY_ITEM_IDS or item_name in KEY_ITEM_NAMES
+        final_inventory_major = (
+            item_id in final_item_ids
+            and isinstance(item_cost, (int, float))
+            and item_cost >= MAJOR_ITEM_MIN_COST
+            and item_category not in NON_MAJOR_ITEM_CATEGORIES
+        )
+        if curated or final_inventory_major:
+            key = ("id", item_id) if item_id else ("name", item_name)
             if key not in seen:
-                result.append(item)
+                normalized = dict(item)
+                normalized["item_cost"] = item_cost
+                normalized["item_category"] = item_category
+                normalized["selection_reason"] = (
+                    "curated_key_item" if curated else "final_inventory_major_item"
+                )
+                result.append(normalized)
                 seen.add(key)
     return result
 
@@ -1790,6 +1852,7 @@ def _build_events(
     stratz_player,
     opendota_player=None,
     opendota_data=None,
+    final_item_ids=None,
     expected_deaths=0,
     expected_kills=0,
     expected_assists=0,
@@ -1978,6 +2041,7 @@ def _build_events(
         death_coverage_label = f"已定位 {observed_deaths} 次死亡"
     else:
         death_coverage_label = "本局没有记录到死亡"
+    key_purchases = _key_purchases(purchases, final_item_ids=final_item_ids)
     return {
         "available": bool(source),
         "source": source,
@@ -1987,7 +2051,7 @@ def _build_events(
         "fight_source": fight_source,
         "vision_source": vision_source,
         "purchases": purchases,
-        "key_purchases": _key_purchases(purchases),
+        "key_purchases": key_purchases,
         "deaths": deaths,
         "death_count_expected": expected_deaths,
         "death_count_observed": observed_deaths,
