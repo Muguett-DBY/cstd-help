@@ -14,7 +14,12 @@ class WorkbenchHandler(SimpleHTTPRequestHandler):
 
     def _proxy_api(self):
         origin = urlsplit(self.api_origin)
-        connection = http.client.HTTPConnection(origin.hostname, origin.port, timeout=180)
+        connection_class = (
+            http.client.HTTPSConnection
+            if origin.scheme == "https"
+            else http.client.HTTPConnection
+        )
+        connection = connection_class(origin.hostname, origin.port, timeout=180)
         length = int(self.headers.get("Content-Length") or 0)
         body = self.rfile.read(length) if length else None
         headers = {

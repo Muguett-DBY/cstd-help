@@ -212,7 +212,7 @@ class RefreshPublicReportsTests(unittest.TestCase):
                 use_stratz=False,
                 use_d2pt=False,
                 analyze_fn=fake_analyze,
-                ai_fn=lambda *_args: "coach",
+                review_fn=lambda *_args: "guidance",
                 report_fn=fake_report,
                 build_fn=fake_build,
                 workbench_build_fn=lambda **kwargs: workbench_builds.append(kwargs),
@@ -252,7 +252,7 @@ class RefreshPublicReportsTests(unittest.TestCase):
                 use_stratz=False,
                 use_d2pt=False,
                 analyze_fn=lambda match_data, **_kwargs: _analysis(match_data),
-                ai_fn=lambda *_args: "coach",
+                review_fn=lambda *_args: "guidance",
                 report_fn=lambda analysis, _coach, output_dir=None, **_kwargs: str(
                     Path(output_dir, f"Mirana_{analysis['match_id']}_20260711_100000.html")
                 ),
@@ -293,7 +293,7 @@ class RefreshPublicReportsTests(unittest.TestCase):
                 use_stratz=False,
                 use_d2pt=False,
                 analyze_fn=fake_analyze,
-                ai_fn=lambda *_args: "coach",
+                review_fn=lambda *_args: "guidance",
                 report_fn=lambda *_args, **_kwargs: self.fail("deferred report must not render"),
                 build_fn=lambda *_args, **_kwargs: built.append(True),
                 workbench_build_fn=lambda **_kwargs: built.append("workbench"),

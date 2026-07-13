@@ -111,6 +111,13 @@ def normalize_player_match(raw_match, account_id):
     }
     for index, item_id in enumerate(items):
         normalized[f"item_{index}"] = item_id
+    for field in (
+        "actions_per_min", "stuns", "obs_placed", "sen_placed", "observer_kills",
+        "sentry_kills", "camps_stacked", "rune_pickups", "courier_kills",
+        "tower_kills", "roshan_kills", "buyback_count", "lane_efficiency_pct",
+        "teamfight_participation", "life_state_dead", "gold_spent", "total_gold",
+    ):
+        normalized[field] = player.get(field)
     return normalized
 
 
@@ -148,6 +155,16 @@ def normalize_match_participants(raw_match, account_id):
             "net_worth": player.get("net_worth"),
             "gold_per_min": player.get("gold_per_min"),
             "xp_per_min": player.get("xp_per_min"),
+            "last_hits": player.get("last_hits"),
+            "denies": player.get("denies"),
+            "hero_damage": player.get("hero_damage"),
+            "tower_damage": player.get("tower_damage"),
+            "hero_healing": player.get("hero_healing"),
+            "stuns": player.get("stuns"),
+            "actions_per_min": player.get("actions_per_min"),
+            "obs_placed": player.get("obs_placed"),
+            "sen_placed": player.get("sen_placed"),
+            "camps_stacked": player.get("camps_stacked"),
             "lane": player.get("lane"),
             "lane_role": player.get("lane_role"),
             "items": items,

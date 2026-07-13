@@ -10,7 +10,6 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from analysis.analyzer import analyze_match
-from analysis.coach_contract import select_coaching_findings
 from analysis.evidence_contract import EVIDENCE_SCHEMA_VERSION, review_evidence_gaps
 from api.opendota import OpenDotaClient
 from api.stratz import StratzClient
@@ -68,7 +67,6 @@ def run_evidence_job(
 
     analysis = dict(analysis)
     analysis["match_id"] = match_id
-    analysis["review_findings"] = select_coaching_findings(analysis)
     return {
         "schema_version": EVIDENCE_SCHEMA_VERSION,
         "match_id": match_id,

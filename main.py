@@ -22,7 +22,7 @@ from db.schema import (
 from api.opendota import OpenDotaClient
 from api.stratz import StratzClient
 from analysis.analyzer import analyze_match, generate_match_summary, get_hero_name
-from analysis.ai_analyst import analyze_with_ai
+from analysis.formula_engine import build_formula_review
 from analysis.d2pt import get_hero_build
 from report.generator import generate_report
 
@@ -169,10 +169,10 @@ def generate_reports(analyses):
 
         print(f"\n  Generating report for match {match_id} ({hero_name})...")
 
-        print(f"  Generating evidence-based coach analysis...")
-        ai_analysis = analyze_with_ai(analysis, hero_name, is_win)
+        print("  Generating deterministic formula review...")
+        guidance = build_formula_review(analysis)
 
-        filepath = generate_report(analysis, ai_analysis)
+        filepath = generate_report(analysis, guidance)
         reports.append(filepath)
 
         mark_match_analyzed(match_id)

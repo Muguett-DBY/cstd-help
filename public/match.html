@@ -8,9 +8,9 @@
     <title>比赛复盘｜Dota 2</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://cdn.cloudflare.steamstatic.com">
-    <link rel="stylesheet" href="/static/workbench.css?v=65336cc8a7e5">
+    <link rel="stylesheet" href="/static/workbench.css?v=4d5bf8814d98">
     <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" integrity="sha384-uTYyvsSSUZeaPhb5RbKlQa0zY/WpX/QHfvg2mczXyBQOpkWPEDy9lczyp+w7SKXu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script type="module" src="/static/match.js?v=65336cc8a7e5"></script>
+    <script type="module" src="/static/match.js?v=4d5bf8814d98"></script>
 </head>
 <body data-page="match">
     <a class="skip-link" href="#main-content">跳到比赛详情</a>
@@ -37,8 +37,8 @@
                 </div>
             </div>
             <button class="command-button analyze-button" type="button" data-generate-review disabled>
-                <i data-lucide="sparkles" aria-hidden="true"></i>
-                <span>生成 AI 复盘</span>
+                <i data-lucide="calculator" aria-hidden="true"></i>
+                <span>生成数据复盘</span>
             </button>
         </section>
 
@@ -56,11 +56,16 @@
 
         <section class="review-output" data-review-output hidden aria-labelledby="review-title">
             <header class="review-head">
-                <div><p class="eyebrow">COACH REVIEW</p><h2 id="review-title">AI 教练复盘</h2></div>
-                <span class="review-mode" data-review-mode>证据引擎</span>
+                <div><p class="eyebrow">FORMULA REVIEW</p><h2 id="review-title">数据公式复盘</h2></div>
+                <span class="review-mode" data-review-mode>确定性公式</span>
             </header>
 
             <div class="coach-conclusion" data-coach-conclusion></div>
+
+            <section class="review-band" aria-labelledby="formula-title">
+                <div class="section-heading"><div><p class="eyebrow">SCORECARDS</p><h3 id="formula-title">公式评分</h3></div></div>
+                <div data-formula-scores></div>
+            </section>
 
             <section class="review-band" aria-labelledby="actions-title">
                 <div class="section-heading"><div><p class="eyebrow">NEXT MATCH</p><h3 id="actions-title">下一局行动清单</h3></div></div>
@@ -70,6 +75,11 @@
             <section class="review-band" aria-labelledby="context-title">
                 <div class="section-heading"><div><p class="eyebrow">PERFORMANCE</p><h3 id="context-title">表现上下文</h3></div></div>
                 <div data-performance-context></div>
+            </section>
+
+            <section class="review-band" aria-labelledby="extended-title">
+                <div class="section-heading"><div><p class="eyebrow">COMPLETE DATA</p><h3 id="extended-title">扩展比赛数据</h3></div></div>
+                <div data-extended-metrics></div>
             </section>
 
             <section class="review-band" aria-labelledby="timeline-title">

@@ -3100,8 +3100,7 @@ tr:hover { background: rgba(88,166,255,0.05); }
 .suggestion.low .suggestion-priority { color: var(--accent-green); }
 .suggestion-text { font-size: 14px; }
 
-.coach-analysis,
-.ai-analysis {
+.coach-analysis {
     background: linear-gradient(135deg, rgba(88,166,255,0.05), rgba(188,140,255,0.05));
     border: 1px solid rgba(88,166,255,0.2);
     border-radius: 8px;
@@ -3110,13 +3109,61 @@ tr:hover { background: rgba(88,166,255,0.05); }
     font-size: 14px;
     line-height: 1.8;
 }
-.coach-analysis h2, .coach-analysis h3,
-.ai-analysis h2, .ai-analysis h3 {
+.coach-analysis h2, .coach-analysis h3 {
     color: var(--accent-blue);
     margin: 16px 0 8px 0;
 }
-.coach-analysis strong,
-.ai-analysis strong { color: var(--accent-purple); }
+.coach-analysis strong { color: var(--accent-purple); }
+
+.formula-score-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+.formula-score-card {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-yellow);
+    border-radius: 6px;
+    background: var(--bg-primary);
+}
+.formula-score-card.strong { border-left-color: var(--accent-green); }
+.formula-score-card.attention { border-left-color: var(--accent-red); }
+.formula-score-card header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+.formula-score-card header b {
+    color: var(--accent-blue);
+    font-size: 18px;
+}
+.formula-score-card p,
+.formula-score-card small {
+    color: var(--text-muted);
+}
+.formula-score-card code {
+    display: block;
+    max-width: 100%;
+    margin: 10px 0;
+    padding: 8px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+.formula-score-card ul {
+    margin: 8px 0;
+    padding-left: 18px;
+}
+.formula-score-card li {
+    margin: 4px 0;
+    overflow-wrap: anywhere;
+}
 
 .footer {
     text-align: center;

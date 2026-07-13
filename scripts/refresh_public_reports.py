@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from analysis.ai_analyst import analyze_with_ai
+from analysis.formula_engine import build_formula_review
 from analysis.analyzer import analyze_match, get_hero_name
 from analysis.d2pt import get_hero_build
 from api.opendota import OpenDotaClient
@@ -142,7 +142,7 @@ def refresh_public_reports(
     opendota_client=None,
     stratz_client=None,
     analyze_fn=analyze_match,
-    ai_fn=analyze_with_ai,
+    review_fn=build_formula_review,
     report_fn=generate_report,
     build_fn=build_pages_site,
     workbench_build_fn=build_workbench_site,
@@ -260,14 +260,10 @@ def refresh_public_reports(
         _copy_existing_reports(public_dir, source_dir)
         for analysis, source_fetches in analyses:
             try:
-                coach = ai_fn(
-                    analysis,
-                    analysis.get("hero_name") or "Unknown",
-                    bool(analysis.get("is_win")),
-                )
+                guidance = review_fn(analysis)
                 report_path = report_fn(
                     analysis,
-                    coach,
+                    guidance,
                     output_dir=source_dir,
                     source_fetches=source_fetches,
                 )

@@ -601,7 +601,7 @@ h4 {
 }
 
 .fact-strip {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     margin: 20px 0 36px;
 }
 
@@ -675,7 +675,7 @@ h4 {
 
 .participant {
     display: grid;
-    grid-template-columns: 72px minmax(0, 1fr) 92px 74px;
+    grid-template-columns: 72px minmax(0, 1fr) 82px 116px 66px;
     min-height: 55px;
     align-items: center;
     gap: 10px;
@@ -729,10 +729,25 @@ h4 {
 }
 
 .participant-kda,
+.participant-stats,
 .participant-net {
     color: #4b5052;
     font-size: 11px;
     text-align: right;
+}
+
+.participant-stats {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+}
+
+.participant-stats small {
+    overflow: hidden;
+    color: var(--muted);
+    font: 9px Consolas, "SFMono-Regular", monospace;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .participant-kda b {
@@ -952,6 +967,226 @@ h4 {
     display: grid;
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     gap: 18px;
+}
+
+.formula-overall {
+    display: grid;
+    grid-template-columns: minmax(150px, 0.5fr) auto minmax(240px, 1.5fr);
+    align-items: center;
+    gap: 20px;
+    min-height: 84px;
+    margin-bottom: 14px;
+    padding: 14px 18px;
+    color: #f5f6f3;
+    background: #252b2d;
+    border-radius: 5px;
+}
+
+.formula-overall > span {
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.formula-overall > strong {
+    font: 30px Consolas, "SFMono-Regular", monospace;
+}
+
+.formula-overall > strong small {
+    color: #aeb6b4;
+    font-size: 12px;
+}
+
+.formula-overall p {
+    margin: 0;
+    color: #c8cdcb;
+    font-size: 11px;
+}
+
+.formula-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.formula-card {
+    min-width: 0;
+    padding: 15px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--blue);
+    border-radius: 5px;
+}
+
+.formula-card.status-strong { border-top-color: var(--teal); }
+.formula-card.status-attention { border-top-color: var(--red); }
+
+.formula-card > header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.formula-card > header span,
+.formula-card > header h4 {
+    display: block;
+}
+
+.formula-card > header span {
+    color: var(--muted);
+    font: 9px Consolas, "SFMono-Regular", monospace;
+    overflow-wrap: anywhere;
+}
+
+.formula-card > header h4 {
+    margin: 3px 0 0;
+}
+
+.formula-card > header > strong {
+    color: var(--ink);
+    font: 24px Consolas, "SFMono-Regular", monospace;
+    white-space: nowrap;
+}
+
+.formula-card > header > strong small {
+    color: var(--muted);
+    font-size: 9px;
+}
+
+.formula-card > p {
+    min-height: 34px;
+    margin: 9px 0;
+    color: #4f5556;
+    font-size: 11px;
+}
+
+.formula-card > code,
+.finding-item details code {
+    display: block;
+    overflow-x: auto;
+    padding: 8px 9px;
+    color: #d9e8e2;
+    background: #303739;
+    border-radius: 3px;
+    font: 10px Consolas, "SFMono-Regular", monospace;
+    white-space: nowrap;
+}
+
+.formula-card > ul,
+.finding-item details ul {
+    display: grid;
+    gap: 5px;
+    margin: 10px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.formula-card > ul li,
+.finding-item details li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(95px, 0.8fr);
+    gap: 8px;
+    color: var(--muted);
+    font-size: 9px;
+}
+
+.formula-card > ul strong,
+.finding-item details li strong {
+    color: var(--ink);
+    font-family: Consolas, "SFMono-Regular", monospace;
+}
+
+.formula-card > footer {
+    padding-top: 9px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    font-size: 9px;
+}
+
+.unscored-list {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.unscored-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 7px;
+}
+
+.extended-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.extended-grid > section {
+    min-width: 0;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+}
+
+.extended-grid h4 {
+    margin-bottom: 9px;
+}
+
+.extended-grid dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0;
+    background: var(--line);
+}
+
+.extended-grid dl > div {
+    min-width: 0;
+    padding: 9px;
+    background: var(--surface);
+}
+
+.extended-grid dt {
+    color: var(--muted);
+    font-size: 9px;
+}
+
+.extended-grid dd {
+    overflow-wrap: anywhere;
+    margin: 3px 0 0;
+    font: 13px Consolas, "SFMono-Regular", monospace;
+}
+
+.usage-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.usage-columns ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.usage-columns li {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 10px;
+}
+
+.usage-columns li span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .performance-context-grid > section {
@@ -1298,6 +1533,12 @@ h4 {
     font-size: 10px;
 }
 
+.finding-item header b {
+    margin-left: auto;
+    color: var(--blue);
+    font: 13px Consolas, "SFMono-Regular", monospace;
+}
+
 .finding-item h4 {
     margin-bottom: 0;
 }
@@ -1325,6 +1566,19 @@ h4 {
 
 .finding-item > div strong {
     color: var(--teal);
+}
+
+.finding-item details {
+    margin-top: 10px;
+    padding-top: 9px;
+    border-top: 1px solid var(--line);
+    font-size: 10px;
+}
+
+.finding-item details summary {
+    margin-bottom: 7px;
+    cursor: pointer;
+    font-weight: 700;
 }
 
 .data-limits {
@@ -1426,6 +1680,7 @@ h4 {
 
 .evidence-source-row.status-partial b { color: #8a651f; }
 .evidence-source-row.status-missing b { color: var(--red); }
+.evidence-source-row.status-not_applicable b { color: var(--muted); }
 
 .limitation-list {
     margin-top: 16px;
@@ -1688,6 +1943,42 @@ h4 {
 
     .participant-net {
         display: none;
+    }
+
+    .participant-stats {
+        display: none;
+    }
+
+    .formula-overall {
+        grid-template-columns: 1fr auto;
+        gap: 8px 16px;
+    }
+
+    .formula-overall p {
+        grid-column: 1 / -1;
+    }
+
+    .formula-grid,
+    .extended-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .formula-card > ul li,
+    .finding-item details li {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .formula-card > ul li small,
+    .finding-item details li small {
+        grid-column: 1 / -1;
+    }
+
+    .fact-item {
+        border-bottom: 1px solid var(--line);
+    }
+
+    .fact-item:nth-last-child(-n + 2) {
+        border-bottom: 0;
     }
 
     .final-items {

@@ -135,7 +135,7 @@ class WorkerRouterTests(unittest.IsolatedAsyncioTestCase):
 
 
 class WorkerDeploymentContractTests(unittest.TestCase):
-    def test_worker_config_declares_python_ai_kv_and_api_route(self):
+    def test_worker_config_declares_python_kv_and_api_route_without_model_binding(self):
         config = (ROOT / "wrangler.toml").read_text(encoding="utf-8")
 
         self.assertIn('name = "cstd-help-api"', config)
@@ -147,9 +147,9 @@ class WorkerDeploymentContractTests(unittest.TestCase):
             config,
         )
         self.assertIn('ACCOUNT_ID = "173776719"', config)
-        self.assertIn('AI_MODEL = "@cf/openai/gpt-oss-120b"', config)
         self.assertIn('GITHUB_MATCH_REFRESH_WORKFLOW = "on-demand-match-refresh.yml"', config)
-        self.assertIn('binding = "AI"', config)
+        self.assertNotIn("AI_MODEL", config)
+        self.assertNotIn("[ai]", config.lower())
         self.assertIn('binding = "REVIEW_CACHE"', config)
         self.assertIn('pattern = "dota.custard.top/api/*"', config)
         self.assertIn("[observability]", config)
@@ -189,7 +189,7 @@ class WorkerDeploymentContractTests(unittest.TestCase):
 
         self.assertIn("CloudflareCache", entry)
         self.assertIn("CloudflareDotaGateway", entry)
-        self.assertIn("WorkersAIGateway", entry)
+        self.assertNotIn("WorkersAIGateway", entry)
         self.assertIn("route_request", entry)
         self.assertNotIn("Bearer ey", entry)
 
@@ -233,7 +233,8 @@ class WorkerDeploymentContractTests(unittest.TestCase):
         self.assertIn("worker_entry.py", bundled)
         self.assertIn("worker/service.py", bundled)
         self.assertIn("analysis/analyzer.py", bundled)
-        self.assertIn("analysis/coach_contract.py", bundled)
+        self.assertIn("analysis/formula_engine.py", bundled)
+        self.assertNotIn("analysis/coach_contract.py", bundled)
         self.assertIn("analysis/evidence_contract.py", bundled)
         self.assertIn("analysis/rules/heroes.json", bundled)
         self.assertIn("api/normalization.py", bundled)

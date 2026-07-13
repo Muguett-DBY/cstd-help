@@ -75,7 +75,7 @@ jobs:
           EVIDENCE_PATH: ${{ runner.temp }}/review-evidence.json
         run: >-
           npx wrangler@4.110.0 kv key put
-          "review-evidence:v2:$MATCH_ID"
+          "review-evidence:v3:$MATCH_ID"
           --path "$EVIDENCE_PATH"
           --namespace-id "$KV_NAMESPACE_ID"
           --ttl 15552000
@@ -89,7 +89,7 @@ jobs:
           STATUS_PATH: ${{ runner.temp }}/review-evidence-status.json
         run: >-
           npx wrangler@4.110.0 kv key put
-          "review-evidence-status:v2:$MATCH_ID"
+          "review-evidence-status:v3:$MATCH_ID"
           --path "$STATUS_PATH"
           --namespace-id "$KV_NAMESPACE_ID"
           --ttl 86400
