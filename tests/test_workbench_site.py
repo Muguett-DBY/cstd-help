@@ -51,6 +51,13 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertIn('aria-live="polite"', self.index_html)
         self.assertNotIn("setInterval(", self.index_html + self.history_js)
         self.assertEqual(self.history_js.count("/api/matches/refresh"), 1)
+        self.assertIn("payload?.refreshing", self.history_js)
+        self.assertIn('apiFetch("/api/matches", { method: "GET"', self.history_js)
+        self.assertIn("REFRESH_POLL_INTERVAL_MS", self.history_js)
+        self.assertIn(
+            "if (hasMatches && !payload?.refreshing && hasNewTimestamp)",
+            self.history_js,
+        )
         self.assertRegex(
             self.history_js,
             r"addEventListener\(\s*[\"']click[\"']\s*,\s*refreshMatches",

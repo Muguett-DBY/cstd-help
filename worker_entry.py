@@ -8,6 +8,7 @@ from worker.cloudflare_adapters import (
     CloudflareCache,
     CloudflareDotaGateway,
     GitHubEvidenceGateway,
+    GitHubMatchRefreshGateway,
     WorkersAIGateway,
 )
 from worker.router import route_request
@@ -27,6 +28,12 @@ class Default(WorkerEntrypoint):
             workflow=self.env.GITHUB_EVIDENCE_WORKFLOW,
             ref=self.env.GITHUB_EVIDENCE_REF,
         )
+        match_refresh = GitHubMatchRefreshGateway(
+            token=getattr(self.env, "GITHUB_DISPATCH_TOKEN", ""),
+            repository=self.env.GITHUB_REPOSITORY,
+            workflow=self.env.GITHUB_MATCH_REFRESH_WORKFLOW,
+            ref=self.env.GITHUB_EVIDENCE_REF,
+        )
         service = ReviewService(
             account_id,
             cache,
@@ -34,6 +41,7 @@ class Default(WorkerEntrypoint):
             analyzer=analyzer,
             ai_gateway=ai,
             evidence_gateway=evidence,
+            match_refresh_gateway=match_refresh,
         )
         api_response = await route_request(
             request.method,

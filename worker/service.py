@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 
 from analysis.coach_contract import (
@@ -22,12 +23,18 @@ from api.normalization import (
 from worker.contracts import ServiceError
 
 
+logger = logging.getLogger(__name__)
+
+
 MATCH_LIST_SCHEMA_VERSION = 1
 MATCH_DETAIL_SCHEMA_VERSION = 2
 MATCH_LIST_LIMIT = 10
 REFRESH_COOLDOWN_SECONDS = 60
 MATCH_LIST_TTL_SECONDS = 60 * 60 * 24 * 30
 MATCH_DETAIL_TTL_SECONDS = 60 * 60 * 24 * 90
+MATCH_REFRESH_STATUS_TTL_SECONDS = 60 * 60 * 24
+MATCH_REFRESH_PROCESSING_TIMEOUT_SECONDS = 60 * 10
+MATCH_REFRESH_RETRY_AFTER_SECONDS = 3
 REVIEW_TTL_SECONDS = 60 * 60 * 24 * 180
 PARSE_STATE_TTL_SECONDS = 60 * 60 * 6
 PARSE_REQUEST_COOLDOWN_SECONDS = 60 * 30
@@ -71,6 +78,7 @@ class ReviewService:
         analyzer=None,
         ai_gateway=None,
         evidence_gateway=None,
+        match_refresh_gateway=None,
     ):
         self.account_id = int(account_id)
         self.cache = cache
@@ -78,6 +86,7 @@ class ReviewService:
         self.analyzer = analyzer
         self.ai = ai_gateway
         self.evidence_gateway = evidence_gateway
+        self.match_refresh_gateway = match_refresh_gateway
 
     @property
     def match_list_key(self):
@@ -85,6 +94,10 @@ class ReviewService:
 
     def match_detail_key(self, match_id):
         return f"match:v{MATCH_DETAIL_SCHEMA_VERSION}:{int(match_id)}"
+
+    @property
+    def match_refresh_status_key(self):
+        return f"match-refresh-status:v1:{self.account_id}"
 
     def review_key(self, match_id):
         return f"review:v{ANALYSIS_SCHEMA_VERSION}:{int(match_id)}"
@@ -98,40 +111,111 @@ class ReviewService:
     def evidence_status_key(self, match_id):
         return evidence_status_key(match_id)
 
-    async def get_matches(self):
-        cached = await self.cache.get_json(self.match_list_key)
-        if not isinstance(cached, dict):
-            return {
+    def _refresh_is_processing(self, status, now=None):
+        if not isinstance(status, dict) or status.get("status") != "processing":
+            return False
+        requested_at = _parse_utc(status.get("requested_at"))
+        if requested_at is None:
+            return False
+        now = now or datetime.now(timezone.utc)
+        return (
+            now.astimezone(timezone.utc) - requested_at
+        ).total_seconds() < MATCH_REFRESH_PROCESSING_TIMEOUT_SECONDS
+
+    def _cached_match_result(self, cached, refresh_status=None, *, refreshing=False, rate_limited=False):
+        if isinstance(cached, dict):
+            result = dict(cached)
+        else:
+            result = {
                 "account_id": self.account_id,
                 "matches": [],
                 "refreshed_at": None,
-                "source": "cache",
                 "stale": True,
-                "rate_limited": False,
             }
-        result = dict(cached)
         result["account_id"] = self.account_id
         result["matches"] = list(result.get("matches") or [])[:MATCH_LIST_LIMIT]
         result["source"] = "cache"
-        result.setdefault("stale", False)
-        result["rate_limited"] = False
+        result.setdefault("stale", not bool(result["matches"]))
+        result["rate_limited"] = bool(rate_limited)
+        result["refreshing"] = bool(refreshing)
+        result["refresh_status"] = refresh_status if isinstance(refresh_status, dict) else None
+        if refreshing:
+            result["retry_after_seconds"] = MATCH_REFRESH_RETRY_AFTER_SECONDS
         return result
+
+    async def get_matches(self):
+        cached = await self.cache.get_json(self.match_list_key)
+        refresh_status = await self.cache.get_json(self.match_refresh_status_key)
+        return self._cached_match_result(
+            cached,
+            refresh_status,
+            refreshing=self._refresh_is_processing(refresh_status),
+        )
 
     async def refresh_matches(self, now=None):
         now = now or datetime.now(timezone.utc)
         cached = await self.cache.get_json(self.match_list_key)
+        refresh_status = await self.cache.get_json(self.match_refresh_status_key)
+        if self._refresh_is_processing(refresh_status, now):
+            return self._cached_match_result(
+                cached,
+                refresh_status,
+                refreshing=True,
+                rate_limited=True,
+            )
         cached_time = _parse_utc(cached.get("refreshed_at")) if isinstance(cached, dict) else None
         if cached_time and (now.astimezone(timezone.utc) - cached_time).total_seconds() < REFRESH_COOLDOWN_SECONDS:
-            result = dict(cached)
-            result["matches"] = list(result.get("matches") or [])[:MATCH_LIST_LIMIT]
-            result["source"] = "cache"
-            result["stale"] = False
-            result["rate_limited"] = True
-            return result
+            return self._cached_match_result(cached, refresh_status, rate_limited=True)
+
+        if self.match_refresh_gateway is not None:
+            processing = {
+                "status": "processing",
+                "requested_at": _utc_iso(now),
+                "account_id": self.account_id,
+            }
+            await self.cache.put_json(
+                self.match_refresh_status_key,
+                processing,
+                expiration_ttl=MATCH_REFRESH_STATUS_TTL_SECONDS,
+            )
+            try:
+                await self.match_refresh_gateway.dispatch()
+            except Exception as exc:
+                failed = {
+                    "status": "failed",
+                    "completed_at": _utc_iso(now),
+                    "account_id": self.account_id,
+                    "error_code": "DISPATCH_FAILED",
+                }
+                await self.cache.put_json(
+                    self.match_refresh_status_key,
+                    failed,
+                    expiration_ttl=MATCH_REFRESH_STATUS_TTL_SECONDS,
+                )
+                logger.warning(
+                    "Match refresh workflow dispatch failed: %s: %s",
+                    type(exc).__name__,
+                    exc,
+                )
+                raise ServiceError(
+                    "REFRESH_DISPATCH_FAILED",
+                    "比赛同步任务暂时无法启动，请稍后重试。",
+                    502,
+                ) from exc
+            return self._cached_match_result(
+                cached,
+                processing,
+                refreshing=True,
+            )
 
         try:
             raw_matches = await self.dota.recent_ranked_matches(self.account_id, MATCH_LIST_LIMIT * 2)
         except Exception as exc:
+            logger.warning(
+                "OpenDota recent match refresh failed: %s: %s",
+                type(exc).__name__,
+                exc,
+            )
             raise ServiceError(
                 "UPSTREAM_UNAVAILABLE",
                 "OpenDota 暂时不可用，已保留上一次比赛列表。",
@@ -159,12 +243,24 @@ class ReviewService:
             "source": "upstream",
             "stale": False,
             "rate_limited": False,
+            "refreshing": False,
         }
         await self.cache.put_json(
             self.match_list_key,
             payload,
             expiration_ttl=MATCH_LIST_TTL_SECONDS,
         )
+        ready = {
+            "status": "ready",
+            "completed_at": payload["refreshed_at"],
+            "account_id": self.account_id,
+        }
+        await self.cache.put_json(
+            self.match_refresh_status_key,
+            ready,
+            expiration_ttl=MATCH_REFRESH_STATUS_TTL_SECONDS,
+        )
+        payload["refresh_status"] = ready
         return payload
 
     async def get_match_detail(self, match_id, force_refresh=False):

@@ -14,6 +14,7 @@ ACCOUNT_ID = "173776719"
 AI_MODEL = "@cf/openai/gpt-oss-120b"
 GITHUB_REPOSITORY = "Muguett-DBY/cstd-help"
 GITHUB_EVIDENCE_WORKFLOW = "on-demand-review.yml"
+GITHUB_MATCH_REFRESH_WORKFLOW = "on-demand-match-refresh.yml"
 GITHUB_EVIDENCE_REF = "main"
 
 [ai]

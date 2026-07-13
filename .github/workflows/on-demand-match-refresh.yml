@@ -1,0 +1,108 @@
+name: Refresh On-Demand Match Cache
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dota-match-refresh-173776719
+  cancel-in-progress: false
+
+jobs:
+  refresh-match-cache:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      KV_NAMESPACE_ID: 37577b67ad5f47b2a0e03b4d5a5ee929
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Install locked dependencies
+        run: uv sync --locked --python 3.13 --group cli
+
+      - name: Fetch latest match cache
+        id: match_cache
+        continue-on-error: true
+        env:
+          MATCH_LIST_PATH: ${{ runner.temp }}/matches.json
+          MATCH_CACHE_PATH: ${{ runner.temp }}/match-cache.json
+          MATCH_STATUS_PATH: ${{ runner.temp }}/match-refresh-status.json
+          MATCH_PUBLISH_FAILURE_PATH: ${{ runner.temp }}/match-publish-failure.json
+        run: >-
+          uv run --no-sync python scripts/fetch_match_cache.py
+          --list-output "$MATCH_LIST_PATH"
+          --details-output "$MATCH_CACHE_PATH"
+          --status-output "$MATCH_STATUS_PATH"
+          --publish-failure-output "$MATCH_PUBLISH_FAILURE_PATH"
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Validate KV credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+
+      - name: Publish complete match cache
+        id: publish_cache
+        if: steps.match_cache.outcome == 'success'
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          MATCH_CACHE_PATH: ${{ runner.temp }}/match-cache.json
+        run: >-
+          npx wrangler@4.110.0 kv bulk put "$MATCH_CACHE_PATH"
+          --namespace-id "$KV_NAMESPACE_ID"
+          --remote
+
+      - name: Publish fetch failure status
+        if: steps.match_cache.outcome != 'success'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          MATCH_STATUS_PATH: ${{ runner.temp }}/match-refresh-status.json
+        run: >-
+          npx wrangler@4.110.0 kv key put
+          "match-refresh-status:v1:173776719"
+          --path "$MATCH_STATUS_PATH"
+          --namespace-id "$KV_NAMESPACE_ID"
+          --ttl 86400
+          --remote
+
+      - name: Publish cache failure status
+        if: always() && steps.match_cache.outcome == 'success' && steps.publish_cache.outcome != 'success'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          MATCH_PUBLISH_FAILURE_PATH: ${{ runner.temp }}/match-publish-failure.json
+        run: >-
+          npx wrangler@4.110.0 kv key put
+          "match-refresh-status:v1:173776719"
+          --path "$MATCH_PUBLISH_FAILURE_PATH"
+          --namespace-id "$KV_NAMESPACE_ID"
+          --ttl 86400
+          --remote
+
+      - name: Fail incomplete match cache job
+        if: always() && (steps.match_cache.outcome != 'success' || steps.publish_cache.outcome != 'success')
+        run: exit 1
