@@ -272,6 +272,7 @@ class WorkbenchSiteTests(unittest.TestCase):
             self.assertIn('integrity="sha384-', page)
             self.assertIn('crossorigin="anonymous"', page)
         self.assertIn("Content-Security-Policy:", self.headers)
+        self.assertIn("img-src 'self' data: https://cdn.cloudflare.steamstatic.com https://cdn.steamstatic.com", self.headers)
         self.assertIn(
             "script-src 'self' https://unpkg.com https://static.cloudflareinsights.com;",
             self.headers,
