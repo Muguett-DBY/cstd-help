@@ -20,7 +20,7 @@ const analyzeButton = document.querySelector("[data-generate-review]");
 const reviewOutput = document.querySelector("[data-review-output]");
 const heroHeading = document.querySelector("[data-hero-heading]");
 const state = { detail: null, reviewStatus: null, review: null };
-const MAX_REVIEW_POLL_ATTEMPTS = 60;
+const MAX_REVIEW_POLL_ATTEMPTS = 210;
 
 function wait(milliseconds) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
@@ -38,6 +38,13 @@ function setAnalysisBusy(busy) {
     if (busy) analyzeButton.querySelector("span").textContent = "正在计算公式…";
 }
 
+function hasFiniteNumber(value) {
+    return value !== null
+        && value !== undefined
+        && value !== ""
+        && Number.isFinite(Number(value));
+}
+
 function metric(label, value, emphasis = false) {
     return `<div class="fact-item ${emphasis ? "emphasis" : ""}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
 }
@@ -52,7 +59,7 @@ function participantRow(participant) {
                 ${image ? `<img src="${image}" width="72" height="41" alt="" loading="lazy" data-image-fallback>` : ""}
             </span>
             <span class="participant-name"><strong>${escapeHtml(hero.name || "未知英雄")}</strong><small>${participant.is_self ? "你" : escapeHtml(participant.personaname || laneRoleLabel(participant.lane_role))}</small></span>
-            <span class="participant-kda">${Number(kda.kills) || 0} / <b>${Number(kda.deaths) || 0}</b> / ${Number(kda.assists) || 0}</span>
+            <span class="participant-kda">${numberLabel(kda.kills)} / <b>${numberLabel(kda.deaths)}</b> / ${numberLabel(kda.assists)}</span>
             <span class="participant-stats"><small>${numberLabel(participant.last_hits)} LH</small><small>${numberLabel(participant.gold_per_min)} / ${numberLabel(participant.xp_per_min)}</small><small>${numberLabel(participant.hero_damage)} 伤害</small></span>
             <span class="participant-net">${numberLabel(participant.net_worth)}</span>
         </div>`;
@@ -115,9 +122,9 @@ function renderFactualDetail(payload) {
     endedAt.textContent = formatLocalTime(summary.ended_at, true);
 
     const detail = payload.detail || {};
-    document.querySelector("[data-score]").textContent = `${Number(detail.radiant_score) || 0} : ${Number(detail.dire_score) || 0}`;
+    document.querySelector("[data-score]").textContent = `${numberLabel(detail.radiant_score)} : ${numberLabel(detail.dire_score)}`;
     document.querySelector("[data-fact-strip]").innerHTML = [
-        metric("K / D / A", `${Number(player.kills) || 0} / ${Number(player.deaths) || 0} / ${Number(player.assists) || 0}`, true),
+        metric("K / D / A", `${numberLabel(player.kills)} / ${numberLabel(player.deaths)} / ${numberLabel(player.assists)}`, true),
         metric("GPM", numberLabel(player.gold_per_min)),
         metric("XPM", numberLabel(player.xp_per_min)),
         metric("补刀 / 反补", `${numberLabel(player.last_hits)} / ${numberLabel(player.denies)}`),
@@ -125,7 +132,7 @@ function renderFactualDetail(payload) {
         metric("建筑伤害", numberLabel(player.tower_damage)),
         metric("净资产", numberLabel(player.net_worth)),
         metric("操作 / 分", numberLabel(player.actions_per_min)),
-        metric("控制时长", `${Number(player.stuns || 0).toFixed(1)} 秒`),
+        metric("控制时长", hasFiniteNumber(player.stuns) ? `${Number(player.stuns).toFixed(1)} 秒` : "—"),
         metric("视野放置", `${numberLabel(player.obs_placed)} / ${numberLabel(player.sen_placed)}`),
         metric("堆野 / 符文", `${numberLabel(player.camps_stacked)} / ${numberLabel(player.rune_pickups)}`),
         metric("时长", formatDuration(player.duration || summary.duration_seconds)),
@@ -243,6 +250,7 @@ function renderExtendedMetrics(extended) {
     const objectives = extended.objectives || {};
     const usage = extended.usage || {};
     target.innerHTML = `
+        <p class="extended-source">数据来源：${escapeHtml(extended.source || "真实解析字段")}</p>
         <div class="extended-grid">
             <section><h4>战斗承受</h4><dl>${[
                 extendedMetric("英雄来源承伤", combat.hero_damage_taken),
@@ -258,7 +266,7 @@ function renderExtendedMetrics(extended) {
             ].join("")}</dl></section>
             <section><h4>控图与目标</h4><dl>${[
                 extendedMetric("观察 / 岗哨", `${vision.observer_placed ?? "—"} / ${vision.sentry_placed ?? "—"}`),
-                extendedMetric("排眼", (Number(vision.observer_destroyed) || 0) + (Number(vision.sentry_destroyed) || 0), " 次"),
+                extendedMetric("排眼", vision.total_destroyed, " 次"),
                 extendedMetric("堆野 / 符文", `${activity.camps_stacked ?? "—"} / ${activity.rune_pickups ?? "—"}`),
                 extendedMetric("塔 / 肉山击杀", `${objectives.tower_kills ?? "—"} / ${objectives.roshan_kills ?? "—"}`),
             ].join("")}</dl></section>
@@ -271,6 +279,26 @@ function timelineImpactGroup(title, windows, metricLabel) {
     const rows = windows.map((window) => `
         <li><span>${escapeHtml(window.label || `${window.start_minute}-${window.end_minute}分钟`)}</span><strong>${numberLabel(window.total)} ${metricLabel}</strong></li>`).join("");
     return `<section><h4>${title}</h4><ol>${rows}</ol></section>`;
+}
+
+function timelineDiagnosticGroup(title, rows) {
+    if (!rows.length) return "";
+    return `<section><h4>${escapeHtml(title)}</h4><ol>${rows.join("")}</ol></section>`;
+}
+
+function renderTimelineDiagnostics(timeline) {
+    const overlapRows = (timeline.death_overlap_windows || []).map((window) => `
+        <li><strong>${escapeHtml(window.evidence_label || "死亡与低效率窗口重叠")}</strong><small>${numberLabel(window.avg_lh)} LH/min</small></li>`);
+    const recoveryRows = (timeline.death_recovery_windows || []).map((window) => `
+        <li class="status-${escapeHtml(window.status || "normal")}"><strong>${escapeHtml(window.evidence_label || "复活后资源窗口")}</strong><small>${escapeHtml(window.status_label || "已记录")}</small></li>`);
+    const deltaRows = (timeline.death_resource_deltas || []).map((window) => `
+        <li><strong>${escapeHtml(window.evidence_label || "死亡前后资源变化")}</strong><small>${escapeHtml(window.status_label || "只描述时间相邻数据")}</small></li>`);
+    const groups = [
+        timelineDiagnosticGroup("死亡与低效率重叠", overlapRows),
+        timelineDiagnosticGroup("复活后恢复与再死", recoveryRows),
+        timelineDiagnosticGroup("死亡前后资源变化", deltaRows),
+    ].filter(Boolean).join("");
+    return groups ? `<div class="timeline-diagnostic-grid">${groups}</div>` : "";
 }
 
 function renderTimeline(timeline) {
@@ -299,14 +327,69 @@ function renderTimeline(timeline) {
         </div>
         <div class="phase-grid">${phases}</div>
         ${impactWindows ? `<div class="timeline-impact-grid">${impactWindows}</div>` : ""}
-        ${lowWindows ? `<div class="timeline-alerts"><h4>低效率窗口</h4><ul>${lowWindows}</ul></div>` : ""}`;
+        ${lowWindows ? `<div class="timeline-alerts"><h4>低效率窗口</h4><ul>${lowWindows}</ul></div>` : ""}
+        ${renderTimelineDiagnostics(timeline)}`;
     refreshIcons();
 }
 
 function deathRow(death, index) {
     const contexts = (death.context_lines || []).map((line) => `<small>${escapeHtml(line.text)}</small>`).join("");
     const killer = death.killer_hero_name ? ` · ${escapeHtml(death.killer_hero_name)}` : "";
-    return `<li><span class="event-time">${minuteLabel(death.minute)}</span><div><strong>死亡 ${index + 1}${killer}</strong>${death.position_label ? `<small>${escapeHtml(death.position_label)}</small>` : ""}${contexts}</div></li>`;
+    const costs = [];
+    if (hasFiniteNumber(death.time_dead)) {
+        const isUnfinishedReplayDeath = death.time_dead_source === "valve_replay_life_state"
+            && !hasFiniteNumber(death.respawn_observed_at);
+        costs.push(isUnfinishedReplayDeath
+            ? `回放终局前至少死亡 ${numberLabel(death.time_dead)} 秒`
+            : `死亡 ${numberLabel(death.time_dead)} 秒`);
+    }
+    if (hasFiniteNumber(death.gold_lost)) costs.push(`丢失 ${numberLabel(death.gold_lost)} 金`);
+    if (hasFiniteNumber(death.gold_fed) || hasFiniteNumber(death.xp_fed)) {
+        const fed = [];
+        if (hasFiniteNumber(death.gold_fed)) fed.push(`${numberLabel(death.gold_fed)} 金`);
+        if (hasFiniteNumber(death.xp_fed)) fed.push(`${numberLabel(death.xp_fed)} 经验`);
+        costs.push(`给出 ${fed.join(" / ")}`);
+    }
+    const tags = [
+        death.dieback ? "买活后再死" : "",
+        death.burst_death ? "爆发死亡" : "",
+        death.engaged_on_death ? "交战中死亡" : "",
+    ].filter(Boolean);
+    return `<li><span class="event-time">${minuteLabel(death.minute)}</span><div><strong>死亡 ${index + 1}${killer}</strong>${costs.length ? `<small>${escapeHtml(costs.join(" · "))}</small>` : ""}${tags.length ? `<small>${escapeHtml(`STRATZ：${tags.join("、")}`)}</small>` : ""}${death.position_label ? `<small>${escapeHtml(death.position_label)}</small>` : ""}${contexts}</div></li>`;
+}
+
+function deathCostStrip(summary) {
+    if (!summary?.available) return "";
+    const metrics = [
+        `<div><span>覆盖死亡</span><strong>${numberLabel(summary.covered_deaths)} 次</strong></div>`,
+        summary.dead_time_available
+            ? `<div><span>死亡总时长</span><strong>${formatDuration(summary.total_dead_seconds)}</strong></div>`
+            : "",
+        summary.gold_lost_available
+            ? `<div><span>丢失金钱</span><strong>${numberLabel(summary.total_gold_lost)}</strong></div>`
+            : "",
+        summary.gold_fed_available || summary.xp_fed_available
+            ? `<div><span>给出金钱 / 经验</span><strong>${[
+                summary.gold_fed_available ? `${numberLabel(summary.total_gold_fed)} 金` : "",
+                summary.xp_fed_available ? `${numberLabel(summary.total_xp_fed)} 经验` : "",
+            ].filter(Boolean).join(" / ")}</strong></div>`
+            : "",
+    ].filter(Boolean).join("");
+    return `
+        <div class="death-cost-strip" aria-label="死亡事件真实成本">
+            ${metrics}
+        </div>`;
+}
+
+function buybackEventStrip(windows) {
+    if (!windows.length) return "";
+    const rows = windows.map((window) => {
+        const result = window.death_time !== null && window.death_time !== undefined
+            ? `${minuteLabel(window.death_minute)}再次死亡 · 间隔${numberLabel(window.redeath_seconds)}秒`
+            : "本局此后未再次死亡";
+        return `<li class="${window.short_redeath ? "danger" : ""}"><span class="event-time">${minuteLabel(window.buyback_minute)}</span><div><strong>买活后再次死亡</strong><small>${escapeHtml(result)}</small></div></li>`;
+    }).join("");
+    return `<div class="buyback-event-strip"><b>买活事件</b><ol>${rows}</ol></div>`;
 }
 
 function purchaseRow(purchase, postWindow) {
@@ -358,18 +441,78 @@ function renderDeathCoordinateMap(events) {
         </section>`;
 }
 
+function renderObjectiveEvidence(events) {
+    const objectives = events?.objectives || [];
+    const windows = events?.death_objective_windows || [];
+    if (!objectives.length && !windows.length) return "";
+    const summary = events?.objective_summary || {};
+    const objectiveRows = objectives.map((objective) => `
+        <li class="objective-${escapeHtml(objective.outcome || "unknown")}">
+            <span class="event-time">${minuteLabel(objective.minute)}</span>
+            <div><strong>${escapeHtml(objective.display_label || objective.label || "目标事件")}</strong>
+            <small>${escapeHtml(objective.outcome_label || "已记录")}${objective.player_direct && objective.direct_label ? ` · ${escapeHtml(objective.direct_label)}` : ""}</small></div>
+        </li>`).join("");
+    const windowRows = windows.map((window) => `
+        <li><span class="event-time">${minuteLabel(window.death_minute)}</span><div><strong>${escapeHtml(window.objective_display_label || "目标损失")}</strong><small>${numberLabel(window.elapsed_seconds)} 秒后 · ${minuteLabel(window.objective_minute)}</small></div></li>`).join("");
+    const drill = events?.death_objective_drill || {};
+    const drillMarkup = drill.title ? `
+        <div class="objective-drill">
+            <strong>${escapeHtml(drill.title)}</strong>
+            <p>${escapeHtml(`${drill.trigger || "触发"}：${drill.rule || ""}`)}</p>
+            <small>证据窗口：${escapeHtml(drill.evidence || "")}</small>
+        </div>` : "";
+    return `
+        <section class="event-group event-group-wide">
+            <header><h4>地图目标事件</h4><span>${objectives.length} 条</span></header>
+            <div class="objective-summary-strip">
+                <div><span>我方获取</span><strong>${numberLabel(summary.gained)}</strong></div>
+                <div><span>我方失去</span><strong>${numberLabel(summary.lost)}</strong></div>
+                <div><span>本人直接参与</span><strong>${numberLabel(summary.player_direct)}</strong></div>
+            </div>
+            <ol>${objectiveRows}</ol>
+            ${windows.length ? `<div class="event-subsection"><h5>死亡后 90 秒目标窗口</h5><ol>${windowRows}</ol>${drillMarkup}</div>` : ""}
+        </section>`;
+}
+
+function eventMinuteChips(events, emptyLabel) {
+    if (!events.length) return `<span class="muted-copy">${escapeHtml(emptyLabel)}</span>`;
+    return events.map((event) => `<span>${minuteLabel(event.minute)}</span>`).join("");
+}
+
+function renderFightVisionEvidence(events) {
+    const kills = events?.kills || [];
+    const assists = events?.assists || [];
+    const observerWards = events?.observer_wards || [];
+    const sentryWards = events?.sentry_wards || [];
+    const vision = events?.vision_summary || {};
+    if (!kills.length && !assists.length && !vision.available) return "";
+    return `
+        <section class="event-group event-group-wide fight-vision-group">
+            <header><h4>击杀 / 助攻 / 视野事件</h4><span>${escapeHtml(events?.fight_timing_coverage_label || "真实事件时间")}</span></header>
+            <div class="event-evidence-grid">
+                <div><strong>击杀时间</strong><div class="event-minute-chips">${eventMinuteChips(kills, "无击杀事件")}</div></div>
+                <div><strong>助攻时间</strong><div class="event-minute-chips">${eventMinuteChips(assists, "无助攻事件")}</div></div>
+                <div><strong>插眼 / 排眼</strong><p>${numberLabel(vision.placed_total)} / ${numberLabel(vision.kill_total)}</p><small>岗哨 ${numberLabel(vision.sen_placed)} · 观察 ${numberLabel(vision.obs_placed)}</small></div>
+                <div><strong>视野事件时间</strong><div class="event-minute-chips">${eventMinuteChips([...observerWards, ...sentryWards].sort((left, right) => Number(left.time) - Number(right.time)), "无插眼事件")}</div></div>
+            </div>
+        </section>`;
+}
+
 function renderEvents(events) {
     const target = document.querySelector("[data-events]");
     const deaths = events?.deaths || [];
     const purchases = events?.key_purchases || [];
     const postItemWindows = events?.post_item_windows || [];
+    const buybackWindows = events?.buyback_death_windows || [];
     const purchaseRows = purchases.map((purchase) => (
         purchaseRow(purchase, purchaseWindow(purchase, postItemWindows))
     )).join("");
     target.classList.toggle("single-column", purchases.length === 0);
     target.innerHTML = `
-        <section class="event-group"><header><h4>死亡时间点</h4><span>${escapeHtml(events?.death_coverage_label || `${deaths.length} 次`)}</span></header><ol>${deaths.map(deathRow).join("") || "<li><div><strong>本局无死亡事件</strong></div></li>"}</ol></section>
+        <section class="event-group"><header><h4>死亡时间点</h4><span>${escapeHtml(events?.death_coverage_label || `${deaths.length} 次`)}</span></header>${deathCostStrip(events?.death_cost_summary)}${buybackEventStrip(buybackWindows)}<ol>${deaths.map(deathRow).join("") || "<li><div><strong>本局无死亡事件</strong></div></li>"}</ol></section>
         <section class="event-group"><header><h4>关键装备</h4><span>${purchases.length} 件</span></header><ol>${purchaseRows || "<li><div><strong>未识别关键装备完成点</strong></div></li>"}</ol></section>
+        ${renderObjectiveEvidence(events)}
+        ${renderFightVisionEvidence(events)}
         ${renderDeathCoordinateMap(events)}`;
 }
 
@@ -385,7 +528,34 @@ function renderFindings(findings) {
         </article>`).join("");
 }
 
-function renderDataLimits(limits, fieldLedger) {
+function renderSourceReconciliation(reconciliation) {
+    const checks = Array.isArray(reconciliation?.checks) ? reconciliation.checks : [];
+    if (!checks.length) return "";
+    const metricLabels = {
+        kills: "击杀", deaths: "死亡", assists: "助攻", last_hits: "补刀",
+        denies: "反补", hero_damage: "英雄伤害", tower_damage: "建筑伤害",
+        kill_event_times: "击杀事件时间", assist_event_times: "助攻事件时间",
+        buyback_event_times: "买活事件时间", death_state_seconds: "逐秒死亡状态",
+    };
+    const conflicts = checks.filter((item) => item.status === "conflict").length;
+    const rows = checks.map((item) => {
+        const delta = Number(item.delta);
+        const deltaText = Number.isFinite(delta) && delta !== 0
+            ? `差值 ${delta > 0 ? "+" : ""}${numberLabel(delta)}`
+            : "一致";
+        return `<div class="reconciliation-row status-${escapeHtml(item.status || "unknown")}">
+            <strong>${escapeHtml(item.label || metricLabels[item.metric] || item.metric || "字段")}</strong>
+            <span>${escapeHtml(item.left_label || "OpenDota")} ${numberLabel(item.api_value)} / ${escapeHtml(item.right_label || "Valve回放")} ${numberLabel(item.replay_value)}</span>
+            <b>${escapeHtml(deltaText)}</b>
+        </div>`;
+    }).join("");
+    return `<section class="source-reconciliation">
+        <h4>证据源对账 <span>${conflicts ? `${conflicts} 项冲突` : "全部一致"}</span></h4>
+        ${rows}
+    </section>`;
+}
+
+function renderDataLimits(limits, fieldLedger, reconciliation) {
     const list = Array.isArray(limits) ? limits : [];
     const ledger = Array.isArray(fieldLedger) ? fieldLedger : [];
     const limitsPanel = document.querySelector("[data-limits]");
@@ -403,6 +573,7 @@ function renderDataLimits(limits, fieldLedger) {
         ? `${complete}/${required.length}`
         : String(list.length);
     document.querySelector("[data-limit-list]").innerHTML = `
+        ${renderSourceReconciliation(reconciliation)}
         <section class="evidence-coverage"><h4>字段覆盖账本</h4>${sourceRows || '<p>未返回字段覆盖清单。</p>'}</section>
         <section class="limitation-list"><h4>数据缺口</h4>${list.length
             ? `<ul>${list.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
@@ -426,6 +597,7 @@ function renderReview(payload) {
     renderDataLimits(
         guidance.data_limits || analysis.data_quality?.limitations || [],
         analysis.data_quality?.field_ledger || [],
+        analysis.data_quality?.source_reconciliation || {},
     );
     reviewOutput.hidden = false;
     setAnalysisButtonLabel();

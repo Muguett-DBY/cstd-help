@@ -15,6 +15,7 @@ class FakeOpenDotaClient:
         self.recent = list(recent or [])
         self.details = dict(details or {})
         self.detail_calls = []
+        self.parse_requests = []
 
     def get_recent_matches(self, account_id, limit=20, lobby_type=None):
         self.request = (account_id, limit, lobby_type)
@@ -23,6 +24,17 @@ class FakeOpenDotaClient:
     def get_match(self, match_id):
         self.detail_calls.append(match_id)
         return self.details.get(match_id)
+
+    def has_parsed_player_logs(self, match_data, account_id=None):
+        player = next(
+            (item for item in (match_data or {}).get("players", []) if item.get("account_id") == account_id),
+            None,
+        )
+        return bool(player and player.get("lh_t"))
+
+    def request_parse(self, match_id):
+        self.parse_requests.append(int(match_id))
+        return 12345
 
 
 def _recent(match_id, *, lobby_type=7):
@@ -77,6 +89,7 @@ class MatchRefreshJobTests(unittest.TestCase):
         self.assertEqual(client.request, (ACCOUNT_ID, 20, 7))
         self.assertEqual([item["match_id"] for item in match_list["matches"]], [30, 28])
         self.assertEqual(client.detail_calls, [30, 28])
+        self.assertEqual(client.parse_requests, [30, 28])
         self.assertEqual(match_list["source"], "github_actions_opendota")
         self.assertEqual(
             [item["key"] for item in detail_bulk],
@@ -95,6 +108,7 @@ class MatchRefreshJobTests(unittest.TestCase):
         cached_status = json.loads(detail_bulk[-1]["value"])
         self.assertEqual(cached_list["matches"], match_list["matches"])
         self.assertEqual(cached_status["status"], "ready")
+        self.assertEqual(cached_status["parse_preheat_requested"], 2)
 
     def test_cli_removes_stale_outputs_and_writes_failure_status(self):
         with tempfile.TemporaryDirectory() as temp_dir:

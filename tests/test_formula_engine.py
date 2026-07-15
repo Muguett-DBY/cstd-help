@@ -26,7 +26,7 @@ def _analysis_fixture():
         "events": {
             "deaths": [{"minute": 24.0}, {"minute": 31.0}],
             "death_objective_windows": [{"death_minute": 24.0, "outcome": "lost"}],
-            "post_item_windows": [{"classification": "low_conversion"}],
+            "post_item_windows": [{"classification": "low_conversion", "evaluable": True}],
         },
         "performance_context": {
             "lane_efficiency_pct": 68,
@@ -158,6 +158,56 @@ class FormulaEngineTests(unittest.TestCase):
         self.assertNotIn("estimated", serialized.lower())
         self.assertNotIn("推断", serialized)
 
+    def test_support_vision_rate_is_not_scored_without_real_duration(self):
+        analysis = _analysis_fixture()
+        analysis["duration_min"] = None
+        analysis["role_profile"] = {"id": "support", "label": "辅助"}
+        analysis["events"].update({
+            "has_vision_log": True,
+            "vision_source": "Valve回放",
+            "observer_wards": [{"time": 120}],
+            "sentry_wards": [{"time": 240}],
+        })
+
+        review = self._engine()(analysis)
+        role_card = next(card for card in review["scorecards"] if card["id"] == "role_execution")
+        input_ids = {item["id"] for item in role_card["inputs"]}
+
+        self.assertNotIn("vision_events_per_10", input_ids)
+        self.assertNotIn("vision_training_target", input_ids)
+        self.assertNotIn("每10分钟视野动作达成率", role_card["equation"])
+
+    def test_finding_scores_do_not_replace_missing_inputs_with_zero(self):
+        cases = (
+            ("death_review", "dead_time_share_pct"),
+            ("lane_farm", "lane_efficiency_gap"),
+            ("map_impact", "teamfight_participation_gap"),
+        )
+        for category, forbidden_input in cases:
+            analysis = _analysis_fixture()
+            analysis["performance_context"] = {}
+            analysis["data_quality"] = {}
+            analysis["review_findings"] = [{
+                "priority": "medium",
+                "category": category,
+                "category_label": category,
+                "evidence": "仅使用已返回事件。",
+                "why_it_matters": "用于回归测试。",
+                "action": "执行可记录动作。",
+                "replay_check": "系统检查真实事件。",
+                "training_goal": "减少问题窗口。",
+                "success_metric": "问题窗口下降。",
+            }]
+
+            with self.subTest(category=category):
+                review = self._engine()(analysis)
+                inputs = {
+                    item["id"]
+                    for item in review["review_points"][0]["formula_inputs"]
+                }
+                self.assertNotIn(forbidden_input, inputs)
+                self.assertNotIn("evidence_completeness", inputs)
+
     def test_survival_score_counts_unique_objective_deaths_and_real_resource_drops(self):
         analysis = _analysis_fixture()
         analysis["events"]["death_objective_windows"] = [
@@ -173,6 +223,84 @@ class FormulaEngineTests(unittest.TestCase):
         self.assertEqual(inputs["death_resource_drops"], 1)
         self.assertIn("1x12", survival["equation"])
         self.assertIn("1x8", survival["equation"])
+
+    def test_death_resource_overlap_priority_uses_overlap_deaths_not_delta_windows(self):
+        analysis = _analysis_fixture()
+        analysis["timeline"]["death_overlap_windows"] = [
+            {"death_minutes": [24.0, 25.0]},
+            {"death_minutes": [31.0]},
+        ]
+        analysis["timeline"]["death_resource_deltas"] = [{
+            "minute": 24.0,
+            "lh_per_min_delta": -3.0,
+            "avg_gpm_delta": -200.0,
+        }]
+        analysis["events"]["death_objective_windows"] = []
+        analysis["review_findings"] = [{
+            "priority": "high",
+            "category": "death_resource_overlap",
+            "category_label": "死亡打断资源",
+            "evidence": "3次死亡与低效率窗口重叠。",
+            "why_it_matters": "死亡打断资源连续性。",
+            "action": "复活后先恢复资源。",
+            "replay_check": "系统对齐真实死亡和分钟数组。",
+            "training_goal": "减少重叠死亡。",
+            "success_metric": "死亡与低效率窗口重叠=0。",
+        }]
+
+        review = self._engine()(analysis)
+        point = review["review_points"][0]
+        inputs = {item["id"]: item["value"] for item in point["formula_inputs"]}
+
+        self.assertEqual(inputs["death_resource_overlap_deaths"], 3)
+        self.assertIn("重叠死亡数", point["formula"])
+
+    def test_conversion_score_excludes_context_and_missing_data_windows(self):
+        analysis = _analysis_fixture()
+        analysis["events"]["post_item_windows"] = [
+            {"classification": "converted", "evaluable": True},
+            {"classification": "low_conversion", "evaluable": True},
+            {"classification": "context_only", "evaluable": False},
+            {"classification": "insufficient_data", "evaluable": False},
+        ]
+
+        review = self._engine()(analysis)
+        conversion = next(card for card in review["scorecards"] if card["id"] == "conversion")
+        window_input = next(
+            item for item in conversion["inputs"]
+            if item["id"] == "post_item_conversion_rate"
+        )
+
+        self.assertEqual(window_input["value"], 50.0)
+
+    def test_buyback_redeath_priority_uses_exact_event_interval(self):
+        analysis = _analysis_fixture()
+        analysis["events"]["buyback_death_windows"] = [{
+            "buyback_time": 2051,
+            "death_time": 2105,
+            "redeath_seconds": 54,
+            "short_redeath": True,
+        }]
+        analysis["review_findings"] = [{
+            "priority": "high",
+            "category": "buyback_redeath",
+            "category_label": "买活后再次阵亡",
+            "evidence": "34.2分买活，35.1分再次死亡，间隔54秒。",
+            "why_it_matters": "买活后的可行动窗口被快速终止。",
+            "action": "买活后120秒内不要作为第一进场点。",
+            "replay_check": "系统对齐买活和死亡事件。",
+            "training_goal": "保住买活后的防守窗口。",
+            "success_metric": "买活后120秒内再次死亡=0。",
+        }]
+
+        review = self._engine()(analysis)
+        point = review["review_points"][0]
+        inputs = {item["id"]: item["value"] for item in point["formula_inputs"]}
+
+        self.assertEqual(point["category"], "buyback_redeath")
+        self.assertEqual(inputs["short_buyback_redeaths"], 1)
+        self.assertEqual(inputs["shortest_buyback_redeath_seconds"], 54)
+        self.assertIn("120-最短间隔秒", point["formula"])
 
     def test_action_selection_suppresses_death_overlapped_farm_and_raw_coordinate_drills(self):
         analysis = _analysis_fixture()
@@ -207,6 +335,51 @@ class FormulaEngineTests(unittest.TestCase):
 
         self.assertNotIn("resource_continuity", categories)
         self.assertNotIn("death_position_pattern", categories)
+
+    def test_action_selection_suppresses_resource_recovery_when_same_death_already_cost_objectives(self):
+        analysis = _analysis_fixture()
+        analysis["events"]["death_objective_windows"] = [{
+            "death_time": 1440,
+            "death_minute": 24.0,
+            "objective_kind": "barracks",
+        }]
+        analysis["timeline"]["death_overlap_windows"] = [{
+            "death_minutes": [24.0],
+        }]
+        analysis["timeline"]["death_recovery_windows"] = [{
+            "minute": 24.0,
+            "status": "low",
+        }]
+        analysis["review_findings"].extend([
+            {
+                "priority": "high",
+                "category": "death_resource_overlap",
+                "category_label": "死亡打断资源",
+                "evidence": "24.0分死亡与低效率窗口重叠。",
+                "why_it_matters": "死亡打断资源。",
+                "action": "复活后先补资源。",
+                "replay_check": "系统检查时间重叠。",
+                "training_goal": "减少资源中断。",
+                "success_metric": "死亡资源重叠=0。",
+            },
+            {
+                "priority": "high",
+                "category": "death_recovery",
+                "category_label": "死亡后恢复",
+                "evidence": "24.0分死亡后恢复不足。",
+                "why_it_matters": "资源恢复慢。",
+                "action": "复活后先补资源。",
+                "replay_check": "系统检查恢复窗口。",
+                "training_goal": "改善恢复。",
+                "success_metric": "恢复不足=0。",
+            },
+        ])
+
+        review = self._engine()(analysis)
+        categories = {item["category"] for item in review["review_points"]}
+
+        self.assertNotIn("death_resource_overlap", categories)
+        self.assertNotIn("death_recovery", categories)
 
     def test_action_selection_does_not_fill_quota_with_duplicate_dimensions(self):
         analysis = _analysis_fixture()

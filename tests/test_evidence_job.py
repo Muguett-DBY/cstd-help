@@ -42,8 +42,33 @@ class FakeOpenDota:
 
 
 class FakeStratz:
+    def __init__(self):
+        self.reparse_requests = []
+
     def get_match_detail(self, match_id, include_playback=True):
         return {"id": match_id, "players": [{"playbackData": {}}]}
+
+    def request_match_reparse(self, match_id):
+        self.reparse_requests.append(int(match_id))
+        return True
+
+
+class FakeUnavailableStratz(FakeStratz):
+    def get_match_detail(self, match_id, include_playback=True):
+        return None
+
+
+class FakeReplay:
+    def __init__(self, payload=None):
+        self.payload = payload or {
+            "source": "valve_replay_gem",
+            "validation": {"status": "matched", "checks": []},
+        }
+        self.requests = []
+
+    def get_match_evidence(self, match_id, account_id, match_detail):
+        self.requests.append((int(match_id), int(account_id), match_detail["match_id"]))
+        return self.payload
 
 
 def complete_analysis(*_args, **_kwargs):
@@ -78,7 +103,7 @@ class EvidenceJobTests(unittest.TestCase):
 
         self.assertEqual(result["schema_version"], EVIDENCE_SCHEMA_VERSION)
         self.assertEqual(result["match_id"], MATCH_ID)
-        self.assertEqual(result["source"], "github_actions_stratz")
+        self.assertEqual(result["source"], "github_actions_stratz_opendota")
         self.assertEqual(result["analysis"]["hero_name"], "Luna")
 
     def test_job_rejects_match_outside_fixed_recent_ten(self):
@@ -122,6 +147,7 @@ class EvidenceJobTests(unittest.TestCase):
 
     def test_retry_requests_parse_and_waits_for_transient_evidence_gaps(self):
         opendota = FakeOpenDota()
+        stratz = FakeStratz()
         attempts = []
         sleeps = []
 
@@ -135,7 +161,7 @@ class EvidenceJobTests(unittest.TestCase):
             MATCH_ID,
             account_id=ACCOUNT_ID,
             opendota_client=opendota,
-            stratz_client=FakeStratz(),
+            stratz_client=stratz,
             analyze_fn=eventually_complete,
             attempts=3,
             retry_seconds=7,
@@ -145,7 +171,89 @@ class EvidenceJobTests(unittest.TestCase):
         self.assertEqual(result["match_id"], MATCH_ID)
         self.assertEqual(attempts, [1, 2])
         self.assertEqual(opendota.parse_requests, [MATCH_ID])
+        self.assertEqual(stratz.reparse_requests, [MATCH_ID])
         self.assertEqual(sleeps, [7])
+
+    def test_final_retry_uses_valve_replay_to_fill_persistent_api_gaps(self):
+        opendota = FakeOpenDota()
+        stratz = FakeStratz()
+        replay = FakeReplay()
+        attempts = []
+
+        def replay_completes(*_args, replay_data=None, **_kwargs):
+            attempts.append(bool(replay_data))
+            if replay_data:
+                return complete_analysis()
+            return {"data_quality": {"blocking_gaps": ["minute_damage", "death_positions"]}}
+
+        result = run_evidence_job_with_retry(
+            MATCH_ID,
+            account_id=ACCOUNT_ID,
+            opendota_client=opendota,
+            stratz_client=stratz,
+            replay_client=replay,
+            analyze_fn=replay_completes,
+            attempts=2,
+            retry_seconds=0,
+            sleep_fn=lambda _seconds: None,
+        )
+
+        self.assertEqual(result["source"], "github_actions_valve_replay")
+        self.assertEqual(attempts, [False, False, True])
+        self.assertEqual(replay.requests, [(MATCH_ID, ACCOUNT_ID, MATCH_ID)])
+
+    def test_stratz_failure_preheats_both_parse_sources_before_replay_retry(self):
+        opendota = FakeOpenDota()
+        stratz = FakeUnavailableStratz()
+
+        result = run_evidence_job_with_retry(
+            MATCH_ID,
+            account_id=ACCOUNT_ID,
+            opendota_client=opendota,
+            stratz_client=stratz,
+            replay_client=FakeReplay(),
+            analyze_fn=lambda *_args, replay_data=None, **_kwargs: (
+                complete_analysis() if replay_data else {
+                    "data_quality": {"blocking_gaps": ["minute_timeline"]},
+                }
+            ),
+            attempts=2,
+            retry_seconds=0,
+            sleep_fn=lambda _seconds: None,
+        )
+
+        self.assertEqual(result["source"], "github_actions_valve_replay")
+        self.assertEqual(opendota.parse_requests, [MATCH_ID])
+        self.assertEqual(stratz.reparse_requests, [MATCH_ID])
+
+    def test_replay_validation_conflict_is_never_published(self):
+        replay = FakeReplay({
+            "source": "valve_replay_gem",
+            "validation": {
+                "status": "conflict",
+                "checks": [{
+                    "metric": "deaths",
+                    "api_value": 4,
+                    "replay_value": 3,
+                    "status": "conflict",
+                }],
+            },
+        })
+
+        with self.assertRaises(EvidenceJobError) as raised:
+            run_evidence_job(
+                MATCH_ID,
+                account_id=ACCOUNT_ID,
+                opendota_client=FakeOpenDota(),
+                stratz_client=FakeStratz(),
+                replay_client=replay,
+                allow_replay=True,
+                analyze_fn=lambda *_args, **_kwargs: {
+                    "data_quality": {"blocking_gaps": ["death_positions"]},
+                },
+            )
+
+        self.assertEqual(raised.exception.code, "REPLAY_VALIDATION_CONFLICT")
 
     def test_retry_does_not_repeat_non_transient_job_errors(self):
         opendota = FakeOpenDota()
@@ -164,12 +272,23 @@ class EvidenceJobTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, "MATCH_NOT_RECENT")
         self.assertEqual(opendota.parse_requests, [])
 
-    def test_failed_cli_removes_stale_evidence_file_and_replaces_status(self):
+    def test_cli_does_not_require_stratz_secret_when_other_evidence_is_complete(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             evidence_path = Path(temp_dir) / "evidence.json"
             status_path = Path(temp_dir) / "status.json"
             evidence_path.write_text('{"stale":true}', encoding="utf-8")
-            with mock.patch.object(fetch_review_evidence, "STRATZ_API_KEY", ""):
+            payload = {
+                "schema_version": EVIDENCE_SCHEMA_VERSION,
+                "match_id": MATCH_ID,
+                "generated_at": "2026-07-14T00:00:00Z",
+                "source": "github_actions_valve_replay",
+                "analysis": complete_analysis(),
+            }
+            with mock.patch.object(
+                fetch_review_evidence,
+                "run_evidence_job_with_retry",
+                return_value=payload,
+            ):
                 code = fetch_review_evidence.main([
                     "--match-id", str(MATCH_ID),
                     "--evidence-output", str(evidence_path),
@@ -177,10 +296,10 @@ class EvidenceJobTests(unittest.TestCase):
                 ])
 
             status = json.loads(status_path.read_text(encoding="utf-8"))
-            self.assertEqual(code, 1)
-            self.assertFalse(evidence_path.exists())
-            self.assertEqual(status["status"], "failed")
-            self.assertEqual(status["error_code"], "STRATZ_SECRET_MISSING")
+            evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            self.assertEqual(code, 0)
+            self.assertEqual(status["status"], "ready")
+            self.assertEqual(evidence["source"], "github_actions_valve_replay")
 
     def test_failed_cli_status_records_exact_blocking_gaps(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -190,13 +309,10 @@ class EvidenceJobTests(unittest.TestCase):
                 "INCOMPLETE_EVIDENCE",
                 {"blocking_gaps": ["minute_damage", "death_positions"]},
             )
-            with (
-                mock.patch.object(fetch_review_evidence, "STRATZ_API_KEY", "configured"),
-                mock.patch.object(
-                    fetch_review_evidence,
-                    "run_evidence_job_with_retry",
-                    side_effect=error,
-                ),
+            with mock.patch.object(
+                fetch_review_evidence,
+                "run_evidence_job_with_retry",
+                side_effect=error,
             ):
                 code = fetch_review_evidence.main([
                     "--match-id", str(MATCH_ID),

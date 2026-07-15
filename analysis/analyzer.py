@@ -1,5 +1,6 @@
 import ast
 import json
+import math
 import os
 import time
 from datetime import datetime, timezone
@@ -132,6 +133,17 @@ def get_hero_name(hero_id):
     return HERO_ID_TO_NAME.get(hero_id, f"Hero#{hero_id}")
 
 
+def _hero_name_from_npc_key(value):
+    if not isinstance(value, str) or not value:
+        return None
+    slug = value.removeprefix("npc_dota_hero_")
+    _init_hero_maps()
+    for hero_id, hero_slug in HERO_ID_TO_SLUG.items():
+        if hero_slug == slug:
+            return HERO_ID_TO_NAME.get(hero_id)
+    return None
+
+
 def _item_metadata_for_key(item_key):
     global ITEM_METADATA_BY_KEY
     if not isinstance(item_key, str) or not item_key:
@@ -164,7 +176,13 @@ def get_hero_info(hero_id, display_name=None):
     }
 
 
-def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=None):
+def analyze_match(
+    match_data,
+    stratz_data=None,
+    opendota_data=None,
+    d2pt_data=None,
+    replay_data=None,
+):
     _init_hero_maps()
     hero_name = get_hero_name(match_data.get("hero_id"))
     duration = match_data.get("duration", 0)
@@ -178,6 +196,7 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         stratz_player,
         opendota_player=opendota_player,
         opendota_data=opendota_data,
+        replay_data=replay_data,
     )
 
     result = {
@@ -243,29 +262,37 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
     result["items"]["final_items"] = items
     result["items"]["final_item_details"] = [_item_detail(item_id) for item_id in items]
 
-    result["skills"]["upgrades"] = _extract_ability_upgrades(match_data, stratz_player)
+    result["skills"]["upgrades"] = _extract_ability_upgrades(
+        match_data,
+        stratz_player,
+        replay_data=replay_data,
+    )
     result["timeline"] = _build_timeline(
         match_data,
         stratz_player,
         duration_min,
         opendota_player=opendota_player,
         role_profile=result["role_profile"],
+        replay_data=replay_data,
     )
     result["events"] = _build_events(
         stratz_player,
+        stratz_data=stratz_data,
         opendota_player=opendota_player,
         opendota_data=opendota_data,
         final_item_ids=items,
         expected_deaths=deaths,
         expected_kills=kills,
         expected_assists=assists,
+        replay_data=replay_data,
     )
     result["events"]["death_objective_windows"] = _build_death_objective_windows(result["events"])
     result["events"]["death_objective_summary"] = _summarize_death_objective_windows(
         result["events"]["death_objective_windows"]
     )
     result["events"]["death_objective_drill"] = _build_death_objective_drill(
-        result["events"]["death_objective_windows"]
+        result["events"]["death_objective_windows"],
+        deaths=result["events"].get("deaths"),
     )
     result["events"]["post_item_windows"] = _build_post_item_windows(result["events"], result["timeline"])
     result["timeline"]["death_overlap_windows"] = _build_death_overlap_windows(result["timeline"], result["events"])
@@ -282,30 +309,32 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
         duration_seconds=duration,
         death_count=deaths,
         role_profile=result["role_profile"],
+        stratz_player=stratz_player,
+        stratz_data=stratz_data,
+        replay_data=replay_data,
     )
-    result["extended_metrics"] = _build_extended_metrics(opendota_player)
+    result["extended_metrics"] = _build_extended_metrics(
+        opendota_player,
+        stratz_player=stratz_player,
+        replay_data=replay_data,
+    )
 
     benchmarks = _load_json("benchmarks.json")
     role = _benchmark_role(context)
     result["comparison"] = _compare_with_benchmarks(result["farm"], duration_min, role)
 
-    counters = _load_json("counters.json")
-    enemy_heroes = context.get("enemy_heroes", [])
-    if hero_name in counters.get("strong_against", {}):
-        strong = counters["strong_against"][hero_name]
-        weak_against = [h for h in enemy_heroes if h in strong]
-        if weak_against:
-            result["issues"].append({
-                "type": "hero_matchup",
-                "severity": "high",
-                "message": f"对手阵容中存在需要重点处理的对位英雄: {', '.join(weak_against)}",
-            })
-
     if d2pt_data:
         result["d2pt"] = d2pt_data
         _compare_with_d2pt(result, d2pt_data)
 
-    result["data_quality"] = _build_data_quality(match_data, stratz_data, stratz_player, result, opendota_data=opendota_data)
+    result["data_quality"] = _build_data_quality(
+        match_data,
+        stratz_data,
+        stratz_player,
+        result,
+        opendota_data=opendota_data,
+        replay_data=replay_data,
+    )
     result["review_findings"] = _build_review_findings(result)
     result["formula_diagnostics"] = build_formula_diagnostics(result)
     _generate_suggestions(result)
@@ -315,6 +344,18 @@ def analyze_match(match_data, stratz_data=None, opendota_data=None, d2pt_data=No
 
 def _truthy(value):
     return value in (True, 1, "1", "true", "True")
+
+
+def _known_enum(value):
+    return value is not None and str(value).strip().upper() not in {"", "NONE", "UNKNOWN"}
+
+
+def _valid_player_slot(value):
+    return (
+        isinstance(value, int)
+        and not isinstance(value, bool)
+        and (0 <= value <= 4 or 128 <= value <= 132)
+    )
 
 
 def _extract_stratz_player(stratz_data, account_id, match_data):
@@ -361,7 +402,14 @@ def _extract_opendota_player(opendota_data, account_id, match_data):
     return None
 
 
-def _build_match_context(match_data, stratz_data, stratz_player, opendota_player=None, opendota_data=None):
+def _build_match_context(
+    match_data,
+    stratz_data,
+    stratz_player,
+    opendota_player=None,
+    opendota_data=None,
+    replay_data=None,
+):
     is_radiant = _truthy(match_data.get("is_radiant"))
     obs_count = len((opendota_player or {}).get("obs_log") or [])
     sen_count = len((opendota_player or {}).get("sen_log") or [])
@@ -370,9 +418,11 @@ def _build_match_context(match_data, stratz_data, stratz_player, opendota_player
         "hero_name": get_hero_name(match_data.get("hero_id")),
         "role": None,
         "lane": None,
+        "raw_lane": None,
         "raw_role": None,
         "opendota_lane_role": (opendota_player or {}).get("lane_role"),
         "opendota_lane": (opendota_player or {}).get("lane"),
+        "replay_lane_role": ((replay_data or {}).get("player") or {}).get("lane_role"),
         "is_roaming": bool((opendota_player or {}).get("is_roaming")),
         "observer_wards": obs_count,
         "sentry_wards": sen_count,
@@ -383,15 +433,28 @@ def _build_match_context(match_data, stratz_data, stratz_player, opendota_player
         "enemy_heroes": [],
         "team_kills": None,
         "enemy_kills": None,
+        "team_resource_ranks": {},
     }
 
     if stratz_player:
-        context["role"] = stratz_player.get("position") or stratz_player.get("role")
-        context["lane"] = stratz_player.get("lane")
-        context["raw_role"] = stratz_player.get("role")
-    elif context["opendota_lane_role"] in {1, 2, 3, 4}:
+        position = stratz_player.get("position") if _known_enum(stratz_player.get("position")) else None
+        raw_role = stratz_player.get("role") if _known_enum(stratz_player.get("role")) else None
+        raw_lane = stratz_player.get("lane") if _known_enum(stratz_player.get("lane")) else None
+        context["role"] = position or raw_role
+        context["raw_lane"] = raw_lane
+        context["lane"] = {
+            "SAFE_LANE": "优势路（STRATZ）",
+            "MID_LANE": "中路（STRATZ）",
+            "OFF_LANE": "劣势路（STRATZ）",
+            "JUNGLE": "野区（STRATZ）",
+        }.get(str(raw_lane or "").upper(), raw_lane)
+        context["raw_role"] = raw_role
+    if context["lane"] is None and context["opendota_lane_role"] in {1, 2, 3, 4}:
         lane_labels = {1: "优势路", 2: "中路", 3: "劣势路", 4: "野区"}
         context["lane"] = f"{lane_labels[context['opendota_lane_role']]}（OpenDota）"
+    if context["lane"] is None and context["replay_lane_role"] in {1, 2, 3, 4}:
+        lane_labels = {1: "优势路", 2: "中路", 3: "劣势路", 4: "野区"}
+        context["lane"] = f"{lane_labels[context['replay_lane_role']]}（Valve回放）"
 
     if is_radiant:
         context["team_kills"] = match_data.get("radiant_score")
@@ -415,11 +478,55 @@ def _build_match_context(match_data, stratz_data, stratz_player, opendota_player
 
     players = (opendota_data or {}).get("players") or []
     if players:
-        ordered_players = sorted(players, key=lambda player: player.get("player_slot") or 0)
-        radiant = [get_hero_info(player.get("hero_id")) for player in ordered_players if (player.get("player_slot") or 0) < 128]
-        dire = [get_hero_info(player.get("hero_id")) for player in ordered_players if (player.get("player_slot") or 0) >= 128]
+        valid_players = [
+            player for player in players
+            if isinstance(player, dict) and _valid_player_slot(player.get("player_slot"))
+        ]
+        ordered_players = sorted(valid_players, key=lambda player: player["player_slot"])
+        radiant = [get_hero_info(player.get("hero_id")) for player in ordered_players if player["player_slot"] < 128]
+        dire = [get_hero_info(player.get("hero_id")) for player in ordered_players if player["player_slot"] >= 128]
         context["ally_lineup"] = radiant if is_radiant else dire
         context["enemy_lineup"] = dire if is_radiant else radiant
+
+        side_players = [
+            player for player in valid_players
+            if (player["player_slot"] < 128) == is_radiant
+        ]
+
+        def team_rank(field):
+            own_value = (opendota_player or {}).get(field)
+            if not isinstance(own_value, (int, float)) or isinstance(own_value, bool):
+                return None
+            values = [
+                player.get(field) for player in side_players
+                if isinstance(player.get(field), (int, float))
+                and not isinstance(player.get(field), bool)
+            ]
+            if len(values) != len(side_players) or not values:
+                return None
+            return 1 + sum(value > own_value for value in values)
+
+        vision_values = [
+            (opendota_player or {}).get(field)
+            for field in ("obs_placed", "sen_placed")
+        ]
+        vision_actions = (
+            sum(int(value) for value in vision_values)
+            if all(
+                isinstance(value, (int, float))
+                and not isinstance(value, bool)
+                and math.isfinite(float(value))
+                and value >= 0
+                for value in vision_values
+            )
+            else None
+        )
+        context["team_resource_ranks"] = {
+            "last_hits": team_rank("last_hits"),
+            "gold_per_min": team_rank("gold_per_min"),
+            "net_worth": team_rank("net_worth"),
+            "vision_actions": vision_actions,
+        }
 
     context["ally_heroes"] = [hero["name"] for hero in context["ally_lineup"]]
     context["enemy_heroes"] = [hero["name"] for hero in context["enemy_lineup"]]
@@ -477,7 +584,7 @@ def _parse_jsonish(value):
     return []
 
 
-def _extract_ability_upgrades(match_data, stratz_player):
+def _extract_ability_upgrades(match_data, stratz_player, replay_data=None):
     stratz_abilities = None
     if stratz_player:
         stratz_abilities = stratz_player.get("abilityUpgrade") or stratz_player.get("abilities")
@@ -494,8 +601,13 @@ def _extract_ability_upgrades(match_data, stratz_player):
             upgrades.append(item)
         return upgrades
 
+    opendota_upgrades = _parse_jsonish(match_data.get("ability_upgrades"))
+    source = "opendota"
+    if not opendota_upgrades:
+        opendota_upgrades = list(((replay_data or {}).get("player") or {}).get("ability_upgrades") or [])
+        source = "valve_replay_gem"
     upgrades = []
-    for index, ability_id in enumerate(_parse_jsonish(match_data.get("ability_upgrades"))):
+    for index, ability_id in enumerate(opendota_upgrades):
         if isinstance(ability_id, dict):
             ability_id = ability_id.get("abilityId") or ability_id.get("ability_id")
         if not ability_id:
@@ -504,7 +616,7 @@ def _extract_ability_upgrades(match_data, stratz_player):
             "abilityId": ability_id,
             "level": index + 1,
             "name": ABILITY_FALLBACKS.get(ability_id, str(ability_id)),
-            "source": "opendota",
+            "source": source,
         })
     return upgrades
 
@@ -538,11 +650,14 @@ def _build_derived_metrics(result, match_data):
 def _as_number_list(values):
     if not isinstance(values, list):
         return []
-    result = []
     for value in values:
-        if isinstance(value, (int, float)):
-            result.append(value)
-    return result
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(float(value))
+        ):
+            return []
+    return list(values)
 
 
 def _sum_slice(values, start, end):
@@ -551,25 +666,49 @@ def _sum_slice(values, start, end):
 
 def _avg_slice(values, start, end):
     sliced = values[start:min(end, len(values))]
-    return round(sum(sliced) / len(sliced), 1) if sliced else 0
+    return round(sum(sliced) / len(sliced), 1) if sliced else None
 
 
 def _phase_summary(label, start, end, stats):
-    lh = _sum_slice(stats.get("lastHitsPerMinute", []), start, end)
-    denies = _sum_slice(stats.get("deniesPerMinute", []), start, end)
-    hero_damage = _sum_slice(stats.get("heroDamagePerMinute", []), start, end)
-    tower_damage = _sum_slice(stats.get("towerDamagePerMinute", []), start, end)
-    minutes = max(min(end, len(stats.get("lastHitsPerMinute", []))) - start, 0)
+    last_hits = stats.get("lastHitsPerMinute", [])
+    minutes = max(min(end, len(last_hits)) - start, 0)
+    required_end = start + minutes
+
+    def complete_values(key):
+        values = stats.get(key, [])
+        if not minutes or len(values) < required_end:
+            return None
+        return values[start:required_end]
+
+    lh_values = complete_values("lastHitsPerMinute") or []
+    denies_values = complete_values("deniesPerMinute")
+    gold_values = complete_values("goldPerMinute")
+    xp_values = complete_values("experiencePerMinute")
+    hero_damage_values = complete_values("heroDamagePerMinute")
+    tower_damage_values = complete_values("towerDamagePerMinute")
+    lh = sum(lh_values)
     return {
         "label": label,
         "minutes": minutes,
         "last_hits": int(lh),
-        "denies": int(denies),
+        "denies": int(sum(denies_values)) if denies_values is not None else None,
         "lh_per_min": round(lh / minutes, 1) if minutes else 0,
-        "avg_gpm": _avg_slice(stats.get("goldPerMinute", []), start, end),
-        "avg_xpm": _avg_slice(stats.get("experiencePerMinute", []), start, end),
-        "hero_damage": int(hero_damage),
-        "tower_damage": int(tower_damage),
+        "avg_gpm": (
+            round(sum(gold_values) / len(gold_values), 1)
+            if gold_values else None
+        ),
+        "avg_xpm": (
+            round(sum(xp_values) / len(xp_values), 1)
+            if xp_values else None
+        ),
+        "hero_damage": (
+            int(sum(hero_damage_values))
+            if hero_damage_values is not None else None
+        ),
+        "tower_damage": (
+            int(sum(tower_damage_values))
+            if tower_damage_values is not None else None
+        ),
     }
 
 
@@ -581,7 +720,10 @@ def _find_low_efficiency_windows(lh_by_min, role_profile):
     threshold = 4 if role_profile.get("lane_farm_sensitive") else 2
     windows = []
     start = None
-    for idx, value in enumerate(lh_by_min):
+    # The first two bins include creep-spawn and lane-arrival partial minutes.
+    start_index = min(2, len(lh_by_min))
+    for idx in range(start_index, len(lh_by_min)):
+        value = lh_by_min[idx]
         low = value <= threshold
         if low and start is None:
             start = idx
@@ -593,7 +735,7 @@ def _find_low_efficiency_windows(lh_by_min, role_profile):
                     "start_minute": start,
                     "end_minute": end,
                     "avg_lh": round(sum(lh_by_min[start:end]) / max(end - start, 1), 1),
-                    "reason": "该窗口连续补刀偏少，系统会结合事件日志判断是被压制、转线、参战还是刷野路线断档。",
+                    "reason": "该窗口连续补刀偏少；系统只与死亡、购买和参战事件做时间重叠，不推断具体原因。",
                 })
             start = None
     return windows[:5]
@@ -618,13 +760,14 @@ def _top_windows(values, label, window_size=5, limit=3):
 
 def _diff_cumulative(values):
     numbers = _as_number_list(values)
-    if not numbers:
+    if len(numbers) < 2:
         return []
     diffs = []
-    previous = 0
-    for value in numbers[1:]:
-        diffs.append(max(value - previous, 0))
-        previous = value
+    for previous, value in zip(numbers, numbers[1:]):
+        delta = value - previous
+        if delta < 0:
+            return []
+        diffs.append(delta)
     return diffs
 
 
@@ -683,6 +826,7 @@ def _timeline_source_label(source):
         "opendota_parsed_logs": "OpenDota解析日志",
         "stratz_stats": "STRATZ分钟数组",
         "stratz_playback_cs": "STRATZ补刀事件",
+        "valve_replay_gem": "Valve回放原始事件（gem-dota）",
     }
     if not source:
         return ""
@@ -757,23 +901,56 @@ def _valid_number(value, minimum, maximum):
     )
 
 
-def _build_opendota_performance_context(opendota_player, duration_seconds=0, death_count=0, role_profile=None):
+def _stratz_team_kill_count(stratz_data, player_is_radiant):
+    players = (stratz_data or {}).get("players") or []
+    side_players = [
+        player for player in players
+        if _truthy(player.get("isRadiant")) == _truthy(player_is_radiant)
+    ]
+    if not side_players:
+        return None
+    kills = [player.get("kills") for player in side_players]
+    if not all(isinstance(value, (int, float)) for value in kills):
+        return None
+    return int(sum(kills))
+
+
+def _build_opendota_performance_context(
+    opendota_player,
+    duration_seconds=0,
+    death_count=0,
+    role_profile=None,
+    stratz_player=None,
+    stratz_data=None,
+    replay_data=None,
+):
     player = opendota_player or {}
+    stratz_player = stratz_player or {}
+    stratz_stats = stratz_player.get("stats") or {}
+    replay_performance = (replay_data or {}).get("performance") or {}
     role_profile = role_profile or {}
     metrics = []
+    metric_sources = {}
 
     lane_efficiency = player.get("lane_efficiency_pct")
+    lane_source = "OpenDota"
     if not _valid_number(lane_efficiency, 0, 100):
         lane_ratio = player.get("lane_efficiency")
         lane_efficiency = float(lane_ratio) * 100 if _valid_number(lane_ratio, 0, 1) else None
+    if lane_efficiency is None and _valid_number(
+        replay_performance.get("lane_efficiency_pct"), 0, 100
+    ):
+        lane_efficiency = replay_performance["lane_efficiency_pct"]
+        lane_source = "Valve回放"
     lane_efficiency_pct = int(round(lane_efficiency)) if lane_efficiency is not None else None
     if lane_efficiency_pct is not None:
+        metric_sources["lane_efficiency_pct"] = lane_source
         lane_attention = role_profile.get("lane_farm_sensitive") and lane_efficiency_pct < 50
         metrics.append({
             "id": "lane_efficiency",
             "label": "对线效率",
             "value_label": f"{lane_efficiency_pct}%",
-            "detail": "OpenDota返回的本局对线阶段资源效率",
+            "detail": f"{lane_source}返回的本局对线阶段资源效率",
             "status": "attention" if lane_attention else "strong" if lane_efficiency_pct >= 70 else "normal",
         })
 
@@ -783,20 +960,63 @@ def _build_opendota_performance_context(opendota_player, duration_seconds=0, dea
         if _valid_number(participation, 0, 1)
         else None
     )
+    participation_source = "OpenDota"
+    if teamfight_participation_pct is None:
+        replay_participation = replay_performance.get("teamfight_participation")
+        if _valid_number(replay_participation, 0, 1):
+            teamfight_participation_pct = int(round(float(replay_participation) * 100))
+            participation_source = "Valve回放"
+    if teamfight_participation_pct is None:
+        team_kills = _stratz_team_kill_count(
+            stratz_data,
+            stratz_player.get("isRadiant"),
+        )
+        kills = stratz_player.get("kills")
+        assists = stratz_player.get("assists")
+        if not isinstance(kills, (int, float)):
+            kills = player.get("kills")
+        if not isinstance(assists, (int, float)):
+            assists = player.get("assists")
+        if (
+            isinstance(team_kills, int) and team_kills > 0
+            and isinstance(kills, (int, float))
+            and isinstance(assists, (int, float))
+        ):
+            teamfight_participation_pct = int(round(
+                (float(kills) + float(assists)) / team_kills * 100
+            ))
+            participation_source = "STRATZ记分板"
     if teamfight_participation_pct is not None:
+        metric_sources["teamfight_participation_pct"] = participation_source
         metrics.append({
             "id": "teamfight_participation",
             "label": "参战率",
             "value_label": f"{teamfight_participation_pct}%",
-            "detail": "OpenDota返回的本局击杀参与汇总",
+            "detail": f"{participation_source}的本局击杀参与汇总",
             "status": "attention" if teamfight_participation_pct < 40 else "strong" if teamfight_participation_pct >= 65 else "normal",
         })
 
     dead_time = player.get("life_state_dead")
     dead_time_seconds = int(round(dead_time)) if _valid_number(dead_time, 0, 86400) else None
+    dead_time_source = "OpenDota"
+    if dead_time_seconds is None and _valid_number(
+        replay_performance.get("life_state_dead"), 0, 86400
+    ):
+        dead_time_seconds = int(round(replay_performance["life_state_dead"]))
+        dead_time_source = "Valve回放"
+    if dead_time_seconds is None and isinstance(stratz_stats.get("deathEvents"), list):
+        observed_dead_times = [
+            event.get("timeDead")
+            for event in stratz_stats.get("deathEvents") or []
+            if isinstance(event, dict) and _valid_number(event.get("timeDead"), 0, 3600)
+        ]
+        if observed_dead_times or death_count == 0:
+            dead_time_seconds = int(round(sum(observed_dead_times)))
+            dead_time_source = "STRATZ死亡事件"
     dead_time_share_pct = None
     average_dead_time = None
     if dead_time_seconds is not None:
+        metric_sources["dead_time_seconds"] = dead_time_source
         if _valid_number(duration_seconds, 1, 86400):
             dead_time_share_pct = round((dead_time_seconds / float(duration_seconds)) * 100, 1)
         if death_count:
@@ -810,7 +1030,7 @@ def _build_opendota_performance_context(opendota_player, duration_seconds=0, dea
             "id": "dead_time",
             "label": "死亡占时",
             "value_label": _format_duration_seconds(dead_time_seconds),
-            "detail": " · ".join(detail_parts) or "OpenDota记录的本局死亡总时长",
+            "detail": " · ".join(detail_parts) or f"{dead_time_source}记录的本局死亡总时长",
             "status": (
                 "attention" if dead_time_share_pct is not None and dead_time_share_pct >= 18
                 else "strong" if dead_time_share_pct is not None and dead_time_share_pct <= 8
@@ -819,19 +1039,35 @@ def _build_opendota_performance_context(opendota_player, duration_seconds=0, dea
         })
 
     buybacks = player.get("buyback_count")
+    buyback_source = "OpenDota"
+    if buybacks is None and _valid_number(
+        replay_performance.get("buyback_count"), 0, 100
+    ):
+        buybacks = replay_performance["buyback_count"]
+        buyback_source = "Valve回放"
     buyback_count = int(buybacks) if _valid_number(buybacks, 0, 100) else None
     if buyback_count is not None:
+        metric_sources["buyback_count"] = buyback_source
         metrics.append({
             "id": "buybacks",
             "label": "买活次数",
             "value_label": f"{buyback_count}次",
-            "detail": "OpenDota记录的本局买活次数",
+            "detail": f"{buyback_source}记录的本局买活次数",
             "status": "normal",
         })
 
+    source_names = []
+    for source in metric_sources.values():
+        if source not in source_names:
+            source_names.append(source)
+    if source_names == ["OpenDota"]:
+        source_label = "OpenDota对局汇总字段"
+    else:
+        source_label = " + ".join(source_names) if source_names else None
     return {
         "available": bool(metrics),
-        "source": "OpenDota对局汇总字段",
+        "source": source_label,
+        "metric_sources": metric_sources,
         "lane_efficiency_pct": lane_efficiency_pct,
         "teamfight_participation_pct": teamfight_participation_pct,
         "dead_time_seconds": dead_time_seconds,
@@ -865,8 +1101,46 @@ def _top_usage(values, limit=8):
     return rows[:limit]
 
 
-def _build_extended_metrics(opendota_player):
+def _average_number_list(values):
+    values = [
+        float(value) for value in values or []
+        if isinstance(value, (int, float)) and not isinstance(value, bool)
+    ]
+    if not values:
+        return None
+    average = round(sum(values) / len(values), 1)
+    return int(average) if average.is_integer() else average
+
+
+def _last_number(values):
+    numbers = [
+        value for value in values or []
+        if isinstance(value, (int, float)) and not isinstance(value, bool)
+    ]
+    return numbers[-1] if numbers else None
+
+
+def _stratz_usage_map(rows, *, ability=False):
+    usage = {}
+    for row in rows or []:
+        if not isinstance(row, dict) or not isinstance(row.get("count"), (int, float)):
+            continue
+        identifier = row.get("abilityId") if ability else row.get("itemId")
+        if not identifier:
+            continue
+        if ability:
+            name = ABILITY_FALLBACKS.get(identifier, f"Ability #{identifier}")
+        else:
+            name = _item_detail(identifier).get("name") or f"Item #{identifier}"
+        usage[name] = usage.get(name, 0) + row["count"]
+    return usage
+
+
+def _build_extended_metrics(opendota_player, stratz_player=None, replay_data=None):
     player = opendota_player or {}
+    stratz_player = stratz_player or {}
+    stats = stratz_player.get("stats") or {}
+    replay_extended = (replay_data or {}).get("extended") or {}
     damage_taken = player.get("damage_taken") if isinstance(player.get("damage_taken"), dict) else {}
     hero_damage_taken = {
         name: value
@@ -882,44 +1156,180 @@ def _build_extended_metrics(opendota_player):
         )
         if field in player and player.get(field) is not None
     ]
+    sources = ["OpenDota"] if observed_fields else []
+
+    def with_replay(field, value):
+        if value is None and replay_extended.get(field) is not None:
+            observed_fields.append(field)
+            sources.append("Valve回放")
+            return replay_extended[field]
+        return value
+
+    if not damage_taken and isinstance(replay_extended.get("damage_taken"), dict):
+        damage_taken = dict(replay_extended["damage_taken"])
+        hero_damage_taken = {
+            name: value
+            for name, value in damage_taken.items()
+            if str(name).startswith("npc_dota_hero_")
+        }
+        observed_fields.append("damage_taken")
+        sources.append("Valve回放")
+
+    actions_per_min = player.get("actions_per_min")
+    if actions_per_min is None:
+        actions_per_min = _average_number_list(stats.get("actionsPerMinute"))
+        if actions_per_min is not None:
+            observed_fields.append("actions_per_min")
+            sources.append("STRATZ")
+    actions_per_min = with_replay("actions_per_min", actions_per_min)
+
+    camps_stacked = player.get("camps_stacked")
+    if camps_stacked is None:
+        camps_stacked = _last_number(stats.get("campStack"))
+        if camps_stacked is not None:
+            observed_fields.append("camps_stacked")
+            sources.append("STRATZ")
+    camps_stacked = with_replay("camps_stacked", camps_stacked)
+
+    rune_pickups = player.get("rune_pickups")
+    if rune_pickups is None and isinstance(stats.get("runes"), list):
+        rune_pickups = sum(
+            str(event.get("action") or "").upper() == "PICKUP"
+            for event in stats.get("runes") or []
+            if isinstance(event, dict)
+        )
+        observed_fields.append("rune_pickups")
+        sources.append("STRATZ")
+    rune_pickups = with_replay("rune_pickups", rune_pickups)
+
+    courier_kills = player.get("courier_kills")
+    if courier_kills is None and isinstance(stats.get("courierKills"), list):
+        courier_kills = len(stats.get("courierKills") or [])
+        observed_fields.append("courier_kills")
+        sources.append("STRATZ")
+    courier_kills = with_replay("courier_kills", courier_kills)
+
+    stratz_hero_damage_taken = None
+    if isinstance(stats.get("heroDamageReceivedPerMinute"), list):
+        stratz_hero_damage_taken = round(sum(
+            value for value in stats.get("heroDamageReceivedPerMinute") or []
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+        ), 2)
+        observed_fields.append("hero_damage_received")
+        sources.append("STRATZ")
+
+    wards = stats.get("wards") if isinstance(stats.get("wards"), list) else None
+    observer_placed = player.get("obs_placed")
+    sentry_placed = player.get("sen_placed")
+    if wards is not None:
+        if observer_placed is None:
+            observer_placed = sum(event.get("type") == 0 for event in wards if isinstance(event, dict))
+            observed_fields.append("obs_placed")
+        if sentry_placed is None:
+            sentry_placed = sum(event.get("type") == 1 for event in wards if isinstance(event, dict))
+            observed_fields.append("sen_placed")
+        sources.append("STRATZ")
+    observer_placed = with_replay("obs_placed", observer_placed)
+    sentry_placed = with_replay("sen_placed", sentry_placed)
+
+    ward_destruction = stats.get("wardDestruction") if isinstance(stats.get("wardDestruction"), list) else None
+    total_wards_destroyed = None
+    if ward_destruction is not None:
+        total_wards_destroyed = len(ward_destruction)
+        observed_fields.append("ward_destruction")
+        sources.append("STRATZ")
+
+    gold_spent = player.get("gold_spent")
+    if gold_spent is None and isinstance(stratz_player.get("goldSpent"), (int, float)):
+        gold_spent = stratz_player.get("goldSpent")
+        observed_fields.append("gold_spent")
+        sources.append("STRATZ")
+    gold_spent = with_replay("gold_spent", gold_spent)
+
+    item_usage = player.get("item_uses")
+    if not isinstance(item_usage, dict) and isinstance(stats.get("itemUsed"), list):
+        item_usage = _stratz_usage_map(stats.get("itemUsed"))
+        observed_fields.append("item_uses")
+        sources.append("STRATZ")
+    if not isinstance(item_usage, dict) and isinstance(replay_extended.get("item_uses"), dict):
+        item_usage = dict(replay_extended["item_uses"])
+        observed_fields.append("item_uses")
+        sources.append("Valve回放")
+
+    ability_usage = player.get("ability_uses")
+    if not isinstance(ability_usage, dict) and isinstance(stats.get("abilityCastReport"), list):
+        ability_usage = _stratz_usage_map(stats.get("abilityCastReport"), ability=True)
+        observed_fields.append("ability_uses")
+        sources.append("STRATZ")
+    if not isinstance(ability_usage, dict) and isinstance(replay_extended.get("ability_uses"), dict):
+        ability_usage = dict(replay_extended["ability_uses"])
+        observed_fields.append("ability_uses")
+        sources.append("Valve回放")
+
+    stuns = with_replay("stuns", player.get("stuns"))
+    observer_destroyed = with_replay("observer_kills", player.get("observer_kills"))
+    sentry_destroyed = with_replay("sentry_kills", player.get("sentry_kills"))
+    buyback_count = with_replay("buyback_count", player.get("buyback_count"))
+    total_gold = with_replay("total_gold", player.get("total_gold"))
+    tower_kills = with_replay("tower_kills", player.get("tower_kills"))
+    roshan_kills = with_replay("roshan_kills", player.get("roshan_kills"))
+    hero_healing = with_replay("hero_healing", player.get("hero_healing"))
+
+    observed_fields = list(dict.fromkeys(observed_fields))
+    sources = list(dict.fromkeys(sources))
+    if sources == ["OpenDota"]:
+        source_label = "OpenDota解析后的玩家扩展字段"
+    else:
+        source_label = " + ".join(sources) if sources else None
     return {
         "available": bool(observed_fields),
-        "source": "OpenDota解析后的玩家扩展字段",
+        "source": source_label,
         "observed_fields": observed_fields,
         "combat": {
-            "stuns_seconds": player.get("stuns"),
-            "total_damage_taken": _numeric_total(damage_taken),
-            "hero_damage_taken": _numeric_total(hero_damage_taken),
+            "stuns_seconds": stuns,
+            "total_damage_taken": (
+                _numeric_total(damage_taken)
+                if "damage_taken" in observed_fields else None
+            ),
+            "hero_damage_taken": (
+                _numeric_total(hero_damage_taken)
+                if hero_damage_taken else stratz_hero_damage_taken
+            ),
             "hero_damage_taken_by_source": _top_usage(hero_damage_taken),
             "max_hero_hit": player.get("max_hero_hit"),
-            "hero_healing": player.get("hero_healing"),
+            "hero_healing": hero_healing,
         },
         "economy": {
-            "gold_spent": player.get("gold_spent"),
-            "total_gold": player.get("total_gold"),
-            "buyback_count": player.get("buyback_count"),
+            "gold_spent": gold_spent,
+            "total_gold": total_gold,
+            "buyback_count": buyback_count,
             "buyback_log": list(player.get("buyback_log") or []),
         },
         "vision": {
-            "observer_placed": player.get("obs_placed"),
-            "sentry_placed": player.get("sen_placed"),
-            "observer_destroyed": player.get("observer_kills"),
-            "sentry_destroyed": player.get("sentry_kills"),
+            "observer_placed": observer_placed,
+            "sentry_placed": sentry_placed,
+            "observer_destroyed": observer_destroyed,
+            "sentry_destroyed": sentry_destroyed,
+            "total_destroyed": (
+                observer_destroyed + sentry_destroyed
+                if observer_destroyed is not None and sentry_destroyed is not None
+                else total_wards_destroyed
+            ),
         },
         "activity": {
-            "actions_per_min": player.get("actions_per_min"),
-            "camps_stacked": player.get("camps_stacked"),
-            "rune_pickups": player.get("rune_pickups"),
-            "courier_kills": player.get("courier_kills"),
+            "actions_per_min": actions_per_min,
+            "camps_stacked": camps_stacked,
+            "rune_pickups": rune_pickups,
+            "courier_kills": courier_kills,
             "pings": player.get("pings"),
         },
         "objectives": {
-            "tower_kills": player.get("tower_kills"),
-            "roshan_kills": player.get("roshan_kills"),
+            "tower_kills": tower_kills,
+            "roshan_kills": roshan_kills,
         },
         "usage": {
-            "top_item_uses": _top_usage(player.get("item_uses")),
-            "top_ability_uses": _top_usage(player.get("ability_uses")),
+            "top_item_uses": _top_usage(item_usage),
+            "top_ability_uses": _top_usage(ability_usage),
         },
     }
 
@@ -933,15 +1343,26 @@ def _event_source_label(source):
         "opendota_teamfights": "OpenDota团战事件",
         "opendota_vision": "OpenDota视野事件",
         "stratz_playback": "STRATZ回放事件",
+        "stratz_stats": "STRATZ解析事件",
+        "stratz_tower_deaths": "STRATZ建筑死亡事件",
         "stratz_position_samples": "STRATZ位置采样",
         "valve_replay": "Valve回放事件",
+        "valve_replay_gem": "Valve回放原始事件（gem-dota）",
+        "valve_replay_position_sample": "Valve回放实体位置采样",
     }
     if not source:
         return "未获取"
     return " + ".join(labels.get(part, part) for part in source.split("+"))
 
 
-def _build_timeline(match_data, stratz_player, duration_min, opendota_player=None, role_profile=None):
+def _build_timeline(
+    match_data,
+    stratz_player,
+    duration_min,
+    opendota_player=None,
+    role_profile=None,
+    replay_data=None,
+):
     opendota_stats = _opendota_minute_stats(opendota_player)
     playback_cs_stats = _stratz_playback_cs_minute_stats(stratz_player, duration_min)
     stats = (stratz_player or {}).get("stats") or {}
@@ -953,39 +1374,41 @@ def _build_timeline(match_data, stratz_player, duration_min, opendota_player=Non
         "heroDamagePerMinute": _as_number_list(stats.get("heroDamagePerMinute")),
         "towerDamagePerMinute": _as_number_list(stats.get("towerDamagePerMinute")),
     }
-    if opendota_stats:
-        normalized = {}
-        source_parts = ["opendota_parsed_logs"]
-        for key in [
-            "lastHitsPerMinute",
-            "deniesPerMinute",
-            "goldPerMinute",
-            "experiencePerMinute",
-            "heroDamagePerMinute",
-            "towerDamagePerMinute",
-        ]:
-            normalized[key] = opendota_stats.get(key) or stratz_normalized.get(key) or []
-            if not opendota_stats.get(key) and stratz_normalized.get(key) and "stratz_stats" not in source_parts:
-                source_parts.append("stratz_stats")
-        source = "+".join(source_parts)
-    elif playback_cs_stats and not stratz_normalized.get("lastHitsPerMinute"):
-        normalized = {}
-        source_parts = ["stratz_playback_cs"]
-        for key in [
-            "lastHitsPerMinute",
-            "deniesPerMinute",
-            "goldPerMinute",
-            "experiencePerMinute",
-            "heroDamagePerMinute",
-            "towerDamagePerMinute",
-        ]:
-            normalized[key] = playback_cs_stats.get(key) or stratz_normalized.get(key) or []
-            if not playback_cs_stats.get(key) and stratz_normalized.get(key) and "stratz_stats" not in source_parts:
-                source_parts.append("stratz_stats")
-        source = "+".join(source_parts)
-    else:
-        normalized = stratz_normalized
-        source = "stratz_stats"
+    replay_timeline = (replay_data or {}).get("timeline") or {}
+    replay_normalized = {
+        "lastHitsPerMinute": _as_number_list(replay_timeline.get("last_hits_per_minute")),
+        "deniesPerMinute": _as_number_list(replay_timeline.get("denies_per_minute")),
+        "goldPerMinute": _as_number_list(replay_timeline.get("gold_per_minute")),
+        "experiencePerMinute": _as_number_list(replay_timeline.get("experience_per_minute")),
+        "heroDamagePerMinute": _as_number_list(replay_timeline.get("hero_damage_per_minute")),
+        "towerDamagePerMinute": _as_number_list(replay_timeline.get("tower_damage_per_minute")),
+    }
+    timeline_keys = (
+        "lastHitsPerMinute",
+        "deniesPerMinute",
+        "goldPerMinute",
+        "experiencePerMinute",
+        "heroDamagePerMinute",
+        "towerDamagePerMinute",
+    )
+    normalized = {}
+    source_parts = []
+    for key in timeline_keys:
+        candidates = [
+            ("opendota_parsed_logs", (opendota_stats or {}).get(key)),
+            ("stratz_stats", stratz_normalized.get(key)),
+        ]
+        if key == "lastHitsPerMinute":
+            candidates.append(("stratz_playback_cs", (playback_cs_stats or {}).get(key)))
+        candidates.append(("valve_replay_gem", replay_normalized.get(key)))
+        source_name, value = next(
+            ((candidate_source, candidate_value) for candidate_source, candidate_value in candidates if candidate_value),
+            (None, []),
+        )
+        normalized[key] = value or []
+        if source_name and source_name not in source_parts:
+            source_parts.append(source_name)
+    source = "+".join(source_parts) if source_parts else None
     lh_by_min = normalized["lastHitsPerMinute"]
     if not lh_by_min:
         return {
@@ -1016,10 +1439,18 @@ def _build_timeline(match_data, stratz_player, duration_min, opendota_player=Non
         "source": source,
         "source_label": _timeline_source_label(source),
         "duration_minutes_observed": len(lh_by_min),
-        "ten_min_last_hits": int(_sum_slice(lh_by_min, 0, 10)),
+        "ten_min_last_hits": (
+            int(_sum_slice(lh_by_min, 0, 10)) if len(lh_by_min) >= 10 else None
+        ),
         "twenty_min_last_hits": int(_sum_slice(lh_by_min, 0, 20)) if len(lh_by_min) >= 20 else None,
-        "ten_min_denies": int(_sum_slice(normalized["deniesPerMinute"], 0, 10)),
-        "twenty_min_avg_gpm": _avg_slice(normalized["goldPerMinute"], 0, 20),
+        "ten_min_denies": (
+            int(_sum_slice(normalized["deniesPerMinute"], 0, 10))
+            if len(normalized["deniesPerMinute"]) >= 10 else None
+        ),
+        "twenty_min_avg_gpm": (
+            _avg_slice(normalized["goldPerMinute"], 0, 20)
+            if len(normalized["goldPerMinute"]) >= 20 else None
+        ),
         "phases": phases,
         "low_efficiency_windows": _find_low_efficiency_windows(lh_by_min, role_profile),
         "damage_windows": _top_windows(normalized["heroDamagePerMinute"], "输出窗口"),
@@ -1057,6 +1488,283 @@ def _normalize_timed_events(events, item_events=False, source=None):
             item["source"] = source
         normalized.append(item)
     return sorted(normalized, key=lambda item: item["time"])
+
+
+def _normalize_buyback_events(events, source):
+    normalized = []
+    for event in events or []:
+        if not isinstance(event, dict):
+            continue
+        event_time = event.get("time")
+        if not isinstance(event_time, (int, float)) or event_time < 0:
+            continue
+        item = {
+            "time": int(event_time),
+            "minute": round(event_time / 60, 1),
+            "source": source,
+        }
+        for key in ("slot", "player_slot"):
+            if event.get(key) is not None:
+                item[key] = event[key]
+        normalized.append(item)
+    return sorted(normalized, key=lambda item: item["time"])
+
+
+def _normalize_replay_purchase_events(events):
+    normalized = []
+    for event in events or []:
+        if not isinstance(event, dict) or not isinstance(event.get("time"), (int, float)):
+            continue
+        item_key = str(event.get("item_key") or "").removeprefix("item_")
+        metadata = _item_metadata_for_key(item_key) or {}
+        normalized.append({
+            "time": event["time"],
+            "minute": round(event["time"] / 60, 1),
+            "item_id": metadata.get("id"),
+            "item_name": metadata.get("name") or item_key or "Unknown",
+            "item_cost": metadata.get("cost"),
+            "item_category": metadata.get("category"),
+            "source": "valve_replay_gem",
+        })
+    return sorted(normalized, key=lambda item: item["time"])
+
+
+def _normalize_replay_nearby_context(value):
+    if not isinstance(value, dict):
+        return None
+    if value.get("sampled_other_players") != 9:
+        return None
+    normalized = {
+        key: value.get(key)
+        for key in (
+            "source",
+            "radius_units",
+            "sample_resolution_seconds",
+            "sampled_other_players",
+            "coverage_complete",
+            "allies_within_radius_count",
+            "enemies_within_radius_count",
+        )
+        if value.get(key) is not None
+    }
+
+    def normalize_player(item):
+        if not isinstance(item, dict):
+            return None
+        player = dict(item)
+        hero_id = player.get("hero_id")
+        if isinstance(hero_id, int) and not isinstance(hero_id, bool):
+            player["hero_name"] = get_hero_name(hero_id)
+        return player
+
+    for key in ("allies_within_radius", "enemies_within_radius"):
+        normalized[key] = [
+            player
+            for player in (normalize_player(item) for item in value.get(key) or [])
+            if player
+        ]
+    for key in ("nearest_ally", "nearest_enemy"):
+        normalized[key] = normalize_player(value.get(key))
+    return normalized
+
+
+def _normalize_replay_death_events(events):
+    normalized = []
+    for event in events or []:
+        if not isinstance(event, dict) or not isinstance(event.get("time"), (int, float)):
+            continue
+        item = {
+            "time": event["time"],
+            "minute": round(event["time"] / 60, 1),
+            "source": "valve_replay_gem",
+        }
+        for key in (
+            "killer",
+            "world_position",
+            "sample_tick",
+            "sample_delta_seconds",
+            "time_dead",
+            "death_state_started_at",
+            "respawn_observed_at",
+            "death_state_alignment_seconds",
+            "time_dead_source",
+            "time_dead_resolution_seconds",
+        ):
+            if event.get(key) is not None:
+                item[key] = event[key]
+        killer_name = _hero_name_from_npc_key(item.get("killer"))
+        if killer_name:
+            item["killer_hero_name"] = killer_name
+        nearby_context = _normalize_replay_nearby_context(event.get("nearby_context"))
+        if nearby_context:
+            item["nearby_context"] = nearby_context
+        position = event.get("position") or {}
+        x = _clean_position_value(position.get("x"))
+        y = _clean_position_value(position.get("y"))
+        if x is not None and y is not None:
+            item["position"] = {"x": x, "y": y}
+            item["position_source"] = (
+                event.get("position_source") or "valve_replay_position_sample"
+            )
+            sample_delta = event.get("sample_delta_seconds")
+            if isinstance(sample_delta, (int, float)) and not isinstance(sample_delta, bool):
+                item["position_sample_age_seconds"] = abs(float(sample_delta))
+            item["position_label"] = _death_position_label(
+                item["position"],
+                item.get("position_sample_age_seconds"),
+            )
+        normalized.append(item)
+    return sorted(normalized, key=lambda item: item["time"])
+
+
+def _normalize_replay_vision_events(events):
+    observer = []
+    sentry = []
+    for event in events or []:
+        if not isinstance(event, dict) or not isinstance(event.get("time"), (int, float)):
+            continue
+        ward_type = str(event.get("type") or "").lower()
+        item = {
+            "time": event["time"],
+            "minute": round(event["time"] / 60, 1),
+            "ward_type": ward_type,
+            "source": "valve_replay_gem",
+        }
+        position = event.get("position") or {}
+        x = _clean_position_value(position.get("x"))
+        y = _clean_position_value(position.get("y"))
+        if x is not None and y is not None:
+            item["position"] = {"x": x, "y": y}
+        if ward_type == "observer":
+            observer.append(item)
+        elif ward_type == "sentry":
+            sentry.append(item)
+    return observer, sentry
+
+
+def _normalize_stratz_combat_events(events, *, source="stratz_stats"):
+    normalized = []
+    for event in events or []:
+        if not isinstance(event, dict) or not isinstance(event.get("time"), (int, float)):
+            continue
+        item = {
+            "time": event["time"],
+            "minute": round(event["time"] / 60, 1),
+            "source": source,
+        }
+        for source_key, target_key in (
+            ("target", "target"),
+            ("byAbility", "ability_id"),
+            ("byItem", "item_id"),
+            ("gold", "gold"),
+            ("xp", "xp"),
+            ("isSolo", "is_solo"),
+            ("isGank", "is_gank"),
+            ("isInvisible", "is_invisible"),
+            ("isSmoke", "is_smoke"),
+            ("isTpRecently", "tp_recently"),
+        ):
+            if event.get(source_key) is not None:
+                item[target_key] = event[source_key]
+        x = _clean_position_value(event.get("positionX"))
+        y = _clean_position_value(event.get("positionY"))
+        if x is not None and y is not None:
+            item["position"] = {"x": x, "y": y}
+        normalized.append(item)
+    return sorted(normalized, key=lambda item: item["time"])
+
+
+def _normalize_stratz_death_events(events, source="stratz_stats"):
+    normalized = []
+    for event in events or []:
+        if not isinstance(event, dict) or not isinstance(event.get("time"), (int, float)):
+            continue
+        item = {
+            "time": event["time"],
+            "minute": round(event["time"] / 60, 1),
+            "source": source,
+        }
+        for source_key, target_key in (
+            ("attacker", "killer_hero_id"),
+            ("target", "target"),
+            ("byAbility", "ability_id"),
+            ("byItem", "item_id"),
+            ("goldFed", "gold_fed"),
+            ("xpFed", "xp_fed"),
+            ("timeDead", "time_dead"),
+            ("goldLost", "gold_lost"),
+            ("isWardWalkThrough", "ward_walk_through"),
+            ("isAttemptTpOut", "attempted_tp_out"),
+            ("isDieBack", "dieback"),
+            ("isBurst", "burst_death"),
+            ("isEngagedOnDeath", "engaged_on_death"),
+            ("hasHealAvailable", "heal_available"),
+            ("isTracked", "tracked"),
+        ):
+            if event.get(source_key) is not None:
+                item[target_key] = event[source_key]
+        if isinstance(item.get("killer_hero_id"), int):
+            item["killer_hero_name"] = get_hero_name(item["killer_hero_id"])
+        x = _clean_position_value(event.get("positionX"))
+        y = _clean_position_value(event.get("positionY"))
+        if x is not None and y is not None:
+            position = {"x": x, "y": y}
+            item.update({
+                "position": position,
+                "position_source": "stratz_stats",
+                "position_sample_age_seconds": 0,
+                "position_label": _death_position_label(position, 0),
+            })
+        normalized.append(item)
+    return sorted(normalized, key=lambda item: item["time"])
+
+
+def _normalize_stratz_vision_events(events):
+    observer = []
+    sentry = []
+    for event in events or []:
+        if not isinstance(event, dict) or not isinstance(event.get("time"), (int, float)):
+            continue
+        ward_type = "observer" if event.get("type") == 0 else "sentry" if event.get("type") == 1 else None
+        if not ward_type:
+            continue
+        item = {
+            "time": event["time"],
+            "minute": round(event["time"] / 60, 1),
+            "ward_type": ward_type,
+            "source": "stratz_stats",
+        }
+        x = _clean_position_value(event.get("positionX"))
+        y = _clean_position_value(event.get("positionY"))
+        if x is not None and y is not None:
+            item["position"] = {"x": x, "y": y}
+        (observer if ward_type == "observer" else sentry).append(item)
+    return observer, sentry
+
+
+def _build_stratz_vision_summary(stats):
+    wards = stats.get("wards")
+    destroyed = stats.get("wardDestruction")
+    if not isinstance(wards, list) and not isinstance(destroyed, list):
+        return {"available": False}
+    observer = (
+        sum(event.get("type") == 0 for event in wards if isinstance(event, dict))
+        if isinstance(wards, list) else None
+    )
+    sentry = (
+        sum(event.get("type") == 1 for event in wards if isinstance(event, dict))
+        if isinstance(wards, list) else None
+    )
+    return {
+        "available": True,
+        "observer_placed": observer,
+        "sentry_placed": sentry,
+        "placed_total": observer + sentry if observer is not None and sentry is not None else None,
+        "observer_kills": None,
+        "sentry_kills": None,
+        "kill_total": len(destroyed) if isinstance(destroyed, list) else None,
+        "source": "stratz_stats",
+    }
 
 
 def _normalize_opendota_purchase_events(events):
@@ -1195,7 +1903,10 @@ def _normalize_opendota_death_position_events(opendota_data, opendota_player):
 def _death_position_label(position, age_seconds):
     if not position:
         return ""
-    age_text = "死亡时" if age_seconds == 0 else f"死亡前{age_seconds}秒"
+    if age_seconds is None:
+        age_text = "采样时间差未返回"
+    else:
+        age_text = "死亡时" if age_seconds == 0 else f"死亡前{age_seconds}秒"
     return f"x={position.get('x')},y={position.get('y')}（{age_text}）"
 
 
@@ -1205,6 +1916,9 @@ def _attach_position_samples_to_deaths(deaths, position_events, max_age_seconds=
     enriched = []
     for death in deaths:
         item = dict(death)
+        if item.get("position"):
+            enriched.append(item)
+            continue
         death_time = item.get("time")
         if not isinstance(death_time, (int, float)):
             enriched.append(item)
@@ -1387,17 +2101,24 @@ def _build_opendota_vision_summary(opendota_player):
     if not isinstance(opendota_player, dict):
         return {"available": False}
 
-    summary = {
-        "available": any(key in opendota_player for key in VISION_SUMMARY_KEYS),
-    }
+    summary = {}
     for key in VISION_SUMMARY_KEYS:
         value = opendota_player.get(key)
-        summary[key] = int(value) if isinstance(value, (int, float)) else None
-    summary["placed_total"] = sum(
-        value or 0 for value in (summary.get("obs_placed"), summary.get("sen_placed"))
+        summary[key] = (
+            int(value)
+            if isinstance(value, (int, float)) and not isinstance(value, bool)
+            else None
+        )
+    summary["available"] = any(
+        summary.get(key) is not None for key in VISION_SUMMARY_KEYS
     )
-    summary["kill_total"] = sum(
-        value or 0 for value in (summary.get("observer_kills"), summary.get("sentry_kills"))
+    placed_values = (summary.get("obs_placed"), summary.get("sen_placed"))
+    summary["placed_total"] = (
+        sum(placed_values) if all(value is not None for value in placed_values) else None
+    )
+    kill_values = (summary.get("observer_kills"), summary.get("sentry_kills"))
+    summary["kill_total"] = (
+        sum(kill_values) if all(value is not None for value in kill_values) else None
     )
     return summary
 
@@ -1412,8 +2133,20 @@ def _vision_coverage_label(events):
     if vision_events:
         parts.append(f"{len(vision_events)}条插眼事件")
     if vision_summary.get("available"):
-        parts.append(f"插眼{vision_summary.get('placed_total') or 0}个")
-        parts.append(f"排眼{vision_summary.get('kill_total') or 0}个")
+        if vision_summary.get("placed_total") is not None:
+            parts.append(f"插眼{vision_summary['placed_total']}个")
+        else:
+            if vision_summary.get("obs_placed") is not None:
+                parts.append(f"观察眼{vision_summary['obs_placed']}个")
+            if vision_summary.get("sen_placed") is not None:
+                parts.append(f"岗哨{vision_summary['sen_placed']}个")
+        if vision_summary.get("kill_total") is not None:
+            parts.append(f"排眼{vision_summary['kill_total']}个")
+        else:
+            if vision_summary.get("observer_kills") is not None:
+                parts.append(f"排观察眼{vision_summary['observer_kills']}个")
+            if vision_summary.get("sentry_kills") is not None:
+                parts.append(f"排岗哨{vision_summary['sentry_kills']}个")
     return "；".join(parts) if parts else "OpenDota已解析，个人视野事件0条"
 
 
@@ -1452,6 +2185,13 @@ FARM_ACCELERATION_ITEM_NAMES = {
     "Mjollnir",
     "Radiance",
 }
+MAP_CONVERSION_ITEM_NAMES = {
+    "Abyssal Blade",
+    "Black King Bar",
+    "Blink Dagger",
+    "Refresher Orb",
+    "Scythe of Vyse",
+}
 
 PRIORITY_LABELS = {
     "high": "高优先级",
@@ -1468,6 +2208,7 @@ CATEGORY_LABELS = {
     "death_resource_delta": "死亡前后资源变化",
     "death_position_pattern": "重复死亡坐标",
     "death_objective_window": "死亡后目标损失",
+    "buyback_redeath": "买活后再次阵亡",
     "death_review": "死亡成本",
     "item_timing": "装备后转化",
     "map_impact": "地图影响力",
@@ -1597,6 +2338,97 @@ def _objective_building_label(key):
     return "建筑目标", "building"
 
 
+_STRATZ_BUILDING_LABELS = {
+    16: ("上路一塔", "tower"),
+    17: ("中路一塔", "tower"),
+    18: ("下路一塔", "tower"),
+    19: ("上路二塔", "tower"),
+    20: ("中路二塔", "tower"),
+    21: ("下路二塔", "tower"),
+    22: ("上路高地塔", "tower"),
+    23: ("中路高地塔", "tower"),
+    24: ("下路高地塔", "tower"),
+    25: ("基地塔", "tower"),
+    26: ("上路一塔", "tower"),
+    27: ("中路一塔", "tower"),
+    28: ("下路一塔", "tower"),
+    29: ("上路二塔", "tower"),
+    30: ("中路二塔", "tower"),
+    31: ("下路二塔", "tower"),
+    32: ("上路高地塔", "tower"),
+    33: ("中路高地塔", "tower"),
+    34: ("下路高地塔", "tower"),
+    35: ("基地塔", "tower"),
+    36: ("基地塔", "tower"),
+    37: ("基地塔", "tower"),
+    38: ("上路近战兵营", "barracks"),
+    39: ("中路近战兵营", "barracks"),
+    40: ("下路近战兵营", "barracks"),
+    41: ("上路远程兵营", "barracks"),
+    42: ("中路远程兵营", "barracks"),
+    43: ("下路远程兵营", "barracks"),
+    44: ("上路近战兵营", "barracks"),
+    45: ("中路近战兵营", "barracks"),
+    46: ("下路近战兵营", "barracks"),
+    47: ("上路远程兵营", "barracks"),
+    48: ("中路远程兵营", "barracks"),
+    49: ("下路远程兵营", "barracks"),
+    50: ("遗迹", "ancient"),
+    51: ("遗迹", "ancient"),
+}
+
+
+def _normalize_stratz_tower_objectives(stratz_data, stratz_player):
+    player_is_radiant = (stratz_player or {}).get("isRadiant")
+    if not isinstance(player_is_radiant, bool):
+        return []
+    player_hero_id = ((stratz_player or {}).get("hero") or {}).get("id")
+    normalized = []
+    for event in (stratz_data or {}).get("towerDeaths") or []:
+        if not isinstance(event, dict):
+            continue
+        event_time = event.get("time")
+        building_is_radiant = event.get("isRadiant")
+        if (
+            not isinstance(event_time, (int, float))
+            or event_time < 0
+            or not isinstance(building_is_radiant, bool)
+        ):
+            continue
+        label, kind = _STRATZ_BUILDING_LABELS.get(
+            event.get("npcId"),
+            ("建筑目标", "building"),
+        )
+        outcome = "lost" if building_is_radiant == player_is_radiant else "gained"
+        player_direct = (
+            isinstance(player_hero_id, int)
+            and event.get("attacker") == player_hero_id
+        )
+        normalized.append({
+            "time": event_time,
+            "minute": round(event_time / 60, 1),
+            "kind": kind,
+            "label": label,
+            "outcome": outcome,
+            "outcome_label": "我方获取" if outcome == "gained" else "我方失去",
+            "display_label": f"{'获取' if outcome == 'gained' else '失去'}{label}",
+            "team": "Radiant" if not building_is_radiant else "Dire",
+            "player_direct": player_direct,
+            "direct_label": (
+                (
+                    "本人最后一击（敌方建筑）"
+                    if outcome == "gained"
+                    else "本人完成己方建筑反补"
+                )
+                if player_direct else None
+            ),
+            "source": "stratz_tower_deaths",
+            "raw_type": "stratz_tower_death",
+            "raw_key": event.get("npcId"),
+        })
+    return sorted(normalized, key=lambda item: item["time"])
+
+
 def _normalize_opendota_objectives(opendota_data, opendota_player):
     player_slot = (opendota_player or {}).get("player_slot")
     if not isinstance(player_slot, int):
@@ -1649,6 +2481,12 @@ def _normalize_opendota_objectives(opendota_data, opendota_player):
         outcome = "gained" if objective_team_is_radiant == player_is_radiant else "lost"
         event_player_slot = event.get("player_slot")
         player_direct = isinstance(event_player_slot, int) and event_player_slot == player_slot
+        if event_type == "building_kill" and player_direct:
+            direct_label = (
+                "本人最后一击（敌方建筑）"
+                if outcome == "gained"
+                else "本人完成己方建筑反补"
+            )
         normalized.append({
             "time": event_time,
             "minute": round(event_time / 60, 1),
@@ -1703,9 +2541,49 @@ def _build_death_objective_windows(events, max_after_seconds=90):
                 "objective_display_label": objective.get("display_label"),
                 "elapsed_seconds": elapsed_seconds,
                 "evidence_label": evidence_label,
-                "source": "opendota_objectives+death_events",
+                "source": f"{objective.get('source') or 'objective_events'}+death_events",
             })
     return sorted(windows, key=lambda item: (item["death_time"], item["objective_time"]))
+
+
+def _build_buyback_death_windows(buybacks, deaths, short_window_seconds=120):
+    death_events = sorted(
+        (
+            item for item in deaths or []
+            if isinstance(item.get("time"), (int, float))
+        ),
+        key=lambda item: item["time"],
+    )
+    windows = []
+    for buyback in buybacks or []:
+        buyback_time = buyback.get("time")
+        if not isinstance(buyback_time, (int, float)):
+            continue
+        next_death = next(
+            (item for item in death_events if item["time"] > buyback_time),
+            None,
+        )
+        redeath_seconds = (
+            int(next_death["time"] - buyback_time)
+            if next_death else None
+        )
+        windows.append({
+            "buyback_time": int(buyback_time),
+            "buyback_minute": round(buyback_time / 60, 1),
+            "death_time": int(next_death["time"]) if next_death else None,
+            "death_minute": next_death.get("minute") if next_death else None,
+            "redeath_seconds": redeath_seconds,
+            "short_window_seconds": int(short_window_seconds),
+            "short_redeath": (
+                redeath_seconds is not None
+                and redeath_seconds <= short_window_seconds
+            ),
+            "source": "+".join(sorted({
+                str(buyback.get("source") or "buyback_events"),
+                str((next_death or {}).get("source") or "death_events"),
+            })),
+        })
+    return windows
 
 
 _DEATH_OBJECTIVE_KIND_WEIGHTS = {
@@ -1746,7 +2624,7 @@ def _objective_drill_focus_label(display_label):
     return label
 
 
-def _build_death_objective_drill(windows):
+def _build_death_objective_drill(windows, deaths=None):
     if not windows:
         return None
 
@@ -1783,6 +2661,59 @@ def _build_death_objective_drill(windows):
         for item in focus_windows
         if item.get("evidence_label")
     )
+    focus_death = next(
+        (
+            death for death in deaths or []
+            if isinstance(death.get("time"), (int, float))
+            and isinstance(focus.get("death_time"), (int, float))
+            and abs(death["time"] - focus["death_time"]) <= 1
+        ),
+        None,
+    )
+    nearby = (focus_death or {}).get("nearby_context") or {}
+    radius = nearby.get("radius_units") or 1600
+    ally_count = nearby.get("allies_within_radius_count")
+    enemy_count = nearby.get("enemies_within_radius_count")
+    nearest_ally = nearby.get("nearest_ally") or {}
+    nearest_enemy = nearby.get("nearest_enemy") or {}
+    if isinstance(ally_count, int) and isinstance(enemy_count, int):
+        checklist = [{
+            "label": "局部人数",
+            "check": f"死亡瞬间{int(radius)}范围内存活队友{ally_count}人、敌人{enemy_count}人。",
+        }]
+        if nearest_ally.get("distance_units") is not None:
+            checklist.append({
+                "label": "最近队友",
+                "check": (
+                    f"{nearest_ally.get('hero_name') or f'玩家{nearest_ally.get('player_id')}'}，"
+                    f"距离{nearest_ally['distance_units']}单位。"
+                ),
+            })
+        if nearest_enemy.get("distance_units") is not None:
+            checklist.append({
+                "label": "最近敌人",
+                "check": (
+                    f"{nearest_enemy.get('hero_name') or f'玩家{nearest_enemy.get('player_id')}'}，"
+                    f"距离{nearest_enemy['distance_units']}单位。"
+                ),
+            })
+        local_rule = (
+            f"目标前90秒保持至少1名存活队友处于{int(radius)}范围；"
+            "若可见敌人多于附近队友，停止先手并向最近队友方向撤退。"
+        )
+        local_check = (
+            f" 焦点死亡局部人数：队友{ally_count}人、敌人{enemy_count}人；"
+            "该数据由Valve回放全员位置与生命状态自动计算。"
+        )
+        local_metric = f"；目标相关死亡中{int(radius)}范围敌多于友为0次"
+    else:
+        checklist = [{
+            "label": "局部人数数据",
+            "check": "全员位置采样未获取，本项不作判断。",
+        }]
+        local_rule = "目标前90秒停止单独深入，保持与最近队友同一推进区域。"
+        local_check = " 全员位置采样未获取，系统不判断未采集的支援距离、敌人数量或撤退路线。"
+        local_metric = ""
     return {
         "title": "目标前90秒生存规则",
         "focus_objective": objective_label,
@@ -1794,29 +2725,13 @@ def _build_death_objective_drill(windows):
         ),
         "evidence": evidence,
         "trigger": f"下一局每次准备参与{objective_label}或同级关键目标前90秒",
-        "rule": (
-            "先确认队友能接应、敌方关键控制已露头或撤退路线明确；任一条件缺失就停止单独深入，"
-            "改为清近线、守入口或明确对侧交换。"
-        ),
-        "checklist": [
-            {
-                "label": "队友接应",
-                "check": "死亡前90秒内，最近队友是否能在5秒内接到你或形成反打。",
-            },
-            {
-                "label": "敌方控制",
-                "check": "死亡前90秒内，敌方关键控制或爆发英雄是否已经露头。",
-            },
-            {
-                "label": "撤退路线",
-                "check": "死亡前90秒内，你是否有明确退路、TP路径或安全视野入口。",
-            },
-        ],
+        "rule": local_rule,
+        "checklist": checklist,
         "training_goal": f"下一局执行「目标前90秒生存规则」，把围绕{objective_label}的死亡/目标损失窗口清零。",
-        "success_metric": "死亡后90秒内失去目标窗口=0；25分钟后死亡不超过2次。",
+        "success_metric": f"死亡后90秒内失去目标窗口为0{local_metric}。",
         "replay_check": (
             f"系统证据窗口：{evidence}；系统只自动验收死亡与目标事件的时间窗口。"
-            "队友接应、控制露头和撤退路线是下一局执行规则，不回写成已验证事实。"
+            f"{local_check}"
         ),
         "window_count": len(windows),
     }
@@ -1848,19 +2763,96 @@ def _select_complete_event_log(candidates, expected_count=0):
     return events, source
 
 
+def _build_death_cost_summary(deaths):
+    cost_events = [
+        event for event in deaths or []
+        if any(event.get(field) is not None for field in (
+            "time_dead", "gold_lost", "gold_fed", "xp_fed",
+        ))
+    ]
+    timed_events = [
+        event for event in cost_events
+        if isinstance(event.get("time_dead"), (int, float))
+    ]
+    gold_lost_events = [
+        event for event in cost_events
+        if isinstance(event.get("gold_lost"), (int, float))
+    ]
+    gold_fed_events = [
+        event for event in cost_events
+        if isinstance(event.get("gold_fed"), (int, float))
+    ]
+    xp_fed_events = [
+        event for event in cost_events
+        if isinstance(event.get("xp_fed"), (int, float))
+    ]
+    source_labels = []
+    if any(
+        event.get("time_dead_source") == "valve_replay_life_state"
+        for event in timed_events
+    ):
+        source_labels.append("Valve回放逐秒生命状态")
+    if any(
+        event.get("source") == "stratz_stats"
+        for event in cost_events
+    ):
+        source_labels.append("STRATZ死亡事件")
+    return {
+        "available": bool(cost_events),
+        "covered_deaths": len(cost_events),
+        "time_covered_deaths": len(timed_events),
+        "gold_lost_covered_deaths": len(gold_lost_events),
+        "gold_fed_covered_deaths": len(gold_fed_events),
+        "xp_fed_covered_deaths": len(xp_fed_events),
+        "dead_time_available": bool(timed_events),
+        "gold_lost_available": bool(gold_lost_events),
+        "gold_fed_available": bool(gold_fed_events),
+        "xp_fed_available": bool(xp_fed_events),
+        "total_dead_seconds": (
+            int(sum(event["time_dead"] for event in timed_events))
+            if timed_events else None
+        ),
+        "total_gold_lost": (
+            int(sum(event["gold_lost"] for event in gold_lost_events))
+            if gold_lost_events else None
+        ),
+        "total_gold_fed": (
+            int(sum(event["gold_fed"] for event in gold_fed_events))
+            if gold_fed_events else None
+        ),
+        "total_xp_fed": (
+            int(sum(event["xp_fed"] for event in xp_fed_events))
+            if xp_fed_events else None
+        ),
+        "dieback_count": sum(bool(event.get("dieback")) for event in cost_events),
+        "burst_death_count": sum(bool(event.get("burst_death")) for event in cost_events),
+        "engaged_death_count": sum(bool(event.get("engaged_on_death")) for event in cost_events),
+        "source": "+".join(source_labels) if source_labels else None,
+    }
+
+
 def _build_events(
     stratz_player,
+    stratz_data=None,
     opendota_player=None,
     opendota_data=None,
     final_item_ids=None,
     expected_deaths=0,
     expected_kills=0,
     expected_assists=0,
+    replay_data=None,
 ):
     playback = (stratz_player or {}).get("playbackData") or {}
+    stratz_stats = (stratz_player or {}).get("stats") or {}
     purchase_payload_available = (
         isinstance((opendota_player or {}).get("purchase_log"), list)
+        or isinstance(stratz_stats.get("itemPurchases"), list)
         or isinstance(playback.get("purchaseEvents"), list)
+        or isinstance((replay_data or {}).get("purchases"), list)
+    )
+    buyback_payload_available = (
+        isinstance((opendota_player or {}).get("buyback_log"), list)
+        or isinstance((replay_data or {}).get("buybacks"), list)
     )
     fight_payload_available = any(
         isinstance(value, list)
@@ -1868,22 +2860,76 @@ def _build_events(
             (opendota_player or {}).get("kills_log"),
             (opendota_player or {}).get("assists_log"),
             (opendota_player or {}).get("assist_log"),
+            stratz_stats.get("killEvents"),
+            stratz_stats.get("assistEvents"),
             playback.get("killEvents"),
             playback.get("assistEvents"),
+            (replay_data or {}).get("kills"),
+            (replay_data or {}).get("assists"),
         )
     )
     vision_event_payload_available = (
-        isinstance((opendota_player or {}).get("obs_log"), list)
-        and isinstance((opendota_player or {}).get("sen_log"), list)
+        (
+            isinstance((opendota_player or {}).get("obs_log"), list)
+            and isinstance((opendota_player or {}).get("sen_log"), list)
+        )
+        or isinstance(stratz_stats.get("wards"), list)
+        or isinstance((replay_data or {}).get("vision_events"), list)
     )
-    objective_payload_available = (
+    opendota_objective_payload_available = (
         isinstance(opendota_data, dict)
         and isinstance(opendota_data.get("objectives"), list)
     )
+    stratz_objective_payload_available = (
+        isinstance(stratz_data, dict)
+        and isinstance(stratz_data.get("towerDeaths"), list)
+        and bool(stratz_data.get("parsedDateTime"))
+    )
+    replay_objective_payload_available = (
+        isinstance(replay_data, dict)
+        and isinstance(replay_data.get("objectives"), list)
+    )
+    objective_payload_available = (
+        opendota_objective_payload_available
+        or replay_objective_payload_available
+        or stratz_objective_payload_available
+    )
     stratz_purchases = _normalize_timed_events(playback.get("purchaseEvents"), item_events=True, source="stratz")
-    stratz_deaths = _normalize_timed_events(playback.get("deathEvents"), source="stratz")
+    stratz_deaths = _normalize_stratz_death_events(
+        playback.get("deathEvents"),
+        source="stratz",
+    )
     stratz_kills = _normalize_timed_events(playback.get("killEvents"), source="stratz")
     stratz_assists = _normalize_timed_events(playback.get("assistEvents"), source="stratz")
+    stratz_stats_purchases = _normalize_timed_events(
+        stratz_stats.get("itemPurchases"),
+        item_events=True,
+        source="stratz_stats",
+    )
+    stratz_stats_deaths = _normalize_stratz_death_events(stratz_stats.get("deathEvents"))
+    stratz_stats_kills = _normalize_stratz_combat_events(stratz_stats.get("killEvents"))
+    stratz_stats_assists = _normalize_stratz_combat_events(stratz_stats.get("assistEvents"))
+    stratz_observer_wards, stratz_sentry_wards = _normalize_stratz_vision_events(
+        stratz_stats.get("wards")
+    )
+    stratz_vision_summary = _build_stratz_vision_summary(stratz_stats)
+    replay_purchases = _normalize_replay_purchase_events((replay_data or {}).get("purchases"))
+    replay_deaths = _normalize_replay_death_events((replay_data or {}).get("deaths"))
+    replay_kills = _normalize_stratz_combat_events(
+        (replay_data or {}).get("kills"),
+        source="valve_replay_gem",
+    )
+    replay_assists = _normalize_stratz_combat_events(
+        (replay_data or {}).get("assists"),
+        source="valve_replay_gem",
+    )
+    replay_buybacks = _normalize_buyback_events(
+        (replay_data or {}).get("buybacks"),
+        "valve_replay_gem",
+    )
+    replay_observer_wards, replay_sentry_wards = _normalize_replay_vision_events(
+        (replay_data or {}).get("vision_events")
+    )
     stratz_positions = _normalize_position_events(
         playback.get("playerUpdatePositionEvents"),
         source="stratz_position_samples",
@@ -1896,6 +2942,7 @@ def _build_events(
     opendota_teamfight_deaths = []
     opendota_kills = []
     opendota_assists = []
+    opendota_buybacks = []
     opendota_observer_wards = []
     opendota_sentry_wards = []
     vision_summary = {"available": False}
@@ -1915,26 +2962,62 @@ def _build_events(
         opendota_assists = _normalize_opendota_timed_events(
             opendota_player.get("assists_log") or opendota_player.get("assist_log")
         )
+        opendota_buybacks = _normalize_buyback_events(
+            opendota_player.get("buyback_log"),
+            "opendota_parsed_logs",
+        )
         opendota_death_positions = _normalize_opendota_death_position_events(opendota_data, opendota_player)
         opendota_observer_wards = _normalize_opendota_vision_events(opendota_player.get("obs_log"), "observer")
         opendota_sentry_wards = _normalize_opendota_vision_events(opendota_player.get("sen_log"), "sentry")
         vision_summary = _build_opendota_vision_summary(opendota_player)
 
     source_parts = set()
-    objectives = _normalize_opendota_objectives(opendota_data, opendota_player)
-    if objective_payload_available:
+    if opendota_objective_payload_available:
+        objectives = _normalize_opendota_objectives(opendota_data, opendota_player)
+        objective_source = "opendota_objectives"
+        objective_coverage_scope = "full"
         source_parts.add("opendota_objectives")
+    elif replay_objective_payload_available:
+        objectives = _normalize_opendota_objectives(
+            {"objectives": replay_data.get("objectives") or []},
+            opendota_player,
+        )
+        objective_source = "valve_replay_gem"
+        objective_coverage_scope = "full"
+        source_parts.add("valve_replay_gem")
+    elif stratz_objective_payload_available:
+        objectives = _normalize_stratz_tower_objectives(stratz_data, stratz_player)
+        objective_source = "stratz_tower_deaths"
+        objective_coverage_scope = "buildings"
+        source_parts.add("stratz_tower_deaths")
+    else:
+        objectives = []
+        objective_source = None
+        objective_coverage_scope = None
 
-    purchases = opendota_purchases or stratz_purchases
+    purchases = (
+        opendota_purchases
+        or stratz_stats_purchases
+        or stratz_purchases
+        or replay_purchases
+    )
     purchase_source = None
     if opendota_purchases:
         purchase_source = "opendota_parsed_logs"
         source_parts.add("opendota_parsed_logs")
+    elif stratz_stats_purchases:
+        purchase_source = "stratz_stats"
+        source_parts.add("stratz_stats")
     elif stratz_purchases:
         purchase_source = "stratz_playback"
         source_parts.add("stratz_playback")
+    elif replay_purchases:
+        purchase_source = "valve_replay_gem"
+        source_parts.add("valve_replay_gem")
 
     death_candidates = [
+        (stratz_stats_deaths, "stratz_stats", 4),
+        (replay_deaths, "valve_replay_gem", 4),
         (valve_replay_deaths, "valve_replay", 3),
         (opendota_opponent_kill_deaths, "opendota_opponent_kill_logs", 3),
         (opendota_deaths, "opendota_parsed_logs", 2),
@@ -1958,9 +3041,23 @@ def _build_events(
     deaths = _attach_position_samples_to_deaths(deaths, stratz_positions)
     deaths = _attach_direct_death_positions_to_deaths(deaths, opendota_death_positions)
     death_position_count = len([item for item in deaths if item.get("position")])
+    death_nearby_context_count = len([
+        item for item in deaths
+        if isinstance(item.get("nearby_context"), dict)
+        and item["nearby_context"].get("sampled_other_players")
+    ])
     death_map_points = _build_death_map_points(deaths)
     death_position_clusters = _build_death_position_clusters(death_map_points)
     deaths = _annotate_death_position_cluster_members(deaths, death_position_clusters)
+    buybacks = opendota_buybacks or replay_buybacks
+    buyback_source = (
+        "opendota_parsed_logs" if opendota_buybacks
+        else "valve_replay_gem" if replay_buybacks
+        else None
+    )
+    if buyback_source:
+        source_parts.add(buyback_source)
+    buyback_death_windows = _build_buyback_death_windows(buybacks, deaths)
     position_sources = sorted({
         item.get("position_source")
         for item in deaths
@@ -1971,6 +3068,8 @@ def _build_events(
 
     kills, kill_source = _select_complete_event_log(
         (
+            (replay_kills, "valve_replay_gem", 4),
+            (stratz_stats_kills, "stratz_stats", 3),
             (opendota_kills, "opendota_parsed_logs", 2),
             (stratz_kills, "stratz_playback", 1),
         ),
@@ -1981,6 +3080,8 @@ def _build_events(
 
     assists, assist_source = _select_complete_event_log(
         (
+            (replay_assists, "valve_replay_gem", 4),
+            (stratz_stats_assists, "stratz_stats", 3),
             (opendota_assists, "opendota_parsed_logs", 2),
             (stratz_assists, "stratz_playback", 1),
         ),
@@ -1989,12 +3090,41 @@ def _build_events(
     if assist_source:
         source_parts.add(assist_source)
 
-    vision_events = opendota_observer_wards + opendota_sentry_wards
-    has_vision_log = bool(vision_events) or bool(vision_summary.get("available"))
-    vision_source = None
-    if has_vision_log:
+    opendota_vision_events = opendota_observer_wards + opendota_sentry_wards
+    stratz_vision_events = stratz_observer_wards + stratz_sentry_wards
+    if opendota_vision_events or (
+        vision_summary.get("available")
+        and not stratz_vision_events
+    ):
+        observer_wards = opendota_observer_wards
+        sentry_wards = opendota_sentry_wards
+        vision_events = opendota_vision_events
         vision_source = "opendota_vision"
-        source_parts.add("opendota_vision")
+    elif stratz_vision_events or stratz_vision_summary.get("available"):
+        observer_wards = stratz_observer_wards
+        sentry_wards = stratz_sentry_wards
+        vision_events = stratz_vision_events
+        vision_summary = stratz_vision_summary
+        vision_source = "stratz_stats"
+    elif replay_observer_wards or replay_sentry_wards:
+        observer_wards = replay_observer_wards
+        sentry_wards = replay_sentry_wards
+        vision_events = replay_observer_wards + replay_sentry_wards
+        vision_summary = {
+            "available": True,
+            "observer_placed": len(replay_observer_wards),
+            "sentry_placed": len(replay_sentry_wards),
+            "source": "valve_replay_gem",
+        }
+        vision_source = "valve_replay_gem"
+    else:
+        observer_wards = []
+        sentry_wards = []
+        vision_events = []
+        vision_source = None
+    has_vision_log = bool(vision_events) or bool(vision_summary.get("available"))
+    if has_vision_log:
+        source_parts.add(vision_source)
 
     fight_sources = sorted({item for item in (kill_source, assist_source) if item})
     fight_source = "+".join(fight_sources) if fight_sources else None
@@ -2006,6 +3136,7 @@ def _build_events(
         "player_direct": sum(bool(item.get("player_direct")) for item in objectives),
         "total": len(objectives),
     }
+    death_cost_summary = _build_death_cost_summary(deaths)
     expected_deaths = int(expected_deaths or 0)
     expected_kills = int(expected_kills or 0)
     expected_assists = int(expected_assists or 0)
@@ -2058,15 +3189,27 @@ def _build_events(
         "death_count_missing": missing_deaths,
         "death_timeline_complete": observed_deaths == expected_deaths,
         "death_position_count": death_position_count,
+        "death_nearby_context_count": death_nearby_context_count,
+        "death_cost_summary": death_cost_summary,
         "death_map_points": death_map_points,
         "death_position_clusters": death_position_clusters,
-        "position_sample_count": len(stratz_positions) + len(opendota_death_positions),
+        "position_sample_count": (
+            len(stratz_positions)
+            + len(opendota_death_positions)
+            + sum(bool(item.get("position")) for item in stratz_stats_deaths)
+            + sum(bool(item.get("position")) for item in replay_deaths)
+        ),
         "has_death_positions": death_position_count > 0,
+        "has_death_nearby_context": death_nearby_context_count > 0,
         "death_coverage_label": death_coverage_label,
         "death_gap_note": (
             f"公共数据源未提供剩余 {missing_deaths} 次死亡的分钟级事件。"
             if missing_deaths else ""
         ),
+        "buybacks": buybacks,
+        "buyback_source": buyback_source,
+        "buyback_death_windows": buyback_death_windows,
+        "has_buyback_payload": buyback_payload_available,
         "kills": kills,
         "assists": assists,
         "kill_count_expected": expected_kills,
@@ -2076,15 +3219,17 @@ def _build_events(
         "fight_timing_complete": fight_timing_complete,
         "fight_timing_coverage_pct": fight_timing_coverage_pct,
         "fight_timing_coverage_label": fight_timing_coverage_label,
-        "observer_wards": opendota_observer_wards,
-        "sentry_wards": opendota_sentry_wards,
+        "observer_wards": observer_wards,
+        "sentry_wards": sentry_wards,
         "vision_events": sorted(vision_events, key=lambda item: item["time"]),
         "vision_summary": vision_summary,
-        "objective_source": "opendota_objectives" if objective_payload_available else None,
+        "objective_source": objective_source,
+        "objective_coverage_scope": objective_coverage_scope,
         "objectives": objectives,
         "objective_summary": objective_summary,
         "has_objective_log": objective_payload_available,
         "has_objective_payload": objective_payload_available,
+        "has_full_objective_payload": objective_coverage_scope == "full",
         "has_purchase_timeline": bool(purchases),
         "has_purchase_payload": purchase_payload_available,
         "has_fight_log": bool(deaths or kills or assists),
@@ -2117,8 +3262,28 @@ def _build_post_item_windows(events, timeline, window_seconds=120):
         start_minute = int(purchase_time // 60)
         if item_name in FARM_ACCELERATION_ITEM_NAMES:
             end_minute = start_minute + 5
+            if (
+                start_minute < 0
+                or len(lh_by_minute) < end_minute
+                or len(gold_by_minute) < end_minute
+            ):
+                windows.append({
+                    "item_name": item_name,
+                    "minute": purchase.get("minute"),
+                    "window_type": "farm_acceleration",
+                    "window_label": "后5分钟刷钱",
+                    "lh_gain": None,
+                    "avg_gpm": None,
+                    "low_farm": False,
+                    "low_conversion": False,
+                    "evaluable": False,
+                    "classification": "insufficient_data",
+                    "summary": f"{item_name}后5分钟补刀或经济分钟数组不完整，未作刷钱判定",
+                })
+                continue
             lh_gain = int(sum(lh_by_minute[start_minute:end_minute]))
             avg_gpm = _avg_slice(gold_by_minute, start_minute, end_minute)
+            low_farm = lh_gain < 40 and avg_gpm < 600
             windows.append({
                 "item_name": item_name,
                 "minute": purchase.get("minute"),
@@ -2126,17 +3291,58 @@ def _build_post_item_windows(events, timeline, window_seconds=120):
                 "window_label": "后5分钟刷钱",
                 "lh_gain": lh_gain,
                 "avg_gpm": avg_gpm,
+                "low_farm": low_farm,
+                "low_conversion": False,
+                "evaluable": True,
+                "classification": "low_farm" if low_farm else "converted",
                 "summary": f"{item_name}后5分钟{lh_gain}补/{avg_gpm}GPM",
             })
             continue
 
+        if item_name not in MAP_CONVERSION_ITEM_NAMES:
+            windows.append({
+                "item_name": item_name,
+                "minute": purchase.get("minute"),
+                "window_type": "context_only",
+                "window_label": "仅记录完成时间",
+                "kills_or_assists": None,
+                "tower_damage": None,
+                "low_farm": False,
+                "low_conversion": False,
+                "evaluable": False,
+                "classification": "context_only",
+                "summary": f"{item_name}于{purchase.get('minute')}分钟完成；该装备没有通用、可核验的固定转化窗口",
+            })
+            continue
+
         end_time = purchase_time + window_seconds
-        end_minute = int(end_time // 60)
+        end_minute = max(start_minute + 1, int(math.ceil(end_time / 60)))
+        if (
+            start_minute < 0
+            or not events.get("fight_timing_complete")
+            or len(tower_by_minute) < end_minute
+        ):
+            windows.append({
+                "item_name": item_name,
+                "minute": purchase.get("minute"),
+                "window_type": "map_conversion",
+                "window_label": "后2分钟地图转化",
+                "kills_or_assists": None,
+                "tower_damage": None,
+                "low_farm": False,
+                "low_conversion": False,
+                "evaluable": False,
+                "classification": "insufficient_data",
+                "summary": f"{item_name}后2分钟事件时间线不完整，未作转化判定",
+            })
+            continue
+
         kills_or_assists = sum(
             1 for event in fight_events
             if isinstance(event.get("time"), (int, float)) and purchase_time <= event["time"] <= end_time
         )
         tower_damage = int(sum(tower_by_minute[start_minute:end_minute]))
+        low_conversion = kills_or_assists < 1 and tower_damage < 300
         windows.append({
             "item_name": item_name,
             "minute": purchase.get("minute"),
@@ -2144,6 +3350,10 @@ def _build_post_item_windows(events, timeline, window_seconds=120):
             "window_label": "后2分钟地图转化",
             "kills_or_assists": kills_or_assists,
             "tower_damage": tower_damage,
+            "low_farm": False,
+            "low_conversion": low_conversion,
+            "evaluable": True,
+            "classification": "low_conversion" if low_conversion else "converted",
             "summary": f"{item_name}后2分钟参战{kills_or_assists}次/推塔{tower_damage}",
         })
     return windows
@@ -2186,14 +3396,73 @@ def _build_death_recovery_windows(timeline, events, window_minutes=3):
 
     max_minutes = max(len(lh_by_minute), len(gold_by_minute))
     windows = []
-    for death in events.get("deaths") or []:
+    deaths = sorted(
+        (
+            death for death in events.get("deaths") or []
+            if isinstance(death.get("time"), (int, float))
+        ),
+        key=lambda death: death["time"],
+    )
+    for death_index, death in enumerate(deaths):
         death_time = death.get("time")
-        if not isinstance(death_time, (int, float)):
+        respawn_time = death.get("respawn_observed_at")
+        window_basis = "respawn_observed_at"
+        if not isinstance(respawn_time, (int, float)):
+            time_dead = death.get("time_dead")
+            if (
+                str(death.get("source") or "").startswith("stratz")
+                and isinstance(time_dead, (int, float))
+                and time_dead >= 0
+            ):
+                respawn_time = death_time + time_dead
+                window_basis = "stratz_time_dead"
+            else:
+                continue
+        minute = death.get("minute")
+        if minute is None:
+            minute = round(death_time / 60, 1)
+        next_death_time = next(
+            (
+                later["time"]
+                for later in deaths[death_index + 1:]
+                if later["time"] >= respawn_time
+            ),
+            None,
+        )
+        start = int(math.ceil(respawn_time / 60))
+        if (
+            isinstance(next_death_time, (int, float))
+            and next_death_time < (start + 1) * 60
+        ):
+            redeath_seconds = int(round(next_death_time - respawn_time))
+            windows.append({
+                "death_time": death_time,
+                "minute": minute,
+                "respawn_time": respawn_time,
+                "respawn_minute": round(respawn_time / 60, 1),
+                "window_basis": window_basis,
+                "start_minute": start,
+                "end_minute": start,
+                "window_label": None,
+                "observed_minutes": 0,
+                "lh_gain": None,
+                "lh_per_min": None,
+                "avg_gpm": None,
+                "status": "interrupted",
+                "status_label": "再次死亡打断",
+                "next_death_time": next_death_time,
+                "redeath_seconds": redeath_seconds,
+                "evidence_label": (
+                    f"{minute}分复活后{redeath_seconds}秒再次死亡，"
+                    "未形成完整资源分钟"
+                ),
+            })
             continue
-        start = int(death_time // 60)
         if start >= max_minutes:
             continue
         end = min(start + window_minutes, max_minutes)
+        if isinstance(next_death_time, (int, float)):
+            end = min(end, int(next_death_time // 60))
         observed_minutes = max(end - start, 0)
         if observed_minutes <= 0:
             continue
@@ -2219,9 +3488,6 @@ def _build_death_recovery_windows(timeline, events, window_minutes=3):
         else:
             status = "partial"
             status_label = "一般恢复"
-        minute = death.get("minute")
-        if minute is None:
-            minute = round(death_time / 60, 1)
         resource_parts = []
         if lh_gain is not None:
             resource_parts.append(f"{lh_gain}补")
@@ -2230,6 +3496,9 @@ def _build_death_recovery_windows(timeline, events, window_minutes=3):
         windows.append({
             "death_time": death_time,
             "minute": minute,
+            "respawn_time": respawn_time,
+            "respawn_minute": round(respawn_time / 60, 1),
+            "window_basis": window_basis,
             "start_minute": start,
             "end_minute": end,
             "window_label": f"{start}-{end}分钟",
@@ -2239,7 +3508,13 @@ def _build_death_recovery_windows(timeline, events, window_minutes=3):
             "avg_gpm": avg_gpm,
             "status": status,
             "status_label": status_label,
-            "evidence_label": f"{minute}分后{start}-{end}分钟 {'/'.join(resource_parts)}",
+            "next_death_time": next_death_time,
+            "redeath_seconds": (
+                int(round(next_death_time - respawn_time))
+                if isinstance(next_death_time, (int, float))
+                else None
+            ),
+            "evidence_label": f"{minute}分复活后{start}-{end}分钟 {'/'.join(resource_parts)}",
         })
     return windows
 
@@ -2395,6 +3670,28 @@ def _nearest_key_purchase_context(death_time, key_purchases, max_distance_second
     return _death_context_line("装备上下文", text, "purchase")
 
 
+def _nearby_players_context_line(death):
+    context = death.get("nearby_context") or {}
+    radius = context.get("radius_units")
+    ally_count = context.get("allies_within_radius_count")
+    enemy_count = context.get("enemies_within_radius_count")
+    if not isinstance(radius, (int, float)) or not isinstance(ally_count, int) or not isinstance(enemy_count, int):
+        return None
+    parts = [f"{int(radius)}范围内存活队友{ally_count}人、敌人{enemy_count}人"]
+    nearest_ally = context.get("nearest_ally") or {}
+    nearest_enemy = context.get("nearest_enemy") or {}
+    if nearest_ally.get("distance_units") is not None:
+        ally_name = nearest_ally.get("hero_name") or f"玩家{nearest_ally.get('player_id')}"
+        parts.append(f"最近队友 {ally_name} {nearest_ally['distance_units']}单位")
+    if nearest_enemy.get("distance_units") is not None:
+        enemy_name = nearest_enemy.get("hero_name") or f"玩家{nearest_enemy.get('player_id')}"
+        parts.append(f"最近敌人 {enemy_name} {nearest_enemy['distance_units']}单位")
+    resolution = context.get("sample_resolution_seconds")
+    if resolution is not None:
+        parts.append(f"全员位置采样精度{resolution}秒")
+    return _death_context_line("局部人数", "；".join(parts), "nearby-players")
+
+
 def _attach_death_contexts_to_deaths(events, timeline):
     deaths = events.get("deaths") or []
     if not deaths:
@@ -2410,6 +3707,10 @@ def _attach_death_contexts_to_deaths(events, timeline):
         item = dict(death)
         death_time = item.get("time")
         context_lines = []
+
+        nearby_line = _nearby_players_context_line(item)
+        if nearby_line:
+            context_lines.append(nearby_line)
 
         if isinstance(death_time, (int, float)):
             for window in objective_by_death.get(death_time, [])[:2]:
@@ -2502,18 +3803,110 @@ def _build_role_profile(context, derived=None):
     if "POSITION_4" in role or "POSITION_5" in role or raw_role == "SUPPORT":
         return _support_profile()
 
+    lane_role = context.get("opendota_lane_role") or context.get("replay_lane_role")
+    resource_ranks = context.get("team_resource_ranks") or {}
+    farm_rank = resource_ranks.get("last_hits")
+    gpm_rank = resource_ranks.get("gold_per_min")
+    net_worth_rank = resource_ranks.get("net_worth")
+    vision_actions = resource_ranks.get("vision_actions")
+    lh_per_min = float(derived.get("lh_per_min") or 0)
+    lane_labels = {1: "优势路", 2: "中路", 3: "劣势路", 4: "野区"}
+    if lane_role in lane_labels and isinstance(farm_rank, int):
+        evidence_parts = [f"OpenDota{lane_labels[lane_role]}", f"队内补刀第{farm_rank}"]
+        if isinstance(gpm_rank, int):
+            evidence_parts.append(f"GPM第{gpm_rank}")
+        if isinstance(net_worth_rank, int):
+            evidence_parts.append(f"净资产第{net_worth_rank}")
+        evidence_parts.append(f"{lh_per_min:.1f} LH/min")
+        formula_common = {
+            "classification": "formula",
+            "source": "OpenDota分路 + 队内资源排序公式",
+            "evidence": "、".join(evidence_parts),
+            "farm_rank": farm_rank,
+            "gpm_rank": gpm_rank,
+            "net_worth_rank": net_worth_rank,
+            "exact_position_available": False,
+        }
+        if lane_role == 1 and (
+            farm_rank <= 2 or (farm_rank <= 3 and lh_per_min >= 4.5)
+        ):
+            return {
+                "id": "pos1",
+                "label": "1号位（公式识别）",
+                "lane_farm_sensitive": True,
+                "focus": ["对线补刀", "关键装备时机", "死亡成本", "经济转地图目标"],
+                **formula_common,
+            }
+        if lane_role == 2 and farm_rank <= 3 and lh_per_min >= 4.0:
+            return {
+                "id": "pos2",
+                "label": "2号位（公式识别）",
+                "lane_farm_sensitive": True,
+                "focus": ["对线补刀", "节奏启动", "死亡成本", "经济转地图目标"],
+                **formula_common,
+            }
+        if lane_role == 3 and farm_rank <= 3 and lh_per_min >= 3.0:
+            return {
+                "id": "pos3",
+                "label": "3号位（公式识别）",
+                "lane_farm_sensitive": False,
+                "focus": ["参战率", "承伤/死亡", "先手窗口", "推塔/控图贡献"],
+                **formula_common,
+            }
+        if farm_rank >= 4 and lane_role in {1, 3}:
+            position_label = "5号位" if lane_role == 1 else "4号位"
+            return {
+                **_support_profile(),
+                "label": f"{position_label}（公式识别）",
+                "position_id": "pos5" if lane_role == 1 else "pos4",
+                "vision_actions": vision_actions,
+                **formula_common,
+            }
+
     vision_events = context.get("vision_events") or 0
     lh_per_min = derived.get("lh_per_min") or 0
     if vision_events >= 8 and lh_per_min <= 6:
         return _support_profile()
 
-    lane = context.get("lane")
-    if lane and lane.endswith("（OpenDota）"):
+    lane = context.get("raw_lane") or context.get("lane")
+    stratz_lane_labels = {
+        "SAFE_LANE": "优势路",
+        "MID_LANE": "中路",
+        "OFF_LANE": "劣势路",
+        "JUNGLE": "野区",
+    }
+    lane_label = stratz_lane_labels.get(str(lane or "").upper())
+    if lane_label:
         return {
             "id": "unknown_lane",
-            "label": f"{lane.removesuffix('（OpenDota）')}（位置未细分）",
+            "label": (
+                f"{lane_label}核心（位置未细分）"
+                if raw_role == "CORE"
+                else f"{lane_label}（位置未细分）"
+            ),
+            "lane_farm_sensitive": raw_role != "SUPPORT",
+            "focus": ["对线资源", "关键装备时机", "死亡成本", "地图目标"],
+        }
+    if lane and (
+        lane.endswith("（OpenDota）")
+        or lane.endswith("（Valve回放）")
+        or lane.endswith("（STRATZ）")
+    ):
+        lane_label = (
+            lane.removesuffix("（OpenDota）")
+            .removesuffix("（Valve回放）")
+            .removesuffix("（STRATZ）")
+        )
+        role_label = (
+            f"{lane_label}核心（位置未细分）"
+            if raw_role == "CORE"
+            else f"{lane_label}（位置未细分）"
+        )
+        return {
+            "id": "unknown_lane",
+            "label": role_label,
             "lane_farm_sensitive": True,
-            "focus": ["死亡成本", "经济效率", "地图目标"],
+            "focus": ["对线资源", "关键装备时机", "死亡成本", "地图目标"],
         }
 
     return {
@@ -2524,8 +3917,8 @@ def _build_role_profile(context, derived=None):
     }
 
 
-MAP_CONVERSION_SUCCESS_METRIC = "强势装后2分钟参战>=1或推塔伤害>=300"
-FARM_ACCELERATION_SUCCESS_METRIC = "刷钱装后5分钟补刀>=40或平均GPM>=600"
+MAP_CONVERSION_SUCCESS_METRIC = "强势装后2分钟参战不少于1次或推塔伤害不低于300"
+FARM_ACCELERATION_SUCCESS_METRIC = "刷钱装后5分钟补刀不少于40或平均GPM不低于600"
 
 
 def _default_training_goal(category):
@@ -2548,15 +3941,15 @@ def _default_training_goal(category):
 
 def _default_success_metric(category):
     defaults = {
-        "lane_farm": "10分钟补刀不低于本局；前10分钟低效率窗口=0。",
+        "lane_farm": "10分钟补刀不低于本局；前10分钟低效率窗口为0。",
         "resource_continuity": "10分钟后低效率窗口不超过1个；单个窗口不超过2分钟。",
-        "death_resource_overlap": "死亡与低效率窗口重叠=0；死亡后3分钟内补回一波安全线或安全野区资源。",
-        "death_recovery": "死亡后3分钟补刀>=6或平均GPM>=300；恢复不足窗口=0。",
+        "death_resource_overlap": "死亡与低效率窗口重叠为0；死亡后3分钟补刀不少于6或平均GPM不低于300。",
+        "death_recovery": "死亡后3分钟补刀不少于6或平均GPM不低于300；恢复不足窗口为0。",
         "death_resource_delta": "死亡前后资源明显下降窗口不超过1个；复活后3分钟完成一波安全线或近区野区资源。",
         "death_position_pattern": "重复死亡坐标簇不超过1个；同一坐标簇内重复死亡次数不超过1次。",
-        "death_review": "每10分钟死亡不高于1.0；连续5分钟内死亡簇=0。",
+        "death_review": "每10分钟死亡不高于1.0；连续5分钟内死亡簇为0。",
         "item_timing": f"{FARM_ACCELERATION_SUCCESS_METRIC}；{MAP_CONVERSION_SUCCESS_METRIC}。",
-        "map_impact": "参战率>=40%；关键装备后2分钟至少完成一次地图动作。",
+        "map_impact": "参战率不低于40%；关键装备后2分钟至少完成一次地图动作。",
         "hero_benchmark_gap": "下一份报告该主短板高于本局百分位；低于第30百分位的指标数量减少。",
         "closing": f"{MAP_CONVERSION_SUCCESS_METRIC}；25分钟后死亡不超过2次。",
         "review_focus": "下一份报告三项都有事件证据，且没有新增高优先级问题。",
@@ -2580,7 +3973,20 @@ def _finding(priority, category, evidence, why_it_matters, action, replay_check,
     }
 
 
-def _death_cluster_labels(deaths, gap_minutes=5):
+def _next_game_count_target(current_count, reduction_ratio=0.25):
+    count = max(0, int(current_count or 0))
+    if count == 0:
+        return 0
+    return max(0, count - max(1, math.ceil(count * reduction_ratio)))
+
+
+def _next_game_rate_target(current_rate, reduction_ratio=0.20):
+    if not isinstance(current_rate, (int, float)) or current_rate <= 0:
+        return 0
+    return max(0, round(float(current_rate) * (1 - reduction_ratio), 1))
+
+
+def _death_cluster_labels(deaths, gap_minutes=5, max_span_minutes=10):
     minutes = sorted(
         item.get("minute") for item in deaths
         if isinstance(item.get("minute"), (int, float))
@@ -2590,7 +3996,10 @@ def _death_cluster_labels(deaths, gap_minutes=5):
     clusters = []
     current = [minutes[0]]
     for minute in minutes[1:]:
-        if minute - current[-1] <= gap_minutes:
+        if (
+            minute - current[-1] <= gap_minutes
+            and minute - current[0] <= max_span_minutes
+        ):
             current.append(minute)
             continue
         if len(current) >= 2:
@@ -2605,6 +4014,8 @@ def _item_window_goal_details(post_windows):
     low_farm = []
     low_conversion = []
     for window in post_windows or []:
+        if window.get("evaluable") is False:
+            continue
         if window.get("window_type") == "farm_acceleration":
             lh_gain = window.get("lh_gain") or 0
             avg_gpm = window.get("avg_gpm") or 0
@@ -2627,6 +4038,48 @@ def _item_window_goal_details(post_windows):
         "low_conversion": low_conversion,
         "low_names": low_names,
     }
+
+
+def _benchmark_gap_training_plan(metric, result):
+    metric_id = metric.get("id")
+    label = metric.get("label") or metric_id or "该指标"
+    percentile = metric.get("percentile_label") or "本局百分位"
+    farm = result.get("farm") or {}
+    if metric_id == "tower_damage":
+        return (
+            "下一局每次赢下击杀或逼退敌人后先看最近兵线；兵线已到敌方建筑且撤退路线明确时，先打建筑再回到刷钱路线，兵线未到则不强行追塔。",
+            "下一局至少完成1次“兵线到塔后先打建筑”的可记录转化。",
+            f"兵线到塔后的建筑转化不少于1次；推塔伤害百分位从本局{percentile}提升到至少第30百分位。",
+        )
+    if metric_id in {"gold_per_min", "last_hits_per_min"}:
+        return (
+            "下一局10分钟后每次移动都绑定下一波安全线或近区野点；没有明确塔、盾或高胜率击杀窗口时，不进行超过30秒的无资源集合。",
+            f"下一局只追{label}，把10分钟后无资源移动压到最少。",
+            f"{label}百分位高于本局{percentile}；10分钟后低效率窗口不超过1个。",
+        )
+    if metric_id == "xp_per_min":
+        return (
+            "下一局10分钟后优先接能获得经验的安全线；必须集合时站在经验范围内，死亡后复活第一步回到安全经验来源。",
+            "下一局减少离开兵线经验范围和死亡后的空走时间。",
+            f"XPM百分位高于本局{percentile}；连续5分钟死亡簇为0。",
+        )
+    if metric_id == "hero_damage_per_min":
+        return (
+            "下一局团战先保证第一轮技能和普攻完整打出；敌方关键控制未出现前，不用位移技能单独深入，第一轮结束后再决定追击或撤退。",
+            "下一局把每次参战转成至少一轮完整输出，而不是只追击杀数。",
+            f"英雄伤害/分钟百分位高于本局{percentile}；参战率不低于本局。",
+        )
+    if metric_id == "kills_per_min":
+        return (
+            "下一局不单独追击杀；先把兵线推到河道外，再跟最近的队友对已有视野目标形成二打一或多人先手。",
+            "下一局用有队友和已有视野的击杀窗口提高有效参战。",
+            f"击杀/分钟百分位高于本局{percentile}；参战率不低于本局。",
+        )
+    return (
+        f"下一局只训练{label}对应动作，并保持其他已达标指标不下降。",
+        f"下一局优先把{label}从本局{percentile}往上抬。",
+        f"{label}百分位高于本局{percentile}。",
+    )
 
 
 def _build_review_findings(result):
@@ -2654,15 +4107,18 @@ def _build_review_findings(result):
             if item.get("label") and item.get("percentile_label")
         )
         lowest = weak_metrics[0]
+        benchmark_action, benchmark_training_goal, benchmark_success_metric = (
+            _benchmark_gap_training_plan(lowest, result)
+        )
         benchmark_finding = _finding(
             "medium",
             "hero_benchmark_gap",
             f"OpenDota同英雄样本低位指标: {evidence}。",
             "同英雄样本百分位能区分这局是总量正常但某个维度掉队，还是所有面板都处在正常区间。",
-            f"下一局先只追 {lowest.get('label')}：把路线和团战选择改到能直接抬升这个指标，不同时追多个目标。",
+            benchmark_action,
             "OpenDota英雄样本百分位只描述公开样本相对位置，不是职业均值；系统只核对低位指标对应的真实分钟和事件证据。",
-            f"下一局优先把 {lowest.get('label')} 从本局{lowest.get('percentile_label')}往上抬。",
-            "下一份报告该主短板百分位高于本局；低于第30百分位的指标数量减少。",
+            benchmark_training_goal,
+            benchmark_success_metric,
         )
 
     lane_efficiency_low = (
@@ -2681,13 +4137,13 @@ def _build_review_findings(result):
             evidence = f"10分钟补刀 {ten_lh}，前10分钟低效率窗口 {len(early_low_windows)} 个"
             action = "下一局前10分钟优先保证安全线和附近野区连续收取，除非队友明确形成高胜率击杀。"
             training_goal = f"下一局先把前10分钟低效率窗口清零，再冲10分钟{target_lh}补。"
-            success_metric = f"10分钟补刀>={target_lh}；前10分钟低效率窗口=0。"
+            success_metric = f"10分钟补刀不少于{target_lh}；前10分钟低效率窗口为0。"
             if lane_efficiency_low:
                 target_lane_efficiency = min(100, lane_efficiency_pct + 5)
                 evidence += f"，OpenDota对线效率 {lane_efficiency_pct}%"
                 action += f" 以本局{lane_efficiency_pct}%为基线，下一局先提升到{target_lane_efficiency}%。"
                 training_goal = f"下一局把OpenDota对线效率从{lane_efficiency_pct}%提升到{target_lane_efficiency}%，并清零前10分钟低效率窗口。"
-                success_metric += f" OpenDota对线效率>={target_lane_efficiency}%。"
+                success_metric += f" OpenDota对线效率不低于{target_lane_efficiency}%。"
             findings.append(_finding(
                 "high",
                 "lane_farm",
@@ -2708,7 +4164,7 @@ def _build_review_findings(result):
             evidence += f"；OpenDota对线效率 {lane_efficiency_pct}%"
             action = f"以本局{lane_efficiency_pct}%为真实基线，下一局前10分钟每次离线前先确定下一波兵线或近区野资源，把OpenDota对线效率提升到{target_lane_efficiency}%。"
             training_goal = f"下一局把OpenDota对线效率从{lane_efficiency_pct}%提升到{target_lane_efficiency}%。"
-            success_metric = f"OpenDota对线效率>={target_lane_efficiency}%；下一份报告补齐分钟级补刀线。"
+            success_metric = f"OpenDota对线效率不低于{target_lane_efficiency}%；下一份报告补齐分钟级补刀线。"
         findings.append(_finding(
             "medium",
             "lane_farm",
@@ -2729,8 +4185,7 @@ def _build_review_findings(result):
             f"{w.get('start_minute')}-{w.get('end_minute')}分钟 {w.get('avg_lh')}补/分钟"
             for w in late_low_windows[:3]
         )
-        late_window_target = "0个" if len(late_low_windows) == 1 else "最多1个"
-        late_window_metric = "=0" if len(late_low_windows) == 1 else "不超过1个"
+        late_window_target = _next_game_count_target(len(late_low_windows))
         findings.append(_finding(
             "medium",
             "resource_continuity",
@@ -2738,8 +4193,8 @@ def _build_review_findings(result):
             "核心位中后期长时间无补刀通常意味着死亡、被迫集合、兵线未推出或地图区域丢失。",
             "下一局中后期每次集合前先推至少一条安全线；若队伍不开雾/不控盾，优先保持两路兵线压力。",
             "系统已标记这些异常分钟，优先和死亡、购买、击杀事件时间点交叉核对。",
-            f"下一局10分钟后把低效率窗口从{len(late_low_windows)}个压到{late_window_target}；集合前先推出一条安全线。",
-            f"10分钟后低效率窗口{late_window_metric}；单个低效率窗口不超过2分钟。",
+            f"下一局10分钟后把低效率窗口从{len(late_low_windows)}个降到不超过{late_window_target}个；集合前先推出一条安全线。",
+            f"10分钟后低效率窗口不超过{late_window_target}个；单个低效率窗口不超过2分钟。",
         ))
 
     overlap_windows = timeline.get("death_overlap_windows") or []
@@ -2750,15 +4205,16 @@ def _build_review_findings(result):
             if window.get("evidence_label")
         )
         total_overlaps = sum(window.get("death_count", 0) for window in overlap_windows)
+        overlap_target = _next_game_count_target(total_overlaps)
         findings.append(_finding(
             "high",
             "death_resource_overlap",
             f"死亡与低效率窗口重叠: {evidence}。",
             "死亡分钟与补刀低效率窗口重叠，说明这次阵亡已经实际打断了资源连续性，而不只是面板死亡数偏高。",
             "下一局10分钟后死亡或被迫回补后，先补回一波安全线，再决定是否继续集合、带线或进野区。",
-            "系统只按死亡分钟和低效率补刀窗口做时间重叠；优先复核这些分钟前后的兵线位置、TP状态和队友是否能接应。",
-            f"下一局把死亡重叠低效率窗口从{total_overlaps}次压到0；死亡后3分钟先恢复一波安全资源。",
-            "死亡与低效率窗口重叠=0；死亡后3分钟内至少补回一波安全线或安全野区资源。",
+            "系统只按死亡分钟和低效率补刀窗口做时间重叠；未采集的兵线位置、TP状态和队友距离不会写成结论。",
+            f"下一局把死亡重叠低效率窗口从{total_overlaps}次降到不超过{overlap_target}次；死亡后3分钟先恢复一波安全资源。",
+            f"死亡与低效率窗口重叠不超过{overlap_target}次；复活后3分钟补刀不少于6或平均GPM不低于300。",
         ))
 
     death_objective_windows = events.get("death_objective_windows") or []
@@ -2796,6 +4252,25 @@ def _build_review_findings(result):
         replay_check = "系统只标记事件先后和精确时间差，不判断死亡造成了目标损失。"
         if drill.get("replay_check"):
             replay_check += f" {drill['replay_check']}"
+        focus_death_time = drill.get("focus_death_time")
+        recent_purchase = None
+        if isinstance(focus_death_time, (int, float)):
+            candidates = [
+                purchase for purchase in events.get("key_purchases") or []
+                if isinstance(purchase.get("time"), (int, float))
+                and 0 <= focus_death_time - purchase["time"] <= 120
+            ]
+            if candidates:
+                recent_purchase = max(candidates, key=lambda purchase: purchase["time"])
+        if recent_purchase:
+            purchase_gap = int(round(focus_death_time - recent_purchase["time"]))
+            item_name = recent_purchase.get("item_name") or "关键装备"
+            evidence += f"；该死亡前{purchase_gap}秒完成 {item_name}"
+            action += (
+                f" 刚完成 {item_name} 后的首次目标接触仍执行同一规则，"
+                "不因装备刚到手而跳过局部人数和最近队友撤退方向两项条件。"
+            )
+            replay_check += " 系统自动对齐关键购买与焦点死亡，只陈述真实时间差。"
         findings.append(_finding(
             "high" if unique_deaths >= 2 else "medium",
             "death_objective_window",
@@ -2804,13 +4279,37 @@ def _build_review_findings(result):
             action,
             replay_check,
             drill.get("training_goal") or f"下一局把死亡后90秒内失去目标窗口从{len(death_objective_windows)}个压到0。",
-            drill.get("success_metric") or "死亡后90秒内失去目标窗口=0；25分钟后死亡不超过2次。",
+            drill.get("success_metric") or "死亡后90秒内失去目标窗口为0；25分钟后死亡不超过2次。",
+        ))
+
+    short_buyback_deaths = [
+        window for window in events.get("buyback_death_windows") or []
+        if window.get("short_redeath")
+    ]
+    if short_buyback_deaths:
+        evidence_rows = [
+            (
+                f"{window.get('buyback_minute')}分买活，"
+                f"{window.get('death_minute')}分再次死亡，"
+                f"间隔{window.get('redeath_seconds')}秒"
+            )
+            for window in short_buyback_deaths[:3]
+        ]
+        findings.append(_finding(
+            "high",
+            "buyback_redeath",
+            "；".join(evidence_rows) + "。",
+            "买活消耗后在短窗口内再次死亡，会直接结束本人这一轮防守或反打的可行动时间。",
+            "下一局买活后先核对己方存活人数、兵线和最近目标；120秒内除守遗迹或结束比赛外，不作为第一进场点。",
+            "系统自动对齐真实 buyback_log 与下一次死亡时间；只记录事件间隔，不判断再次死亡的具体原因。",
+            f"下一局把买活后120秒内再次死亡从{len(short_buyback_deaths)}次压到0。",
+            "买活后120秒内再次死亡为0；买活后第一次接触前完成存活人数、兵线、目标三项检查。",
         ))
 
     recovery_windows = timeline.get("death_recovery_windows") or []
     low_recovery_windows = [
         window for window in recovery_windows
-        if window.get("status") == "low"
+        if window.get("status") in {"low", "interrupted"}
     ]
     if low_recovery_windows and role_id in ("pos1", "pos2", "pos3", "unknown", "unknown_lane"):
         delta_by_minute = {
@@ -2826,19 +4325,30 @@ def _build_review_findings(result):
                 row_parts.append(delta["evidence_label"])
             evidence_rows.append("；".join(part for part in row_parts if part))
         evidence = "；".join(evidence_rows)
+        interrupted_count = sum(
+            window.get("status") == "interrupted"
+            for window in low_recovery_windows
+        )
+        recovery_target = _next_game_count_target(len(low_recovery_windows))
+        recovery_issue_label = (
+            "死亡后恢复被再次死亡打断"
+            if interrupted_count == len(low_recovery_windows)
+            else "死亡后恢复不足或被再次死亡打断"
+        )
         findings.append(_finding(
             "high",
             "death_recovery",
-            f"死亡后恢复不足: {evidence}。",
-            "死亡后的资源恢复窗口偏低，会把一次阵亡放大成连续掉经济和少打关键装备时间。",
+            f"{recovery_issue_label}: {evidence}。",
+            "复活后的资源恢复偏低或在完整资源分钟形成前再次死亡，会把一次阵亡延长成连续不可行动窗口。",
             "下一局复活后第一波只执行一个可验收动作：TP安全线、收近区野，或跟队友拿已有视野目标；3分钟内先补到6补或300平均GPM，再接高风险带线。",
-            "系统按死亡分钟后的真实补刀/经济数组计算，不判断死亡原因；优先核对这些窗口有没有空走、等人、重复阵亡或无兵线可收。",
-            f"下一局把死亡后恢复不足窗口从{len(low_recovery_windows)}个压到0；每次复活先完成一波资源恢复。",
-            "死亡后3分钟补刀>=6或平均GPM>=300；恢复不足窗口=0。",
+            "系统按真实复活时间、下一次死亡和完整分钟补刀/经济数组自动验收；未采集的死亡原因不会写成结论。",
+            f"下一局把死亡后恢复不足窗口从{len(low_recovery_windows)}个降到不超过{recovery_target}个；每次复活先完成一波资源恢复。",
+            f"死亡后恢复不足或中断窗口不超过{recovery_target}个；其余恢复窗口3分钟补刀不少于6或平均GPM不低于300。",
         ))
 
     if events.get("deaths"):
         death_events = events["deaths"]
+        death_cost = events.get("death_cost_summary") or {}
         listed_deaths = death_events if len(death_events) <= 12 else death_events[:12]
         death_minutes = ", ".join(str(item.get("minute")) for item in listed_deaths)
         if len(death_events) > len(listed_deaths):
@@ -2851,6 +4361,35 @@ def _build_review_findings(result):
         )
         if dead_time_label and dead_time_share_pct is not None:
             evidence += f" 死亡占时 {dead_time_label}（{dead_time_share_pct}%）。"
+        if death_cost.get("available"):
+            cost_parts = []
+            if death_cost.get("dead_time_available"):
+                cost_parts.append(
+                    f"死亡时长{_format_duration_seconds(death_cost['total_dead_seconds'])}"
+                )
+            if death_cost.get("gold_lost_available"):
+                cost_parts.append(f"丢失{death_cost['total_gold_lost']}金")
+            if death_cost.get("gold_fed_available") or death_cost.get("xp_fed_available"):
+                fed_parts = []
+                if death_cost.get("gold_fed_available"):
+                    fed_parts.append(f"{death_cost['total_gold_fed']}金")
+                if death_cost.get("xp_fed_available"):
+                    fed_parts.append(f"{death_cost['total_xp_fed']}经验")
+                cost_parts.append(f"给出{'/'.join(fed_parts)}")
+            if cost_parts:
+                evidence += (
+                    f" 死亡事件成本：覆盖{death_cost.get('covered_deaths', 0)}/{len(death_events)}次，"
+                    f"{'，'.join(cost_parts)}。"
+                )
+            tags = []
+            if death_cost.get("dieback_count"):
+                tags.append(f"买活后再死{death_cost['dieback_count']}次")
+            if death_cost.get("burst_death_count"):
+                tags.append(f"爆发死亡{death_cost['burst_death_count']}次")
+            if death_cost.get("engaged_death_count"):
+                tags.append(f"交战中死亡{death_cost['engaged_death_count']}次")
+            if tags:
+                evidence += f" STRATZ标记：{'、'.join(tags)}。"
         death_position_labels = [
             f"{item.get('minute')}分 {item.get('position_label')}"
             for item in death_events
@@ -2858,27 +4397,106 @@ def _build_review_findings(result):
         ]
         if death_position_labels:
             evidence += f" 死亡坐标覆盖 {len(death_position_labels)}/{len(death_events)} 次。"
+        nearby_deaths = [
+            item for item in death_events
+            if isinstance(item.get("nearby_context"), dict)
+            and item["nearby_context"].get("sampled_other_players")
+        ]
+        outnumbered_deaths = [
+            item for item in nearby_deaths
+            if item["nearby_context"].get("enemies_within_radius_count", 0)
+            > item["nearby_context"].get("allies_within_radius_count", 0)
+        ]
+        if nearby_deaths:
+            nearby_radius = nearby_deaths[0]["nearby_context"].get("radius_units") or 1600
+            evidence += (
+                f" 回放{int(nearby_radius)}范围局部人数覆盖{len(nearby_deaths)}/{len(death_events)}次死亡；"
+                f"其中{len(outnumbered_deaths)}次敌方人数多于队友"
+            )
+            if outnumbered_deaths:
+                evidence += "，时间: " + "、".join(
+                    f"{item.get('minute')}分" for item in outnumbered_deaths[:12]
+                )
+            evidence += "。"
         if missing_note:
             evidence += f" {missing_note}"
         cluster_labels = _death_cluster_labels(events["deaths"])
         if cluster_labels:
             evidence += " 连续死亡簇: " + "、".join(cluster_labels[:4]) + "。"
-        replay_check = "系统已定位的死亡分钟优先检查装备冷却、队友距离、敌方控制威胁和撤退路线。"
+        automatic_checks = ["死亡时间"]
+        if death_cost.get("dead_time_available"):
+            automatic_checks.append("逐次死亡时长")
+        if death_position_labels:
+            automatic_checks.append("原始坐标")
+        if cluster_labels:
+            automatic_checks.append("连续死亡簇")
+        replay_check = (
+            f"系统已自动对齐{'、'.join(automatic_checks)}与相邻目标/资源事件窗口；"
+            "未采集字段不会作为死亡原因写入结论。"
+        )
+        if death_cost.get("available"):
+            source_label = death_cost.get("source") or "原始事件源"
+            replay_check += (
+                f" 已显示的死亡成本字段直接取自{source_label}，不由系统估算；"
+                "数据源未提供的金钱或经验字段不会显示为0。"
+            )
         if death_position_labels:
             replay_check += " 原始坐标明细保留在死亡事件与坐标图，不生成地图区域名。"
         death_action = "下一局每次带线或参团前先判断敌方关键控制、己方TP支援、撤退路线和买活/盾时间。"
         if cluster_labels:
             replay_check += " 连续死亡簇: " + "、".join(cluster_labels[:4]) + "。"
             death_action = "下一局一旦死亡，复活后3分钟只接安全线、队友身边战斗或已有视野目标；再带线或参团前先确认敌方关键控制、己方TP支援和撤退路线。"
+        if outnumbered_deaths:
+            replay_check += (
+                " 局部人数直接取Valve回放全员位置与生命状态采样；"
+                "只比较死亡瞬间1600单位内存活英雄，不把全图人数、战争迷雾或技能可用性写成结论。"
+            )
+            death_action = (
+                "下一局接战前执行人数硬规则：可见敌方人数多于1600范围内队友时不先手，"
+                "立即向最近队友方向撤退或等待支援；复活后的第一波仍只接安全资源或队友身边战斗。"
+            )
+        impact_parts = ["死亡会减少本人可行动时间"]
+        if any((
+            death_cost.get("gold_lost_available"),
+            death_cost.get("gold_fed_available"),
+            death_cost.get("xp_fed_available"),
+        )):
+            impact_parts.append("数据源提供的金钱/经验成本已按实际字段计入")
+        impact_parts.append("目标与资源影响只按真实相邻窗口记录，不扩大为因果归责")
+        current_death_rate = derived.get("deaths_per_10_min", 0) or 0
+        death_rate_target = _next_game_rate_target(current_death_rate)
+        post_25_deaths = sum(
+            isinstance(item.get("minute"), (int, float)) and item["minute"] >= 25
+            for item in death_events
+        )
+        post_25_target = _next_game_count_target(post_25_deaths)
+        cluster_target = _next_game_count_target(len(cluster_labels))
+        outnumbered_target = _next_game_count_target(len(outnumbered_deaths))
+        training_goal = (
+            f"下一局把每10分钟死亡从{current_death_rate}降到不超过{death_rate_target}；"
+            f"25分钟后死亡从{post_25_deaths}次降到不超过{post_25_target}次；"
+            f"连续死亡簇从{len(cluster_labels)}个降到不超过{cluster_target}个。"
+        )
+        success_metric = (
+            f"每10分钟死亡不超过{death_rate_target}；"
+            f"25分钟后死亡不超过{post_25_target}次；"
+            f"连续5分钟内死亡簇不超过{cluster_target}个。"
+        )
+        if outnumbered_deaths:
+            training_goal += (
+                f" 先把1600范围敌多于友的死亡从{len(outnumbered_deaths)}次降到"
+                f"不超过{outnumbered_target}次。"
+            )
+            success_metric += f" 1600范围敌多于友的死亡不超过{outnumbered_target}次。"
         findings.append(_finding(
             priority,
             "death_review",
             evidence,
-            "核心或节奏位的连续死亡会直接交出地图区域和关键目标时间。",
+            "；".join(impact_parts) + "。",
             death_action,
             replay_check,
-            "下一局把死亡压到每10分钟最多1次；25分钟后死亡不超过2次。",
-            "每10分钟死亡不高于1.0；25分钟后死亡不超过2次；连续5分钟内死亡簇=0。",
+            training_goal,
+            success_metric,
         ))
     elif result.get("kda", {}).get("deaths", 0) > 0:
         parsed_logs = "opendota_parsed_logs" in (result.get("events", {}).get("source") or "")
@@ -2906,26 +4524,6 @@ def _build_review_findings(result):
             "数据验收：下一份报告死亡覆盖率=100%；否则只记录数据缺口，不给分钟级死亡结论。",
         ))
 
-    position_clusters = events.get("death_position_clusters") or []
-    if position_clusters:
-        evidence = "；".join(
-            cluster.get("evidence_label")
-            for cluster in position_clusters[:3]
-            if cluster.get("evidence_label")
-        )
-        position_cluster_target = "0个" if len(position_clusters) == 1 else "最多1个"
-        position_cluster_metric = "=0" if len(position_clusters) == 1 else "不超过1个"
-        findings.append(_finding(
-            "high" if len(position_clusters) >= 2 else "medium",
-            "death_position_pattern",
-            f"重复死亡坐标簇: {evidence}。",
-            "同一 raw 坐标附近重复死亡，说明至少有一个高风险坐标场景在反复出现。",
-            "下一局每次接近这些重复坐标对应的高风险区域前，先满足三个条件：队友能接应、敌方关键控制已露头、自己有明确撤退路线；任一条件缺失就先退回安全资源点。",
-            "系统只按 STRATZ raw x/y 距离聚类，不转换成地图区域名；报告保留原始坐标和分钟，不把入口、线口、目标区或高低坡作为结论。",
-            f"下一局把重复死亡坐标簇从{len(position_clusters)}个压到{position_cluster_target}；每个重复点赛前写一条撤退规则。",
-            f"重复死亡坐标簇{position_cluster_metric}；同一坐标簇内重复死亡次数不超过1次。",
-        ))
-
     resource_delta_windows = timeline.get("death_resource_deltas") or []
     dropped_resource_windows = [
         window for window in resource_delta_windows
@@ -2937,8 +4535,7 @@ def _build_review_findings(result):
             for window in dropped_resource_windows[:4]
             if window.get("evidence_label")
         )
-        resource_drop_target = "0个" if len(dropped_resource_windows) == 1 else "最多1个"
-        resource_drop_metric = "=0" if len(dropped_resource_windows) == 1 else "不超过1个"
+        resource_drop_target = _next_game_count_target(len(dropped_resource_windows))
         findings.append(_finding(
             "high" if len(dropped_resource_windows) >= 2 else "medium",
             "death_resource_delta",
@@ -2946,8 +4543,8 @@ def _build_review_findings(result):
             "死亡相邻阶段的补刀或经济节奏明显下滑，会让一次阵亡继续影响下一段刷钱、守塔或控图节奏。",
             "下一局每次复活后先完成一个可记录资源动作：TP安全线、收近区野，或跟队友拿已有视野目标；如果必须集合，先确认这波集合能换塔、盾或击杀。",
             "系统只比较死亡前后真实分钟数组，不判断死亡原因；报告只把这些窗口列为资源恢复验收点，不把复活路径、TP落点或无视野进入作为结论。",
-            f"下一局把死亡前后资源明显下降窗口从{len(dropped_resource_windows)}个压到{resource_drop_target}。",
-            f"死亡前后资源明显下降窗口{resource_drop_metric}；复活后3分钟完成一波安全线或近区野区资源。",
+            f"下一局把死亡前后资源明显下降窗口从{len(dropped_resource_windows)}个降到不超过{resource_drop_target}个。",
+            f"死亡前后资源明显下降窗口不超过{resource_drop_target}个；复活后3分钟完成一波安全线或近区野区资源。",
         ))
 
     if role_id == "support":
@@ -2996,6 +4593,15 @@ def _build_review_findings(result):
                 has_low_conversion = True
                 check_parts.append("低转化窗口: " + "；".join(goal_details["low_conversion"][:3]))
             replay_check = "；".join(check_parts) + "。"
+            failed_summaries = set(goal_details["low_farm"] + goal_details["low_conversion"])
+            failed_windows = [
+                window for window in post_windows
+                if window.get("summary") in failed_summaries
+            ]
+            evidence = "；".join(
+                f"{window.get('item_name', '关键装备')} {window.get('minute')}分钟，{window.get('summary')}"
+                for window in failed_windows[:4]
+            )
             low_names = "、".join(goal_details["low_names"][:3])
             if low_names:
                 training_goal = f"下一局 {low_names} 成型后立刻执行预设动作，避免装备完成后的空转窗口。"
@@ -3063,7 +4669,7 @@ def _build_review_findings(result):
             "下一局把刷钱路线设计成能顺路压塔、控盾或支援队友，而不是远离目标单刷。",
             "系统使用OpenDota参战率汇总字段，并与击杀/助攻及关键装备后窗口交叉；汇总值不判断未参战原因。",
             "下一局每条刷钱路线都要顺路覆盖一座塔、一条高价值兵线或一次支援入口。",
-            "参战率>=40%；关键装备后2分钟至少完成一次参战或推塔动作。",
+            "参战率不低于40%；关键装备后2分钟至少完成一次参战或推塔动作。",
         ))
 
     if benchmark_finding:
@@ -3080,7 +4686,7 @@ def _build_review_findings(result):
             "下一局继续围绕前10分钟资源、关键装备后转化、死亡成本三项复查。",
             "下一份报告三项都有事件证据，且没有新增高优先级问题。",
         ))
-    return findings[:8]
+    return findings
 
 
 def _item_detail(item_id):
@@ -3169,19 +4775,99 @@ def _build_field_ledger(result, match_data, stratz_player=None, opendota_data=No
         (result.get("kda") or {}).get("assists") or 0
     )
 
+    def valid_positive_number(value):
+        return (
+            isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and math.isfinite(float(value))
+            and value > 0
+        )
+
+    identity_fields = (
+        "match_id", "account_id", "hero_id", "player_slot", "duration",
+        "start_time", "radiant_win", "is_radiant",
+    )
+    identity_present = []
+    for field in identity_fields:
+        value = match_data.get(field)
+        if field in {"match_id", "account_id", "hero_id", "duration", "start_time"}:
+            valid = valid_positive_number(value)
+        elif field == "player_slot":
+            valid = _valid_player_slot(value)
+        else:
+            valid = value in (True, False, 0, 1) and not isinstance(value, str)
+        if valid:
+            identity_present.append(field)
+
     core_fields = (
         "kills", "deaths", "assists", "gold_per_min", "xp_per_min", "last_hits",
         "denies", "hero_damage", "tower_damage", "hero_healing", "net_worth", "level",
     )
-    core_present = [field for field in core_fields if field in match_data and match_data.get(field) is not None]
+    core_present = [
+        field for field in core_fields
+        if isinstance(match_data.get(field), (int, float))
+        and not isinstance(match_data.get(field), bool)
+        and math.isfinite(float(match_data[field]))
+        and match_data[field] >= 0
+    ]
 
     players = (opendota_data or {}).get("players")
-    participant_count = len(players) if isinstance(players, list) else 0
-    participant_expected = [f"player_{index + 1}" for index in range(10)]
-    participant_present = [f"player_{index + 1}" for index in range(min(participant_count, 10))]
+    player_rows = players if isinstance(players, list) else []
+    participant_slots = (0, 1, 2, 3, 4, 128, 129, 130, 131, 132)
+    participant_expected = [f"slot_{slot}" for slot in participant_slots]
+    valid_participant_slots = {
+        player.get("player_slot")
+        for player in player_rows if isinstance(player, dict)
+        and _valid_player_slot(player.get("player_slot"))
+        and valid_positive_number(player.get("hero_id"))
+    }
+    participant_present = [
+        f"slot_{slot}" for slot in participant_slots if slot in valid_participant_slots
+    ]
+    participant_count = len(participant_present)
 
-    role_fields = ("position", "lane", "role")
-    role_present = [field for field in role_fields if (stratz_player or {}).get(field) is not None]
+    role_fields = ("role", "lane_assignment")
+    role_present = []
+    role_profile = result.get("role_profile") or {}
+    formula_role = role_profile.get("classification") == "formula"
+    if _known_enum((stratz_player or {}).get("position")) or _known_enum((stratz_player or {}).get("role")):
+        role_present.append("role")
+    elif formula_role:
+        role_present.append("role")
+    if (
+        _known_enum((stratz_player or {}).get("lane"))
+        or context.get("opendota_lane_role") in {1, 2, 3, 4}
+        or context.get("replay_lane_role") in {1, 2, 3, 4}
+    ):
+        role_present.append("lane_assignment")
+    if formula_role:
+        role_source = role_profile.get("source") or "真实比赛数据角色公式"
+    elif _known_enum((stratz_player or {}).get("position")):
+        role_source = "STRATZ玩家位置"
+    elif _known_enum((stratz_player or {}).get("role")) and _known_enum((stratz_player or {}).get("lane")):
+        role_source = "STRATZ角色与分路"
+    elif _known_enum((stratz_player or {}).get("role")) and context.get("opendota_lane_role") in {1, 2, 3, 4}:
+        role_source = "STRATZ角色 + OpenDota解析分路"
+    elif _known_enum((stratz_player or {}).get("role")) and context.get("replay_lane_role") in {1, 2, 3, 4}:
+        role_source = "STRATZ角色 + Valve回放分路"
+    elif context.get("replay_lane_role") in {1, 2, 3, 4}:
+        role_source = "Valve回放分路（位置未细分）"
+    else:
+        role_source = "OpenDota解析分路"
+
+    ability_sources = list(dict.fromkeys(
+        item.get("source")
+        for item in (result.get("skills") or {}).get("upgrades") or []
+        if isinstance(item, dict) and item.get("source")
+    ))
+    ability_source_labels = {
+        "stratz": "STRATZ",
+        "opendota": "OpenDota",
+        "valve_replay_gem": "Valve回放原始事件（gem-dota）",
+    }
+    ability_source = " + ".join(
+        ability_source_labels.get(source, source) for source in ability_sources
+    ) or "未获取"
 
     benchmark_metrics = {
         item.get("id")
@@ -3211,6 +4897,9 @@ def _build_field_ledger(result, match_data, stratz_player=None, opendota_data=No
 
     death_observed = int(events.get("death_count_observed") or 0)
     death_position_count = int(events.get("death_position_count") or 0)
+    death_nearby_context_count = int(events.get("death_nearby_context_count") or 0)
+    buybacks_expected = int(performance.get("buyback_count") or 0)
+    buybacks_observed = len(events.get("buybacks") or [])
     fight_observed = len(events.get("kills") or []) + len(events.get("assists") or [])
     minute_count = int(timeline.get("duration_minutes_observed") or 0)
     # Minute arrays cover completed minutes; the final partial minute is not missing data.
@@ -3222,6 +4911,11 @@ def _build_field_ledger(result, match_data, stratz_player=None, opendota_data=No
 
     return [
         _field_ledger_item(
+            "match_identity", "比赛身份与时钟", "OpenDota比赛详情",
+            required=True, expected_fields=identity_fields, present_fields=identity_present,
+            weight=3,
+        ),
+        _field_ledger_item(
             "core_stats", "比赛核心数据", "OpenDota比赛详情",
             required=True, expected_fields=core_fields, present_fields=core_present, weight=3,
         ),
@@ -3231,11 +4925,16 @@ def _build_field_ledger(result, match_data, stratz_player=None, opendota_data=No
             coverage_pct=participant_count / 10 * 100, weight=2,
         ),
         _field_ledger_item(
-            "role_position", "位置与分路", "STRATZ玩家详情",
+            "role_position", "位置与分路", role_source,
             required=True, expected_fields=role_fields, present_fields=role_present, weight=2,
+            details={
+                "exact_position_available": _known_enum((stratz_player or {}).get("position")),
+                "classification": role_profile.get("classification") or "source_field",
+                "classification_evidence": role_profile.get("evidence"),
+            },
         ),
         _field_ledger_item(
-            "ability_build", "技能加点", "STRATZ/OpenDota",
+            "ability_build", "技能加点", ability_source,
             required=True, expected_fields=["ability_upgrades"],
             present_fields=["ability_upgrades"] if (result.get("skills") or {}).get("upgrades") else [],
         ),
@@ -3285,11 +4984,37 @@ def _build_field_ledger(result, match_data, stratz_player=None, opendota_data=No
             weight=3,
         ),
         _field_ledger_item(
+            "buyback_events", "买活时间", _event_source_label(events.get("buyback_source")),
+            required=buybacks_expected > 0, applicable=buybacks_expected > 0,
+            expected_fields=[f"buyback_{index + 1}" for index in range(buybacks_expected)],
+            present_fields=[
+                f"buyback_{index + 1}"
+                for index in range(min(buybacks_observed, buybacks_expected))
+            ],
+            coverage_pct=(buybacks_observed / buybacks_expected * 100) if buybacks_expected else 100,
+            weight=3,
+            details={
+                "aggregate_expected_count": buybacks_expected,
+                "timed_event_count": buybacks_observed,
+            },
+        ),
+        _field_ledger_item(
             "death_positions", "死亡坐标", "STRATZ位置采样/OpenDota团战坐标",
             required=deaths_expected > 0, applicable=deaths_expected > 0,
             expected_fields=[f"death_position_{index + 1}" for index in range(deaths_expected)],
             present_fields=[f"death_position_{index + 1}" for index in range(min(death_position_count, deaths_expected))],
             coverage_pct=(death_position_count / deaths_expected * 100) if deaths_expected else 100,
+            weight=2,
+        ),
+        _field_ledger_item(
+            "death_nearby_players", "死亡瞬间局部人数", "Valve回放全员位置与生命状态采样",
+            required=deaths_expected > 0, applicable=deaths_expected > 0,
+            expected_fields=[f"death_nearby_{index + 1}" for index in range(deaths_expected)],
+            present_fields=[
+                f"death_nearby_{index + 1}"
+                for index in range(min(death_nearby_context_count, deaths_expected))
+            ],
+            coverage_pct=(death_nearby_context_count / deaths_expected * 100) if deaths_expected else 100,
             weight=2,
         ),
         _field_ledger_item(
@@ -3301,6 +5026,7 @@ def _build_field_ledger(result, match_data, stratz_player=None, opendota_data=No
                 "scoreboard_assists",
                 *(["timed_fight_events"] if fight_observed else []),
             ],
+            coverage_pct=events.get("fight_timing_coverage_pct"),
             weight=2,
             details={
                 "aggregate_expected_count": kills_assists_expected,
@@ -3310,15 +5036,19 @@ def _build_field_ledger(result, match_data, stratz_player=None, opendota_data=No
             },
         ),
         _field_ledger_item(
-            "objectives", "地图目标事件", "OpenDota objectives",
-            required=True, expected_fields=["objectives_payload"],
-            present_fields=["objectives_payload"] if events.get("has_objective_payload") else [],
+            "objectives", "地图目标事件", _event_source_label(events.get("objective_source")),
+            required=True, expected_fields=["building_events", "major_objective_events"],
+            present_fields=(
+                ["building_events", "major_objective_events"]
+                if events.get("has_full_objective_payload")
+                else ["building_events"] if events.get("has_objective_payload") else []
+            ),
             weight=2,
         ),
         _field_ledger_item(
-            "vision_events", "视野事件", "OpenDota obs_log/sen_log",
-            required=role_id == "support", expected_fields=["obs_log", "sen_log"],
-            present_fields=["obs_log", "sen_log"] if events.get("has_vision_event_payload") else [],
+            "vision_events", "视野事件", _event_source_label(events.get("vision_source")),
+            required=role_id == "support", expected_fields=["typed_ward_events"],
+            present_fields=["typed_ward_events"] if events.get("has_vision_event_payload") else [],
             weight=2,
         ),
         _field_ledger_item(
@@ -3326,11 +5056,11 @@ def _build_field_ledger(result, match_data, stratz_player=None, opendota_data=No
             required=True, expected_fields=benchmark_expected, present_fields=benchmark_present, weight=2,
         ),
         _field_ledger_item(
-            "performance_context", "对线/参战/死亡占时", "OpenDota玩家汇总",
+            "performance_context", "对线/参战/死亡占时", performance.get("source") or "未返回",
             required=True, expected_fields=performance_fields, present_fields=performance_present, weight=2,
         ),
         _field_ledger_item(
-            "extended_metrics", "扩展战斗/经济/活动数据", "OpenDota解析字段",
+            "extended_metrics", "扩展战斗/经济/活动数据", extended.get("source") or "未返回",
             required=True, expected_fields=extended_expected, present_fields=extended_present, weight=2,
         ),
     ]
@@ -3373,6 +5103,14 @@ def _build_evidence_sources(result):
 
     observed_deaths = events.get("death_count_observed") or 0
     death_positions = events.get("death_position_count") or 0
+    death_nearby_contexts = events.get("death_nearby_context_count") or 0
+    buyback_value = (result.get("performance_context") or {}).get("buyback_count")
+    buyback_count = (
+        int(buyback_value)
+        if isinstance(buyback_value, (int, float)) and not isinstance(buyback_value, bool)
+        else None
+    )
+    timed_buybacks = len(events.get("buybacks") or [])
     no_deaths = (events.get("death_count_expected") or 0) == 0 and observed_deaths == 0
     death_position_coverage = (
         f"覆盖 {death_positions}/{observed_deaths} 次已定位死亡"
@@ -3424,6 +5162,27 @@ def _build_evidence_sources(result):
             "status": "available" if no_deaths or events.get("death_timeline_complete") else "partial",
         },
         {
+            "id": "buyback_events",
+            "label": "买活时间",
+            "source": (
+                "未获取" if buyback_count is None
+                else "不适用" if buyback_count == 0
+                else _event_source_label(events.get("buyback_source"))
+            ),
+            "coverage": (
+                "未获取买活次数，不能判断是否发生买活"
+                if buyback_count is None
+                else "本局没有买活" if buyback_count == 0
+                else f"已定位 {timed_buybacks}/{buyback_count} 次买活"
+            ),
+            "status": (
+                "missing" if buyback_count is None
+                else "available" if buyback_count == 0 or timed_buybacks == buyback_count
+                else "partial" if timed_buybacks
+                else "missing"
+            ),
+        },
+        {
             "id": "death_positions",
             "label": "死亡位置",
             "source": "不适用" if no_deaths else _event_source_label(events.get("position_source")),
@@ -3435,6 +5194,22 @@ def _build_evidence_sources(result):
             ),
         },
         {
+            "id": "death_nearby_players",
+            "label": "死亡瞬间局部人数",
+            "source": "不适用" if no_deaths else "Valve回放全员位置与生命状态采样",
+            "coverage": (
+                "本局没有死亡"
+                if no_deaths
+                else f"覆盖 {death_nearby_contexts}/{observed_deaths} 次已定位死亡"
+            ),
+            "status": (
+                "available"
+                if no_deaths or (observed_deaths and death_nearby_contexts == observed_deaths)
+                else "partial" if death_nearby_contexts
+                else "missing"
+            ),
+        },
+        {
             "id": "fight_events",
             "label": "击杀/助攻事件",
             "source": _event_source_label(events.get("fight_source")),
@@ -3442,7 +5217,11 @@ def _build_evidence_sources(result):
                 events.get("fight_timing_coverage_label")
                 if fight_count else "未获取个人击杀/助攻事件"
             ),
-            "status": "available" if fight_count else "missing",
+            "status": (
+                "available" if events.get("fight_timing_complete")
+                else "partial" if fight_count
+                else "missing"
+            ),
         },
         {
             "id": "objectives",
@@ -3450,10 +5229,18 @@ def _build_evidence_sources(result):
             "source": _event_source_label(events.get("objective_source")),
             "coverage": (
                 f"{objective_count}条塔、兵营、肉山、盾或折磨者事件"
-                if objective_count else "字段已返回，本局0条地图目标事件"
-                if events.get("has_objective_log") else "未获取地图目标事件"
+                if events.get("has_full_objective_payload") and objective_count
+                else "完整目标字段已返回，本局0条地图目标事件"
+                if events.get("has_full_objective_payload")
+                else f"{objective_count}条建筑事件；肉山、盾和折磨者等待OpenDota解析"
+                if events.get("has_objective_payload")
+                else "未获取地图目标事件"
             ),
-            "status": "available" if events.get("has_objective_log") else "missing",
+            "status": (
+                "available" if events.get("has_full_objective_payload")
+                else "partial" if events.get("has_objective_payload")
+                else "missing"
+            ),
         },
         {
             "id": "vision_events",
@@ -3507,10 +5294,59 @@ def _evidence_coverage_limitations(evidence_sources, explained_ids=None):
     return limitations
 
 
-def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota_data=None):
+def _normalize_source_reconciliation(validation):
+    normalized = dict(validation or {})
+    checks = []
+    labels_by_comparison = {
+        "opendota_aggregate_to_replay_aggregate": ("OpenDota", "Valve回放"),
+        "replay_scoreboard_to_event_timeline": ("回放记分板", "回放事件时间线"),
+        "replay_life_state_intervals_to_replay_aggregate": (
+            "回放总死亡时长",
+            "逐秒生命状态",
+        ),
+    }
+    for source in normalized.get("checks") or []:
+        if not isinstance(source, dict):
+            continue
+        item = dict(source)
+        left_label, right_label = labels_by_comparison.get(
+            item.get("comparison"),
+            ("OpenDota", "Valve回放"),
+        )
+        item.setdefault("left_label", left_label)
+        item.setdefault("right_label", right_label)
+        checks.append(item)
+    normalized["checks"] = checks
+    return normalized
+
+
+def _build_data_quality(
+    match_data,
+    stratz_data,
+    stratz_player,
+    result,
+    opendota_data=None,
+    replay_data=None,
+):
     available = ["opendota_core_stats"]
     limitations = []
     score = 35
+    source_reconciliation = _normalize_source_reconciliation(
+        (replay_data or {}).get("validation")
+    )
+    if replay_data:
+        available.append("valve_replay_gem")
+    if source_reconciliation.get("status") == "conflict":
+        conflicts = [
+            item.get("metric")
+            for item in source_reconciliation.get("checks") or []
+            if item.get("status") == "conflict" and item.get("metric")
+        ]
+        limitations.append(
+            "证据源对账存在冲突: "
+            + "、".join(conflicts)
+            + "；冲突字段不静默覆盖"
+        )
 
     if result.get("items", {}).get("final_items"):
         available.append("final_item_slots")
@@ -3522,8 +5358,13 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
         available.append("stratz_player_detail")
         score += 25
     else:
-        if len(result.get("context", {}).get("ally_lineup") or []) == 5 and len(result.get("context", {}).get("enemy_lineup") or []) == 5:
-            limitations.append("缺少Stratz位置字段；完整阵容已由OpenDota补齐，具体1-5号位不做推断")
+        if (result.get("role_profile") or {}).get("classification") == "formula":
+            limitations.append(
+                "STRATZ精确位置字段不可用；职责由OpenDota真实分路与队内资源排序公式识别，"
+                f"依据：{(result.get('role_profile') or {}).get('evidence')}"
+            )
+        elif len(result.get("context", {}).get("ally_lineup") or []) == 5 and len(result.get("context", {}).get("enemy_lineup") or []) == 5:
+            limitations.append("缺少Stratz位置字段；完整阵容已由OpenDota补齐，具体1-5号位不做无证据判断")
         else:
             limitations.append("缺少Stratz位置字段，且OpenDota未提供完整10人阵容")
 
@@ -3534,22 +5375,28 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
     timeline = result.get("timeline", {})
     events = result.get("events", {})
     role_profile = result.get("role_profile", {})
-    has_lh_timeline = bool(match_data.get("lh_t") or timeline.get("available"))
-    has_gold_timeline = bool(match_data.get("gold_t") or timeline.get("available"))
+    has_lh_timeline = bool(timeline.get("last_hits_by_minute"))
+    has_gold_timeline = bool(timeline.get("gold_by_minute"))
     has_purchase_log = bool(match_data.get("purchase_log") or events.get("has_purchase_timeline"))
     has_fight_log = bool(match_data.get("kills_log") or events.get("has_fight_log"))
     has_vision_log = bool(events.get("has_vision_log"))
     has_objective_log = bool(events.get("has_objective_log"))
 
-    if has_lh_timeline and has_gold_timeline:
+    if has_lh_timeline:
         available.append("lane_timeline")
+        score += 6
+    else:
+        limitations.append("缺少分钟补刀时间线，不能计算对线补刀与低效率窗口")
+    if has_gold_timeline:
+        available.append("gold_timeline")
+        score += 6
+    else:
+        limitations.append("缺少分钟经济时间线，不能计算阶段经济与装备后刷钱转化")
+    if has_lh_timeline or has_gold_timeline:
         if timeline.get("source") == "opendota_parsed_logs":
             available.append("opendota_parsed_logs")
         if "stratz_playback_cs" in (timeline.get("source") or ""):
             available.append("stratz_playback_cs")
-        score += 12
-    else:
-        limitations.append("缺少10分钟补刀/经济时间线，不能评价对线期具体失误")
 
     if has_purchase_log:
         available.append("purchase_timeline")
@@ -3576,6 +5423,8 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
             for source in (events.get("position_source") or "").split("+"):
                 if source and source not in available:
                     available.append(source)
+        if events.get("has_death_nearby_context"):
+            available.append("valve_replay_all_player_positions")
         score += 7
     else:
         limitations.append("缺少团战/击杀日志，不能还原每次死亡和团战站位")
@@ -3584,9 +5433,12 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
         available.append("vision_events")
         score += 7
 
-    if has_objective_log:
+    if events.get("has_full_objective_payload"):
         available.append("opendota_objectives")
         score += 8
+    elif has_objective_log:
+        available.append("stratz_building_objectives")
+        limitations.append("STRATZ已返回建筑死亡事件；肉山、不朽盾和折磨者事件仍等待OpenDota解析补齐")
     else:
         limitations.append("缺少地图目标事件，不能还原推塔、兵营、肉山和不朽盾时间线")
 
@@ -3595,7 +5447,12 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
         score += 7
 
     if (result.get("performance_context") or {}).get("available"):
-        available.append("opendota_performance_context")
+        performance_source = (result.get("performance_context") or {}).get("source") or ""
+        available.append(
+            "opendota_performance_context"
+            if performance_source == "OpenDota对局汇总字段"
+            else "multi_source_performance_context"
+        )
         score += 5
 
     expected_deaths = (result.get("kda") or {}).get("deaths", 0) or 0
@@ -3665,6 +5522,7 @@ def _build_data_quality(match_data, stratz_data, stratz_player, result, opendota
         "evidence_sources": evidence_sources,
         "field_ledger": field_ledger,
         "blocking_gaps": blocking_gaps,
+        "source_reconciliation": source_reconciliation,
         "required_complete": not blocking_gaps,
         "coverage_summary": {
             "required_complete": required_complete,

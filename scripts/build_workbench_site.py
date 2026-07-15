@@ -46,6 +46,10 @@ def _write_versioned_text(source, destination, asset_version):
     )
 
 
+def _int_or_none(value):
+    return int(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+
+
 def _seed_match(report):
     kda = report.get("kda") if isinstance(report.get("kda"), dict) else {}
     return {
@@ -59,11 +63,11 @@ def _seed_match(report):
         "side": None,
         "is_win": report.get("is_win"),
         "ended_at": report.get("ended_at"),
-        "duration_seconds": report.get("duration_seconds") or 0,
+        "duration_seconds": _int_or_none(report.get("duration_seconds")),
         "kda": {
-            "kills": int(kda.get("kills") or 0),
-            "deaths": int(kda.get("deaths") or 0),
-            "assists": int(kda.get("assists") or 0),
+            "kills": _int_or_none(kda.get("kills")),
+            "deaths": _int_or_none(kda.get("deaths")),
+            "assists": _int_or_none(kda.get("assists")),
         },
         "rank_tier": None,
         "lane": None,

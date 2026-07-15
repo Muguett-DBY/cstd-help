@@ -24,7 +24,26 @@ class FakeStratz:
         return {"id": match_id, "_fetch_warnings": []}
 
 
-def fake_analyze(player, *, stratz_data=None, opendota_data=None):
+class FakeUnavailableStratz:
+    last_warning = "blocked"
+
+    def get_match_detail(self, match_id, include_playback=True):
+        return None
+
+
+class FakeReplay:
+    def __init__(self):
+        self.requested = []
+
+    def get_match_evidence(self, match_id, account_id, match_detail):
+        self.requested.append((match_id, account_id, match_detail["match_id"]))
+        return {
+            "source": "valve_replay_gem",
+            "validation": {"status": "matched", "checks": []},
+        }
+
+
+def fake_analyze(player, *, stratz_data=None, opendota_data=None, replay_data=None):
     match_id = player["match_id"]
     gaps = [] if match_id == 20 else ["death_positions"]
     return {
@@ -42,6 +61,29 @@ def fake_analyze(player, *, stratz_data=None, opendota_data=None):
     }
 
 
+def replay_backed_analyze(
+    player,
+    *,
+    stratz_data=None,
+    opendota_data=None,
+    replay_data=None,
+):
+    complete = bool(replay_data)
+    return {
+        "match_id": player["match_id"],
+        "hero_name": "Luna",
+        "role_profile": {"label": "1号位"},
+        "data_quality": {
+            "score": 100 if complete else 30,
+            "blocking_gaps": [] if complete else ["death_positions"],
+            "field_ledger": [{
+                "id": "death_positions",
+                "status": "available" if complete else "missing",
+            }],
+        },
+    }
+
+
 class RecentEvidenceAuditTests(unittest.TestCase):
     def test_audit_reports_every_match_and_blocks_on_required_gap(self):
         result = audit_recent_matches(
@@ -50,6 +92,7 @@ class RecentEvidenceAuditTests(unittest.TestCase):
             opendota_client=FakeOpenDota(),
             stratz_client=FakeStratz(),
             analyze_fn=fake_analyze,
+            allow_replay=False,
         )
 
         self.assertEqual(result["match_count"], 2)
@@ -58,6 +101,22 @@ class RecentEvidenceAuditTests(unittest.TestCase):
         self.assertTrue(result["matches"][0]["complete"])
         self.assertEqual(result["matches"][1]["blocking_gaps"], ["death_positions"])
         self.assertEqual(result["matches"][1]["field_status_counts"]["partial"], 1)
+
+    def test_audit_uses_validated_replay_when_stratz_is_unavailable(self):
+        replay = FakeReplay()
+
+        result = audit_recent_matches(
+            account_id=173776719,
+            limit=1,
+            opendota_client=FakeOpenDota(),
+            stratz_client=FakeUnavailableStratz(),
+            replay_client=replay,
+            analyze_fn=replay_backed_analyze,
+        )
+
+        self.assertTrue(result["all_complete"])
+        self.assertEqual(result["matches"][0]["evidence_source"], "valve_replay_gem")
+        self.assertEqual(replay.requested, [(20, 173776719, 20)])
 
 
 if __name__ == "__main__":

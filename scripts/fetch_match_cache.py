@@ -62,6 +62,7 @@ def run_match_cache_job(
         raise MatchCacheJobError("MATCH_LIST_UNAVAILABLE")
 
     detail_bulk = []
+    parse_preheat_match_ids = []
     for summary in matches:
         match_id = int(summary["match_id"])
         detail = client.get_match(match_id)
@@ -84,6 +85,16 @@ def run_match_cache_job(
             ),
             "expiration_ttl": MATCH_DETAIL_TTL_SECONDS,
         })
+        has_parsed_logs = getattr(client, "has_parsed_player_logs", None)
+        request_parse = getattr(client, "request_parse", None)
+        if callable(has_parsed_logs) and callable(request_parse):
+            try:
+                if not has_parsed_logs(detail, account_id=account_id):
+                    request_parse(match_id)
+                    parse_preheat_match_ids.append(match_id)
+            except Exception:
+                # Match history must remain usable even when an upstream parse queue is busy.
+                pass
 
     refreshed_at = _utc_iso(now)
     match_list = {
@@ -102,6 +113,8 @@ def run_match_cache_job(
         "completed_at": refreshed_at,
         "refreshed_at": refreshed_at,
         "match_count": len(matches),
+        "parse_preheat_requested": len(parse_preheat_match_ids),
+        "parse_preheat_match_ids": parse_preheat_match_ids,
     }
     detail_bulk.extend([
         {
