@@ -1,12 +1,12 @@
 :root {
     color-scheme: light;
-    --bg: #f3f1ec;
+    --bg: #f2f5f4;
     --surface: #ffffff;
-    --surface-soft: #ebe8e1;
+    --surface-soft: #e8edeb;
     --ink: #191c1d;
     --muted: #656b6d;
-    --line: #d4d1c9;
-    --line-strong: #aaa79f;
+    --line: #cfd6d3;
+    --line-strong: #9fa9a5;
     --header: #202426;
     --header-muted: #b8bec0;
     --teal: #0b756a;
@@ -413,7 +413,7 @@ h4 {
     aspect-ratio: 16 / 9;
     flex: 0 0 auto;
     overflow: hidden;
-    background: #d5d2ca;
+    background: #d3dad7;
     border-radius: 4px;
 }
 
@@ -509,7 +509,7 @@ h4 {
 .list-loading span {
     display: block;
     height: 78px;
-    background: #eeece7;
+    background: #edf1ef;
     animation: loading 1.3s ease-in-out infinite alternate;
 }
 
@@ -555,7 +555,7 @@ h4 {
     width: 224px;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    background: #d6d3cb;
+    background: #d4dbd8;
     border-radius: 6px;
     box-shadow: var(--shadow);
 }
@@ -570,7 +570,7 @@ h4 {
     display: block;
     width: 100%;
     height: 100%;
-    background: #cbc8c1;
+    background: #c8d0cd;
 }
 
 .match-identity {
@@ -680,7 +680,7 @@ h4 {
     align-items: center;
     gap: 10px;
     padding: 6px 10px;
-    border-bottom: 1px solid #e5e2dc;
+    border-bottom: 1px solid #e3e8e6;
 }
 
 .participant:last-child {
@@ -697,7 +697,7 @@ h4 {
     width: 72px;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    background: #ddd9d2;
+    background: #dbe2df;
     border-radius: 3px;
 }
 
@@ -778,7 +778,7 @@ h4 {
     aspect-ratio: 64 / 47;
     flex: 0 0 auto;
     overflow: hidden;
-    background: #d9d6cf;
+    background: #d7dedb;
     border-radius: 3px;
 }
 
@@ -1498,7 +1498,7 @@ h4 {
 .death-cost-strip > div {
     min-width: 0;
     padding: 9px 12px;
-    background: #f6f4ef;
+    background: #f6f8f7;
 }
 
 .death-cost-strip span,
@@ -1538,7 +1538,7 @@ h4 {
     grid-template-columns: 76px minmax(0, 1fr);
     gap: 10px;
     padding: 10px 12px;
-    border-bottom: 1px solid #e5e2dc;
+    border-bottom: 1px solid #e3e8e6;
 }
 
 .event-group li:last-child {
@@ -1584,7 +1584,7 @@ h4 {
 
 .objective-summary-strip > div {
     padding: 9px 12px;
-    background: #f6f4ef;
+    background: #f6f8f7;
 }
 
 .objective-summary-strip span,
@@ -1681,7 +1681,7 @@ h4 {
 
 .event-minute-chips > span:not(.muted-copy) {
     padding: 3px 5px;
-    background: #ece9e2;
+    background: #e9eeec;
     border-radius: 3px;
     font: 700 9px Consolas, "SFMono-Regular", monospace;
 }
