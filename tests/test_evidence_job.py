@@ -147,7 +147,7 @@ class EvidenceJobTests(unittest.TestCase):
 
     def test_retry_requests_parse_and_waits_for_transient_evidence_gaps(self):
         opendota = FakeOpenDota()
-        stratz = FakeStratz()
+        stratz = FakeUnavailableStratz()
         attempts = []
         sleeps = []
 
@@ -201,6 +201,67 @@ class EvidenceJobTests(unittest.TestCase):
         self.assertEqual(result["source"], "github_actions_valve_replay")
         self.assertEqual(attempts, [False, False, True])
         self.assertEqual(replay.requests, [(MATCH_ID, ACCOUNT_ID, MATCH_ID)])
+
+    def test_replay_required_gap_uses_valve_replay_on_first_attempt(self):
+        opendota = FakeOpenDota()
+        stratz = FakeUnavailableStratz()
+        replay = FakeReplay()
+        attempts = []
+
+        def replay_completes(*_args, replay_data=None, **_kwargs):
+            attempts.append(bool(replay_data))
+            if replay_data:
+                return complete_analysis()
+            return {"data_quality": {"blocking_gaps": ["death_nearby_players"]}}
+
+        result = run_evidence_job_with_retry(
+            MATCH_ID,
+            account_id=ACCOUNT_ID,
+            opendota_client=opendota,
+            stratz_client=stratz,
+            replay_client=replay,
+            analyze_fn=replay_completes,
+            attempts=9,
+            retry_seconds=20,
+            sleep_fn=lambda _seconds: self.fail("replay-required evidence must not wait"),
+        )
+
+        self.assertEqual(result["source"], "github_actions_valve_replay")
+        self.assertEqual(attempts, [False, True])
+        self.assertEqual(replay.requests, [(MATCH_ID, ACCOUNT_ID, MATCH_ID)])
+        self.assertEqual(opendota.parse_requests, [])
+        self.assertEqual(stratz.reparse_requests, [])
+
+    def test_temporarily_unavailable_required_replay_is_retried(self):
+        class EventuallyAvailableReplay(FakeReplay):
+            def get_match_evidence(self, match_id, account_id, match_detail):
+                self.requests.append((int(match_id), int(account_id), match_detail["match_id"]))
+                if len(self.requests) == 1:
+                    raise fetch_review_evidence.ReplayEvidenceError("REPLAY_HTTP_STATUS")
+                return self.payload
+
+        replay = EventuallyAvailableReplay()
+        sleeps = []
+
+        result = run_evidence_job_with_retry(
+            MATCH_ID,
+            account_id=ACCOUNT_ID,
+            opendota_client=FakeOpenDota(),
+            stratz_client=FakeUnavailableStratz(),
+            replay_client=replay,
+            analyze_fn=lambda *_args, replay_data=None, **_kwargs: (
+                complete_analysis() if replay_data else {
+                    "data_quality": {"blocking_gaps": ["death_nearby_players"]},
+                }
+            ),
+            attempts=2,
+            retry_seconds=3,
+            sleep_fn=sleeps.append,
+        )
+
+        self.assertEqual(result["source"], "github_actions_valve_replay")
+        self.assertEqual(len(replay.requests), 2)
+        self.assertEqual(sleeps, [3])
 
     def test_stratz_failure_preheats_both_parse_sources_before_replay_retry(self):
         opendota = FakeOpenDota()
@@ -299,6 +360,8 @@ class EvidenceJobTests(unittest.TestCase):
             evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
             self.assertEqual(code, 0)
             self.assertEqual(status["status"], "ready")
+            self.assertIn("started_at", status)
+            self.assertIn("completed_at", status)
             self.assertEqual(evidence["source"], "github_actions_valve_replay")
 
     def test_failed_cli_status_records_exact_blocking_gaps(self):

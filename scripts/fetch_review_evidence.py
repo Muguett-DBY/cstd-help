@@ -30,6 +30,17 @@ TRANSIENT_EVIDENCE_ERRORS = {
     "STRATZ_UNAVAILABLE",
     "INCOMPLETE_EVIDENCE",
 }
+REPLAY_REQUIRED_GAPS = {"death_nearby_players"}
+TRANSIENT_REPLAY_ERRORS = {
+    "REPLAY_URL_MISSING",
+    "REPLAY_HTTP_STATUS",
+    "REPLAY_DOWNLOAD_INCOMPLETE",
+    "REPLAY_ARCHIVE_INVALID",
+    "REPLAY_EMPTY",
+    "ConnectionError",
+    "Timeout",
+    "ChunkedEncodingError",
+}
 DEFAULT_EVIDENCE_ATTEMPTS = 9
 DEFAULT_RETRY_SECONDS = 20
 
@@ -70,8 +81,6 @@ def run_evidence_job(
         raise EvidenceJobError("OPENDOTA_DETAIL_UNAVAILABLE")
 
     stratz_data = stratz_client.get_match_detail(match_id, include_playback=True)
-    if not stratz_data and not allow_replay:
-        raise EvidenceJobError("STRATZ_UNAVAILABLE")
     analysis = analyze_fn(
         player,
         stratz_data=stratz_data,
@@ -82,7 +91,7 @@ def run_evidence_job(
         raise EvidenceJobError("ANALYSIS_FAILED")
     gaps = review_evidence_gaps(analysis)
     replay_data = None
-    if gaps and allow_replay:
+    if gaps and (allow_replay or REPLAY_REQUIRED_GAPS.intersection(gaps)):
         replay_client = replay_client or ValveReplayClient()
         try:
             replay_data = replay_client.get_match_evidence(
@@ -174,7 +183,13 @@ def run_evidence_job_with_retry(
                 allow_replay=attempt == attempt_limit,
             )
         except EvidenceJobError as exc:
-            is_transient = exc.code in TRANSIENT_EVIDENCE_ERRORS
+            is_transient = (
+                exc.code in TRANSIENT_EVIDENCE_ERRORS
+                or (
+                    exc.code == "REPLAY_FALLBACK_FAILED"
+                    and exc.details.get("replay_error") in TRANSIENT_REPLAY_ERRORS
+                )
+            )
             if exc.code in {
                 "INCOMPLETE_EVIDENCE",
                 "STRATZ_UNAVAILABLE",
@@ -233,7 +248,7 @@ def main(argv=None):
     status = {
         "schema_version": EVIDENCE_SCHEMA_VERSION,
         "match_id": args.match_id,
-        "completed_at": _utc_iso(),
+        "started_at": _utc_iso(),
     }
     exit_code = 0
     try:
@@ -254,6 +269,7 @@ def main(argv=None):
         print(f"Evidence job failed: {type(exc).__name__}")
         exit_code = 1
     finally:
+        status["completed_at"] = _utc_iso()
         _write_json(args.status_output, status)
     return exit_code
 
