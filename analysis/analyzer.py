@@ -2763,6 +2763,54 @@ def _select_complete_event_log(candidates, expected_count=0):
     return events, source
 
 
+def _merge_timed_event_enrichment(events, supplemental_events, max_delta_seconds=3):
+    if not events or not supplemental_events:
+        return events
+
+    enriched = [dict(event) for event in events]
+    unused = set(range(len(supplemental_events)))
+    for item in enriched:
+        event_time = item.get("time")
+        if not isinstance(event_time, (int, float)) or isinstance(event_time, bool):
+            continue
+        candidates = [
+            index
+            for index in unused
+            if isinstance(supplemental_events[index].get("time"), (int, float))
+            and not isinstance(supplemental_events[index].get("time"), bool)
+            and abs(supplemental_events[index]["time"] - event_time) <= max_delta_seconds
+        ]
+        if not candidates:
+            continue
+        index = min(
+            candidates,
+            key=lambda candidate: abs(supplemental_events[candidate]["time"] - event_time),
+        )
+        unused.remove(index)
+        supplement = supplemental_events[index]
+        merged = False
+        for key, value in supplement.items():
+            if key in {"time", "minute", "source", "evidence_sources"} or value is None:
+                continue
+            current = item.get(key)
+            if current is None or current == "" or current == [] or current == {}:
+                item[key] = value
+                merged = True
+        if merged:
+            sources = [
+                source
+                for source in (
+                    item.get("source"),
+                    *(item.get("evidence_sources") or []),
+                    supplement.get("source"),
+                    *(supplement.get("evidence_sources") or []),
+                )
+                if source
+            ]
+            item["evidence_sources"] = list(dict.fromkeys(sources))
+    return enriched
+
+
 def _build_death_cost_summary(deaths):
     cost_events = [
         event for event in deaths or []
@@ -3038,6 +3086,12 @@ def _build_events(
         source_parts.add(death_source)
     else:
         deaths = []
+    deaths = _merge_timed_event_enrichment(deaths, replay_deaths)
+    if any(
+        "valve_replay_gem" in (item.get("evidence_sources") or [])
+        for item in deaths
+    ):
+        source_parts.add("valve_replay_gem")
     deaths = _attach_position_samples_to_deaths(deaths, stratz_positions)
     deaths = _attach_direct_death_positions_to_deaths(deaths, opendota_death_positions)
     death_position_count = len([item for item in deaths if item.get("position")])
