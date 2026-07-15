@@ -349,6 +349,30 @@ class CompleteDataContractTests(unittest.TestCase):
         self.assertEqual(reconciled["left_label"], "OpenDota")
         self.assertEqual(reconciled["right_label"], "Valve回放")
 
+        stratz_player["stats"]["deathEvents"] = [{
+            "time": 900,
+            "attacker": 2,
+            "timeDead": 52,
+            "positionX": 101,
+            "positionY": 111,
+        }]
+        stratz_primary = analyze_match(
+            match,
+            stratz_data=stratz,
+            opendota_data=opendota,
+            replay_data=replay,
+        )
+        self.assertEqual(stratz_primary["events"]["death_source"], "stratz_stats")
+        self.assertEqual(stratz_primary["events"]["death_nearby_context_count"], 1)
+        self.assertEqual(
+            stratz_primary["events"]["deaths"][0]["evidence_sources"],
+            ["stratz_stats", "valve_replay_gem"],
+        )
+        self.assertNotIn(
+            "death_nearby_players",
+            stratz_primary["data_quality"]["blocking_gaps"],
+        )
+
         replay_without_nearby = dict(replay)
         replay_without_nearby["deaths"] = [
             {key: value for key, value in replay["deaths"][0].items() if key != "nearby_context"}
