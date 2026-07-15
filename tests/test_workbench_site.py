@@ -278,6 +278,14 @@ class WorkbenchSiteTests(unittest.TestCase):
             self.headers,
         )
         self.assertIn("frame-ancestors 'none'", self.headers)
+        self.assertIn(
+            "Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=(), usb=()",
+            self.headers,
+        )
+        self.assertIn(
+            "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload",
+            self.headers,
+        )
         self.assertIn("X-Content-Type-Options: nosniff", self.headers)
         self.assertNotIn("/*.html", self.headers)
 
