@@ -13,8 +13,9 @@ if str(ROOT) not in sys.path:
 from analysis.analyzer import analyze_match
 from analysis.evidence_contract import EVIDENCE_SCHEMA_VERSION, review_evidence_gaps
 from api.opendota import OpenDotaClient
+from api.replay import ReplayEvidenceError, ValveReplayClient
 from api.stratz import StratzClient
-from config import ACCOUNT_ID, STRATZ_API_KEY
+from config import ACCOUNT_ID
 
 
 class EvidenceJobError(RuntimeError):
@@ -29,7 +30,7 @@ TRANSIENT_EVIDENCE_ERRORS = {
     "STRATZ_UNAVAILABLE",
     "INCOMPLETE_EVIDENCE",
 }
-DEFAULT_EVIDENCE_ATTEMPTS = 6
+DEFAULT_EVIDENCE_ATTEMPTS = 9
 DEFAULT_RETRY_SECONDS = 20
 
 
@@ -46,8 +47,10 @@ def run_evidence_job(
     account_id=ACCOUNT_ID,
     opendota_client=None,
     stratz_client=None,
+    replay_client=None,
     analyze_fn=analyze_match,
     now=None,
+    allow_replay=False,
 ):
     match_id = int(match_id)
     opendota_client = opendota_client or OpenDotaClient()
@@ -67,12 +70,60 @@ def run_evidence_job(
         raise EvidenceJobError("OPENDOTA_DETAIL_UNAVAILABLE")
 
     stratz_data = stratz_client.get_match_detail(match_id, include_playback=True)
-    if not stratz_data:
+    if not stratz_data and not allow_replay:
         raise EvidenceJobError("STRATZ_UNAVAILABLE")
-    analysis = analyze_fn(player, stratz_data=stratz_data, opendota_data=detail)
+    analysis = analyze_fn(
+        player,
+        stratz_data=stratz_data,
+        opendota_data=detail,
+        replay_data=None,
+    )
     if not isinstance(analysis, dict):
         raise EvidenceJobError("ANALYSIS_FAILED")
     gaps = review_evidence_gaps(analysis)
+    replay_data = None
+    if gaps and allow_replay:
+        replay_client = replay_client or ValveReplayClient()
+        try:
+            replay_data = replay_client.get_match_evidence(
+                match_id,
+                account_id,
+                detail,
+            )
+        except ReplayEvidenceError as exc:
+            raise EvidenceJobError(
+                "REPLAY_FALLBACK_FAILED",
+                {
+                    "blocking_gaps": gaps,
+                    "replay_error": str(exc),
+                },
+            ) from exc
+        except Exception as exc:
+            raise EvidenceJobError(
+                "REPLAY_FALLBACK_FAILED",
+                {
+                    "blocking_gaps": gaps,
+                    "replay_error": type(exc).__name__,
+                },
+            ) from exc
+        validation = replay_data.get("validation") or {}
+        if validation.get("status") == "conflict":
+            raise EvidenceJobError(
+                "REPLAY_VALIDATION_CONFLICT",
+                {
+                    "blocking_gaps": gaps,
+                    "source_reconciliation": validation,
+                },
+            )
+        analysis = analyze_fn(
+            player,
+            stratz_data=stratz_data,
+            opendota_data=detail,
+            replay_data=replay_data,
+        )
+        if not isinstance(analysis, dict):
+            raise EvidenceJobError("ANALYSIS_FAILED")
+        gaps = review_evidence_gaps(analysis)
     if gaps:
         raise EvidenceJobError("INCOMPLETE_EVIDENCE", {"blocking_gaps": gaps})
 
@@ -82,7 +133,10 @@ def run_evidence_job(
         "schema_version": EVIDENCE_SCHEMA_VERSION,
         "match_id": match_id,
         "generated_at": _utc_iso(now),
-        "source": "github_actions_stratz",
+        "source": (
+            "github_actions_valve_replay"
+            if replay_data else "github_actions_stratz_opendota"
+        ),
         "analysis": analysis,
     }
 
@@ -93,6 +147,7 @@ def run_evidence_job_with_retry(
     account_id=ACCOUNT_ID,
     opendota_client=None,
     stratz_client=None,
+    replay_client=None,
     analyze_fn=analyze_match,
     now=None,
     attempts=DEFAULT_EVIDENCE_ATTEMPTS,
@@ -103,7 +158,8 @@ def run_evidence_job_with_retry(
     stratz_client = stratz_client or StratzClient()
     attempt_limit = max(1, int(attempts))
     wait_seconds = max(0, int(retry_seconds))
-    parse_requested = False
+    opendota_parse_requested = False
+    stratz_reparse_requested = False
 
     for attempt in range(1, attempt_limit + 1):
         try:
@@ -112,19 +168,36 @@ def run_evidence_job_with_retry(
                 account_id=account_id,
                 opendota_client=opendota_client,
                 stratz_client=stratz_client,
+                replay_client=replay_client,
                 analyze_fn=analyze_fn,
                 now=now,
+                allow_replay=attempt == attempt_limit,
             )
         except EvidenceJobError as exc:
             is_transient = exc.code in TRANSIENT_EVIDENCE_ERRORS
-            if exc.code == "INCOMPLETE_EVIDENCE" and not parse_requested:
+            if exc.code in {
+                "INCOMPLETE_EVIDENCE",
+                "STRATZ_UNAVAILABLE",
+                "OPENDOTA_DETAIL_UNAVAILABLE",
+            } and not opendota_parse_requested:
                 request_parse = getattr(opendota_client, "request_parse", None)
                 if callable(request_parse):
                     try:
                         request_parse(match_id)
                     except Exception:
                         pass
-                parse_requested = True
+                opendota_parse_requested = True
+            if exc.code in {
+                "INCOMPLETE_EVIDENCE",
+                "STRATZ_UNAVAILABLE",
+            } and not stratz_reparse_requested:
+                request_reparse = getattr(stratz_client, "request_match_reparse", None)
+                if callable(request_reparse):
+                    try:
+                        request_reparse(match_id)
+                    except Exception:
+                        pass
+                stratz_reparse_requested = True
             if not is_transient or attempt >= attempt_limit:
                 raise
 
@@ -164,8 +237,6 @@ def main(argv=None):
     }
     exit_code = 0
     try:
-        if not STRATZ_API_KEY:
-            raise EvidenceJobError("STRATZ_SECRET_MISSING")
         payload = run_evidence_job_with_retry(
             args.match_id,
             attempts=args.attempts,

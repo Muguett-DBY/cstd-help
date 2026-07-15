@@ -14,7 +14,7 @@ from analysis.analyzer import (
     analyze_match,
     get_hero_name,
 )
-from analysis.formula_engine import build_formula_review
+from analysis.formula_engine import build_formula_review, select_formula_findings
 import db.schema as schema
 
 
@@ -127,6 +127,44 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(windows[0]["lh_gain"], 25)
         self.assertEqual(windows[0]["avg_gpm"], 650.0)
 
+    def test_farm_item_window_is_not_scored_without_complete_lh_and_gold_minutes(self):
+        windows = _build_post_item_windows(
+            {
+                "key_purchases": [{
+                    "item_name": "Manta Style",
+                    "time": 600,
+                    "minute": 10.0,
+                }],
+            },
+            {
+                "last_hits_by_minute": [5] * 30,
+                "gold_by_minute": [],
+            },
+        )
+
+        self.assertFalse(windows[0]["evaluable"])
+        self.assertEqual(windows[0]["classification"], "insufficient_data")
+        self.assertIsNone(windows[0]["lh_gain"])
+        self.assertIsNone(windows[0]["avg_gpm"])
+
+    def test_farm_item_window_is_not_scored_when_match_ends_before_full_window(self):
+        windows = _build_post_item_windows(
+            {
+                "key_purchases": [{
+                    "item_name": "Manta Style",
+                    "time": 28 * 60,
+                    "minute": 28.0,
+                }],
+            },
+            {
+                "last_hits_by_minute": [5] * 30,
+                "gold_by_minute": [650] * 30,
+            },
+        )
+
+        self.assertFalse(windows[0]["evaluable"])
+        self.assertEqual(windows[0]["classification"], "insufficient_data")
+
     def test_analysis_builds_real_match_metadata_from_opendota(self):
         match = self._base_match()
         match.update({
@@ -171,6 +209,23 @@ class ReportQualityTests(unittest.TestCase):
             "Silencer", "Sand King", "Axe", "Largo", "Drow Ranger",
         ])
 
+    def test_missing_or_invalid_player_slots_do_not_pollute_lineups(self):
+        match = self._base_match()
+        opendota_data = {
+            "players": [
+                {"account_id": 173776719, "hero_id": 1, "player_slot": 1},
+                {"account_id": 11, "hero_id": 2, "player_slot": 0},
+                {"account_id": 12, "hero_id": 3},
+                {"account_id": 13, "hero_id": 4, "player_slot": 99},
+                {"account_id": 21, "hero_id": 5, "player_slot": 128},
+            ],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+
+        self.assertEqual([hero["id"] for hero in result["context"]["ally_lineup"]], [2, 1])
+        self.assertEqual([hero["id"] for hero in result["context"]["enemy_lineup"]], [5])
+
     def test_opendota_objectives_build_auditable_team_timeline(self):
         match = self._base_match()
         opendota_data = {
@@ -190,7 +245,7 @@ class ReportQualityTests(unittest.TestCase):
                     "time": 900,
                     "type": "building_kill",
                     "key": "npc_dota_goodguys_tower2_bot",
-                    "player_slot": 129,
+                    "player_slot": 1,
                 },
                 {"time": 1200, "type": "CHAT_MESSAGE_ROSHAN_KILL", "team": 2},
                 {"time": 1201, "type": "CHAT_MESSAGE_AEGIS", "player_slot": 1},
@@ -207,11 +262,14 @@ class ReportQualityTests(unittest.TestCase):
             "gained", "lost", "gained", "gained",
         ])
         self.assertTrue(objectives[0]["player_direct"])
+        self.assertEqual(objectives[0]["direct_label"], "本人最后一击（敌方建筑）")
+        self.assertTrue(objectives[1]["player_direct"])
+        self.assertEqual(objectives[1]["direct_label"], "本人完成己方建筑反补")
         self.assertTrue(objectives[3]["player_direct"])
         self.assertEqual(result["events"]["objective_summary"], {
             "gained": 3,
             "lost": 1,
-            "player_direct": 2,
+            "player_direct": 3,
             "total": 4,
         })
         self.assertEqual(result["events"]["objective_source"], "opendota_objectives")
@@ -225,6 +283,7 @@ class ReportQualityTests(unittest.TestCase):
                 "hero_id": 1,
                 "player_slot": 1,
                 "death_log": [{"time": 540}, {"time": 1170}],
+                "purchase_log": [{"time": 1125, "key": "black_king_bar"}],
             }],
             "objectives": [
                 {
@@ -257,10 +316,11 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("肉山", drill["trigger"])
         self.assertEqual(
             [item["label"] for item in drill["checklist"]],
-            ["队友接应", "敌方控制", "撤退路线"],
+            ["局部人数数据"],
         )
         self.assertTrue(all("check" in item and item["check"] for item in drill["checklist"]))
-        self.assertIn("死亡后90秒内失去目标窗口=0", drill["success_metric"])
+        self.assertIn("全员位置采样未获取", drill["checklist"][0]["check"])
+        self.assertIn("死亡后90秒内失去目标窗口为0", drill["success_metric"])
         objective_findings = [
             item for item in result["review_findings"]
             if item["category"] == "death_objective_window"
@@ -268,10 +328,13 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(len(objective_findings), 1)
         self.assertIn("60秒", objective_findings[0]["evidence"])
         self.assertIn("目标前90秒生存规则", objective_findings[0]["training_goal"])
-        self.assertIn("死亡后90秒内失去目标窗口=0", objective_findings[0]["success_metric"])
+        self.assertIn("死亡后90秒内失去目标窗口为0", objective_findings[0]["success_metric"])
         self.assertNotIn("单独深入次数", objective_findings[0]["success_metric"])
         self.assertIn("只自动验收死亡与目标事件的时间窗口", objective_findings[0]["replay_check"])
         self.assertIn("只标记事件先后", objective_findings[0]["replay_check"])
+        self.assertIn("该死亡前45秒完成 Black King Bar", objective_findings[0]["evidence"])
+        self.assertIn("刚完成 Black King Bar 后的首次目标接触", objective_findings[0]["action"])
+        self.assertIn("系统自动对齐关键购买与焦点死亡", objective_findings[0]["replay_check"])
 
     def test_death_objective_drill_prioritizes_cumulative_loss_window(self):
         windows = [
@@ -313,7 +376,16 @@ class ReportQualityTests(unittest.TestCase):
             },
         ]
 
-        drill = _build_death_objective_drill(windows)
+        drill = _build_death_objective_drill(windows, deaths=[{
+            "time": 1620,
+            "nearby_context": {
+                "radius_units": 1600,
+                "allies_within_radius_count": 1,
+                "enemies_within_radius_count": 3,
+                "nearest_ally": {"hero_name": "Crystal Maiden", "player_id": 1, "distance_units": 900},
+                "nearest_enemy": {"hero_name": "Phantom Assassin", "player_id": 5, "distance_units": 400},
+            },
+        }])
 
         self.assertEqual(drill["focus_objective"], "高地防守")
         self.assertEqual(drill["focus_window_count"], 3)
@@ -322,6 +394,14 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("中路高地塔", drill["evidence"])
         self.assertIn("准备参与高地防守", drill["trigger"])
         self.assertNotIn("基地防守", drill["trigger"])
+        self.assertEqual(
+            [item["label"] for item in drill["checklist"]],
+            ["局部人数", "最近队友", "最近敌人"],
+        )
+        self.assertIn("队友1人、敌人3人", drill["checklist"][0]["check"])
+        self.assertIn("Crystal Maiden", drill["checklist"][1]["check"])
+        self.assertIn("Phantom Assassin", drill["checklist"][2]["check"])
+        self.assertIn("全员位置与生命状态自动计算", drill["replay_check"])
 
         finding = next(
             item for item in _build_review_findings({
@@ -409,6 +489,32 @@ class ReportQualityTests(unittest.TestCase):
 
         self.assertNotIn("hero_healing_per_min", metric_ids)
         self.assertIn("kills_per_min", metric_ids)
+
+    def test_low_tower_damage_benchmark_produces_a_specific_and_measurable_rule(self):
+        match = self._base_match()
+        match["tower_damage"] = 116
+        result = analyze_match(match, opendota_data={
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "benchmarks": {
+                    "tower_damage": {"raw": 116, "pct": 0.18},
+                },
+            }],
+        })
+
+        finding = next(
+            item for item in result["review_findings"]
+            if item["category"] == "hero_benchmark_gap"
+        )
+
+        self.assertIn("兵线已到敌方建筑", finding["action"])
+        self.assertIn("第18百分位", finding["success_metric"])
+        self.assertIn("建筑转化不少于1次", finding["success_metric"])
+        self.assertIn("至少第30百分位", finding["success_metric"])
+        self.assertNotIn("建筑伤害>116", finding["success_metric"])
+        self.assertNotIn("把路线和团战选择改到", finding["action"])
 
     def test_generated_report_shows_opendota_benchmark_percentiles(self):
         from report.generator import generate_report
@@ -639,14 +745,56 @@ class ReportQualityTests(unittest.TestCase):
                     "stats": {
                         "lastHitsPerMinute": [5] * 30,
                         "goldPerMinute": [400] * 30,
+                        "deathEvents": [
+                            {
+                                "time": event_time,
+                                "timeDead": 40,
+                                "goldLost": 200,
+                                "goldFed": 300,
+                                "xpFed": 450,
+                            }
+                            for event_time in (420, 930, 1280)
+                        ],
                     },
                     "playbackData": {
                         "deathEvents": [{"time": 420}, {"time": 930}, {"time": 1280}],
                     },
                 }],
             }
-            analysis = analyze_match(match, stratz_data=stratz_data)
-            top_finding = analysis["review_findings"][0]
+            analysis = analyze_match(
+                match,
+                stratz_data=stratz_data,
+                replay_data={
+                    "source": "valve_replay_gem",
+                    "validation": {
+                        "status": "matched",
+                        "checks": [{
+                            "metric": "deaths",
+                            "api_value": 3,
+                            "replay_value": 3,
+                            "delta": 0,
+                            "status": "matched",
+                        }],
+                    },
+                },
+            )
+            analysis["review_findings"].insert(0, {
+                "priority": "low",
+                "priority_label": "低优先级",
+                "category": "review_focus",
+                "category_label": "非首要占位问题",
+                "evidence": "这条规则故意放在原始数组第一项。",
+                "why_it_matters": "用于验证报告不会误用原始生成顺序。",
+                "action": "不要把它显示为首要决策。",
+                "replay_check": "系统检查公式排序。",
+                "training_goal": "首屏遵守公式优先级。",
+                "success_metric": "决策卡首项等于公式首项。",
+            })
+            top_finding = select_formula_findings(analysis)[0]
+            self.assertNotEqual(
+                analysis["review_findings"][0]["category"],
+                top_finding["category"],
+            )
             path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
             with open(path, "r", encoding="utf-8") as f:
                 html = f.read()
@@ -660,10 +808,12 @@ class ReportQualityTests(unittest.TestCase):
         self.assertLess(decision_index, formula_index)
         self.assertIn("上分决策卡", html)
         self.assertIn("本局最该修", html)
-        self.assertIn(top_finding["category_label"], html)
-        self.assertIn(top_finding["evidence"], html)
-        self.assertIn(top_finding["action"], html)
-        self.assertIn(top_finding["success_metric"], html)
+        decision_html = html[decision_index:formula_index]
+        self.assertIn(top_finding["category_label"], decision_html)
+        self.assertIn(top_finding["evidence"], decision_html)
+        self.assertIn(top_finding["action"], decision_html)
+        self.assertIn(top_finding["success_metric"], decision_html)
+        self.assertNotIn("非首要占位问题", decision_html)
         self.assertIn('href="#decision-snapshot"', html)
         self.assertIn('data-decision-tab="action"', html)
         self.assertIn('data-decision-tab="evidence"', html)
@@ -715,11 +865,12 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("只表示时间相邻", html)
         self.assertIn("目标前90秒生存规则", html)
         self.assertIn("证据窗口", html)
-        self.assertIn("目标前90秒证据检查点", html)
+        self.assertIn("目标窗口自动证据", html)
         self.assertNotIn("优先回看", html)
-        self.assertIn("队友接应", html)
-        self.assertIn("敌方控制", html)
-        self.assertIn("撤退路线", html)
+        self.assertIn("局部人数数据", html)
+        self.assertIn("全员位置采样未获取", html)
+        self.assertNotIn("队友接应", html)
+        self.assertNotIn("敌方控制", html)
         self.assertIn("objective-review-workbench", html)
         self.assertIn('data-objective-filter="all"', html)
         self.assertIn('data-objective-filter="gained"', html)
@@ -783,7 +934,8 @@ class ReportQualityTests(unittest.TestCase):
         result = analyze_match(self._base_match(), stratz_data=stratz_data)
 
         self.assertEqual(result["context"]["role"], "POSITION_1")
-        self.assertEqual(result["context"]["lane"], "SAFE_LANE")
+        self.assertEqual(result["context"]["lane"], "优势路（STRATZ）")
+        self.assertEqual(result["context"]["raw_lane"], "SAFE_LANE")
         self.assertIn("Axe", result["context"]["enemy_heroes"])
         self.assertEqual(result["skills"]["upgrades"][0]["abilityId"], 5003)
         self.assertIn("stratz_player_detail", result["data_quality"]["available"])
@@ -798,10 +950,35 @@ class ReportQualityTests(unittest.TestCase):
         self.assertTrue(all("未计算也未估算" in item["reason"] for item in review["unscored_dimensions"]))
         self.assertIn("minute_lh", analysis["data_quality"]["blocking_gaps"])
 
+    def test_static_favorable_matchup_table_does_not_create_an_evidence_finding(self):
+        match = self._base_match()
+        match["hero_id"] = 10
+        opendota_data = {
+            "players": [
+                {
+                    "account_id": 173776719,
+                    "hero_id": 10,
+                    "player_slot": 1,
+                },
+                {
+                    "account_id": 999,
+                    "hero_id": 2,
+                    "player_slot": 128,
+                },
+            ],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+
+        self.assertEqual(result["hero_name"], "Morphling")
+        self.assertIn("Axe", result["context"]["enemy_heroes"])
+        self.assertFalse(any(issue.get("type") == "hero_matchup" for issue in result["issues"]))
+
     def test_data_quality_does_not_repeat_specific_gaps_as_generic_coverage_gaps(self):
         limitations = analyze_match(self._base_match())["data_quality"]["limitations"]
 
-        self.assertTrue(any("缺少10分钟补刀/经济时间线" in item for item in limitations))
+        self.assertTrue(any("缺少分钟补刀时间线" in item for item in limitations))
+        self.assertTrue(any("缺少分钟经济时间线" in item for item in limitations))
         self.assertTrue(any("缺少购买时间线" in item for item in limitations))
         self.assertTrue(any("缺少团战/击杀日志" in item for item in limitations))
         self.assertTrue(any("缺少地图目标事件" in item for item in limitations))
@@ -812,6 +989,21 @@ class ReportQualityTests(unittest.TestCase):
             "地图目标事件缺失",
         ):
             self.assertFalse(any(duplicate in item for item in limitations), duplicate)
+
+    def test_match_identity_and_clock_are_required_evidence(self):
+        match = self._base_match()
+        match.pop("duration")
+
+        result = analyze_match(match)
+        ledger = next(
+            item for item in result["data_quality"]["field_ledger"]
+            if item["id"] == "match_identity"
+        )
+
+        self.assertEqual(ledger["status"], "partial")
+        self.assertIn("duration", ledger["missing_fields"])
+        self.assertIn("start_time", ledger["missing_fields"])
+        self.assertIn("match_identity", result["data_quality"]["blocking_gaps"])
 
     def test_formula_review_keeps_limitations_out_of_priority_actions(self):
         analysis = analyze_match(self._base_match())
@@ -1029,6 +1221,95 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(result["timeline"]["ten_min_denies"], 10)
         self.assertTrue(result["timeline"]["damage_windows"])
 
+    def test_timeline_rejects_cumulative_series_with_a_missing_minute(self):
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "lh_t": [0, 5, None, 16],
+                "gold_t": [0, 300, 650, 980],
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+
+        self.assertFalse(result["timeline"]["available"])
+        self.assertIsNone(result["timeline"]["ten_min_last_hits"])
+
+    def test_timeline_rejects_non_monotonic_cumulative_series(self):
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "lh_t": [0, 5, 4, 16],
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+
+        self.assertFalse(result["timeline"]["available"])
+
+    def test_timeline_does_not_invent_zero_for_unavailable_optional_series(self):
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "lh_t": [0, 5, 10, 16, 22, 28, 34, 40, 46, 52, 58],
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        timeline = result["timeline"]
+
+        self.assertIsNone(timeline["ten_min_denies"])
+        self.assertIsNone(timeline["twenty_min_avg_gpm"])
+        self.assertIsNone(timeline["phases"][0]["avg_gpm"])
+        self.assertIsNone(timeline["phases"][0]["avg_xpm"])
+        self.assertIsNone(timeline["phases"][0]["hero_damage"])
+        self.assertIsNone(timeline["phases"][0]["tower_damage"])
+
+        from report.generator import generate_report
+        with tempfile.TemporaryDirectory() as output_dir:
+            path = generate_report(
+                result,
+                _generate_fallback_analysis(result),
+                output_dir=output_dir,
+            )
+            html = Path(path).read_text(encoding="utf-8")
+        self.assertNotIn("None", html)
+        self.assertIn("未获取", html)
+
+    def test_report_translates_source_ids_and_preserves_unknown_header_values(self):
+        result = analyze_match(self._base_match())
+        result["is_win"] = None
+        result["duration_min"] = None
+        result["data_quality"]["available"] = [
+            "opendota_core_stats",
+            "valve_replay_gem",
+        ]
+
+        from report.generator import generate_report
+        with tempfile.TemporaryDirectory() as output_dir:
+            path = generate_report(
+                result,
+                _generate_fallback_analysis(result),
+                output_dir=output_dir,
+            )
+            html = Path(path).read_text(encoding="utf-8")
+
+        self.assertIn("比赛结果未获取", html)
+        self.assertIn("时长 未获取", html)
+        self.assertIn("OpenDota比赛核心数据", html)
+        self.assertIn("Valve原始回放解析", html)
+        self.assertNotIn("opendota_core_stats", html)
+        self.assertNotIn("valve_replay_gem", html)
+
     def test_lane_farm_findings_ignore_only_late_low_efficiency_windows(self):
         match = self._base_match()
         match["duration"] = 4200
@@ -1077,8 +1358,8 @@ class ReportQualityTests(unittest.TestCase):
             if item["category"] == "resource_continuity"
         )
 
-        self.assertIn("从1个压到0个", finding["training_goal"])
-        self.assertIn("低效率窗口=0", finding["success_metric"])
+        self.assertIn("从1个降到不超过0个", finding["training_goal"])
+        self.assertIn("低效率窗口不超过0个", finding["success_metric"])
         self.assertNotIn("从1个压到最多1个", finding["training_goal"])
 
     def test_unknown_lane_core_profile_keeps_late_resource_findings(self):
@@ -1230,7 +1511,12 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("fight_log", result["data_quality"]["available"])
         categories = {finding["category"] for finding in result["review_findings"]}
         self.assertIn("death_review", categories)
-        self.assertIn("item_timing", categories)
+        self.assertNotIn("item_timing", categories)
+        self.assertTrue(all(
+            window["classification"] == "insufficient_data"
+            for window in result["events"]["post_item_windows"]
+            if window["window_type"] == "map_conversion"
+        ))
 
     def test_stratz_position_samples_are_attached_to_death_events(self):
         match = self._base_match()
@@ -1383,7 +1669,10 @@ class ReportQualityTests(unittest.TestCase):
                     "goldPerMinute": [420] * 10 + [160, 170, 180, 390, 400, 410, 420, 420, 420, 420, 420, 420, 420, 420, 420],
                 },
                 "playbackData": {
-                    "deathEvents": [{"time": 600}, {"time": 960}],
+                    "deathEvents": [
+                        {"time": 600, "timeDead": 30},
+                        {"time": 960, "timeDead": 35},
+                    ],
                     "purchaseEvents": [{"time": 540, "itemId": 145}, {"time": 1020, "itemId": 116}],
                 },
             }],
@@ -1605,10 +1894,10 @@ class ReportQualityTests(unittest.TestCase):
                 "position": "POSITION_1",
                 "role": "CORE",
                 "stats": {
-                    "lastHitsPerMinute": [5] * 10 + [9, 10, 9, 8, 9, 9, 8],
-                    "goldPerMinute": [420] * 10 + [650, 700, 680, 660, 690, 710, 700],
-                    "towerDamagePerMinute": [0] * 10 + [0, 0, 0, 100, 150, 0, 0],
-                    "heroDamagePerMinute": [0] * 17,
+                    "lastHitsPerMinute": [5] * 10 + [9, 10, 9, 8, 9, 9, 8, 9],
+                    "goldPerMinute": [420] * 10 + [650, 700, 680, 660, 690, 710, 700, 720],
+                    "towerDamagePerMinute": [0] * 10 + [0, 0, 0, 100, 150, 0, 0, 0],
+                    "heroDamagePerMinute": [0] * 18,
                 },
                 "playbackData": {
                     "purchaseEvents": [
@@ -1632,8 +1921,8 @@ class ReportQualityTests(unittest.TestCase):
         manta_window = result["events"]["post_item_windows"][1]
         self.assertEqual(manta_window["item_name"], "Manta Style")
         self.assertEqual(manta_window["window_type"], "farm_acceleration")
-        self.assertEqual(manta_window["lh_gain"], 34)
-        self.assertEqual(manta_window["avg_gpm"], 690.0)
+        self.assertEqual(manta_window["lh_gain"], 43)
+        self.assertEqual(manta_window["avg_gpm"], 696.0)
 
         self.assertNotIn("item_timing", {f["category"] for f in result["review_findings"]})
 
@@ -1645,6 +1934,149 @@ class ReportQualityTests(unittest.TestCase):
             self.assertIn("success_metric", finding)
             self.assertTrue(finding["training_goal"])
             self.assertTrue(finding["success_metric"])
+
+    def test_buyback_log_is_linked_to_the_next_death_and_becomes_a_training_rule(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "player_slot": 1,
+                "buyback_count": 1,
+                "buyback_log": [{"time": 1200, "slot": 1, "player_slot": 1}],
+            }],
+        }
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "playbackData": {
+                    "deathEvents": [{"time": 600}, {"time": 1254}],
+                },
+            }],
+        }
+
+        result = analyze_match(
+            match,
+            stratz_data=stratz_data,
+            opendota_data=opendota_data,
+        )
+
+        self.assertEqual(result["events"]["buyback_source"], "opendota_parsed_logs")
+        self.assertEqual(result["events"]["buybacks"][0]["minute"], 20.0)
+        self.assertEqual(result["events"]["buyback_death_windows"][0]["redeath_seconds"], 54)
+        self.assertTrue(result["events"]["buyback_death_windows"][0]["short_redeath"])
+        finding = next(
+            item for item in result["review_findings"]
+            if item["category"] == "buyback_redeath"
+        )
+        self.assertEqual(finding["priority"], "high")
+        self.assertIn("20.0分买活", finding["evidence"])
+        self.assertIn("54秒", finding["evidence"])
+        self.assertIn("买活后120秒内再次死亡为0", finding["success_metric"])
+        ledger = next(
+            item for item in result["data_quality"]["field_ledger"]
+            if item["id"] == "buyback_events"
+        )
+        self.assertEqual(ledger["status"], "available")
+        from report.generator import generate_report
+        with tempfile.TemporaryDirectory() as output_dir:
+            path = generate_report(
+                result,
+                _generate_fallback_analysis(result),
+                output_dir=output_dir,
+            )
+            html = Path(path).read_text(encoding="utf-8")
+        self.assertIn("买活与再次死亡", html)
+        self.assertIn("20.0分买活", html)
+        self.assertIn("54秒", html)
+
+    def test_missing_buyback_timeline_is_a_blocking_evidence_gap(self):
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "player_slot": 1,
+                "buyback_count": 1,
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+
+        self.assertIn("buyback_events", result["data_quality"]["blocking_gaps"])
+        ledger = next(
+            item for item in result["data_quality"]["field_ledger"]
+            if item["id"] == "buyback_events"
+        )
+        self.assertEqual(ledger["status"], "missing")
+
+    def test_unknown_buyback_count_is_not_reported_as_zero_buybacks(self):
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        source = next(
+            item for item in result["data_quality"]["evidence_sources"]
+            if item["id"] == "buyback_events"
+        )
+
+        self.assertEqual(source["status"], "missing")
+        self.assertIn("未获取买活次数", source["coverage"])
+
+    def test_partial_vision_fields_do_not_invent_a_complete_total(self):
+        match = self._base_match()
+        opendota_data = {
+            "players": [{
+                "account_id": 173776719,
+                "hero_id": 1,
+                "player_slot": 1,
+                "obs_placed": 2,
+            }],
+        }
+
+        result = analyze_match(match, opendota_data=opendota_data)
+        summary = result["events"]["vision_summary"]
+
+        self.assertTrue(summary["available"])
+        self.assertIsNone(summary["placed_total"])
+        self.assertIsNone(summary["kill_total"])
+        self.assertIsNone(result["context"]["team_resource_ranks"]["vision_actions"])
+        self.assertIn("观察眼2个", next(
+            item["coverage"] for item in result["data_quality"]["evidence_sources"]
+            if item["id"] == "vision_events"
+        ))
+
+    def test_stratz_destruction_only_vision_data_does_not_invent_zero_wards(self):
+        match = self._base_match()
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "wardDestruction": [{"time": 700, "isWard": True}],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        summary = result["events"]["vision_summary"]
+
+        self.assertIsNone(summary["observer_placed"])
+        self.assertIsNone(summary["sentry_placed"])
+        self.assertIsNone(summary["placed_total"])
+        self.assertEqual(summary["kill_total"], 1)
 
     def test_low_item_conversion_window_becomes_measurable_next_game_goal(self):
         match = self._base_match()
@@ -1679,8 +2111,55 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("Manta Style后5分钟30补/430.0GPM", item_finding["replay_check"])
         self.assertIn("Manta Style", item_finding["training_goal"])
         self.assertIn("刷钱装后5分钟", item_finding["success_metric"])
-        self.assertIn("补刀>=40或平均GPM>=600", item_finding["success_metric"])
+        self.assertIn("补刀不少于40或平均GPM不低于600", item_finding["success_metric"])
         self.assertNotIn("强势装后2分钟", item_finding["success_metric"])
+
+    def test_item_finding_evidence_only_names_windows_that_failed_thresholds(self):
+        findings = _build_review_findings({
+            "duration_min": 40,
+            "role_profile": {"id": "pos1", "lane_farm_sensitive": False},
+            "timeline": {},
+            "events": {
+                "purchases": [{"item_name": "Mage Slayer", "minute": 12.7}],
+                "key_purchases": [
+                    {"item_name": "Mage Slayer", "minute": 12.7},
+                    {"item_name": "Diffusal Blade", "minute": 17.8},
+                    {"item_name": "Black King Bar", "minute": 42.3},
+                ],
+                "post_item_windows": [
+                    {
+                        "item_name": "Mage Slayer",
+                        "minute": 12.7,
+                        "window_type": "context_only",
+                        "evaluable": False,
+                        "summary": "Mage Slayer于12.7分钟完成；该装备没有通用、可核验的固定转化窗口",
+                    },
+                    {
+                        "item_name": "Diffusal Blade",
+                        "minute": 17.8,
+                        "window_type": "context_only",
+                        "evaluable": False,
+                        "summary": "Diffusal Blade于17.8分钟完成；该装备没有通用、可核验的固定转化窗口",
+                    },
+                    {
+                        "item_name": "Black King Bar",
+                        "minute": 42.3,
+                        "window_type": "map_conversion",
+                        "evaluable": True,
+                        "kills_or_assists": 0,
+                        "tower_damage": 0,
+                        "summary": "Black King Bar后2分钟参战0次/推塔0",
+                    },
+                ],
+            },
+            "kda": {"deaths": 0},
+        })
+
+        item_finding = next(item for item in findings if item["category"] == "item_timing")
+        self.assertIn("Black King Bar 42.3分钟", item_finding["evidence"])
+        self.assertIn("Black King Bar后2分钟参战0次/推塔0", item_finding["evidence"])
+        self.assertNotIn("Mage Slayer", item_finding["evidence"])
+        self.assertNotIn("Diffusal Blade", item_finding["evidence"])
 
     def test_purchase_timeline_without_key_items_is_data_quality_not_main_issue(self):
         match = self._base_match()
@@ -1874,8 +2353,9 @@ class ReportQualityTests(unittest.TestCase):
         death_finding = next(f for f in result["review_findings"] if f["category"] == "death_review")
         self.assertIn("连续死亡簇: 7.0-9.5分钟、15.5-21.3分钟", death_finding["replay_check"])
         self.assertIn("复活后3分钟", death_finding["action"])
-        self.assertIn("死亡压到", death_finding["training_goal"])
-        self.assertIn("连续5分钟内死亡簇=0", death_finding["success_metric"])
+        self.assertIn("每10分钟死亡从1.43降到不超过1.1", death_finding["training_goal"])
+        self.assertIn("每10分钟死亡不超过1.1", death_finding["success_metric"])
+        self.assertIn("连续5分钟内死亡簇不超过1个", death_finding["success_metric"])
 
     def test_death_review_evidence_lists_all_death_minutes_when_complete(self):
         match = self._base_match()
@@ -1945,6 +2425,8 @@ class ReportQualityTests(unittest.TestCase):
         overlap_finding = next(f for f in result["review_findings"] if f["category"] == "death_resource_overlap")
         self.assertIn("低效率窗口 10-12分钟含 11.0分死亡", overlap_finding["evidence"])
         self.assertIn("先补回一波安全线", overlap_finding["action"])
+        self.assertIn("从2次降到不超过1次", overlap_finding["training_goal"])
+        self.assertIn("重叠不超过1次", overlap_finding["success_metric"])
 
     def test_generated_report_shows_death_overlap_windows(self):
         from report.generator import generate_report
@@ -1993,11 +2475,11 @@ class ReportQualityTests(unittest.TestCase):
                 "position": "POSITION_1",
                 "role": "CORE",
                 "stats": {
-                    "lastHitsPerMinute": [6] * 10 + [0, 1, 0, 6, 6],
-                    "goldPerMinute": [420] * 10 + [120, 150, 130, 420, 430],
+                    "lastHitsPerMinute": [6] * 10 + [99, 0, 1, 0, 6, 6],
+                    "goldPerMinute": [420] * 10 + [999, 120, 150, 130, 420, 430],
                 },
                 "playbackData": {
-                    "deathEvents": [{"time": 600}],
+                    "deathEvents": [{"time": 600, "timeDead": 1}],
                 },
             }],
         }
@@ -2007,15 +2489,12 @@ class ReportQualityTests(unittest.TestCase):
         finding = next(f for f in result["review_findings"] if f["category"] == "death_recovery")
 
         self.assertEqual(recovery["minute"], 10.0)
-        self.assertEqual(recovery["window_label"], "10-13分钟")
+        self.assertEqual(recovery["window_label"], "11-14分钟")
+        self.assertEqual(recovery["window_basis"], "stratz_time_dead")
         self.assertEqual(recovery["lh_gain"], 1)
         self.assertAlmostEqual(recovery["avg_gpm"], 133.3)
         self.assertEqual(recovery["status_label"], "恢复不足")
-        self.assertIn("10.0分后10-13分钟 1补/133.3平均GPM", finding["evidence"])
-        self.assertIn(
-            "10.0分死亡前后：补刀/分 6.0→0.3（-5.7），平均GPM 420.0→133.3（-286.7）",
-            finding["evidence"],
-        )
+        self.assertIn("10.0分复活后11-14分钟 1补/133.3平均GPM", finding["evidence"])
         self.assertIn("3分钟内先补到", finding["action"])
 
     def test_generated_report_shows_death_recovery_windows(self):
@@ -2035,11 +2514,11 @@ class ReportQualityTests(unittest.TestCase):
                     "position": "POSITION_1",
                     "role": "CORE",
                     "stats": {
-                        "lastHitsPerMinute": [6] * 10 + [0, 1, 0, 6, 6],
-                        "goldPerMinute": [420] * 10 + [120, 150, 130, 420, 430],
+                        "lastHitsPerMinute": [6] * 10 + [99, 0, 1, 0, 6, 6],
+                        "goldPerMinute": [420] * 10 + [999, 120, 150, 130, 420, 430],
                     },
                     "playbackData": {
-                        "deathEvents": [{"time": 600}],
+                        "deathEvents": [{"time": 600, "timeDead": 1}],
                     },
                 }],
             }
@@ -2051,10 +2530,46 @@ class ReportQualityTests(unittest.TestCase):
         generator.REPORT_DIR = old_report_dir
 
         self.assertIn("死亡后恢复窗口", html)
-        self.assertIn("10.0分死亡后10-13分钟", html)
+        self.assertIn("10.0分复活后11-14分钟", html)
         self.assertIn("1补", html)
         self.assertIn("平均GPM 133.3", html)
         self.assertIn("恢复不足", html)
+
+    def test_death_recovery_window_stops_at_the_next_real_death(self):
+        match = self._base_match()
+        match["deaths"] = 2
+        stratz_data = {
+            "players": [{
+                "steamAccount": {"id": 173776719},
+                "isRadiant": True,
+                "hero": {"id": 1, "displayName": "Anti-Mage"},
+                "position": "POSITION_1",
+                "role": "CORE",
+                "stats": {
+                    "lastHitsPerMinute": [6] * 20,
+                    "goldPerMinute": [420] * 20,
+                },
+                "playbackData": {
+                    "deathEvents": [
+                        {"time": 600, "timeDead": 1},
+                        {"time": 650, "timeDead": 10},
+                    ],
+                },
+            }],
+        }
+
+        result = analyze_match(match, stratz_data=stratz_data)
+        windows = result["timeline"]["death_recovery_windows"]
+
+        self.assertEqual(windows[0]["status"], "interrupted")
+        self.assertEqual(windows[0]["redeath_seconds"], 49)
+        self.assertIn("复活后49秒再次死亡", windows[0]["evidence_label"])
+        self.assertEqual(windows[1]["window_label"], "11-14分钟")
+        finding = next(
+            item for item in result["review_findings"]
+            if item["category"] == "death_recovery"
+        )
+        self.assertIn("未形成完整资源分钟", finding["evidence"])
 
     def test_death_resource_deltas_compare_before_and_after_pace(self):
         match = self._base_match()
@@ -2153,8 +2668,8 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("平均GPM 500.0→650.0（+150.0）", finding["evidence"])
         self.assertIn("复活后", finding["action"])
         self.assertIn("不判断死亡原因", finding["replay_check"])
-        self.assertIn("从1个压到0个", finding["training_goal"])
-        self.assertIn("下降窗口=0", finding["success_metric"])
+        self.assertIn("从1个降到不超过0个", finding["training_goal"])
+        self.assertIn("下降窗口不超过0个", finding["success_metric"])
         self.assertNotIn("从1个压到最多1个", finding["training_goal"])
 
     def test_generated_report_shows_death_resource_deltas(self):
@@ -2267,6 +2782,24 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn(".evidence-completeness-chips {", mobile_styles)
         self.assertIn("flex-wrap: wrap;", mobile_styles)
         self.assertIn("overflow-x: visible;", mobile_styles)
+        self.assertIn(".report-top-link {", mobile_styles)
+        self.assertIn("position: static;", mobile_styles)
+
+    def test_generated_report_versions_stylesheet_with_content_hash(self):
+        import hashlib
+        from report.generator import generate_report
+
+        analysis = analyze_match(self._base_match())
+        expected = hashlib.sha256(Path("report/static/style.css").read_bytes()).hexdigest()[:12]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = generate_report(
+                analysis,
+                _generate_fallback_analysis(analysis, "Anti-Mage", True),
+                output_dir=tmp,
+            )
+            html = Path(path).read_text(encoding="utf-8")
+
+        self.assertIn(f'href="static/style.css?v={expected}"', html)
 
     def test_review_findings_are_structured_and_formula_review_is_limited_to_them(self):
         analysis = analyze_match(self._base_match())
@@ -2304,18 +2837,46 @@ class ReportQualityTests(unittest.TestCase):
                     "stats": {
                         "lastHitsPerMinute": [5] * 30,
                         "goldPerMinute": [400] * 30,
+                        "deathEvents": [
+                            {
+                                "time": event_time,
+                                "timeDead": 40,
+                                "goldLost": 200,
+                                "goldFed": 300,
+                                "xpFed": 450,
+                            }
+                            for event_time in (420, 930, 1280)
+                        ],
                     },
                     "playbackData": {
                         "deathEvents": [{"time": 420}, {"time": 930}, {"time": 1280}],
                     },
                 }],
             }
-            analysis = analyze_match(match, stratz_data=stratz_data)
+            analysis = analyze_match(
+                match,
+                stratz_data=stratz_data,
+                replay_data={
+                    "source": "valve_replay_gem",
+                    "validation": {
+                        "status": "matched",
+                        "checks": [{
+                            "metric": "deaths",
+                            "api_value": 3,
+                            "replay_value": 3,
+                            "delta": 0,
+                            "status": "matched",
+                        }],
+                    },
+                },
+            )
             path = generate_report(analysis, _generate_fallback_analysis(analysis, "Anti-Mage", True))
             with open(path, "r", encoding="utf-8") as f:
                 html = f.read()
 
             for text in ["下一局行动清单", "时间线诊断", "死亡/装备事件", "本局主要问题证据", "数据缺口", "数据公式复盘"]:
+                self.assertIn(text, html)
+            for text in ["证据源对账", "死亡事件真实成本", "送出 900 金 / 1350 经验"]:
                 self.assertIn(text, html)
             for text in ["下一局量化目标", "训练目标", "验收标准", "综合执行分", "分项权重"]:
                 self.assertIn(text, html)
@@ -2409,6 +2970,59 @@ class ReportQualityTests(unittest.TestCase):
 
         generator.REPORT_DIR = old_report_dir
 
+    def test_generated_report_shows_every_death_and_real_replay_killer(self):
+        from report.generator import generate_report
+        import report.generator as generator
+
+        old_report_dir = generator.REPORT_DIR
+        with tempfile.TemporaryDirectory() as tmp:
+            generator.REPORT_DIR = tmp
+            match = self._base_match()
+            match.update({"deaths": 12, "duration": 3600})
+            replay_data = {
+                "deaths": [
+                    {
+                        "time": 120 + index * 240,
+                        "killer": "npc_dota_hero_keeper_of_the_light",
+                        "position": {"x": 100 + index, "y": 120 + index},
+                    }
+                    for index in range(12)
+                ],
+            }
+            for death in replay_data["deaths"]:
+                death["nearby_context"] = {
+                    "source": "valve_replay_all_player_positions",
+                    "radius_units": 1600,
+                    "sample_resolution_seconds": 2,
+                    "sampled_other_players": 9,
+                    "allies_within_radius_count": 1,
+                    "enemies_within_radius_count": 3,
+                    "allies_within_radius": [{"player_id": 1, "hero_id": 5, "distance_units": 800}],
+                    "enemies_within_radius": [{"player_id": 5, "hero_id": 44, "distance_units": 400}],
+                    "nearest_ally": {"player_id": 1, "hero_id": 5, "distance_units": 800},
+                    "nearest_enemy": {"player_id": 5, "hero_id": 44, "distance_units": 400},
+                }
+            analysis = analyze_match(match, replay_data=replay_data)
+            death_finding = next(
+                item for item in analysis["review_findings"]
+                if item["category"] == "death_review"
+            )
+            self.assertIn("局部人数覆盖12/12次死亡", death_finding["evidence"])
+            self.assertIn("12次敌方人数多于队友", death_finding["evidence"])
+            self.assertIn("向最近队友方向撤退", death_finding["action"])
+            path = generate_report(analysis, _generate_fallback_analysis(analysis))
+            with open(path, "r", encoding="utf-8") as f:
+                html = f.read()
+
+            self.assertEqual(html.count('<div class="death-event-card'), 12)
+            self.assertIn("击杀者：Keeper of the Light", html)
+            self.assertIn("1600范围内存活队友1人、敌人3人", html)
+            self.assertIn("最近队友 Crystal Maiden 800单位", html)
+            self.assertIn("最近敌人 Phantom Assassin 400单位", html)
+            self.assertIn("46.0分", html)
+
+        generator.REPORT_DIR = old_report_dir
+
     def test_death_position_samples_build_raw_coordinate_map_points(self):
         match = self._base_match()
         match["deaths"] = 2
@@ -2460,10 +3074,6 @@ class ReportQualityTests(unittest.TestCase):
 
         result = analyze_match(match, stratz_data=stratz_data)
         cluster = result["events"]["death_position_clusters"][0]
-        finding = next(
-            item for item in result["review_findings"]
-            if item["category"] == "death_position_pattern"
-        )
 
         self.assertEqual(cluster["death_count"], 2)
         self.assertEqual(cluster["minutes"], [7.0, 9.0])
@@ -2471,23 +3081,10 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual(cluster["center_y"], 142.0)
         self.assertIn("7.0、9.0分", cluster["evidence_label"])
         self.assertIn("中心x=123.0,y=142.0", cluster["evidence_label"])
-        self.assertEqual(finding["category_label"], "重复死亡坐标")
-        self.assertIn("重复死亡坐标簇", finding["evidence"])
-        self.assertIn("7.0、9.0分", finding["evidence"])
-        self.assertIn("不转换成地图区域名", finding["replay_check"])
-        self.assertIn("从1个压到0个", finding["training_goal"])
-        self.assertIn("重复死亡坐标簇=0", finding["success_metric"])
-        self.assertNotIn("赛前撤退规则", finding["success_metric"])
-        self.assertNotIn("从1个压到最多1个", finding["training_goal"])
-        joined = " ".join([
-            finding["why_it_matters"],
-            finding["action"],
-            finding["replay_check"],
-            finding["training_goal"],
-            finding["success_metric"],
-        ])
-        for banned in ["逐一回放", "回放场景", "需要回放确认", "可回放复查", "回放确认后的"]:
-            self.assertNotIn(banned, joined)
+        self.assertFalse(any(
+            item["category"] == "death_position_pattern"
+            for item in result["review_findings"]
+        ))
 
     def test_repeated_coordinate_cluster_members_are_marked_for_report_scanning(self):
         match = self._base_match()
@@ -2592,6 +3189,26 @@ class ReportQualityTests(unittest.TestCase):
         self.assertIn("不生成地图区域名", html)
         for banned in ["优先回看", "需要回放确认", "可回放复查", "回放确认后的", "回放场景"]:
             self.assertNotIn(banned, html)
+
+    def test_replay_coordinate_clusters_name_the_actual_position_source(self):
+        from report.generator import generate_report
+
+        match = self._base_match()
+        match["deaths"] = 2
+        replay_data = {
+            "deaths": [
+                {"time": 420, "position": {"x": 120, "y": 140}},
+                {"time": 540, "position": {"x": 126, "y": 144}},
+            ],
+        }
+        analysis = analyze_match(match, replay_data=replay_data)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = generate_report(analysis, build_formula_review(analysis), output_dir=tmp)
+            html = Path(path).read_text(encoding="utf-8")
+
+        self.assertIn("Valve回放实体位置采样的原始x/y距离聚类", html)
+        self.assertNotIn("只按 STRATZ 原始x/y距离聚类", html)
 
     def test_generated_report_highlights_repeated_coordinate_death_cards(self):
         from report.generator import generate_report
@@ -2710,8 +3327,9 @@ class ReportQualityTests(unittest.TestCase):
                 html = f.read()
 
             self.assertIn("已定位 1/3 次死亡", html)
-            for banned in ["人工", "手动", "回放", "回顾", "需要回放确认", "等待 OpenDota", "等待自动解析", "推断", "推测", "可能"]:
+            for banned in ["人工", "手动", "回看", "回顾", "需要回放确认", "等待 OpenDota", "等待自动解析", "推断", "推测", "可能"]:
                 self.assertNotIn(banned, html)
+            self.assertIn("Valve回放全员位置与生命状态采样", html)
 
         generator.REPORT_DIR = old_report_dir
 
@@ -2904,6 +3522,100 @@ class ReportQualityTests(unittest.TestCase):
         self.assertEqual([item["minute"] for item in result["events"]["deaths"]], [8.0, 15.5])
         self.assertEqual(result["events"]["death_coverage_label"], "已定位 2/2 次死亡")
         self.assertIn("valve_replay", result["events"]["source"])
+
+    def test_replay_life_state_fills_each_death_duration_without_fake_zero_costs(self):
+        match = self._base_match()
+        match["deaths"] = 1
+        replay_data = {
+            "deaths": [{
+                "time": 420,
+                "time_dead": 37,
+                "respawn_observed_at": 457,
+                "time_dead_source": "valve_replay_life_state",
+                "time_dead_resolution_seconds": 1,
+            }],
+            "performance": {"life_state_dead": 37},
+        }
+
+        result = analyze_match(match, replay_data=replay_data)
+
+        death = result["events"]["deaths"][0]
+        summary = result["events"]["death_cost_summary"]
+        finding = next(
+            item for item in result["review_findings"]
+            if item["category"] == "death_review"
+        )
+        self.assertEqual(death["time_dead"], 37)
+        self.assertEqual(death["respawn_observed_at"], 457)
+        self.assertEqual(summary["total_dead_seconds"], 37)
+        self.assertEqual(summary["time_covered_deaths"], 1)
+        self.assertIsNone(summary["total_gold_lost"])
+        self.assertFalse(summary["gold_lost_available"])
+        self.assertEqual(summary["source"], "Valve回放逐秒生命状态")
+        self.assertIn("死亡时长0分37秒", finding["evidence"])
+        self.assertNotIn("丢失0金", finding["evidence"])
+        self.assertNotIn("给出0金/0经验", finding["evidence"])
+        self.assertNotIn("可量化金钱/经验", finding["why_it_matters"])
+        self.assertIn("可行动时间", finding["why_it_matters"])
+        self.assertIn("系统已自动对齐", finding["replay_check"])
+        self.assertIn("逐次死亡时长", finding["replay_check"])
+        self.assertNotIn("优先检查装备冷却", finding["replay_check"])
+        self.assertNotIn("队友距离", finding["replay_check"])
+
+        from report.generator import generate_report
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = generate_report(
+                result,
+                build_formula_review(result),
+                output_dir=tmp,
+            )
+            html = Path(path).read_text(encoding="utf-8")
+        self.assertIn("死亡 37 秒", html)
+        self.assertNotIn("丢失 0 金", html)
+        self.assertNotIn("送出 0 金 / 0 经验", html)
+        self.assertNotIn("None", html)
+
+        primary_training_goal = select_formula_findings(result)[0]["training_goal"]
+        self.assertEqual(html.count(primary_training_goal), 1)
+
+    def test_replay_position_without_sample_delta_is_not_labeled_death_time(self):
+        match = self._base_match()
+        match["deaths"] = 1
+        replay_data = {
+            "deaths": [{
+                "time": 420,
+                "position": {"x": 100.0, "y": 120.0},
+            }],
+        }
+
+        result = analyze_match(match, replay_data=replay_data)
+        death = result["events"]["deaths"][0]
+
+        self.assertNotIn("position_sample_age_seconds", death)
+        self.assertIn("采样时间差未返回", death["position_label"])
+        self.assertNotIn("死亡时", death["position_label"])
+
+    def test_report_marks_unfinished_final_death_duration_as_a_lower_bound(self):
+        match = self._base_match()
+        match["deaths"] = 1
+        replay_data = {
+            "deaths": [{
+                "time": 2040,
+                "time_dead": 60,
+                "time_dead_source": "valve_replay_life_state",
+            }],
+            "performance": {"life_state_dead": 60},
+        }
+        analysis = analyze_match(match, replay_data=replay_data)
+
+        from report.generator import generate_report
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = generate_report(analysis, build_formula_review(analysis), output_dir=tmp)
+            html = Path(path).read_text(encoding="utf-8")
+
+        self.assertIn("回放终局前至少死亡 60 秒", html)
 
     def test_missing_event_data_names_public_data_gap_not_user_manual_review(self):
         analysis = analyze_match(self._base_match())

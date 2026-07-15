@@ -41,6 +41,10 @@ REVIEW_RETRY_AFTER_SECONDS = 5
 REMOTE_EVIDENCE_WAIT_SECONDS = 90
 
 
+def _is_remote_evidence_source(value):
+    return isinstance(value, str) and value.startswith("github_actions_")
+
+
 def _utc_iso(value):
     if isinstance(value, str):
         return value
@@ -100,7 +104,7 @@ class ReviewService:
         return f"match-refresh-status:v1:{self.account_id}"
 
     def review_key(self, match_id):
-        return f"review:v{REVIEW_SCHEMA_VERSION}:{int(match_id)}"
+        return f"review:v{REVIEW_SCHEMA_VERSION}:f{FORMULA_VERSION}:{int(match_id)}"
 
     def parse_state_key(self, match_id):
         return f"parse:v3:evidence-v{EVIDENCE_SCHEMA_VERSION}:{int(match_id)}"
@@ -351,7 +355,7 @@ class ReviewService:
         ready_evidence = None
         if (
             isinstance(cached, dict)
-            and cached.get("evidence_source") != "github_actions_stratz"
+            and not _is_remote_evidence_source(cached.get("evidence_source"))
         ):
             candidate = await self.cache.get_json(self.evidence_key(match_id))
             if evidence_payload_is_ready(candidate, match_id):
@@ -380,7 +384,10 @@ class ReviewService:
             )
             if evidence_payload_is_ready(evidence_payload, match_id):
                 analysis = evidence_payload["analysis"]
-                evidence_source = evidence_payload.get("source") or "github_actions_stratz"
+                evidence_source = (
+                    evidence_payload.get("source")
+                    or "github_actions_stratz_opendota"
+                )
             else:
                 parse_state = await self.cache.get_json(self.parse_state_key(match_id))
                 evidence_status = await self.cache.get_json(self.evidence_status_key(match_id))

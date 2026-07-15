@@ -5,6 +5,7 @@ import {
     formatDuration,
     formatLocalTime,
     heroImageUrl,
+    numberLabel,
     rankLabel,
     refreshIcons,
     resultMeta,
@@ -59,7 +60,7 @@ function matchRow(match) {
             <span class="result-badge ${result.key}">${result.label}</span>
             <time datetime="${escapeHtml(match.ended_at || "")}">${escapeHtml(formatLocalTime(match.ended_at))}</time>
             <span class="mono">${formatDuration(match.duration_seconds)}</span>
-            <span class="kda-line"><b>${Number(kda.kills) || 0}</b><i>/</i><b class="deaths">${Number(kda.deaths) || 0}</b><i>/</i><b>${Number(kda.assists) || 0}</b></span>
+            <span class="kda-line"><b>${numberLabel(kda.kills)}</b><i>/</i><b class="deaths">${numberLabel(kda.deaths)}</b><i>/</i><b>${numberLabel(kda.assists)}</b></span>
             <span>${escapeHtml(rankLabel(match.rank_tier))}</span>
             <i class="row-arrow" data-lucide="chevron-right" aria-hidden="true"></i>
         </a>`;

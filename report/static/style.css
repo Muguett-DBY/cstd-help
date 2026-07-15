@@ -146,6 +146,13 @@ body {
 .section[id] {
     scroll-margin-top: 82px;
 }
+#objective-event-list,
+#death-objective-windows,
+#death-event-list,
+#death-coordinate-map,
+#death-coordinate-clusters {
+    scroll-margin-top: 82px;
+}
 #timeline-diagnosis .section-body {
     overflow-x: auto;
 }
@@ -504,6 +511,7 @@ body {
 }
 .result-badge.win { background: rgba(63,185,80,0.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
 .result-badge.lose { background: rgba(248,81,73,0.15); color: var(--accent-red); border: 1px solid rgba(248,81,73,0.3); }
+.result-badge.unknown { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border); }
 
 .section {
     background: var(--bg-secondary);
@@ -2306,6 +2314,23 @@ body {
     font-size: 13px;
     margin-bottom: 8px;
 }
+.reconciliation-list {
+    margin-bottom: 18px;
+    border-top: 1px solid var(--border);
+}
+.reconciliation-row {
+    display: grid;
+    grid-template-columns: minmax(90px, 0.6fr) minmax(0, 1.6fr) 72px;
+    gap: 12px;
+    align-items: center;
+    min-height: 38px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.reconciliation-row strong { color: var(--text-primary); }
+.reconciliation-row b { color: var(--accent-green); text-align: right; }
+.reconciliation-row.conflict b { color: var(--accent-red); }
 .evidence-source-heading {
     margin-top: 20px;
 }
@@ -2348,6 +2373,13 @@ body {
     .evidence-source-row {
         grid-template-columns: 1fr;
         gap: 4px;
+    }
+    .reconciliation-row {
+        grid-template-columns: minmax(70px, auto) minmax(0, 1fr);
+    }
+    .reconciliation-row b {
+        grid-column: 1 / -1;
+        text-align: left;
     }
 }
 .limitation-list {
@@ -2449,6 +2481,19 @@ body {
     border-color: rgba(210,153,34,0.34);
     color: var(--accent-yellow);
 }
+
+.buyback-event-strip {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--accent-yellow);
+    background: rgba(210,153,34,0.08);
+}
+
+.buyback-event-strip .compact-row.danger {
+    color: var(--accent-red);
+    background: rgba(248,81,73,0.08);
+}
 .death-review-workbench {
     display: grid;
     gap: 12px;
@@ -2483,6 +2528,18 @@ body {
 .death-review-body {
     min-width: 0;
 }
+.death-cost-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    padding: 9px 10px;
+    border: 1px solid rgba(210,153,34,0.3);
+    border-radius: 5px;
+    background: rgba(210,153,34,0.08);
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.death-cost-summary strong { color: var(--accent-yellow); }
 .benchmark-summary {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2844,6 +2901,14 @@ body {
     flex-basis: 100%;
     color: var(--accent-yellow);
     font-weight: 700;
+}
+.death-event-cost {
+    display: flex;
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    color: var(--accent-yellow);
+    font-size: 11px;
 }
 .death-context-list {
     flex: 1 0 100%;
@@ -3225,7 +3290,10 @@ tr:hover { background: rgba(88,166,255,0.05); }
         padding-inline: 12px;
     }
     .report-top-link {
+        position: static;
         width: 44px;
+        margin-left: 0;
+        box-shadow: none;
     }
     #timeline-diagnosis .section-body {
         overflow-x: visible;

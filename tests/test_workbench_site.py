@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.build_workbench_site import build_workbench_site
+from scripts.build_workbench_site import _seed_match, build_workbench_site
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,6 +46,21 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertTrue(all(match["hero"]["name"] for match in payload["matches"]))
         self.assertTrue(all(match["legacy_report"].endswith(".html") for match in payload["matches"]))
 
+    def test_seed_match_preserves_unknown_duration_and_kda(self):
+        match = _seed_match({
+            "match_id": 123,
+            "hero": "Anti-Mage",
+            "file": "Anti-Mage_123.html",
+            "kda": {},
+        })
+
+        self.assertIsNone(match["duration_seconds"])
+        self.assertEqual(match["kda"], {
+            "kills": None,
+            "deaths": None,
+            "assists": None,
+        })
+
     def test_home_contains_manual_refresh_and_no_automatic_refresh(self):
         self.assertIn("data-refresh-matches", self.index_html)
         self.assertIn('aria-live="polite"', self.index_html)
@@ -62,6 +77,12 @@ class WorkbenchSiteTests(unittest.TestCase):
             self.history_js,
             r"addEventListener\(\s*[\"']click[\"']\s*,\s*refreshMatches",
         )
+
+    def test_history_never_coerces_missing_kda_to_zero(self):
+        self.assertNotIn("Number(kda.kills) || 0", self.history_js)
+        self.assertNotIn("Number(kda.deaths) || 0", self.history_js)
+        self.assertNotIn("Number(kda.assists) || 0", self.history_js)
+        self.assertIn("numberLabel(kda.kills)", self.history_js)
 
     def test_initial_history_loader_reads_cache_and_seed_only(self):
         self.assertIn('apiFetch("/api/matches"', self.history_js)
@@ -104,6 +125,23 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertIn("loadMatchDetail", self.match_js)
         self.assertIn("loadReviewStatus", self.match_js)
 
+    def test_match_page_never_coerces_missing_facts_to_zero(self):
+        for unsafe in (
+            "Number(kda.kills) || 0",
+            "Number(kda.deaths) || 0",
+            "Number(kda.assists) || 0",
+            "Number(detail.radiant_score) || 0",
+            "Number(detail.dire_score) || 0",
+            "Number(player.kills) || 0",
+            "Number(player.deaths) || 0",
+            "Number(player.assists) || 0",
+            "Number(player.stuns || 0)",
+        ):
+            self.assertNotIn(unsafe, self.match_js)
+        self.assertIn("numberLabel(kda.kills)", self.match_js)
+        self.assertIn("numberLabel(detail.radiant_score)", self.match_js)
+        self.assertIn("hasFiniteNumber(player.stuns)", self.match_js)
+
     def test_match_page_renders_facts_actions_timeline_events_and_limits(self):
         for token in (
             "renderParticipants",
@@ -116,11 +154,13 @@ class WorkbenchSiteTests(unittest.TestCase):
             "renderEvents",
             "renderDeathCoordinateMap",
             "renderFindings",
+            "renderSourceReconciliation",
             "renderDataLimits",
         ):
             self.assertIn(token, self.match_js)
         self.assertIn("只展示原始坐标，不生成地图区域名", self.match_js)
         self.assertIn(".death-coordinate-plot", self.css)
+        self.assertIn(".death-cost-strip", self.css)
         self.assertIn(
             "renderFindings(guidance.review_points || analysis.review_findings || [])",
             self.match_js,
@@ -135,9 +175,26 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertIn("maximumFractionDigits: 2", self.match_js)
         self.assertIn("timeline.damage_windows", self.match_js)
         self.assertIn("timeline.tower_windows", self.match_js)
+        self.assertIn("timeline.death_overlap_windows", self.match_js)
+        self.assertIn("timeline.death_recovery_windows", self.match_js)
+        self.assertIn("timeline.death_resource_deltas", self.match_js)
         self.assertIn("输出高峰", self.match_js)
         self.assertIn("推塔高峰", self.match_js)
+        self.assertIn("复活后恢复与再死", self.match_js)
+        self.assertIn("events?.objectives || []", self.match_js)
+        self.assertIn("events?.death_objective_windows || []", self.match_js)
+        self.assertIn("events?.kills || []", self.match_js)
+        self.assertIn("events?.assists || []", self.match_js)
+        self.assertIn("events?.vision_summary || {}", self.match_js)
+        self.assertIn("回放终局前至少死亡", self.match_js)
+        self.assertIn("death_cost_summary", self.match_js)
+        self.assertIn("死亡总时长", self.match_js)
+        self.assertIn("给出金钱 / 经验", self.match_js)
+        self.assertIn("死亡事件真实成本", self.match_js)
+        self.assertIn("extended.source", self.match_js)
         self.assertIn("data_quality?.field_ledger", self.match_js)
+        self.assertIn("data_quality?.source_reconciliation", self.match_js)
+        self.assertIn("证据源对账", self.match_js)
         self.assertIn("字段覆盖账本", self.match_js)
         self.assertIn("guidance?.overall_equation", self.match_js)
         self.assertIn("分项权重", self.match_js)
@@ -146,7 +203,9 @@ class WorkbenchSiteTests(unittest.TestCase):
         self.assertIn("公式评分", self.match_html)
         self.assertIn("扩展比赛数据", self.match_html)
         self.assertNotIn("AI", self.match_html + self.match_js)
-        self.assertIn("const MAX_REVIEW_POLL_ATTEMPTS = 60", self.match_js)
+        self.assertIn("const MAX_REVIEW_POLL_ATTEMPTS = 210", self.match_js)
+        self.assertIn(".timeline-diagnostic-grid", self.css)
+        self.assertIn(".event-group-wide", self.css)
 
     def test_event_timeline_expands_when_key_purchases_are_empty(self):
         self.assertIn(
@@ -166,6 +225,12 @@ class WorkbenchSiteTests(unittest.TestCase):
             self.css,
             r"\.event-columns\s*\{[^}]*align-items:\s*start",
         )
+
+    def test_event_timeline_renders_buyback_redeath_windows(self):
+        self.assertIn("events?.buyback_death_windows || []", self.match_js)
+        self.assertIn("买活后再次死亡", self.match_js)
+        self.assertIn("redeath_seconds", self.match_js)
+        self.assertRegex(self.css, r"\.buyback-event-strip\s*\{")
 
     def test_responsive_accessible_styles_cover_mobile_and_focus(self):
         self.assertIn("@media (max-width: 720px)", self.css)

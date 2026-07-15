@@ -279,14 +279,19 @@ class ReviewServiceTests(unittest.IsolatedAsyncioTestCase):
             {
                 "schema_version": EVIDENCE_SCHEMA_VERSION,
                 "match_id": MATCH_ID,
-                "source": "github_actions_stratz",
+                "source": "github_actions_valve_replay",
                 "analysis": analysis,
             },
         )
 
         result = await self.service.generate_review(MATCH_ID, self.now)
+        cached = await self.service.generate_review(
+            MATCH_ID,
+            self.now + timedelta(minutes=1),
+        )
 
-        self.assertEqual(result["evidence_source"], "github_actions_stratz")
+        self.assertEqual(result["evidence_source"], "github_actions_valve_replay")
+        self.assertTrue(cached["cached"])
         self.assertEqual(
             [item["category"] for item in result["analysis"]["suggestions"]],
             [item["category"] for item in result["guidance"]["next_actions"]],
@@ -384,8 +389,14 @@ class ReviewServiceTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn(self.service.review_key(MATCH_ID), self.cache.values)
 
     async def test_review_cache_key_isolated_from_prior_schema(self):
-        self.assertEqual(self.service.review_key(MATCH_ID), f"review:v{REVIEW_SCHEMA_VERSION}:{MATCH_ID}")
-        self.assertNotEqual(self.service.review_key(MATCH_ID), f"review:v{REVIEW_SCHEMA_VERSION - 1}:{MATCH_ID}")
+        self.assertEqual(
+            self.service.review_key(MATCH_ID),
+            f"review:v{REVIEW_SCHEMA_VERSION}:f{FORMULA_VERSION}:{MATCH_ID}",
+        )
+        self.assertNotEqual(
+            self.service.review_key(MATCH_ID),
+            f"review:v{REVIEW_SCHEMA_VERSION}:f{FORMULA_VERSION - 1}:{MATCH_ID}",
+        )
 
 
 if __name__ == "__main__":

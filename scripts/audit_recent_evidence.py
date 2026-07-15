@@ -12,6 +12,7 @@ if str(ROOT) not in sys.path:
 from analysis.analyzer import analyze_match
 from analysis.evidence_contract import review_evidence_gaps
 from api.opendota import OpenDotaClient
+from api.replay import ReplayEvidenceError, ValveReplayClient
 from api.stratz import StratzClient
 from config import ACCOUNT_ID, STRATZ_API_KEY
 
@@ -33,10 +34,13 @@ def audit_recent_matches(
     limit=10,
     opendota_client=None,
     stratz_client=None,
+    replay_client=None,
     analyze_fn=analyze_match,
+    allow_replay=True,
 ):
     opendota_client = opendota_client or OpenDotaClient()
     stratz_client = stratz_client or StratzClient()
+    replay_client = replay_client or ValveReplayClient()
     recent = opendota_client.get_recent_matches(
         account_id,
         limit=max(20, int(limit)),
@@ -61,15 +65,13 @@ def audit_recent_matches(
             audited.append(_audit_error(match_id, "PLAYER_DETAIL_UNAVAILABLE"))
             continue
         stratz_data = stratz_client.get_match_detail(match_id, include_playback=True)
-        if not isinstance(stratz_data, dict):
-            audited.append(_audit_error(match_id, "STRATZ_UNAVAILABLE"))
-            continue
 
         try:
             analysis = analyze_fn(
                 player,
                 stratz_data=stratz_data,
                 opendota_data=detail,
+                replay_data=None,
             )
         except Exception as exc:
             audited.append(_audit_error(match_id, f"ANALYSIS_{type(exc).__name__.upper()}"))
@@ -79,6 +81,39 @@ def audit_recent_matches(
             continue
 
         quality = analysis.get("data_quality") or {}
+        gaps = review_evidence_gaps(analysis)
+        replay_data = None
+        if gaps and allow_replay:
+            try:
+                replay_data = replay_client.get_match_evidence(
+                    match_id,
+                    account_id,
+                    detail,
+                )
+            except ReplayEvidenceError as exc:
+                audited.append(_audit_error(match_id, str(exc)))
+                continue
+            except Exception as exc:
+                audited.append(_audit_error(match_id, f"REPLAY_{type(exc).__name__.upper()}"))
+                continue
+            if (replay_data.get("validation") or {}).get("status") == "conflict":
+                audited.append(_audit_error(match_id, "REPLAY_VALIDATION_CONFLICT"))
+                continue
+            try:
+                analysis = analyze_fn(
+                    player,
+                    stratz_data=stratz_data,
+                    opendota_data=detail,
+                    replay_data=replay_data,
+                )
+            except Exception as exc:
+                audited.append(_audit_error(match_id, f"ANALYSIS_{type(exc).__name__.upper()}"))
+                continue
+            if not isinstance(analysis, dict):
+                audited.append(_audit_error(match_id, "ANALYSIS_UNAVAILABLE"))
+                continue
+            quality = analysis.get("data_quality") or {}
+
         ledger = quality.get("field_ledger") or []
         gaps = review_evidence_gaps(analysis)
         status_counts = Counter(
@@ -94,7 +129,12 @@ def audit_recent_matches(
             "quality_score": quality.get("score"),
             "blocking_gaps": gaps,
             "field_status_counts": dict(sorted(status_counts.items())),
-            "fetch_warnings": list(stratz_data.get("_fetch_warnings") or []),
+            "fetch_warnings": list(
+                stratz_data.get("_fetch_warnings") or []
+            ) if isinstance(stratz_data, dict) else ["STRATZ_UNAVAILABLE"],
+            "evidence_source": (
+                "valve_replay_gem" if replay_data else "stratz_opendota"
+            ),
         })
 
     complete_count = sum(item["complete"] for item in audited)

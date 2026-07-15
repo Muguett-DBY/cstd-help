@@ -1,8 +1,9 @@
+import math
 from copy import deepcopy
 
 
-REVIEW_SCHEMA_VERSION = 9
-FORMULA_VERSION = 4
+REVIEW_SCHEMA_VERSION = 14
+FORMULA_VERSION = 8
 
 
 _PRIORITY_POINTS = {"high": 50, "medium": 30, "low": 15}
@@ -20,7 +21,10 @@ _DIMENSION_ORDER = {
 
 
 def _number(value):
-    return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return None
+    number = float(value)
+    return number if math.isfinite(number) else None
 
 
 def _clamp(value, lower=0.0, upper=100.0):
@@ -40,6 +44,10 @@ def _input(identifier, label, value, source, unit=""):
         "unit": unit,
         "source": source,
     }
+
+
+def _performance_metric_source(performance, metric_id, fallback="OpenDota"):
+    return (performance.get("metric_sources") or {}).get(metric_id) or fallback
 
 
 def _benchmark_map(analysis):
@@ -109,7 +117,13 @@ def _lane_scorecard(analysis):
     inputs = []
     if lane_efficiency is not None:
         components.append({"label": "对线效率", "value": lane_efficiency, "weight": 0.65})
-        inputs.append(_input("lane_efficiency_pct", "对线效率", lane_efficiency, "OpenDota", "%"))
+        inputs.append(_input(
+            "lane_efficiency_pct",
+            "对线效率",
+            lane_efficiency,
+            _performance_metric_source(performance, "lane_efficiency_pct"),
+            "%",
+        ))
     target = lh_targets.get(role_id)
     if ten_lh is not None and target:
         lh_score = _clamp((ten_lh / target) * 100)
@@ -179,10 +193,43 @@ def _survival_scorecard(analysis):
     penalty = dead_share * 3 + objective_losses * 12 + resource_drops * 8
     score = _clamp(100 - min(100, penalty))
     inputs = [
-        _input("dead_time_share_pct", "死亡占时", dead_share, "OpenDota", "%"),
+        _input(
+            "dead_time_share_pct",
+            "死亡占时",
+            dead_share,
+            _performance_metric_source(performance, "dead_time_seconds"),
+            "%",
+        ),
         _input("death_objective_losses", "死亡后90秒目标损失", objective_losses, "死亡+目标事件", "次"),
         _input("death_resource_drops", "死亡后资源下降窗口", resource_drops, "分钟数组+死亡事件", "个"),
     ]
+    death_cost = events.get("death_cost_summary") or {}
+    if death_cost.get("available"):
+        cost_source = death_cost.get("source") or "死亡事件源"
+        if death_cost.get("gold_lost_available"):
+            inputs.append(_input(
+                "death_gold_lost",
+                "死亡丢失金钱",
+                death_cost["total_gold_lost"],
+                cost_source,
+                "金",
+            ))
+        if death_cost.get("gold_fed_available"):
+            inputs.append(_input(
+                "death_gold_fed",
+                "死亡给出金钱",
+                death_cost["total_gold_fed"],
+                cost_source,
+                "金",
+            ))
+        if death_cost.get("xp_fed_available"):
+            inputs.append(_input(
+                "death_xp_fed",
+                "死亡给出经验",
+                death_cost["total_xp_fed"],
+                cost_source,
+                "经验",
+            ))
     return _scorecard(
         "survival",
         "生存成本",
@@ -203,20 +250,31 @@ def _conversion_scorecard(analysis, benchmarks):
     participation = _number(performance.get("teamfight_participation_pct"))
     if participation is not None:
         components.append({"label": "参战率", "value": participation, "weight": 0.45})
-        inputs.append(_input("teamfight_participation_pct", "参战率", participation, "OpenDota", "%"))
+        inputs.append(_input(
+            "teamfight_participation_pct",
+            "参战率",
+            participation,
+            _performance_metric_source(performance, "teamfight_participation_pct"),
+            "%",
+        ))
     tower_percentile = _benchmark_percentile(benchmarks, "tower_damage")
     if tower_percentile is not None:
         components.append({"label": "建筑伤害百分位", "value": tower_percentile, "weight": 0.35})
         inputs.append(_input("tower_damage", "建筑伤害", tower_percentile, "OpenDota同英雄样本", "百分位"))
     windows = events.get("post_item_windows") or []
-    if windows:
+    evaluable_windows = [
+        item for item in windows
+        if item.get("evaluable") is not False
+        and item.get("classification") not in {"context_only", "insufficient_data"}
+    ]
+    if evaluable_windows:
         converted = sum(
-            1 for item in windows
+            1 for item in evaluable_windows
             if item.get("classification") not in {"low_conversion", "low_farm"}
             and not item.get("low_conversion")
             and not item.get("low_farm")
         )
-        conversion_rate = round(converted / len(windows) * 100, 1)
+        conversion_rate = round(converted / len(evaluable_windows) * 100, 1)
         components.append({"label": "装备后窗口转化率", "value": conversion_rate, "weight": 0.2})
         inputs.append(_input("post_item_conversion_rate", "装备后窗口转化", conversion_rate, "购买+参战+推塔事件", "%"))
     score, equation = _weighted_score(components)
@@ -239,7 +297,7 @@ def _role_scorecard(analysis, benchmarks):
     performance = analysis.get("performance_context") or {}
     extended = analysis.get("extended_metrics") or {}
     events = analysis.get("events") or {}
-    duration = max(_number(analysis.get("duration_min")) or 0, 1)
+    duration = _number(analysis.get("duration_min"))
     components = []
     inputs = []
 
@@ -247,13 +305,25 @@ def _role_scorecard(analysis, benchmarks):
         participation = _number(performance.get("teamfight_participation_pct"))
         if participation is not None:
             components.append({"label": "参战率", "value": participation, "weight": 0.45})
-            inputs.append(_input("teamfight_participation_pct", "参战率", participation, "OpenDota", "%"))
+            inputs.append(_input(
+                "teamfight_participation_pct",
+                "参战率",
+                participation,
+                _performance_metric_source(performance, "teamfight_participation_pct"),
+                "%",
+            ))
         vision_count = len(events.get("observer_wards") or []) + len(events.get("sentry_wards") or [])
-        if events.get("has_vision_log"):
+        if events.get("has_vision_log") and duration is not None and duration > 0:
             vision_per_ten = vision_count / duration * 10
             vision_score = _clamp(vision_per_ten / 2 * 100)
             components.append({"label": "每10分钟视野动作达成率", "value": vision_score, "weight": 0.55})
-            inputs.append(_input("vision_events_per_10", "每10分钟视野动作", round(vision_per_ten, 2), "OpenDota视野日志", "次"))
+            inputs.append(_input(
+                "vision_events_per_10",
+                "每10分钟视野动作",
+                round(vision_per_ten, 2),
+                (events.get("vision_source") or "视野事件"),
+                "次",
+            ))
             inputs.append(_input("vision_training_target", "训练阈值", 2, "系统规则", "次/10分钟"))
     else:
         for metric_id, label, weight in (
@@ -340,7 +410,7 @@ def _finding_dimension(category):
     category = str(category or "")
     if category == "death_objective_window":
         return "death_objective"
-    if category == "death_review":
+    if category in {"death_review", "buyback_redeath"}:
         return "death_frequency"
     if category.startswith("death_"):
         return "death_recovery"
@@ -390,6 +460,37 @@ def _finding_magnitude(category, analysis):
             _input("objective_severity_weight", severity_label, severity, severity_source, "分"),
         ], magnitude_equation
     if category in {"death_recovery", "death_resource_delta", "death_resource_overlap"}:
+        if category == "death_recovery":
+            count = sum(
+                1 for item in timeline.get("death_recovery_windows") or []
+                if item.get("status") in {"low", "interrupted"}
+            )
+            return min(35, count * 8), [
+                _input(
+                    "death_recovery_failures",
+                    "死亡后恢复不足或被再次死亡打断",
+                    count,
+                    "复活时间+分钟数组+下一次死亡",
+                    "个",
+                ),
+            ], "8x恢复不足或中断窗口数"
+        if category == "death_resource_overlap":
+            minutes = {
+                float(minute)
+                for window in timeline.get("death_overlap_windows") or []
+                for minute in window.get("death_minutes") or []
+                if _number(minute) is not None
+            }
+            count = len(minutes)
+            return min(35, count * 6), [
+                _input(
+                    "death_resource_overlap_deaths",
+                    "与低效率窗口重叠的死亡",
+                    count,
+                    "分钟数组+死亡事件",
+                    "次",
+                ),
+            ], "6x重叠死亡数"
         count = sum(
             1 for item in timeline.get("death_resource_deltas") or []
             if _is_meaningful_resource_drop(item)
@@ -397,14 +498,53 @@ def _finding_magnitude(category, analysis):
         return min(35, count * 8), [
             _input("death_resource_drop_windows", "死亡资源下降窗口", count, "分钟数组+死亡事件", "个"),
         ], "8x死亡资源下降窗口数"
-    if category == "death_review":
-        dead_share = _number(performance.get("dead_time_share_pct")) or 0
-        count = len(events.get("deaths") or [])
-        magnitude = min(35, dead_share * 0.8 + count * 1.8)
+    if category == "buyback_redeath":
+        short_windows = [
+            item for item in events.get("buyback_death_windows") or []
+            if item.get("short_redeath")
+            and _number(item.get("redeath_seconds")) is not None
+        ]
+        shortest = min(
+            (_number(item.get("redeath_seconds")) for item in short_windows),
+            default=120,
+        )
+        count = len(short_windows)
+        magnitude = min(35, count * 8 + max(0, 120 - shortest) / 4)
         return magnitude, [
-            _input("dead_time_share_pct", "死亡占时", dead_share, "OpenDota", "%"),
+            _input(
+                "short_buyback_redeaths",
+                "买活后120秒内再次死亡",
+                count,
+                "买活+死亡事件",
+                "次",
+            ),
+            _input(
+                "shortest_buyback_redeath_seconds",
+                "最短买活后再死间隔",
+                shortest,
+                "买活+死亡事件",
+                "秒",
+            ),
+        ], "min(35,8x短间隔次数+max(0,120-最短间隔秒)/4)"
+    if category == "death_review":
+        dead_share = _number(performance.get("dead_time_share_pct"))
+        count = len(events.get("deaths") or [])
+        inputs = [
             _input("timed_death_count", "有时间戳死亡", count, "死亡事件", "次"),
-        ], "min(35,0.8x死亡占时%+1.8x死亡数)"
+        ]
+        magnitude = count * 1.8
+        equation = "min(35,1.8x死亡数)"
+        if dead_share is not None:
+            magnitude += dead_share * 0.8
+            inputs.insert(0, _input(
+                "dead_time_share_pct",
+                "死亡占时",
+                dead_share,
+                _performance_metric_source(performance, "dead_time_seconds"),
+                "%",
+            ))
+            equation = "min(35,0.8x死亡占时%+1.8x死亡数)"
+        return min(35, magnitude), inputs, equation
     if category == "death_position_pattern":
         count = len(events.get("death_position_clusters") or [])
         return min(35, count * 7), [
@@ -424,13 +564,26 @@ def _finding_magnitude(category, analysis):
         lane = _number(performance.get("lane_efficiency_pct"))
         low_count = len([
             item for item in timeline.get("low_efficiency_windows") or []
-            if (item.get("start_minute") or 0) < 10
+            if _number(item.get("start_minute")) is not None
+            and _number(item.get("start_minute")) < 10
         ])
-        gap = max(0, 70 - lane) if lane is not None else 0
-        return min(35, gap * 0.8 + low_count * 6), [
-            _input("lane_efficiency_gap", "距70%训练阈值", round(gap, 1), "OpenDota+系统规则", "个百分点"),
+        inputs = [
             _input("early_low_efficiency_windows", "前10分钟低效窗口", low_count, "分钟数组", "个"),
-        ], "0.8x(70-对线效率)+6x前10分钟低效窗口"
+        ]
+        magnitude = low_count * 6
+        equation = "6x前10分钟低效窗口"
+        if lane is not None:
+            gap = max(0, 70 - lane)
+            magnitude += gap * 0.8
+            inputs.insert(0, _input(
+                "lane_efficiency_gap",
+                "距70%训练阈值",
+                round(gap, 1),
+                "OpenDota+系统规则",
+                "个百分点",
+            ))
+            equation = "0.8x(70-对线效率)+6x前10分钟低效窗口"
+        return min(35, magnitude), inputs, equation
     if category == "resource_continuity":
         windows = timeline.get("low_efficiency_windows") or []
         death_minutes = [
@@ -453,17 +606,64 @@ def _finding_magnitude(category, analysis):
         ], "7x非死亡重叠低效率窗口数"
     if category == "map_impact":
         participation = _number(performance.get("teamfight_participation_pct"))
-        gap = max(0, 40 - participation) if participation is not None else 0
+        if participation is None:
+            return 0, [], "参战率缺失，不加幅度分"
+        gap = max(0, 40 - participation)
         return min(35, gap), [
-            _input("teamfight_participation_gap", "距40%参战训练阈值", round(gap, 1), "OpenDota+系统规则", "个百分点"),
+            _input(
+                "teamfight_participation_gap",
+                "距40%参战训练阈值",
+                round(gap, 1),
+                f"{_performance_metric_source(performance, 'teamfight_participation_pct')}+系统规则",
+                "个百分点",
+            ),
         ], "max(0,40-参战率)"
     return 5, [
         _input("verified_rule_trigger", "已触发可验证规则", 1, "确定性发现规则", "条"),
     ], "固定可验证问题权重"
 
 
+def _objective_linked_death_minutes(analysis):
+    minutes = []
+    for item in (analysis.get("events") or {}).get("death_objective_windows") or []:
+        minute = _number(item.get("death_minute"))
+        if minute is None:
+            death_time = _number(item.get("death_time"))
+            minute = round(death_time / 60, 1) if death_time is not None else None
+        if minute is not None and minute not in minutes:
+            minutes.append(minute)
+    return minutes
+
+
+def _resource_finding_death_minutes(category, analysis):
+    timeline = analysis.get("timeline") or {}
+    if category == "death_resource_overlap":
+        return [
+            minute
+            for window in timeline.get("death_overlap_windows") or []
+            for minute in window.get("death_minutes") or []
+            if _number(minute) is not None
+        ]
+    if category == "death_resource_delta":
+        return [
+            _number(item.get("minute"))
+            for item in timeline.get("death_resource_deltas") or []
+            if _is_meaningful_resource_drop(item)
+            and _number(item.get("minute")) is not None
+        ]
+    if category == "death_recovery":
+        return [
+            _number(item.get("minute"))
+            for item in timeline.get("death_recovery_windows") or []
+            if item.get("status") in {"low", "interrupted"}
+            and _number(item.get("minute")) is not None
+        ]
+    return []
+
+
 def actionable_findings(analysis):
     findings = []
+    objective_death_minutes = _objective_linked_death_minutes(analysis)
     for item in (analysis or {}).get("review_findings") or []:
         if not isinstance(item, dict):
             continue
@@ -480,6 +680,13 @@ def actionable_findings(analysis):
             continue
         if category == "death_position_pattern":
             continue
+        if category in {"death_resource_overlap", "death_resource_delta", "death_recovery"}:
+            resource_death_minutes = _resource_finding_death_minutes(category, analysis)
+            if resource_death_minutes and objective_death_minutes and all(
+                any(abs(minute - objective_minute) <= 0.15 for objective_minute in objective_death_minutes)
+                for minute in resource_death_minutes
+            ):
+                continue
         if category == "resource_continuity":
             windows = (analysis.get("timeline") or {}).get("low_efficiency_windows") or []
             deaths = (analysis.get("events") or {}).get("deaths") or []
@@ -504,7 +711,7 @@ def actionable_findings(analysis):
 
 def score_review_findings(analysis):
     quality = _number((analysis.get("data_quality") or {}).get("score"))
-    confidence_points = round((quality or 0) * 0.1, 1)
+    confidence_points = round(quality * 0.1, 1) if quality is not None else 0
     scored = []
     for index, source in enumerate(actionable_findings(analysis)):
         if not isinstance(source, dict):
@@ -514,19 +721,27 @@ def score_review_findings(analysis):
         priority_points = _PRIORITY_POINTS.get(finding.get("priority"), 20)
         magnitude_points, magnitude_inputs, magnitude_equation = _finding_magnitude(category, analysis)
         formula_score = _clamp(priority_points + magnitude_points + confidence_points)
+        quality_inputs = (
+            [_input("evidence_completeness", "证据完整度", quality, "字段覆盖账本", "%")]
+            if quality is not None else []
+        )
+        confidence_formula = (
+            f"证据完整度{confidence_points:g}"
+            if quality is not None else "证据完整度缺失，不加分"
+        )
         finding.update({
             "formula_score": formula_score,
             "formula_id": f"dota_review_v{FORMULA_VERSION}.finding_priority",
             "formula": (
                 f"min(100, 优先级{priority_points} + "
                 f"幅度{magnitude_points:g}[{magnitude_equation}] + "
-                f"证据完整度{confidence_points:g})"
+                f"{confidence_formula})"
             ),
             "formula_inputs": [
                 _input("priority_points", "规则优先级", priority_points, "确定性发现规则", "分"),
                 *magnitude_inputs,
                 _input("impact_points", f"影响幅度：{magnitude_equation}", magnitude_points, "确定性幅度公式", "分"),
-                _input("evidence_completeness", "证据完整度", quality or 0, "字段覆盖账本", "%"),
+                *quality_inputs,
             ],
             "dimension": _finding_dimension(category),
             "source_index": index,
@@ -586,7 +801,10 @@ def build_formula_review(analysis):
     if findings:
         top = findings[0]
         label = top.get("category_label") or top.get("category") or "本局重点"
-        conclusion = f"{label}以{top['formula_score']:.1f}分列为首要训练项：{top.get('evidence') or '已有比赛证据'}"
+        conclusion = (
+            f"{label}以{top['formula_score']:.1f}分列为首要训练项；"
+            "排序只使用规则优先级、真实影响幅度和证据完整度。"
+        )
     else:
         conclusion = "现有真实字段没有触发问题规则，本局保留分项得分与事实数据。"
 

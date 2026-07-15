@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ hero_name }} 复盘报告 - {{ match_date }}</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="static/style.css">
+    <link rel="stylesheet" href="static/style.css?v={{ report_asset_version }}">
 </head>
 <body>
 <a class="skip-link" href="#report-main">跳到复盘正文</a>
@@ -14,22 +14,28 @@
     <div class="header" id="report-top">
         <a class="back-link" href="index.html">&larr; 比赛历史</a>
         <h1>{{ hero_name }} 复盘报告</h1>
-        <div class="subtitle">比赛ID: {{ match_id }} | 结束于 {{ match_date }} | 时长 {{ duration_min }}分钟</div>
-        <div class="result-badge {{ 'win' if is_win else 'lose' }}">{{ '胜利' if is_win else '失败' }}</div>
+        <div class="subtitle">比赛ID: {{ match_id }} | 结束于 {{ match_date }} | 时长 {{ duration_label }}</div>
+        {% if is_win is sameas true %}
+        <div class="result-badge win">胜利</div>
+        {% elif is_win is sameas false %}
+        <div class="result-badge lose">失败</div>
+        {% else %}
+        <div class="result-badge unknown">比赛结果未获取</div>
+        {% endif %}
     </div>
 
     <nav class="report-section-nav" aria-label="报告章节">
         <div class="report-section-nav-track">
             <span class="report-section-nav-label">本局复盘</span>
-            {% if review_findings %}<a class="report-section-link" href="#decision-snapshot" data-report-section-link>决策卡</a>{% endif %}
+            {% if priority_findings %}<a class="report-section-link" href="#decision-snapshot" data-report-section-link>决策卡</a>{% endif %}
             {% if guidance %}<a class="report-section-link" href="#formula-summary" data-report-section-link>公式结论</a>{% endif %}
-            {% if review_findings %}<a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>{% endif %}
+            {% if priority_findings %}<a class="report-section-link" href="#next-actions" data-report-section-link>下一局</a>{% endif %}
             <a class="report-section-link" href="#match-overview" data-report-section-link>比赛数据</a>
             {% if performance_context and performance_context.available %}<a class="report-section-link" href="#performance-context" data-report-section-link>表现画像</a>{% endif %}
             {% if opendota_benchmarks and opendota_benchmarks.available %}<a class="report-section-link" href="#hero-benchmarks" data-report-section-link>英雄百分位</a>{% endif %}
             {% if timeline %}<a class="report-section-link" href="#timeline-diagnosis" data-report-section-link>时间线</a>{% endif %}
             {% if events %}<a class="report-section-link" href="#match-events" data-report-section-link>事件</a>{% endif %}
-            {% if review_findings %}<a class="report-section-link" href="#review-findings" data-report-section-link>问题证据</a>{% endif %}
+            {% if scored_findings %}<a class="report-section-link" href="#review-findings" data-report-section-link>问题证据</a>{% endif %}
             <a class="report-section-link" href="#item-analysis" data-report-section-link>出装</a>
             <a class="report-top-link" href="#report-top" aria-label="返回报告顶部" title="返回报告顶部">&uarr;</a>
         </div>
@@ -37,8 +43,8 @@
 
     <main id="report-main">
 
-    {% if review_findings %}
-    {% set primary_finding = review_findings[0] %}
+    {% if priority_findings %}
+    {% set primary_finding = priority_findings[0] %}
     <section class="section priority-section decision-snapshot {{ primary_finding.priority }}" id="decision-snapshot" data-decision-snapshot>
         <div class="section-header">&#127919; 上分决策卡</div>
         <div class="section-body">
@@ -57,7 +63,6 @@
                     <div class="decision-panel active" id="decision-panel-action" role="tabpanel" data-decision-panel="action">
                         <strong>下一局只执行</strong>
                         <p>{{ primary_finding.action }}</p>
-                        <small>{{ primary_finding.training_goal }}</small>
                     </div>
                     <div class="decision-panel" id="decision-panel-evidence" role="tabpanel" data-decision-panel="evidence" hidden>
                         <strong>本局证据</strong>
@@ -147,12 +152,12 @@
     </div>
     {% endif %}
 
-    {% if review_findings %}
+    {% if priority_findings %}
     <div class="section priority-section" id="next-goals">
         <div class="section-header">&#127919; 下一局量化目标</div>
         <div class="section-body">
             <div class="goal-list">
-                {% for finding in review_findings[:5] %}
+                {% for finding in priority_findings %}
                 <div class="goal-row">
                     <div class="goal-title">{{ finding.category_label or finding.category }}</div>
                     <div class="goal-body"><strong>训练目标:</strong> {{ finding.training_goal }}</div>
@@ -166,14 +171,12 @@
     <div class="section priority-section" id="next-actions">
         <div class="section-header">&#127919; 下一局行动清单</div>
         <div class="section-body">
-            {% for finding in review_findings[:5] %}
+            {% for finding in priority_findings %}
             <div class="finding-card {{ finding.priority }}">
                 <div class="finding-title">{{ finding.priority_label or finding.priority }} · {{ finding.category_label or finding.category }}</div>
                 <div class="finding-line"><strong>证据:</strong> {{ finding.evidence }}</div>
                 <div class="finding-line"><strong>影响:</strong> {{ finding.why_it_matters }}</div>
                 <div class="finding-line"><strong>行动:</strong> {{ finding.action }}</div>
-                <div class="finding-line"><strong>训练目标:</strong> {{ finding.training_goal }}</div>
-                <div class="finding-line"><strong>验收标准:</strong> {{ finding.success_metric }}</div>
                 <div class="finding-line muted"><strong>系统检查:</strong> {{ finding.replay_check }}</div>
             </div>
             {% endfor %}
@@ -183,12 +186,24 @@
 
     {% if data_quality %}
     <div class="section" id="data-quality">
-        <div class="section-header">&#128269; 数据完整性</div>
+        <div class="section-header">&#128269; 复盘证据完整度</div>
         <div class="section-body">
+            {% if data_quality.source_reconciliation and data_quality.source_reconciliation.checks %}
+            <div class="subsection-title">证据源对账</div>
+            <div class="reconciliation-list">
+                {% for item in data_quality.source_reconciliation.checks %}
+                <div class="reconciliation-row {{ item.status }}">
+                    <strong>{{ item.label or item.metric }}</strong>
+                    <span>{{ item.left_label or 'OpenDota' }} {{ item.api_value }} / {{ item.right_label or 'Valve回放' }} {{ item.replay_value }}</span>
+                    <b>{% if item.status == 'matched' %}一致{% else %}差值 {{ item.delta }}{% endif %}</b>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
             <div class="quality-row">
                 <div class="quality-score">{{ data_quality.score }}/100</div>
                 <div>
-                    <div class="quality-label">可用数据：{{ data_quality.available|join(', ') }}</div>
+                    <div class="quality-label">可用数据：{{ data_quality.available_labels|join('、') }}</div>
                     <div class="quality-label">数据缺口</div>
                     {% if data_quality.limitations %}
                     <ul class="limitation-list">
@@ -197,7 +212,7 @@
                         {% endfor %}
                     </ul>
                     {% else %}
-                    <div class="compact-row">无关键数据缺口。</div>
+                    <div class="compact-row">无关键复盘数据缺口。</div>
                     {% endif %}
                 </div>
             </div>
@@ -353,15 +368,15 @@
             {% if timeline.available %}
             <div class="stat-grid">
                 <div class="stat-card">
-                    <div class="stat-value">{{ timeline.ten_min_last_hits }}</div>
+                    <div class="stat-value">{{ timeline.ten_min_last_hits if timeline.ten_min_last_hits is not none else '未获取' }}</div>
                     <div class="stat-label">10分钟补刀</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">{{ timeline.twenty_min_last_hits or '-' }}</div>
+                    <div class="stat-value">{{ timeline.twenty_min_last_hits if timeline.twenty_min_last_hits is not none else '未获取' }}</div>
                     <div class="stat-label">20分钟补刀</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">{{ timeline.twenty_min_avg_gpm or '-' }}</div>
+                    <div class="stat-value">{{ timeline.twenty_min_avg_gpm if timeline.twenty_min_avg_gpm is not none else '未获取' }}</div>
                     <div class="stat-label">20分钟平均GPM</div>
                 </div>
             </div>
@@ -386,9 +401,9 @@
                         <td>{{ phase.label }}分钟</td>
                         <td>{{ phase.lh_per_min }}</td>
                         <td>{{ phase.last_hits }}</td>
-                        <td>{{ phase.avg_gpm }}</td>
-                        <td>{{ phase.hero_damage }}</td>
-                        <td>{{ phase.tower_damage }}</td>
+                        <td>{{ phase.avg_gpm if phase.avg_gpm is not none else '未获取' }}</td>
+                        <td>{{ phase.hero_damage if phase.hero_damage is not none else '未获取' }}</td>
+                        <td>{{ phase.tower_damage if phase.tower_damage is not none else '未获取' }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -402,9 +417,9 @@
                     </div>
                     <div class="timeline-phase-metrics">
                         <span><strong>{{ phase.last_hits }}</strong><small>正补</small></span>
-                        <span><strong>{{ phase.avg_gpm }}</strong><small>平均GPM</small></span>
-                        <span><strong>{{ phase.hero_damage }}</strong><small>英雄伤害</small></span>
-                        <span><strong>{{ phase.tower_damage }}</strong><small>推塔伤害</small></span>
+                        <span><strong>{{ phase.avg_gpm if phase.avg_gpm is not none else '未获取' }}</strong><small>平均GPM</small></span>
+                        <span><strong>{{ phase.hero_damage if phase.hero_damage is not none else '未获取' }}</strong><small>英雄伤害</small></span>
+                        <span><strong>{{ phase.tower_damage if phase.tower_damage is not none else '未获取' }}</strong><small>推塔伤害</small></span>
                     </div>
                 </div>
                 {% endfor %}
@@ -428,8 +443,12 @@
             <div class="subsection-title">死亡后恢复窗口</div>
             {% for window in timeline.death_recovery_windows[:8] %}
             <div class="compact-row">
-                {{ window.minute }}分死亡后{{ window.window_label }}：
+                {% if window.status == 'interrupted' %}
+                {{ window.evidence_label }}。
+                {% else %}
+                {{ window.minute }}分复活后{{ window.window_label }}：
                 {% if window.lh_gain is not none %}{{ window.lh_gain }}补{% else %}无补刀数组{% endif %}{% if window.avg_gpm is not none %}，平均GPM {{ window.avg_gpm }}{% endif %}，{{ window.status_label }}。
+                {% endif %}
             </div>
             {% endfor %}
             {% endif %}
@@ -505,10 +524,9 @@
                     <strong>{{ events.death_objective_drill.title }}</strong>
                     <div><span>触发:</span> {{ events.death_objective_drill.trigger }}</div>
                     <div><span>执行:</span> {{ events.death_objective_drill.rule }}</div>
-                    <div><span>验收:</span> {{ events.death_objective_drill.success_metric }}</div>
                     <div class="muted"><span>证据窗口:</span> {{ events.death_objective_drill.evidence }}</div>
                     {% if events.death_objective_drill.checklist %}
-                    <div class="objective-drill-checklist" aria-label="目标前90秒证据检查点">
+                    <div class="objective-drill-checklist" aria-label="目标窗口自动证据">
                         {% for item in events.death_objective_drill.checklist %}
                         <div class="objective-drill-check">
                             <span>{{ item.label }}</span>
@@ -546,10 +564,28 @@
             {% for window in events.post_item_windows[:8] %}
             {% if window.window_type == 'farm_acceleration' %}
             <div class="compact-row">{{ window.item_name }} {{ window.minute }}分：后5分钟刷钱 {{ window.lh_gain }} 补，平均GPM {{ window.avg_gpm }}</div>
+            {% elif window.evaluable == false %}
+            <div class="compact-row muted">{{ window.summary }}</div>
             {% else %}
             <div class="compact-row">{{ window.item_name }} {{ window.minute }}分：参战 {{ window.kills_or_assists }} 次，推塔伤害 {{ window.tower_damage }}</div>
             {% endif %}
             {% endfor %}
+            {% endif %}
+            {% if events.buyback_death_windows %}
+            <div class="subsection-title">买活与再次死亡</div>
+            <div class="buyback-event-strip">
+                {% for window in events.buyback_death_windows %}
+                <div class="compact-row{% if window.short_redeath %} danger{% endif %}">
+                    <strong>{{ window.buyback_minute }}分买活</strong>
+                    {% if window.death_time is not none %}
+                    <span>→ {{ window.death_minute }}分再次死亡 · 间隔{{ window.redeath_seconds }}秒</span>
+                    {% else %}
+                    <span>→ 本局此后未再次死亡</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="compact-row muted">来源：真实买活事件与死亡时间线；短窗口阈值为120秒训练规则，不代表再次死亡的具体原因。</div>
             {% endif %}
             <div class="subsection-title">死亡时间</div>
             {% if events.deaths %}
@@ -572,6 +608,21 @@
                         <span>重复簇</span>
                     </div>
                 </div>
+                {% if events.death_cost_summary and events.death_cost_summary.covered_deaths %}
+                <div class="death-cost-summary" aria-label="死亡事件真实成本">
+                    <strong>死亡事件真实成本</strong>
+                    <span>覆盖 {{ events.death_cost_summary.covered_deaths }}/{{ events.death_count_observed }} 次</span>
+                    {% if events.death_cost_summary.dead_time_available %}
+                    <span>死亡 {{ events.death_cost_summary.total_dead_seconds }} 秒</span>
+                    {% endif %}
+                    {% if events.death_cost_summary.gold_lost_available %}
+                    <span>丢失 {{ events.death_cost_summary.total_gold_lost }} 金</span>
+                    {% endif %}
+                    {% if events.death_cost_summary.gold_fed_available or events.death_cost_summary.xp_fed_available %}
+                    <span>送出{% if events.death_cost_summary.gold_fed_available %} {{ events.death_cost_summary.total_gold_fed }} 金{% endif %}{% if events.death_cost_summary.gold_fed_available and events.death_cost_summary.xp_fed_available %} /{% endif %}{% if events.death_cost_summary.xp_fed_available %} {{ events.death_cost_summary.total_xp_fed }} 经验{% endif %}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
                 <div class="death-review-body">
             {% endif %}
             {% if events.deaths %}
@@ -587,9 +638,12 @@
             {% endif %}
             {% if events.deaths %}
             <div class="death-event-grid" id="death-event-list">
-                {% for item in events.deaths[:10] %}
+                {% for item in events.deaths %}
                 <div class="death-event-card{% if item.position_cluster_label %} repeat-position{% endif %}">
                     <span class="event-pill danger">{{ item.minute }}分</span>
+                    {% if item.killer_hero_name %}
+                    <span class="death-position-label">击杀者：{{ item.killer_hero_name }}</span>
+                    {% endif %}
                     {% if item.position_cluster_label %}
                     <span class="event-pill warning">重复坐标</span>
                     {% endif %}
@@ -600,6 +654,20 @@
                     {% endif %}
                     {% if item.position_cluster_label %}
                     <span class="death-position-label repeat">{{ item.position_cluster_label }}</span>
+                    {% endif %}
+                    {% if (item.time_dead is defined and item.time_dead is not none) or (item.gold_lost is defined and item.gold_lost is not none) or (item.gold_fed is defined and item.gold_fed is not none) or (item.xp_fed is defined and item.xp_fed is not none) %}
+                    <div class="death-event-cost">
+                        {% if item.time_dead is defined and item.time_dead is not none %}
+                            {% if item.time_dead_source == 'valve_replay_life_state' and (item.respawn_observed_at is not defined or item.respawn_observed_at is none) %}
+                            <span>回放终局前至少死亡 {{ item.time_dead }} 秒</span>
+                            {% else %}
+                            <span>死亡 {{ item.time_dead }} 秒</span>
+                            {% endif %}
+                        {% endif %}
+                        {% if item.gold_lost is defined and item.gold_lost is not none %}<span>丢失 {{ item.gold_lost }} 金</span>{% endif %}
+                        {% if item.gold_fed is defined and item.gold_fed is not none %}<span>送出 {{ item.gold_fed }} 金</span>{% endif %}
+                        {% if item.xp_fed is defined and item.xp_fed is not none %}<span>送出 {{ item.xp_fed }} 经验</span>{% endif %}
+                    </div>
                     {% endif %}
                     {% if item.context_lines %}
                     <div class="death-context-list" aria-label="死亡证据上下文">
@@ -642,7 +710,7 @@
                 {% if events.death_position_clusters %}
                 <div class="death-coordinate-clusters" id="death-coordinate-clusters">
                     <div class="death-coordinate-cluster-title">重复死亡坐标簇</div>
-                    <div class="death-coordinate-note">只按 STRATZ 原始x/y距离聚类；不生成地图区域名；报告只展示原始样本，不把入口/线口/目标区作为结论。</div>
+                    <div class="death-coordinate-note">只按 {{ death_position_source }}的原始x/y距离聚类；不生成地图区域名；报告只展示原始样本，不把入口/线口/目标区作为结论。</div>
                     {% for cluster in events.death_position_clusters[:6] %}
                     <div class="death-coordinate-cluster-row">
                         <strong>{{ cluster.evidence_label }}</strong>
@@ -664,15 +732,19 @@
     </div>
     {% endif %}
 
-    {% if review_findings %}
+    {% if scored_findings %}
     <div class="section" id="review-findings">
         <div class="section-header">&#128204; 本局主要问题证据</div>
         <div class="section-body">
-            {% for finding in review_findings[:5] %}
+            {% if secondary_findings %}
+            {% for finding in secondary_findings[:6] %}
             <div class="compact-row">
-                <strong>{{ finding.category_label or finding.category }}</strong>：{{ finding.evidence }} {{ finding.why_it_matters }}
+                <strong>{{ finding.category_label or finding.category }}</strong>{% if finding.formula_score is not none %}（{{ finding.formula_score }}分）{% endif %}：{{ finding.evidence }} {{ finding.why_it_matters }}
             </div>
             {% endfor %}
+            {% else %}
+            <div class="compact-row muted">主要证据已并入上方行动清单；本局没有额外的独立训练问题。</div>
+            {% endif %}
         </div>
     </div>
     {% endif %}
@@ -803,7 +875,7 @@
     </main>
 
     <div class="footer">
-        D2PT 复盘系统 | 数据来源: OpenDota + Stratz + Dota2ProTracker | {{ generated_at }}
+        DOTA2 复盘系统 | {{ generated_at }}
     </div>
 
 </div>
