@@ -2724,7 +2724,7 @@ def _build_death_objective_drill(windows, deaths=None):
             _death_objective_kind_weight(item) for item in focus_windows
         ),
         "evidence": evidence,
-        "trigger": f"下一局每次准备参与{objective_label}或同级关键目标前90秒",
+        "trigger": f"下一局每次准备参与{objective_label}或同类地图目标前90秒",
         "rule": local_rule,
         "checklist": checklist,
         "training_goal": f"下一局执行「目标前90秒生存规则」，把围绕{objective_label}的死亡/目标损失窗口清零。",
