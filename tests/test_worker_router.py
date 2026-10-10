@@ -135,6 +135,20 @@ class WorkerRouterTests(unittest.IsolatedAsyncioTestCase):
 
 
 class WorkerDeploymentContractTests(unittest.TestCase):
+    def test_cloud_writes_require_explicit_opt_in_but_ci_does_not(self):
+        workflow = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
+        self.assertIn("pull_request:", workflow)
+        for step in workflow.split("      - name: ")[1:]:
+            if any(command in step for command in ("pywrangler deploy", "pages deploy", "Validate deployment credentials")):
+                self.assertIn("vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'", step)
+                self.assertIn("github.event_name != 'pull_request'", step)
+            elif step.startswith(("Run unit tests", "Compile Python sources", "Validate static Pages site")):
+                self.assertNotIn("if:", step)
+        for filename in ("on-demand-review.yml", "on-demand-match-refresh.yml"):
+            remote_job = (ROOT / ".github/workflows" / filename).read_text(encoding="utf-8")
+            job_header = remote_job.split("jobs:\n", 1)[1].split("    steps:", 1)[0]
+            self.assertIn("    if: vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'", job_header)
+
     def test_worker_config_declares_python_kv_and_api_route_without_model_binding(self):
         config = (ROOT / "wrangler.toml").read_text(encoding="utf-8")
 

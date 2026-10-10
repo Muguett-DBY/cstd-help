@@ -2,9 +2,11 @@
 
 **A personal match-review workbench that turns match data into practical next-game actions.**
 
-[Open the workbench](https://dota.custard.top) · [Analysis engine](docs/ANALYSIS_ENGINE.md) · [Known limitations](docs/KNOWN_LIMITATIONS.md)
+[Analysis engine](docs/ANALYSIS_ENGINE.md) · [Known limitations](docs/KNOWN_LIMITATIONS.md) · [Deployment status](docs/DEPLOYMENT_STATUS.md)
 
 `Python` · `Cloudflare Workers` · `OpenDota` · `STRATZ`
+
+**Status:** the hosted service is offline. Local development and CI remain available; Cloudflare deployment and remote cache jobs are disabled by default.
 
 ## How it works
 

@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   fetch-evidence:
+    if: vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

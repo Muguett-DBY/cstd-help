@@ -1,3 +1,4 @@
+# Hosted resources were retired. See docs/DEPLOYMENT_STATUS.md before deploying.
 name = "cstd-help-api"
 main = ".worker-build/worker_entry.py"
 base_dir = ".worker-build"
