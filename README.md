@@ -54,3 +54,5 @@ python -m uv run --no-sync python -m unittest discover -s tests -p "test*.py"
 ```
 
 The workflow is configured for a fixed player account, not a general public review service.
+
+Original code is available for noncommercial use under [PolyForm Noncommercial 1.0.0](LICENSE). See [license scope and third-party assets](docs/LICENSE_SCOPE.md).
