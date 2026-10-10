@@ -1,10 +1,19 @@
-# CSTD Help · Dota 2 Review
+<!-- Project artwork created for this repository. -->
+<p align="center">
+  <img src="./docs/assets/readme-banner.svg" width="100%" alt="CSTD Help — Turn match evidence into the next thing to practise." />
+</p>
+
+<h1 align="center">CSTD Help</h1>
+
+<p align="center">
+  <img src="./docs/assets/readme-badges.svg" alt="Hosted service offline · Python · Cloudflare Workers · OpenDota · STRATZ" />
+</p>
 
 **A personal match-review workbench that turns match data into practical next-game actions.**
 
-[Analysis engine](docs/ANALYSIS_ENGINE.md) · [Known limitations](docs/KNOWN_LIMITATIONS.md) · [Deployment status](docs/DEPLOYMENT_STATUS.md)
+<p align="center"><a href="#how-it-works">How it works</a> &nbsp; · &nbsp; <a href="#run-locally">Run locally</a> &nbsp; · &nbsp; <a href="#code-and-checks">Code and checks</a></p>
 
-`Python` · `Cloudflare Workers` · `OpenDota` · `STRATZ`
+[Analysis engine](docs/ANALYSIS_ENGINE.md) · [Known limitations](docs/KNOWN_LIMITATIONS.md) · [Deployment status](docs/DEPLOYMENT_STATUS.md)
 
 **Status:** the hosted service is offline. Local development and CI remain available; Cloudflare deployment and remote cache jobs are disabled by default.
 
